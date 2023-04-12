@@ -1,0 +1,68 @@
+-------------------------
+ Start tecnicianJobAssign function
+checkAlreadyTime == true 
+Insert new tech_assign_job:
+INSERT INTO `technician_job_assign` (`technician_id`, `user_id`, `company_id`, `customer_id`, `job_id`, `program_id`, `property_id`, `job_assign_date`, `job_assign_notes`, `route_id`) VALUES ('eb520621b8a9cb513147a99d50eb8068', 'eb520621b8a9cb513147a99d50eb8068', '1', '22395', '1147', '1070', '25016', '2021-06-08', '', '2796')
+New Row ID = 28801
+Insert new tech_assign_job:
+INSERT INTO `technician_job_assign` (`technician_id`, `user_id`, `company_id`, `customer_id`, `job_id`, `program_id`, `property_id`, `job_assign_date`, `job_assign_notes`, `route_id`) VALUES ('eb520621b8a9cb513147a99d50eb8068', 'eb520621b8a9cb513147a99d50eb8068', '1', '22395', '1148', '1070', '25016', '2021-06-08', '', '2796')
+New Row ID = 28802
+
+
+begin foreach tech_assigned_jobs
+
+
+assigned_data QRY: 
+SELECT `technician_job_assign_id`, `first_name`, `last_name`, `billing_street`, `billing_street_2`, `program_name`, `customers`.`customer_id`, `programs`.`program_id`, `technician_job_assign`.`property_id`, `yard_square_feet`, `invoice_id`, `category_area_name`, `is_job_mode`, `job_name`, `user_first_name`, `user_last_name`, `technician_job_assign`.`job_assign_date`, `property_address`, `job_assign_updated_date`, `jobs`.`job_id`, `job_price`, `technician_job_assign`.`technician_id`, `job_assign_notes`, `technician_job_assign`.`route_id`, `route_name`, `is_time_check`, TIME_FORMAT (`specific_time`, '%H:%i') as  specific_time, `property_title`
+FROM `technician_job_assign`
+INNER JOIN `customers` ON `customers`.`customer_id` = `technician_job_assign`.`customer_id`
+INNER JOIN `programs` ON `programs`.`program_id` = `technician_job_assign`.`program_id`
+INNER JOIN `property_tbl` ON `property_tbl`.`property_id` = `technician_job_assign`.`property_id`
+INNER JOIN `route` ON `route`.`route_id` = `technician_job_assign`.`route_id`
+LEFT JOIN `category_property_area` ON `category_property_area`.`property_area_cat_id` = `property_tbl`.`property_area`
+INNER JOIN `jobs` ON `jobs`.`job_id`=`technician_job_assign`.`job_id`
+INNER JOIN `users` ON `users`.`user_id`=`technician_job_assign`.`technician_id`
+WHERE `technician_job_assign_id` = 28801
+
+
+TECH ASSIGN ID: 28801
+PROPERTY ID: 25016
+PROGRAM ID: 1070
+JOB ID: 1147
+
+
+
+checkInvMethod Qry:
+SELECT *
+FROM `programs`
+WHERE `program_id` = '1070'
+PROGRAM PRICE = 1
+
+
+assigned_data QRY: 
+SELECT `technician_job_assign_id`, `first_name`, `last_name`, `billing_street`, `billing_street_2`, `program_name`, `customers`.`customer_id`, `programs`.`program_id`, `technician_job_assign`.`property_id`, `yard_square_feet`, `invoice_id`, `category_area_name`, `is_job_mode`, `job_name`, `user_first_name`, `user_last_name`, `technician_job_assign`.`job_assign_date`, `property_address`, `job_assign_updated_date`, `jobs`.`job_id`, `job_price`, `technician_job_assign`.`technician_id`, `job_assign_notes`, `technician_job_assign`.`route_id`, `route_name`, `is_time_check`, TIME_FORMAT (`specific_time`, '%H:%i') as  specific_time, `property_title`
+FROM `technician_job_assign`
+INNER JOIN `customers` ON `customers`.`customer_id` = `technician_job_assign`.`customer_id`
+INNER JOIN `programs` ON `programs`.`program_id` = `technician_job_assign`.`program_id`
+INNER JOIN `property_tbl` ON `property_tbl`.`property_id` = `technician_job_assign`.`property_id`
+INNER JOIN `route` ON `route`.`route_id` = `technician_job_assign`.`route_id`
+LEFT JOIN `category_property_area` ON `category_property_area`.`property_area_cat_id` = `property_tbl`.`property_area`
+INNER JOIN `jobs` ON `jobs`.`job_id`=`technician_job_assign`.`job_id`
+INNER JOIN `users` ON `users`.`user_id`=`technician_job_assign`.`technician_id`
+WHERE `technician_job_assign_id` = 28802
+
+
+TECH ASSIGN ID: 28802
+PROPERTY ID: 25016
+PROGRAM ID: 1070
+JOB ID: 1148
+
+
+
+checkInvMethod Qry:
+SELECT *
+FROM `programs`
+WHERE `program_id` = '1070'
+PROGRAM PRICE = 1
+Assigned Successfully
+------------------------

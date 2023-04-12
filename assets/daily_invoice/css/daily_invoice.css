@@ -1,0 +1,18 @@
+.content {
+  margin:0px auto 20px;
+  width:75%;
+}
+.table-responsive {
+  min-height: auto!important;
+}
+
+.datatable-button-init-custom th{
+  background-color: #3c369f;
+  color:#ffff;
+}
+
+.make-payment-btn-container {
+  width:120px!important;
+  margin-left: 45%;
+  
+} 
