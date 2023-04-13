@@ -33,7 +33,8 @@ public function getOneProgram($program_id) {
 public function	getPPJOBINVdetails($where_arr = ''){
 	 $this->db->select('*');  
      $this->db->from('property_program_job_invoice');
-	 if (is_array($where_arr)) {
+     $this->db->join('programs','programs.program_id = property_program_job_invoice.program_id','inner');
+     if (is_array($where_arr)) {
             $this->db->where($where_arr);
      }
 	 $result = $this->db->get();

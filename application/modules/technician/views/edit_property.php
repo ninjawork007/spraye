@@ -218,7 +218,7 @@
                     <option value="MT" <?php if ($propertyData['property_state'] == 'MT') {
                                           echo "selected";
                                         } ?>>Montana</option>
-                    <option value="NE" <?php if ($propertyData['property_state'] == 'KS') {
+                    <option value="NE" <?php if ($propertyData['property_state'] == 'NE') {
                                           echo "selected";
                                         } ?>>Nebraska</option>
                     <option value="NV" <?php if ($propertyData['property_state'] == 'NV') {
@@ -245,7 +245,7 @@
                     <option value="OH" <?php if ($propertyData['property_state'] == 'OH') {
                                           echo "selected";
                                         } ?>>Ohio</option>
-                    <option value="OK" <?php if ($propertyData['property_state'] == 'KS' || $propertyData['property_state'] == 'OK') {
+                    <option value="OK" <?php if ( $propertyData['property_state'] == 'OK') {
                                           echo "selected";
                                         } ?>>Oklahoma</option>
                     <option value="OR" <?php if ($propertyData['property_state'] == 'OR') {

@@ -487,7 +487,13 @@
                                         <?= 'Sales Tax: ' . $invoice_sales_tax_details['tax_name'] . ' (' . floatval($invoice_sales_tax_details['tax_value']) . '%) '  ?>
                                     </td>
                                     <td class="border-bottom-blank-td text-right">$
-                                        <?= number_format($invoice_sales_tax_details['tax_amount'],2);  ?>
+
+                                        <?php
+                                        if (floatval($invoice_sales_tax_details['tax_amount']) <= 1)
+                                            echo number_format(floatval($invoice_sales_tax_details['tax_amount'])*$total_inv_line_costs,2);
+                                        else
+                                            echo $invoice_sales_tax_details['tax_amount'];
+                                            ?>
                                     </td>
 										<?php $invoice_total_cost += $invoice_sales_tax_details['tax_amount']; ?>
                                 </tr>

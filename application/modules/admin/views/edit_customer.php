@@ -2393,7 +2393,7 @@ border-color : #fd7e14;
                                                         <option value="MS" <?php  if($customerData['billing_state']=='MS') { echo "selected"; } ?> >Mississippi</option>
                                                         <option value="MO" <?php  if($customerData['billing_state']=='MO') { echo "selected"; } ?> >Missouri</option>
                                                         <option value="MT" <?php  if($customerData['billing_state']=='MT') { echo "selected"; } ?> >Montana</option>
-                                                        <option value="NE" <?php  if($customerData['billing_state']=='KS') { echo "selected"; } ?> >Nebraska</option>
+                                                        <option value="NE" <?php  if($customerData['billing_state']=='NE') { echo "selected"; } ?> >Nebraska</option>
                                                         <option value="NV" <?php  if($customerData['billing_state']=='NV') { echo "selected"; } ?> >Nevada</option>
                                                         <option value="NH" <?php  if($customerData['billing_state']=='NH') { echo "selected"; } ?> >New Hampshire</option>
                                                         <option value="NJ" <?php  if($customerData['billing_state']=='NJ') { echo "selected"; } ?> >New Jersey</option>
@@ -2402,7 +2402,7 @@ border-color : #fd7e14;
                                                         <option value="NC" <?php  if($customerData['billing_state']=='NC') { echo "selected"; } ?> >North Carolina</option>
                                                         <option value="ND" <?php  if($customerData['billing_state']=='ND') { echo "selected"; } ?> >North Dakota</option>
                                                         <option value="OH" <?php  if($customerData['billing_state']=='OH') { echo "selected"; } ?> >Ohio</option>
-                                                        <option value="OK" <?php  if($customerData['billing_state']=='KS' || $customerData['billing_state']=='OK') { echo "selected"; } ?> >Oklahoma</option>
+                                                        <option value="OK" <?php  if($customerData['billing_state']=='OK') { echo "selected"; } ?> >Oklahoma</option>
                                                         <option value="OR" <?php  if($customerData['billing_state']=='OR') { echo "selected"; } ?> >Oregon</option>
                                                         <option value="PA" <?php  if($customerData['billing_state']=='PA') { echo "selected"; } ?> >Pennsylvania</option>
                                                         <option value="RI" <?php  if($customerData['billing_state']=='RI') { echo "selected"; } ?> >Rhode Island</option>

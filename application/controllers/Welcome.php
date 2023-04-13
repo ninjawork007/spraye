@@ -61,6 +61,7 @@ class Welcome extends MY_Controller
         $this->load->model('../modules/admin/models/AdminTbl_program_model', 'ProgramModel');
         $this->load->model('PurchasesModel', 'PurchasesModel');
         $this->load->model('../modules/admin/models/Company_email_model', 'CompanyEmail');
+        $this->load->model('Logs_model', 'Log');
 
         $this->load->model('../modules/admin/models/AdminTbl_servive_area_model', 'ServiceArea');
         $this->load->model('../modules/admin/models/Sales_tax_model', 'SalesTax');
@@ -2610,8 +2611,11 @@ class Welcome extends MY_Controller
     /**
      * This function is being called once a day and send invoice email to customer(s)
      */
+
+
     public function sendCustomerInvoices()
     {
+
         // Mail should send link with date and customerId.
         //$invoice_date = date('Y-m-d', strtotime(' -1 day'));
         $where = array(
@@ -2619,8 +2623,11 @@ class Welcome extends MY_Controller
             //'invoice_tbl.company_id' => 44,
             // 'report_id >' => 0,
             'status' => 0,
+            'is_archived' => 0
+            //'report_id !=' => 0
         );
         $completed_job_customer_detail = $this->INV->getCompletedJobCustomerDetail($where);
+        //die(print_r($completed_job_customer_detail));
         $customer_wise_data = [];
         foreach ($completed_job_customer_detail as $detail) {
             if ($detail['report_id'] > 0) {
@@ -2632,10 +2639,11 @@ class Welcome extends MY_Controller
             } else {
                 //if no report id in invoice table, check Property Program Job Invoice Table
                 $PPJOBINVdata = $this->INV->getPPJOBINVdetails(array('invoice_id' => $detail['invoice_id']));
+                //die(print_r($PPJOBINVdata));
                 if ($PPJOBINVdata) {
                     $complete = 0;
                     foreach ($PPJOBINVdata as $job) {
-                        if ($job['report_id'] > 0) {
+                        if ($job['program_price'] != 2 || $job['report_id'] > 0) {
                             $complete = 1;
                         }
                     }
@@ -2664,7 +2672,7 @@ class Welcome extends MY_Controller
             $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo != '') ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
             $where_company['is_smtp'] = 1;
             $company_email_details = $this->CompanyModel->getOneCompanyEmailArray(array('company_id' => $company_id));
-           // if($company_id == "44") {
+            //if($company_id == "57") {
             if (is_array($company_email_details) && $company_email_details['send_daily_invoice_mail'] == 1) {
                 foreach ($invoice_id_list as $key => $inv) {
                     //if invoice is for program invoice method Invoice at Service Completion, check for completed services
@@ -2691,6 +2699,7 @@ class Welcome extends MY_Controller
 
                 // Added hash table concept to get rid of expired link issue.
                 $batch_insert_arr = array();
+                $invoice_arr = array();
                 foreach ($invoice_id_list as $invoice_id) {
                     $hash_tbl_arr = array();
                     $hash_tbl_arr['invoice_id'] = $invoice_id;
@@ -2698,27 +2707,41 @@ class Welcome extends MY_Controller
                     $hash_tbl_arr['hashstring'] = $hashstring;
                     $hash_tbl_arr['created_at'] = date("Y-m-d H:i:s");
                     array_push($batch_insert_arr, $hash_tbl_arr);
+                    array_push($invoice_arr, $invoice_id);
                 }
                 $this->db->insert_batch('invoice_hash_tbl', $batch_insert_arr);
                 if($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'daily'){
 
+
+                     $res = $this->Log->saveEmailLog(
+                         'Auto Invoice send',
+                        $data['setting_details']->company_id,
+                        $customer_id,
+                        $data['customer_details']->email ,
+                        $data['customer_details']->secondary_email,
+                        'Invoice Details',
+                         $body ,
+                         0,
+                         '',
+                         json_encode($invoice_arr) );
+
                     //$res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" =>$data['setting_details']->company_email), $body, 'Invoice Details' , $data['customer_details']->secondary_email);
-                    //die(print_r($res['status']));
-                    if ($res['status'] == 1) {
+                       // die(print_r($res));
+                   /* if ($res['status'] == 1) {
                         $update_arr = array(
                             "status" => 1,
                             "last_modify" => date("Y-m-d H:i:s"),
                         );
 
                         $this->INV->updateInvoiceForInvoices($invoice_id_list, $update_arr);
-                    }
+                    }*/
                     //echo "sending daily invoice email to customer id = ".$data['customer_details']->customer_id;
 
                 }
             }
             //}
         }
-        // die('fin');
+//         die('fin');
         //check day of month to determine if we should auto-send monthly invoices to customers
         $today = date('Y-m-d');
         $checkDayOfMonth = explode('-',$today);
@@ -2729,6 +2752,7 @@ class Welcome extends MY_Controller
         if($sendMonthly == 1){
             $sendMonthlyInvoices = $this->sendCustomerInvoicesMonthly();
         }
+        return 1;
     }
 
     public function sendCustomerInvoices_old()
