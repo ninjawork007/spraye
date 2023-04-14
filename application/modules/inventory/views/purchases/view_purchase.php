@@ -316,15 +316,68 @@
 									</div>
 								</div>
 
-								<!-- Separator -->
-								<div class="columns-separator"></div>
-
 								<!-- Right -->
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="estimated_delivery_date" class="d-block">Estimated Delivery Date</label>
-											<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" value="<?= $new_purchase[0]->estimated_delivery_date ?>"  />
+											<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" value="<?= $new_purchase[0]->estimated_delivery_date ?>" />
 										<div class="invalid-feedback"></div>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="created_date" class="d-block">Created Date</label>
+										<input type="date" id="created_date" name="created_date" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="ordered_date" class="d-block">Ordered Date</label>
+										<input type="date" id="ordered_date" name="ordered_date" class="form-control" value="<?= $new_purchase[0]->ordered_date ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="expected_date" class="d-block">Expected Date</label>
+										<input type="date" id="expected_date" name="expected_date" class="form-control" value="<?= $new_purchase[0]->expected_date ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="unit_measrement" class="d-block">Unit of Measure</label>
+										<input type="text" id="unit_measrement" name="unit_measrement" class="form-control" value="<?= $new_purchase[0]->unit_measrement ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_point" class="d-block">Shipping Point</label>
+										<input type="text" id="shipping_point" name="shipping_point" class="form-control" value="<?= $new_purchase[0]->shipping_point ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="destination" class="d-block">Destination</label>
+										<input type="text" id="destination" name="destination" class="form-control" value="<?= $new_purchase[0]->destination ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_origin" class="d-block">Place of Origin</label>
+										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" value="<?= $new_purchase[0]->place_of_origin ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_destination" class="d-block">Place of Destination</label>
+										<input type="text" id="place_of_destination" name="place_of_destination" class="form-control" value="<?= $new_purchase[0]->place_of_destination ?>"/>
 									</div>
 								</div>
 							</div>
@@ -1091,6 +1144,14 @@ function updatePO() {
 	let data = {
 		purchase_order_id: purchase_order_id,
 		purchase_order_number: $('span[name=title]').html(),
+		created_date: $('input[name=created_date]').val(),
+		ordered_date: $('input[name=ordered_date]').val(),
+		expected_date: $('input[name=expected_date]').val(),
+		unit_measrement: $('input[name=unit_measrement]').val(),
+		shipping_point: $('input[name=shipping_point]').val(),
+		destination: $('input[name=destination]').val(),
+		place_of_origin: $('input[name=place_of_origin]').val(),
+		place_of_destination: $('input[name=place_of_destination]').val(),
 		location_id: $('select[name=location]').val(),
 		sub_location_id: $('select[name=sub_location]').val(),
 		freight: $('input[name=freight]').val(),

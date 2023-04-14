@@ -368,7 +368,6 @@ class Purchases extends MY_Controller{
     
          $body  =  $this->load->view('inventory/purchases/ajax_data',$data,TRUE);
          echo $body;
-    
     } 
 
     public function viewOrder($purchase_id) {
@@ -547,6 +546,43 @@ class Purchases extends MY_Controller{
         );
       
         $result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
+
+        if($data["status"] == 1){
+            $company_id = $this->session->userdata['company_id'];
+            $purchase_order_id =   $data['purchase_order_id'];
+              
+             // get second message
+            $message  = "PO Status changed to Ready for Payment";
+            $data['msgtext'] =   $message[0];
+
+            // get first message    
+            $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);    
+            $data['msgtext_one'] = $purchase_order->notes;
+            $data['vendor_details'] = $this->VendorsModel->getOneVendor($purchase_order->vendor_id);
+            $data['link'] =  base_url('welcome/pdfPurchaseOrder/').base64_encode($purchase_order_id);
+            $data['link_acc'] =  base_url('welcome/PurchaseOrderAccept/').base64_encode($purchase_order_id);
+          
+            $where = array('purchase_order_id' =>$purchase_order_id);    
+            $param = array('purchase_sent_status' =>1,'updated_at' => date("Y-m-d H:i:s"),
+            'sent_date' => date("Y-m-d H:i:s"));   
+            $this->PurchasesModel->updatePurchaseOrder($where,$param);
+
+            $where_company = array('company_id' =>$company_id);
+          
+            $data['setting_details'] = $this->CompanyModel->getOneCompany($where_company);
+            $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo != '') ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
+          
+            $body = $this->load->view('inventory/purchases/purchase_order_email',$data,true);
+            
+            $where_company['is_smtp'] = 1;
+            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where_company);
+                        
+            if (!$company_email_details) {
+                $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+            } 
+
+            $res = Send_Mail_dynamic($company_email_details, $data['vendor_details']->vendor_email_address,array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
+        }
 
         if ($result) {
             echo "true";

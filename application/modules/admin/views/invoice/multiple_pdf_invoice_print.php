@@ -716,7 +716,7 @@
                         array_push($report_id, $invoice_detail->report_id);
                         $products[]= array(
                             'job_id'=>$invoice_detail->job_id,
-                            'report'=>isset($invoice_detail->report_details) ? $invoice_detail->report_details : isset($invoice_detail->report) ? $invoice_detail->report : '',
+                            'report'=> isset($invoice_detail->report_details) ? $invoice_detail->report_details : (isset($invoice_detail->report) ? $invoice_detail->report : ''),
                         );
                     } else {
                         array_push($report_id, $job->jobs[0]['job_report']->report_id);

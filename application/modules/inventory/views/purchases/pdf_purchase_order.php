@@ -422,8 +422,7 @@
             </table>
 
 
-            <?php
-                if ($setting_details->tearm_condition != '') {?>
+            <?php if ($setting_details->tearm_condition != '') {?>
 
             <table width="100%" class="main_table">
                 <tr>
@@ -441,9 +440,7 @@
 
             <table width="100%" class="main_table">
                 <tr>
-                    <td class="text-left" style="font-size: 14px"><strong
-                            style="color:<?=$setting_details->invoice_color?> ;"><b>Sign here to accept purchase order and
-                                agree to terms & conditions:</b> </strong>________________________________</td>
+                    <td class="text-left" style="font-size: 14px"><strong style="color:<?=$setting_details->invoice_color?> ;">Sign here to accept purchase order and agree to terms & conditions:</strong>________________________________</td>
                 </tr>
             </table>
 

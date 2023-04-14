@@ -809,6 +809,32 @@ label.control-label.col-lg-3 {
 
               </div>
 
+              <h1>Payment Logs</h1>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Sr. No.</th>
+                    <th>Log</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php
+                  foreach($AllInvoiceLogs as $Index => $LogInvs){
+                    ?>
+
+                    <tr>
+                      <td><?php echo ($Index + 1) ?></td>
+                      <td><?php echo $LogInvs->action ?></td>
+                      <td><?php echo date("d F, Y", strtotime($LogInvs->created_at)) ?></td>
+                    </tr>
+
+                    <?php
+                  }
+                  ?>
+                </tbody>
+              </table>
+
 
              </fieldset>
 

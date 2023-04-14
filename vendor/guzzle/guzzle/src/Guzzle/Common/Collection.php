@@ -42,16 +42,19 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
         return new self($data);
     }
 
+    #[\ReturnTypeWillChange] 
     public function count()
     {
         return count($this->data);
     }
 
+    #[\ReturnTypeWillChange] 
     public function getIterator()
     {
         return new \ArrayIterator($this->data);
     }
 
+    #[\ReturnTypeWillChange] 
     public function toArray()
     {
         return $this->data;
@@ -62,6 +65,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return Collection
      */
+    #[\ReturnTypeWillChange] 
     public function clear()
     {
         $this->data = array();
@@ -76,6 +80,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return array Returns an array of all matching key value pairs
      */
+    #[\ReturnTypeWillChange] 
     public function getAll(array $keys = null)
     {
         return $keys ? array_intersect_key($this->data, array_flip($keys)) : $this->data;
@@ -88,6 +93,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return mixed|null Value of the key or NULL
      */
+    #[\ReturnTypeWillChange] 
     public function get($key)
     {
         return isset($this->data[$key]) ? $this->data[$key] : null;
@@ -101,6 +107,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return Collection Returns a reference to the object
      */
+    #[\ReturnTypeWillChange] 
     public function set($key, $value)
     {
         $this->data[$key] = $value;
@@ -117,6 +124,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return Collection Returns a reference to the object.
      */
+    #[\ReturnTypeWillChange] 
     public function add($key, $value)
     {
         if (!array_key_exists($key, $this->data)) {
@@ -137,6 +145,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return Collection
      */
+    #[\ReturnTypeWillChange] 
     public function remove($key)
     {
         unset($this->data[$key]);
@@ -149,6 +158,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return array
      */
+    #[\ReturnTypeWillChange] 
     public function getKeys()
     {
         return array_keys($this->data);
@@ -161,6 +171,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return bool
      */
+    #[\ReturnTypeWillChange] 
     public function hasKey($key)
     {
         return array_key_exists($key, $this->data);
@@ -173,6 +184,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return bool|string Returns false if not found, otherwise returns the key
      */
+    #[\ReturnTypeWillChange] 
     public function keySearch($key)
     {
         foreach (array_keys($this->data) as $k) {
@@ -191,6 +203,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return mixed Returns the key if the value was found FALSE if the value was not found.
      */
+    #[\ReturnTypeWillChange] 
     public function hasValue($value)
     {
         return array_search($value, $this->data);
@@ -203,6 +216,7 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
      *
      * @return Collection Returns a reference to the object
      */
+    #[\ReturnTypeWillChange] 
     public function replace(array $data)
     {
         $this->data = $data;
@@ -291,21 +305,25 @@ class Collection implements \ArrayAccess, \IteratorAggregate, \Countable, ToArra
         return $collection;
     }
 
+    #[\ReturnTypeWillChange] 
     public function offsetExists($offset)
     {
         return isset($this->data[$offset]);
     }
 
+    #[\ReturnTypeWillChange] 
     public function offsetGet($offset)
     {
         return isset($this->data[$offset]) ? $this->data[$offset] : null;
     }
 
+    #[\ReturnTypeWillChange] 
     public function offsetSet($offset, $value)
     {
         $this->data[$offset] = $value;
     }
 
+    #[\ReturnTypeWillChange] 
     public function offsetUnset($offset)
     {
         unset($this->data[$offset]);

@@ -117,7 +117,10 @@ class Invoices extends MY_Controller
         $this->load->model('Payment_invoice_logs_model', 'PartialPaymentModel');
 
         $this->load->model('Refund_invoice_logs_model', 'RefundPaymentModel');
+
+        $this->load->model('Payment_logs_model', 'PaymentLogModel');
     }
+    
     public function index(){
         $year = date("Y");
         $where_revenue_total = array(
@@ -133,272 +136,6 @@ class Invoices extends MY_Controller
         $page["active_sidebar"] = "invoicenav";
         $page["page_name"] = 'Invoices';
         $page["page_content"] = $this->load->view("admin/invoice/view_invoice", $data, true);
-        $this->layout->superAdminInvoiceTemplateTable($page);
-    }
-
-    public function index_old()
-    {
-
-        // Start Retrieve Balance Due Information
-        if (isset($_POST['aging']) && $_POST['aging'] == 1) {
-            $aging = 1;
-        } else {
-            $aging = 0;
-        }
-
-        $limit = 0;
-
-        $start = 0;
-
-        $order = 'invoice_id';
-
-        $dir = 'DESC';
-
-        // WHERE:
-        $whereArr = array(
-            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-            'is_archived' => 0,
-        );
-        if ($aging == 1) {
-            $whereArr['payment_status !='] = 2;
-            $whereArr['status !='] = 0;
-        }
-
-        // WHERE NOT: all of the below true
-        $whereArrExclude = array(
-            "programs.program_price" => 2,
-            // "technician_job_assign.is_complete" => 0,
-            "technician_job_assign.is_complete !=" => 1,
-            "technician_job_assign.is_complete IS NOT NULL" => null,
-        );
-
-        // WHERE NOT: all of the below true
-        $whereArrExclude2 = array(
-            "programs.program_price" => 2,
-            "technician_job_assign.invoice_id IS NULL" => null,
-            "invoice_tbl.report_id" => 0,
-            "property_program_job_invoice2.report_id IS NULL" => null,
-        );
-        $orWhere = array();
-
-        if (is_array($this->input->post('columns'))) {
-
-            $columns = $this->input->post('columns');
-
-            foreach ($columns as $column) {
-                if ($column['data'] == 'status' && $column['search']['value'] === '0') {
-                    $whereArr['status'] = 0;
-                }
-                if ($column['data'] == 'payment_status' && $column['search']['value'] === '0') {
-                    //$whereArr['payment_status']= "0 OR 'payment_status' = 3";
-                    $orWhere['payment_status'] = array(0, 4); //include refunded when filtering for unpaid
-                }
-
-                if (isset($column['search']['value']) && !empty($column['search']['value'])) {
-
-                    $col = $column['data'];
-                    $val = $column['search']['value'];
-
-                    //filter status
-                    if ($col == 'status' && $val != 4) {
-                        $whereArr[$col] = $val;
-                    }
-                    if ($col == 'payment_status' && $val != 4) {
-                        $whereArr[$col] = $val;
-                    }
-                }
-            }
-        }
-
-        // $invoices = $this->INV->ajaxActiveInvoicesTech($whereArr, $limit, $start, $order, $dir, $whereArrExclude, $whereArrExclude2, $orWhere, true);
-
-        $due_amount = 0;
-        if (!empty($invoices)) {
-            foreach ($invoices as $invoice) {
-                if ($invoice->status != 0) {
-                    //////////////////////////////////
-                    // START INVOICE CALCULATION COST //
-
-                    //invoice cost
-                    $invoice_total_cost = $invoice->cost;
-
-                    //cost of all services (with price overrides) - service coupons
-                    $job_cost_total = 0;
-                    $where = array(
-                        'property_program_job_invoice.invoice_id' => $invoice->invoice_id,
-                    );
-                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
-                    if (!empty($proprojobinv)) {
-                        foreach ($proprojobinv as $job) {
-
-                            $job_cost = $job['job_cost'];
-
-                            $job_where = array(
-                                'job_id' => $job['job_id'],
-                                'customer_id' => $job['customer_id'],
-                                'property_id' => $job['property_id'],
-                                'program_id' => $job['program_id'],
-                            );
-                            $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-
-                            if (!empty($coupon_job_details)) {
-
-                                foreach ($coupon_job_details as $coupon) {
-                                    // $nestedData['email'] = json_encode($coupon->coupon_amount);
-                                    $coupon_job_amm_total = 0;
-                                    $coupon_job_amm = $coupon->coupon_amount;
-                                    $coupon_job_calc = $coupon->coupon_amount_calculation;
-
-                                    if ($coupon_job_calc == 0) { // flat amm
-                                        $coupon_job_amm_total = (float) $coupon_job_amm;
-                                    } else { // percentage
-                                        $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
-                                    }
-
-                                    $job_cost = $job_cost - $coupon_job_amm_total;
-
-                                    if ($job_cost < 0) {
-                                        $job_cost = 0;
-                                    }
-                                }
-                            }
-
-                            $job_cost_total += $job_cost;
-                        }
-                    } else {
-                        // $total_tax_amount = getAllSalesTaxSumByInvoice($invoice->invoice_id)->total_tax_amount;
-                        // $invoice_total_cost += $total_tax_amount;
-                        // $invoice_total_cost = $invoice->cost+$total_tax_amount;
-
-                        // IF none from that table, is old invoice, calculate old way
-                        $job_cost_total = $invoice->cost;
-                    }
-                    $invoice_total_cost = $job_cost_total;
-
-                    // check price override -- any that are not stored in just that ^^.
-
-                    // - invoice coupons
-                    $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice->invoice_id));
-                    foreach ($coupon_invoice_details as $coupon_invoice) {
-                        if (!empty($coupon_invoice)) {
-                            $coupon_invoice_amm = $coupon_invoice->coupon_amount;
-                            $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-
-                            if ($coupon_invoice_amm_calc == 0) { // flat amm
-                                $invoice_total_cost -= (float) $coupon_invoice_amm;
-                            } else { // percentage
-                                $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
-                                $invoice_total_cost -= $coupon_invoice_amm;
-                            }
-                            if ($invoice_total_cost < 0) {
-                                $invoice_total_cost = 0;
-                            }
-                        }
-                    }
-
-                    // + tax cost
-                    $invoice_total_tax = 0;
-                    $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $invoice->invoice_id));
-                    if (!empty($invoice_sales_tax_details)) {
-                        foreach ($invoice_sales_tax_details as $tax) {
-                            if (array_key_exists("tax_value", $tax)) {
-                                $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
-                                $invoice_total_tax += $tax_amm_to_add;
-                            }
-                        }
-                    }
-                    $invoice_total_cost += $invoice_total_tax;
-
-                    // END TOTAL INVOICE CALCULATION COST //
-                    ///////////////////////////////////////
-
-                    $due = $invoice_total_cost - $invoice->partial_payment;
-                    $all_invoice_partials_total = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice->invoice_id));
-
-                    if (count($all_invoice_partials_total) > 0) {
-                        $paid_already = 0;
-                        foreach ($all_invoice_partials_total as $paid_amount) {
-                            if ($paid_amount->payment_amount > 0) {
-                                $paid_already += $paid_amount->payment_amount;
-                            }
-                        }
-                        $due = $invoice_total_cost - $paid_already;
-                    }
-
-                    // no negative due
-                    if ($due < 0) {
-                        $due = 0;
-                    }
-
-                    // if invoice is paid, due = 0
-                    if ($invoice->payment_status == 2) {
-                        $due = 0;
-                    }
-                    $due_amount += $due;
-                }
-            }
-        }
-        // End Retrieve Balance Due Information
-
-        $data['invoice_details'] = $this->INV->getAllInvoive($whereArr);
-        // die(print_r($this->db->last_query()));
-        // die(print_r($data['invoice_details'] ));
-        //only display year to date metrics
-
-        $years = $this->input->post();
-
-        // if (isset($years['bill_year'])) {
-        //     $bill_year = $years['bill_year'];
-        // } else {
-        //     $bill_year = strftime("%Y", time());
-        // }
-
-        $year = date("Y");
-
-        $where_unpaid = array('company_id' => $this->session->userdata['company_id'], 'status' => 1, 'is_archived' => 0, 'payment_status' => 0, 'invoice_date >' => $year . '-01-01');
-
-        $result_unpaid = $this->INV->getSumInvoive($where_unpaid);
-        // echo '<pre>';
-        // die(print_r($result_unpaid));
-
-        // $where_revenue = array('company_id' => $this->session->userdata['company_id'], 'payment_status' => 2, 'is_archived' => 0, 'invoice_date >' => $year . '-01-01');
-        $where_billed_total = array(
-            'company_id' => $this->session->userdata['company_id'],
-            'status >'=>0,
-            'is_archived' => 0,
-            'invoice_date >' => $year . '-01-01'
-        );
-        $result_total_billed = $this->INV->getSumInvoive($where_billed_total);
-        $where_revenue_total = array(
-            'company_id' => $this->session->userdata['company_id'],
-            'payment_status >' => 0,
-            'is_archived' => 0,
-            'invoice_date >' => $year . '-01-01'
-        );
-        $result_revenue_total = $this->INV->getSumInvoive($where_revenue_total);
-
-        $where_partial = array('company_id' => $this->session->userdata['company_id'], 'payment_status' => 1, 'is_archived' => 0, 'invoice_date >' => $year . '-01-01');
-
-        $result_partial = $this->INV->getSumInvoive($where_partial);
-
-        $data['total'] = array(
-            'total_unpaid' => $due_amount,
-            //'total_billed' => $result_unpaid->cost + ($result_revenue->cost ? $result_revenue->cost : 0) + $result_partial->cost,
-            'total_billed' => $result_total_billed->cost,
-            // 'total_revenue' => ($result_revenue->cost ? $result_revenue->cost : 0) + $result_partial->total_partial,
-            'total_revenue' => $result_revenue_total->total_partial-$result_revenue_total->refund_amount_total,
-        );
-        // echo "<pre>";
-        // die(print_r($data['total']));
-
-        //die(print_r($data));
-
-        $page["active_sidebar"] = "invoicenav";
-
-        $page["page_name"] = 'Invoices';
-
-        $page["page_content"] = $this->load->view("admin/invoice/view_invoice", $data, true);
-
         $this->layout->superAdminInvoiceTemplateTable($page);
     }
 
@@ -2736,6 +2473,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
 
         $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice_id));
+        $AllInvoiceLogs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $invoice_id));
 
         //die(print_r($this->db->last_query()));
         $data['num_all_invoice_partials'] = count($all_invoice_partials);
@@ -2750,6 +2488,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $data['partial_payments_calc'] += $partial_payment->payment_amount;
         }
        //die(print_r( $data['partial_payments_calc']));
+
+        $data["AllInvoiceLogs"] = $AllInvoiceLogs;
         
         $page["active_sidebar"] = "invoicenav";
         $page["page_name"] = 'Update Invoice';
@@ -5033,6 +4773,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $inv_deets->partial_payments_logs = $this->PartialPaymentModel->getAllPartialPayment($where);
             ####
             ##### GETTING ALL REFUNDS FOR INVOICE ID #####
+
             $inv_deets->refund_payments_logs = $this->RefundPaymentModel->getAllPartialRefund($where);
             ####
             //die(print_r($inv_deets));
@@ -5919,6 +5660,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 'customer_id' => $invoice_details->customer_id,
             );
 
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $tmp_invoice_id,
+                'user_id' => $this->session->userdata['user_id'],
+                'action' => "Refund Given Amount ".$data['refund_payment']
+            ));
+
             $refund_details = $this->RefundPaymentModel->createOnePartialRefund($param);
             ####
             // $refund = $data['partial_payment'] - $data['refund_total'];
@@ -6033,6 +5780,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 'refund_note' => (isset($other) ? $other : ''),
                 'customer_id' => $invoice_details->customer_id,
             );
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $tmp_invoice_id,
+                'user_id' => $this->session->userdata['user_id'],
+                'action' => "Refund Given Amount ".$data['refund_payment']
+            ));
 
             $refund_details = $this->RefundPaymentModel->createOnePartialRefund($param);
             ####
@@ -6556,6 +6309,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     'customer_id' => $invoice_details->customer_id,
                 );
 
+                $result = $this->PaymentLogModel->createLogRecord(array(
+                    'invoice_id' => $tmp_invoice_id,
+                    'user_id' => $this->session->userdata['user_id'],
+                    'action' => "Refund Given Amount ".$data['refund_payment']
+                ));
+
                 $refund_details = $this->RefundPaymentModel->createOnePartialRefund($param);
                 ####
                 // $refund = $data['partial_payment'] - $data['refund_total'];
@@ -6644,6 +6403,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     'refund_note' => (isset($other) ? $other : ''),
                     'customer_id' => $invoice_details->customer_id,
                 );
+
+                $result = $this->PaymentLogModel->createLogRecord(array(
+                    'invoice_id' => $tmp_invoice_id,
+                    'user_id' => $this->session->userdata['user_id'],
+                    'action' => "Refund Given Amount ".$data['refund_payment']
+                ));
 
                 $refund_details = $this->RefundPaymentModel->createOnePartialRefund($param);
                 ####
@@ -7612,6 +7377,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             'payment_invoice_logs_id' => $payment_log_id,
         );
 
+        $result = $this->PaymentLogModel->createLogRecord(array(
+            'invoice_id' => $invoice_id,
+            'user_id' => $this->session->userdata['user_id'],
+            'action' => "Partial Payment Delete"
+        ));
+
         $invoice_details = $this->PartialPaymentModel->deletePartialPayment($where);
 
         #### UPDATE REFUND PAYMENT LOG ####
@@ -7670,6 +7441,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 'refund_note' => (isset($data['other']) ? $data['other'] : ''),
                 'customer_id' => $customer_id,
             );
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['user_id'],
+                'action' => "Refund Given Amount ".$data['partial_payment']
+            ));
 
             $refund_details = $this->RefundPaymentModel->createOnePartialRefund($param);
             ####

@@ -755,7 +755,15 @@ class Purchases extends MY_Controller{
 		$param = array(
 			'location_id' => (isset($data['location_id']) && $data['location_id'] != '') ? $data['location_id'] : $purchase_order[0]->location_id,
 			'sub_location_id' => (isset($data['sub_location_id']) && $data['sub_location_id'] != '') ? $data['sub_location_id'] : $purchase_order[0]->sub_location_id,
-			'updated_at' => date("Y-m-d H:i:s")
+			'updated_at' => date("Y-m-d H:i:s"),
+			'created_date' => $data["created_date"],
+			'ordered_date' => $data["ordered_date"],
+			'expected_date' => $data["expected_date"],
+			'unit_measrement' => $data["unit_measrement"],
+			'shipping_point' => $data["shipping_point"],
+			'destination' => $data["destination"],
+			'place_of_origin' => $data["place_of_origin"],
+			'place_of_destination' => $data["place_of_destination"],
 		);
 
 		$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
@@ -838,7 +846,15 @@ class Purchases extends MY_Controller{
 			'sub_location_id' => (isset($data['sub_location_id']) && $data['sub_location_id'] != '') ? $data['sub_location_id'] : $purchase_order[0]->sub_location_id,
 			'updated_at' => date("Y-m-d H:i:s"),
             'items' => json_encode($data['items']),
-            'grand_total' => $data['grand_total']
+            'grand_total' => $data['grand_total'],
+            'created_date' => $data["created_date"],
+			'ordered_date' => $data["ordered_date"],
+			'expected_date' => $data["expected_date"],
+			'unit_measrement' => $data["unit_measrement"],
+			'shipping_point' => $data["shipping_point"],
+			'destination' => $data["destination"],
+			'place_of_origin' => $data["place_of_origin"],
+			'place_of_destination' => $data["place_of_destination"],
             
 		);
 

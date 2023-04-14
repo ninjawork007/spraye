@@ -574,7 +574,7 @@ $('document').ready(function() {
              data: {purchase_order_id: purchase_order_id, status: status},
              success: function (data) {
              $("#loading").css("display","none");
-             location.reload();      
+             location.reload();
              }
          });
  

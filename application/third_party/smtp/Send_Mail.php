@@ -28,7 +28,7 @@ return true;
 }
 
 
-function Send_Mail_dynamic($smtparray=array(),$to,$company_data,$body,$subject,$secondary_email='',$file=[])
+function Send_Mail_dynamic($to,$company_data,$body,$subject,$secondary_email='',$file=[], $smtparray=array())
 {
 	if(GLOBAL_EMAIL_ON != 'true'){
 		return array('status'=>false,'message'=>'GLOBAL MAIL SETTINGS TURNED OFF');
