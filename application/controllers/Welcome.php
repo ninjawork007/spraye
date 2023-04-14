@@ -2672,7 +2672,7 @@ class Welcome extends MY_Controller
             $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo != '') ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
             $where_company['is_smtp'] = 1;
             $company_email_details = $this->CompanyModel->getOneCompanyEmailArray(array('company_id' => $company_id));
-            //if($company_id == "57") {
+//            if($company_id == "44") {
             if (is_array($company_email_details) && $company_email_details['send_daily_invoice_mail'] == 1) {
                 foreach ($invoice_id_list as $key => $inv) {
                     //if invoice is for program invoice method Invoice at Service Completion, check for completed services
@@ -2713,33 +2713,33 @@ class Welcome extends MY_Controller
                 if($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'daily'){
 
 
-                     $res = $this->Log->saveEmailLog(
-                         'Auto Invoice send',
+                    $res = $this->Log->saveEmailLog(
+                        'Auto Invoice send',
                         $data['setting_details']->company_id,
                         $customer_id,
                         $data['customer_details']->email ,
                         $data['customer_details']->secondary_email,
                         'Invoice Details',
-                         $body ,
-                         0,
-                         '',
-                         json_encode($invoice_arr) );
+                        $body ,
+                        0,
+                        '',
+                        json_encode($invoice_arr) );
 
-                    //$res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" =>$data['setting_details']->company_email), $body, 'Invoice Details' , $data['customer_details']->secondary_email);
-                       // die(print_r($res));
-                   /* if ($res['status'] == 1) {
+                    $res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" =>$data['setting_details']->company_email), $body, 'Invoice Details' , $data['customer_details']->secondary_email);
+//                        die(print_r($res));
+                    if ($res['status'] == 1) {
                         $update_arr = array(
                             "status" => 1,
                             "last_modify" => date("Y-m-d H:i:s"),
                         );
 
                         $this->INV->updateInvoiceForInvoices($invoice_id_list, $update_arr);
-                    }*/
+                    }
                     //echo "sending daily invoice email to customer id = ".$data['customer_details']->customer_id;
 
                 }
             }
-            //}
+//            }
         }
 //         die('fin');
         //check day of month to determine if we should auto-send monthly invoices to customers
@@ -2866,7 +2866,7 @@ class Welcome extends MY_Controller
             $sendMonthlyInvoices = $this->sendCustomerInvoicesMonthly();
         }
     }
-    
+
     public function sendCustomerReminders()
     {
         // Test this function with the url below:
@@ -5864,7 +5864,7 @@ class Welcome extends MY_Controller
                         }
                     }
 
-                    //Quickbooks Invoice ** 
+                    //Quickbooks Invoice **
 
                     $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
                     $property_street = explode(',', $property_deets->property_address)[0];
@@ -5886,7 +5886,7 @@ class Welcome extends MY_Controller
                     $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
 
                     // die(print_r($quickbook_invoice_id));
-                    //if quickbooks invoice then update invoice table with id   
+                    //if quickbooks invoice then update invoice table with id
                     if ($quickbook_invoice_id) {
                         $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
                     }
