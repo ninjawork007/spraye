@@ -1075,3 +1075,57 @@ function  filterPayment(status) {
       });
 
 </script>
+
+
+
+<!-- start add credit modal -->
+<div id="modal_batch_payment" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h6 class="modal-title">Add Batch Payments</h6>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="">
+
+         <div class="row">
+            <div class="col-lg-3">Customer</div>
+            <div class="col-lg-3">Amount</div>
+            <div class="col-lg-3">Payment Type</div>
+            <div class="col-lg-3"></div>
+         </div>
+
+         <div class="row">
+            <div class="col-lg-3">
+               <input class="form-control" required spellcheck="true">
+            </div>
+            <div class="col-lg-3">
+               <input class="form-control" required type="number" step="0.01" maxlength="100" size="100" spellcheck="true">
+            </div>
+            <div class="col-lg-3">
+               <select class="form-control" name="payment_type">
+                  <option selected value="check">Check</option>
+                  <option value="cash">Cash</option>
+                  <option value="other">Other</option>
+               </select>
+            </div>
+            <div class="col-lg-3">
+               <button class="btn btn-primary">Add More</button>
+            </div>
+         </div>
+
+
+          <div class="col">
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">
+              <i class="icon-plus22"></i> Submit
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!--end add credit modal -->

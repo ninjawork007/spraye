@@ -1065,5 +1065,3 @@ function updateTotals() {
 
 
 </script>
-
-

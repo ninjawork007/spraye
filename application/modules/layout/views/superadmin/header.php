@@ -147,6 +147,7 @@
               break;
                 case 'Invoices':
             echo '<p class="navbar-text btn-head"><span class="label green-btn "><a href="'.base_url('admin/Invoices/addInvoice').'" class="fas fa-plus"> New Invoice</a></span></p>
+            <p class="navbar-text btn-head"><span class="label green-btn "><a href="#" data-target="#modal_batch_payment" data-toggle="modal" class="fas fa-plus"> Batch Payment</a></span></p>
             <p class="navbar-text btn-head"><span class="label btn-primary "><a href="'.base_url('admin/reports/invoiceAgeReport').'" class="fas fa-file-text-o"> Invoice Age Report</a></span></p>
             <p class="navbar-text btn-head"><span class="label btn-primary "><a onclick="csv_download()"  class="fas fa-download"> CSV Download</a>
                    </span>

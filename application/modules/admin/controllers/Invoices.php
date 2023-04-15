@@ -34,33 +34,19 @@ class Invoices extends MY_Controller
     }
 
     /**
-
      * Index Page for this controller.
-
      *
-
      * Maps to the following URL
-
      *         http://example.com/index.php/welcome
-
      *     - or -
-
      *         http://example.com/index.php/welcome/index
-
      *     - or -
-
      * Since this controller is set as the default controller in
-
      * config/routes.php, it's displayed at http://example.com/
-
      *
-
      * So any other public methods not prefixed with an underscore will
-
      * map to /index.php/welcome/<method_name>
-
      * @see https://codeigniter.com/user_guide/general/urls.html
-
      */
 
     private function loadModel()
@@ -796,11 +782,8 @@ class Invoices extends MY_Controller
 
                 $payStatus .= '
                 <button type="submit" data-toggle="modal" data-target="#modal_theme_primary_partial_payment_'.$invoice->invoice_id.'" class="btn btn-success" style="display: none;" id="modal_theme_primary_partial_payment_btn_'.$invoice->invoice_id.'">Open Modal</button>
-
                 <button type="submit" data-toggle="modal" data-target="#modal_theme_primary_paid_payment_'.$invoice->invoice_id.'" class="btn btn-success" style="display: none;" id="modal_theme_primary_paid_payment_btn_'.$invoice->invoice_id.'">Open Modal</button>
-
                 <button type="submit" data-toggle="modal" data-target="#modal_theme_primary_refund_payment_'.$invoice->invoice_id.'" class="btn btn-success" style="display: none;" id="modal_theme_primary_refund_payment_btn_'.$invoice->invoice_id.'">Open Modal</button>
-
                 <!-- partial payment modal -->
                 <button type="submit" data-toggle="modal" data-target="#modal_theme_primary_partial_payment_'.$invoice->invoice_id.'" class="btn btn-success" style="display: none;" id="modal_theme_primary_partial_payment_btn">Open Modal</button>
                 <div id="modal_theme_primary_partial_payment_'.$invoice->invoice_id.'" class="modal fade">
@@ -839,11 +822,11 @@ class Invoices extends MY_Controller
                 $payStatus .= '<input type="hidden" name="payment_status" value="1">';
                 $payStatus .= '<input type="hidden" name="total_due" value="' . number_format($due, 2) . '">';
                 $payStatus .= '<select class="bootstrap-select form-control" name="payment_method" style="border: 1px solid #12689b; margin-top: 5px;">
-	<option value="3">Select A Payment Method</option>
-	<option value="0">Cash</option>
-	<option value="1">Check</option>
-	<option value="2">Credit Card</option>
-	<option value="3">Other</option>
+    <option value="3">Select A Payment Method</option>
+    <option value="0">Cash</option>
+    <option value="1">Check</option>
+    <option value="2">Credit Card</option>
+    <option value="3">Other</option>
 </select>';
                 $payStatus .= '<div style="height: 10px;"></div>';
                 $payStatus .= '<input type="text" class="form-control" name="payment_info" value="" placeholder="Enter Payment Info" >';
@@ -854,12 +837,12 @@ class Invoices extends MY_Controller
                 $payStatus .= '</form></div></div></div><!-- /partial payment modal --><!-- paid payment modal -->
 <button type="submit" data-toggle="modal" data-target="#modal_theme_primary_paid_payment_'.$invoice->invoice_id.'" class="btn btn-success" style="display: none;" id="modal_theme_primary_paid_payment_btn">Open Modal</button>
 <div id="modal_theme_primary_paid_payment_'.$invoice->invoice_id.'" class="modal fade">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header bg-primary">
-			<button type="button" class="close" data-dismiss="modal">&times;</button>
-			<h6 class="modal-title">Full Payment</h6>
-			</div>';
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h6 class="modal-title">Full Payment</h6>
+            </div>';
                 $form_url = base_url('admin/Invoices/changePaymentStatus');
                 $payStatus .= '<form id="add_paid_payment_form' . $invoice->invoice_id . '" action="' . $form_url . '" method="post" style="padding: 10px;" >';
 
@@ -889,11 +872,11 @@ class Invoices extends MY_Controller
                 $payStatus .= '<input type="hidden" name="payment_status" value="2">';
                 $payStatus .= '<input type="hidden" name="total_due" value="' . number_format($due, 2, '.', ' ') . '">';
                 $payStatus .= '<select class="bootstrap-select form-control" name="payment_method" style="border: 1px solid #12689b; margin-top: 5px;">
-	<option value="3">Select A Payment Method</option>
-	<option value="0">Cash</option>
-	<option value="1">Check</option>
-	<option value="2">Credit Card</option>
-	<option value="3">Other</option>
+    <option value="3">Select A Payment Method</option>
+    <option value="0">Cash</option>
+    <option value="1">Check</option>
+    <option value="2">Credit Card</option>
+    <option value="3">Other</option>
 </select>';
                 $payStatus .= '<div style="height: 10px;"></div>';
                 $payStatus .= '<input type="text" class="form-control" name="payment_info" value="" placeholder="Enter Payment Info" >';
@@ -902,20 +885,19 @@ class Invoices extends MY_Controller
                 $payStatus .= '<button type="submit" class="btn btn-success">Submit</button>';
 
                 $payStatus .= '</form>
-		</div>
-	</div>
+        </div>
+    </div>
 </div>
 <!-- /partial payment modal -->
-
 <!-- refund payment modal -->
 <button type="submit" data-toggle="modal" data-target="#modal_theme_primary_refund_payment_'.$invoice->invoice_id.'" class="btn btn-success" style="display: none;" id="modal_theme_primary_refund_payment_btn">Open Modal</button>
 <div id="modal_theme_primary_refund_payment_'.$invoice->invoice_id.'" class="modal fade">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header bg-primary">
-			<button type="button" class="close" data-dismiss="modal">&times;</button>
-			<h6 class="modal-title">Refund Payment</h6>
-			</div>';
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h6 class="modal-title">Refund Payment</h6>
+            </div>';
                 $form_url = base_url('admin/Invoices/changePaymentStatus');
                 $payStatus .= '<form id="add_refund_payment_form' . $invoice->invoice_id . '" action="' . $form_url . '" method="post" style="padding: 10px;" class="refund_status_form">';
 
@@ -947,11 +929,11 @@ class Invoices extends MY_Controller
                 $payStatus .= '<input type="hidden" name="total_due" value="' . number_format($due, 2) . '">';
                 $payStatus .= '
 <select class="bootstrap-select form-control" name="payment_method" style="border: 1px solid #12689b; margin-top: 5px;">
-	<option value="3">Select A Payment Method</option>
-	<option value="0">Cash</option>
-	<option value="1">Check</option>
-	<option value="2">Credit Card</option>
-	<option value="3">Other</option>
+    <option value="3">Select A Payment Method</option>
+    <option value="0">Cash</option>
+    <option value="1">Check</option>
+    <option value="2">Credit Card</option>
+    <option value="3">Other</option>
 </select>';
                 $payStatus .= '<div style="height: 10px;"></div>';
                 $payStatus .= '<input type="text" class="form-control" name="refund_note" value="" placeholder="Enter Payment Info" >';
@@ -960,149 +942,134 @@ class Invoices extends MY_Controller
                 $payStatus .= '<button type="submit" class="btn btn-success">Submit</button>';
 
                 $payStatus .= '</form>
-		</div>
-	</div>
+        </div>
+    </div>
 </div>
 <!-- /refund payment modal -->
-
 <script>
-
 //   function refund_modal_main(){
 //    $("#modal_theme_primary_paid_payment_'.$invoice->invoice_id.'").css("display", "none");
-// 		$.ajax({
-// 			type: "POST",
-// 			url: "'.$form_url.'",
-// 			data: $(this).serialize()
-// 		}).done(function(data){
-// 			$("#loading").css("display","none");
-// 			
-// 				if (data=="true") {
-// 					swal(
-// 						"Full Refund",
-// 						"Successfully Issued",
-// 						"success"
-// 					).then(function() {
-// 						location.reload();
-// 					});
-
-// 				} else {
-// 					swal({
-// 						type: "error",
-// 						title: "Oops...",
-// 						text: "Something went wrong!"
-// 					})
-// 				}
-// 		});
+//      $.ajax({
+//          type: "POST",
+//          url: "'.$form_url.'",
+//          data: $(this).serialize()
+//      }).done(function(data){
+//          $("#loading").css("display","none");
+//          
+//              if (data=="true") {
+//                  swal(
+//                      "Full Refund",
+//                      "Successfully Issued",
+//                      "success"
+//                  ).then(function() {
+//                      location.reload();
+//                  });
+//              } else {
+//                  swal({
+//                      type: "error",
+//                      title: "Oops...",
+//                      text: "Something went wrong!"
+//                  })
+//              }
+//      });
 // }
 </script>
-
 <script>
 // AJAX partial payment form
 $("#add_partial_payment_form'.$invoice->invoice_id.'").submit(function(e) {
-	e.preventDefault();
+    e.preventDefault();
     $("#modal_theme_primary_partial_payment_'.$invoice->invoice_id.'").css("display", "none");
-	$.ajax({
-		type: "POST",
-		url: "'.$form_url.'",
-		data: $(this).serialize()
-	}).done(function(data){
-		$("#loading").css("display","none");
-		
-			if (data=="true") {
-				swal(
-					"Partial Payment",
-					"Added Successfully",
-					"success"
-				).then(function() {
-					location.reload();
-				});
-
-			} else if (data=="set to paid") {
-				swal(
-					"Invoice set to paid",
-					"Partial Payment exceeded total cost",
-					"success"
-				).then(function() {
-					location.reload();
-				});
-			} else {
-				swal({
-					type: "error",
-					title: "Oops...",
-					text: "Something went wrong!"
-				})
-			}
-	});
-
-
+    $.ajax({
+        type: "POST",
+        url: "'.$form_url.'",
+        data: $(this).serialize()
+    }).done(function(data){
+        $("#loading").css("display","none");
+        
+            if (data=="true") {
+                swal(
+                    "Partial Payment",
+                    "Added Successfully",
+                    "success"
+                ).then(function() {
+                    location.reload();
+                });
+            } else if (data=="set to paid") {
+                swal(
+                    "Invoice set to paid",
+                    "Partial Payment exceeded total cost",
+                    "success"
+                ).then(function() {
+                    location.reload();
+                });
+            } else {
+                swal({
+                    type: "error",
+                    title: "Oops...",
+                    text: "Something went wrong!"
+                })
+            }
+    });
 })
 </script>
-
 <script>
 // AJAX paid payment form
 $("#add_paid_payment_form'.$invoice->invoice_id.'").submit(function(e) {
-	e.preventDefault();
+    e.preventDefault();
     $("#modal_theme_primary_paid_payment_'.$invoice->invoice_id.'").css("display", "none");
-	$.ajax({
-		type: "POST",
-		url: "'.$form_url.'",
-		data: $(this).serialize()
-	}).done(function(data){
-		$("#loading").css("display","none");
-		
-			if (data=="true") {
-				swal(
-					"Full Payment",
-					"Added Successfully",
-					"success"
-				).then(function() {
-					location.reload();
-				});
-
-			} else {
-				swal({
-					type: "error",
-					title: "Oops...",
-					text: "Something went wrong!"
-				})
-			}
-	});
-
-
+    $.ajax({
+        type: "POST",
+        url: "'.$form_url.'",
+        data: $(this).serialize()
+    }).done(function(data){
+        $("#loading").css("display","none");
+        
+            if (data=="true") {
+                swal(
+                    "Full Payment",
+                    "Added Successfully",
+                    "success"
+                ).then(function() {
+                    location.reload();
+                });
+            } else {
+                swal({
+                    type: "error",
+                    title: "Oops...",
+                    text: "Something went wrong!"
+                })
+            }
+    });
 })
 </script>
-
 <script>
 // AJAX refund payment form
 $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
-	e.preventDefault();
+    e.preventDefault();
     $("#modal_theme_primary_refund_payment_'.$invoice->invoice_id.'").css("display", "none");
-	$.ajax({
-		type: "POST",
-		url: "'.$form_url.'",
-		data: $(this).serialize()
-	}).done(function(data){
-		$("#loading").css("display","none");
-		
-			if (data=="true") {
-				swal(
-					"Full Refund",
-					"Refunded Successfully",
-					"success"
-				).then(function() {
-					location.reload();
-				});
-
-			} else {
-				swal({
-					type: "error",
-					title: "Oops...",
-					text: "Something went wrong!"
-				})
-			}
-	});
-
-
+    $.ajax({
+        type: "POST",
+        url: "'.$form_url.'",
+        data: $(this).serialize()
+    }).done(function(data){
+        $("#loading").css("display","none");
+        
+            if (data=="true") {
+                swal(
+                    "Full Refund",
+                    "Refunded Successfully",
+                    "success"
+                ).then(function() {
+                    location.reload();
+                });
+            } else {
+                swal({
+                    type: "error",
+                    title: "Oops...",
+                    text: "Something went wrong!"
+                })
+            }
+    });
 })
 </script>';
 
@@ -1384,27 +1351,17 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         $product_details = $this->ProductModel->getAssignProducts(array('job_id' => $job_id));
 
         $html = '<div class="table-responsive"><table class="table tablemodal table-framed">
-
                     <thead>
-
                       <tr>
-
                         <td>Product Name</td>
-
                         <td>EPA #</td>
-
                         <td>Application Rate</td>
-
                         <td>Active Ingredient</td>
-
                       </tr>
-
                     </thead>
-
                     <tbody>';
 
         $html2 = '</tbody>
-
                   </table></div>';
 
         if ($product_details) {
@@ -1422,14 +1379,10 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $ingredientDatails = $this->ProductModel->getAllIngredient(array('product_id' => $value->product_id));
 
                 $html .= '<tr >
-
-								<td>' . $value->product_name . '</td>
-
-								<td>' . $value->epa_reg_nunber . '</td>
-
-								<td>' . $application_rate . ' </td>
-
-								<td>';
+                                <td>' . $value->product_name . '</td>
+                                <td>' . $value->epa_reg_nunber . '</td>
+                                <td>' . $application_rate . ' </td>
+                                <td>';
 
                 if ($ingredientDatails) {
 
@@ -1440,8 +1393,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 }
 
                 $html .= '</td>
-
-									</tr>';
+                                    </tr>';
             }
 
             $html .= $html2;
@@ -1450,9 +1402,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         } else {
 
             $html .= '<tr>
-
                   <td colspan="4" style="text-align : center" >No Data Found</td>
-
               </tr>';
 
             $html .= $html2;
@@ -1471,27 +1421,17 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         //die(print_r($product_details));
 
         $html = '<div class="table-responsive"><table class="table tablemodal table-framed">
-
                     <thead>
-
                       <tr>
-
                         <td>Product Name</td>
-
                         <td>EPA #</td>
-
                         <td>Application Rate</td>
-
                         <td>Active Ingredient</td>
-
                       </tr>
-
                     </thead>
-
                     <tbody>';
 
         $html2 = '</tbody>
-
                   </table></div>';
 
         if ($product_details) {
@@ -1509,14 +1449,10 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $ingredientDatails = $this->ProductModel->getAllIngredient(array('product_id' => $value->product_id));
 
                 $html .= '<tr >
-
-								<td>' . $value->product_name . '</td>
-
-								<td>' . $value->epa_reg_nunber . '</td>
-
-								<td>' . $application_rate . ' </td>
-
-								<td>';
+                                <td>' . $value->product_name . '</td>
+                                <td>' . $value->epa_reg_nunber . '</td>
+                                <td>' . $application_rate . ' </td>
+                                <td>';
 
                 if ($ingredientDatails) {
 
@@ -1527,8 +1463,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 }
 
                 $html .= '</td>
-
-									</tr>';
+                                    </tr>';
             }
 
             $html .= $html2;
@@ -1537,9 +1472,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         } else {
 
             $html .= '<tr>
-
                   <td colspan="4" style="text-align : center" >No Data Found</td>
-
               </tr>';
 
             $html .= $html2;
@@ -1559,7 +1492,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
     {      
         
         $data = $this->CustomerModel->getCustomerListFromAutoComplete($this->session->userdata['company_id'], $_POST['keyword']);
-		
+        
       
         if (!empty($data)) {        
             echo "<ul id='customer-list'>";
@@ -3099,7 +3032,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 redirect("admin/Invoices");
             } else {
 
-                $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" 	data-auto-dismiss="4000"><strong>Invoice </strong> not updated. Please try again</div>');
+                $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert"    data-auto-dismiss="4000"><strong>Invoice </strong> not updated. Please try again</div>');
 
                 redirect("admin/Invoices");
             }
@@ -4509,12 +4442,16 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $invoice_details->late_fee = $late_fee;
 
             $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
+            $invoice_details->logs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $invoiceID));
+
             $data['invoice_details'][] = $invoice_details;
             //die(print_r($data["invoice_details"]));
             // INVOICE WIDE COUPONS
             // $data['coupon_invoice'][] = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
-
         }
+
+        
+
         $this->load->view('admin/invoice/multiple_pdf_invoice_print', $data);
         $html = $this->output->get_output();
 
@@ -5427,6 +5364,13 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $param['payment_method'] = $data['payment_method'];
 
 
+                $result = $this->PaymentLogModel->createLogRecord(array(
+                    'invoice_id' => $tmp_invoice_id,
+                    'user_id' => $this->session->userdata['user_id'],
+                    'action' => "Payment Added ".$over_all_due - $total_cost_all_partial_payment_logs
+                ));
+
+
                 $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                     'invoice_id' => $tmp_invoice_id,
                     'payment_amount' => $over_all_due - $total_cost_all_partial_payment_logs,
@@ -5471,6 +5415,13 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     } else if ($data['payment_method'] == 3) {
                         $other = $data['payment_info'];
                     }
+
+                    $result = $this->PaymentLogModel->createLogRecord(array(
+                        'invoice_id' => $tmp_invoice_id,
+                        'user_id' => $this->session->userdata['user_id'],
+                        'action' => "Payment Added ".$data['partial_payment']
+                    ));
+
                     $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                         'invoice_id' => $tmp_invoice_id,
                         'payment_amount' => $data['partial_payment'],
@@ -5562,6 +5513,13 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $param['other_note'] = $other;
             }
             $param['payment_method'] = $data['payment_method'];
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $tmp_invoice_id,
+                'user_id' => $this->session->userdata['user_id'],
+                'action' => "Payment Added ".$due_balance
+            ));
+    
             $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                 'invoice_id' => $tmp_invoice_id,
                 'payment_amount' => $due_balance,
@@ -7937,19 +7895,19 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         $products_used[$key2]->estimate_use = $used_mixture;
                     }
                 }
-				## get service-specific notes
-				$serviceSpecificNotes = "";
-				$notesParam = array(
-					'note_assigned_services'=> $value[0]['job_id'],
-					'note_property_id'=>$value[0]['property_id'],
-					'note_status'=>1
-				);
-				$getPropertyServiceNotes = $this->CompanyModel->getNotesWhere($notesParam);
-				if(!empty($getPropertyServiceNotes)){
-					foreach($getPropertyServiceNotes as $note){
-						$serviceSpecificNotes .= $note->note_contents ."<br>";
-					}
-				}
+                ## get service-specific notes
+                $serviceSpecificNotes = "";
+                $notesParam = array(
+                    'note_assigned_services'=> $value[0]['job_id'],
+                    'note_property_id'=>$value[0]['property_id'],
+                    'note_status'=>1
+                );
+                $getPropertyServiceNotes = $this->CompanyModel->getNotesWhere($notesParam);
+                if(!empty($getPropertyServiceNotes)){
+                    foreach($getPropertyServiceNotes as $note){
+                        $serviceSpecificNotes .= $note->note_contents ."<br>";
+                    }
+                }
 
                 $serviceSpecificNotesCustomer = "";
                 $notesParam2 = array(
@@ -7963,9 +7921,9 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         $serviceSpecificNotesCustomer .= $note->note_contents ."<br>";
                     }
                 }
-				
-				//die(print_r($serviceSpecificNotesCustomer));
-				
+                
+                //die(print_r($serviceSpecificNotesCustomer));
+                
                 $technician_route_details = array(
                     'route_id' => $value[0]['route_id'],
                     'date' => $value[0]['job_assign_date'],
@@ -7992,8 +7950,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     'notes' => $value[0]['job_notes'],
                     'service_name' => $value[0]['job_name'],
                     'service_notes' => $value[0]['job_description'],
-					'service_specific_notes' => $serviceSpecificNotes,
-					'service_specific_notes_customer' => $serviceSpecificNotesCustomer,
+                    'service_specific_notes' => $serviceSpecificNotes,
+                    'service_specific_notes_customer' => $serviceSpecificNotesCustomer,
                     'program_name' => $value[0]['program_name'],
                     'program_notes' => $value[0]['program_notes'],
                     'total_yard_grass' => $value[0]['total_yard_grass'],
@@ -8863,7 +8821,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         if (count($data['invoice_details']) > 0) {
             $this->load->view('admin/invoice/multiple_pdf_invoice_print_blank_data', $data);
             $html = $this->output->get_output();
-//			return $html;
+//          return $html;
             // Load pdf library
             $this->load->library('pdf');
             // Load HTML content
@@ -9090,10 +9048,6 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         } 
 
         $total_cost = floatval($total_cost);
-    
         return number_format($total_cost, 2, '.', ',');
     }
-
-
-
 }
