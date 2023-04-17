@@ -1,8 +1,8 @@
-<?php namespace App\Controllers\Backend;
-
+<?php
+//namespace App\Controllers\Backend;
 use App\Libraries\DataTables;
 
-class Customers extends BaseController {
+class Customers extends MY_Controller {
 
 	// Define create and update rules
 	private $rules = [
@@ -163,7 +163,11 @@ class Customers extends BaseController {
 	];
 
 	public function __construct() {
+		parent::__construct();
 		$this->rules = (object) $this->rules;
+		$this->load->model('Customer_model', 'customer');
+		$this->load->model('Invoice_model','INV');
+		$this->load->model('../modules/admin/models/payment_invoice_logs_model', 'PartialPaymentModel');
 	}
 
 	/**
@@ -203,6 +207,134 @@ class Customers extends BaseController {
 			['draw' => $draw],
 			$this->customers->dtGetAllCustomers()
 		));
+	}
+
+	public function AddBatchCredit(){
+		$data = $this->input->post();
+
+		foreach($data["customer_name"] as $RowIndex => $Value){
+			$customer_id = $data["customer_name"][$RowIndex];
+			$CreditAmount = $data["BatchAmount"][$RowIndex];
+			$PaymentType = $data["payment_type"][$RowIndex];
+
+
+			$items = $this->customer->getOneCustomerDetail($customer_id);
+			if($items == ""){
+				continue;
+			}
+
+			if($CreditAmount == "" && $CreditAmount == 0){
+				continue;
+			}
+
+			$GetPropertyList = $this->customer->getOnecustomerPropert(array("customer_id" => $customer_id));
+			$PropertyID = $GetPropertyList->property_id;
+
+			$invoice_data['customer_id'] = $customer_id;
+			$invoice_data['cost'] = 0;
+			$invoice_data['user_id'] = $this->session->userdata['user_id'];
+			$invoice_data['company_id'] = $this->session->userdata['company_id'];
+			$invoice_data['program_id'] = -5;
+			$invoice_data['property_id'] = $PropertyID;
+			$invoice_data['job_id'] = -5;
+			$invoice_data['status'] = 0;
+			$invoice_data['is_credit'] = 1;
+			$invoice_data['is_archived'] = 1;
+			$invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
+			$invoice_data['is_created'] =  1;
+			$invoice_data['notes'] = $invoice_data['description'] = "Adding {$CreditAmount} Credit to customer's account";
+
+			$invoice_id = $this->INV->createOneInvoice($invoice_data);
+			$credit_amount  = $CreditAmount;
+			$all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice_id));
+
+			$unpaid = $this->INV->getUnpaidInvoices($customer_id);
+
+			if(!empty($unpaid)){
+				foreach ($unpaid as $invoice){
+					$invoice_amount  = $invoice->unpaid_amount;
+					if($credit_amount >= $invoice_amount && $invoice_amount > 0){
+						$inv_details = $this->INV->getOneInvoice($invoice->unpaid_invoice);
+						$partial_already_paid = $inv_details->partial_payment;
+						$result = $this->INV->createOnePartialPayment(array(
+							'invoice_id' => $invoice->unpaid_invoice,
+							'payment_amount' => $invoice_amount,
+							'payment_applied' => $invoice_amount,
+							'payment_datetime' => date("Y-m-d H:i:s"),
+							'payment_method' => 5,
+							'check_number' => null,
+							'cc_number' => null,
+							'payment_note' => "Payment made from credit amount {$CreditAmount}",
+							'customer_id' => $customer_id,
+						));
+
+						$this->INV->updateInvovice(['invoice_id'=> $invoice->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'last_modify' => date("Y-m-d H:i:s"), 'payment_created' => date("Y-m-d H:i:s"), 'partial_payment' => $partial_already_paid + $invoice_amount, 'opened_date' => date("Y-m-d H:i:s")]);
+
+						$credit_amount -= $invoice_amount;
+						$invoice_details = $this->INV->getOneInvoice($invoice->unpaid_invoice);
+
+						if(!isset($invoice_details->sent_date)){
+							$this->INV->updateInvovice(['invoice_id'=> $invoice->unpaid_invoice], ['sent_date' => date("Y-m-d H:i:s")]);
+						}
+					} else if ($credit_amount > 0 && $invoice_amount > 0) {
+						$inv_details = $this->INV->getOneInvoice($invoice->unpaid_invoice);
+						$partial_already_paid = $inv_details->partial_payment;
+						$result = $this->INV->createOnePartialPayment(array(
+							'invoice_id' => $invoice->unpaid_invoice,
+							'payment_amount' => $credit_amount,
+							'payment_applied' => $credit_amount,
+							'payment_datetime' => date("Y-m-d H:i:s"),
+							'payment_method' => 5,
+							'check_number' => null,
+							'cc_number' => null,
+							'payment_note' => "Payment made from credit amount {$CreditAmount}",
+							'customer_id' => $customer_id,
+						));
+
+						$this->INV->updateInvovice(['invoice_id'=> $invoice->unpaid_invoice], ['payment_status' => 1, 'last_modify' => date("Y-m-d H:i:s"), 'payment_created' => date("Y-m-d H:i:s"), 'partial_payment' => $partial_already_paid + $credit_amount, 'sent_date' => date("Y-m-d H:i:s")]);
+						$credit_amount = 0;
+					}
+				}
+
+				$this->INV->addCreditPayment($customer_id, $credit_amount, $PaymentType);
+				$result = $this->INV->createOnePartialPayment(array(
+	                    'invoice_id' => $invoice_id,
+	                    'payment_amount' => $CreditAmount,
+	                    'payment_applied' => $CreditAmount,
+	                    'payment_datetime' => date("Y-m-d H:i:s"),
+	                    'payment_method' => 1,
+	                    'check_number' => null,
+	                    'cc_number' => null,
+	                    'payment_note' => "Adding Credit to customer's account",
+	                    'customer_id' => $customer_id,
+	                    'is_credit_balance' => 1
+	                ));
+			}else{
+				$this->INV->addCreditPayment($customer_id, $credit_amount, $PaymentType);
+				$result = $this->INV->createOnePartialPayment(array(
+					'invoice_id' => $invoice_id,
+					'payment_amount' => $CreditAmount,
+					'payment_applied' => $CreditAmount,
+					'payment_datetime' => date("Y-m-d H:i:s"),
+					'payment_method' => 1,
+					'check_number' => null,
+					'cc_number' => null,
+					'payment_note' => "Adding Credit to customer's account",
+					'customer_id' => $customer_id,
+					'is_credit_balance' => 1
+				));
+			}
+		}
+
+		$this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000">Credit added to customer</div>');
+		redirect("admin/Invoices");
+	}
+
+	public function Search(){
+		$search = $this->input->get('search', TRUE) ?? '';
+		$items = $this->customer->getCustomerList(array("customer_id like " => "%".$search."%"));
+		$return_array =  array( 'result' => $items);
+		echo json_encode($return_array);
 	}
 
 	/**
@@ -388,5 +520,140 @@ class Customers extends BaseController {
 		helper('csv');
 
 		die(offer_csv_download($customers, $filename));
+	}
+
+
+	public function AddBatchCsv(){
+		$filename = $_FILES["csv_file"]["tmp_name"];
+        if ($_FILES["csv_file"]["size"] > 0) {
+            $company_id = $this->session->userdata('company_id');
+            $user_id = $this->session->userdata('user_id');
+            $row = 1;
+            if (($handle = fopen($filename, "r")) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                    if ($row == 1) {
+                        $row++;
+                        continue;
+                    }
+
+                    $customer_id = $data[0];
+					$CreditAmount = $data[1];
+					$PaymentType = $data[2];
+
+
+					$items = $this->customer->getOneCustomerDetail($customer_id);
+					if($items == ""){
+						continue;
+					}
+
+					if($CreditAmount == "" && $CreditAmount == 0){
+						continue;
+					}
+
+					$GetPropertyList = $this->customer->getOnecustomerPropert(array("customer_id" => $customer_id));
+					$PropertyID = $GetPropertyList->property_id;
+
+					$invoice_data['customer_id'] = $customer_id;
+					$invoice_data['cost'] = 0;
+					$invoice_data['user_id'] = $this->session->userdata['user_id'];
+					$invoice_data['company_id'] = $this->session->userdata['company_id'];
+					$invoice_data['program_id'] = -5;
+					$invoice_data['property_id'] = $PropertyID;
+					$invoice_data['job_id'] = -5;
+					$invoice_data['status'] = 0;
+					$invoice_data['is_credit'] = 1;
+					$invoice_data['is_archived'] = 1;
+					$invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
+					$invoice_data['is_created'] =  1;
+					$invoice_data['notes'] = $invoice_data['description'] = "Adding {$CreditAmount} Credit to customer's account";
+
+					$invoice_id = $this->INV->createOneInvoice($invoice_data);
+					$credit_amount  = $CreditAmount;
+					$all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice_id));
+
+					$unpaid = $this->INV->getUnpaidInvoices($customer_id);
+
+					if(!empty($unpaid)){
+						foreach ($unpaid as $invoice){
+							$invoice_amount  = $invoice->unpaid_amount;
+							if($credit_amount >= $invoice_amount && $invoice_amount > 0){
+								$inv_details = $this->INV->getOneInvoice($invoice->unpaid_invoice);
+								$partial_already_paid = $inv_details->partial_payment;
+								$result = $this->INV->createOnePartialPayment(array(
+									'invoice_id' => $invoice->unpaid_invoice,
+									'payment_amount' => $invoice_amount,
+									'payment_applied' => $invoice_amount,
+									'payment_datetime' => date("Y-m-d H:i:s"),
+									'payment_method' => 5,
+									'check_number' => null,
+									'cc_number' => null,
+									'payment_note' => "Payment made from credit amount {$CreditAmount}",
+									'customer_id' => $customer_id,
+								));
+
+								$this->INV->updateInvovice(['invoice_id'=> $invoice->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'last_modify' => date("Y-m-d H:i:s"), 'payment_created' => date("Y-m-d H:i:s"), 'partial_payment' => $partial_already_paid + $invoice_amount, 'opened_date' => date("Y-m-d H:i:s")]);
+
+								$credit_amount -= $invoice_amount;
+								$invoice_details = $this->INV->getOneInvoice($invoice->unpaid_invoice);
+
+								if(!isset($invoice_details->sent_date)){
+									$this->INV->updateInvovice(['invoice_id'=> $invoice->unpaid_invoice], ['sent_date' => date("Y-m-d H:i:s")]);
+								}
+							} else if ($credit_amount > 0 && $invoice_amount > 0) {
+								$inv_details = $this->INV->getOneInvoice($invoice->unpaid_invoice);
+								$partial_already_paid = $inv_details->partial_payment;
+								$result = $this->INV->createOnePartialPayment(array(
+									'invoice_id' => $invoice->unpaid_invoice,
+									'payment_amount' => $credit_amount,
+									'payment_applied' => $credit_amount,
+									'payment_datetime' => date("Y-m-d H:i:s"),
+									'payment_method' => 5,
+									'check_number' => null,
+									'cc_number' => null,
+									'payment_note' => "Payment made from credit amount {$CreditAmount}",
+									'customer_id' => $customer_id,
+								));
+
+								$this->INV->updateInvovice(['invoice_id'=> $invoice->unpaid_invoice], ['payment_status' => 1, 'last_modify' => date("Y-m-d H:i:s"), 'payment_created' => date("Y-m-d H:i:s"), 'partial_payment' => $partial_already_paid + $credit_amount, 'sent_date' => date("Y-m-d H:i:s")]);
+								$credit_amount = 0;
+							}
+						}
+
+						$this->INV->addCreditPayment($customer_id, $credit_amount, $PaymentType);
+						$result = $this->INV->createOnePartialPayment(array(
+			                    'invoice_id' => $invoice_id,
+			                    'payment_amount' => $CreditAmount,
+			                    'payment_applied' => $CreditAmount,
+			                    'payment_datetime' => date("Y-m-d H:i:s"),
+			                    'payment_method' => 1,
+			                    'check_number' => null,
+			                    'cc_number' => null,
+			                    'payment_note' => "Adding Credit to customer's account",
+			                    'customer_id' => $customer_id,
+			                    'is_credit_balance' => 1
+			                ));
+					}else{
+						$this->INV->addCreditPayment($customer_id, $credit_amount, $PaymentType);
+						$result = $this->INV->createOnePartialPayment(array(
+							'invoice_id' => $invoice_id,
+							'payment_amount' => $CreditAmount,
+							'payment_applied' => $CreditAmount,
+							'payment_datetime' => date("Y-m-d H:i:s"),
+							'payment_method' => 1,
+							'check_number' => null,
+							'cc_number' => null,
+							'payment_note' => "Adding Credit to customer's account",
+							'customer_id' => $customer_id,
+							'is_credit_balance' => 1
+						));
+					}
+				}
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> file</strong> can not read please check file.</div>');
+            }
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> Do</strong> not select black file.</div>');
+        }
+        redirect("admin/Invoices");
 	}
 }

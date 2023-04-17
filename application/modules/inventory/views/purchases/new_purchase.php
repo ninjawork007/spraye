@@ -345,6 +345,13 @@
 
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
+										<label for="shipping_method_1" class="d-block">Shipping Method</label>
+										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
 										<label for="place_of_origin" class="d-block">Place of Origin</label>
 										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" />
 									</div>
@@ -499,6 +506,13 @@
 								</div>
 							</div>
 
+							<div>
+								<div class="form-group">
+									<label for="new_purchase_order_notes" class="d-block">Payment Terms</label>
+									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"></textarea>
+								</div>
+							</div>
+
 							<hr class="mt-4" />
 
 							<div class="row">
@@ -543,6 +557,7 @@
 			// Once a location and vendor are selected, enable items section
 			$('select[name=location], select[name=sub_location], select[name=vendor]').on('change', e => {
                 subLocation();
+                getVendorDetails();
 				let location = $('select[name=location]').val()
 				let sublocation = $('select[name=sub_location]').val()
 				let vendor = $('select[name=vendor]').val()
@@ -675,6 +690,24 @@
 					+ '</option>'
 				$('select#sub_location').append(elem)
 				})
+			}
+		});
+	}
+
+	function getVendorDetails(){
+		var vendor = $('select[name=vendor]').val()
+		var url = '<?= base_url('inventory/Backend/Vendors/Details') ?>';
+		var request_method = "GET";
+		
+		$.ajax({
+			type: request_method,
+			url: url,
+			data: {vendor: vendor},
+			dataType:'JSON', 
+			success: function(response){
+				console.log(response);
+				$("#payment_terms").val(response.terms);
+				$("#discount").val(response.po_discount);
 			}
 		});
 	}
@@ -816,6 +849,7 @@
 			expected_date: $('input[name=expected_date]').val(),
 			unit_measrement: $('input[name=unit_measrement]').val(),
 			shipping_point: $('input[name=shipping_point]').val(),
+			shipping_method_1: $('input[name=shipping_method_1]').val(),			
 			destination: $('input[name=destination]').val(),
 			place_of_origin: $('input[name=place_of_origin]').val(),
 			place_of_destination: $('input[name=place_of_destination]').val(),
@@ -826,6 +860,7 @@
 			discount_type: 'amount',
 			tax: $('input[name=tax]').val(),
 			notes: $('textarea[name=new_purchase_order_notes]').val(),
+			payment_terms: $('textarea[name=payment_terms]').val(),
 			items: [],
 			purchase_sent_status: $('input[name=purchase_sent_status]').val()
 		}

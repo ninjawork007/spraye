@@ -761,9 +761,11 @@ class Purchases extends MY_Controller{
 			'expected_date' => $data["expected_date"],
 			'unit_measrement' => $data["unit_measrement"],
 			'shipping_point' => $data["shipping_point"],
+			'shipping_method_1' => $data["shipping_method_1"],
 			'destination' => $data["destination"],
 			'place_of_origin' => $data["place_of_origin"],
 			'place_of_destination' => $data["place_of_destination"],
+			'payment_terms' => $data["payment_terms"],
 		);
 
 		$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
@@ -853,9 +855,10 @@ class Purchases extends MY_Controller{
 			'unit_measrement' => $data["unit_measrement"],
 			'shipping_point' => $data["shipping_point"],
 			'destination' => $data["destination"],
+			'shipping_method_1' => $data["shipping_method_1"],
 			'place_of_origin' => $data["place_of_origin"],
 			'place_of_destination' => $data["place_of_destination"],
-            
+			'payment_terms' => $data["payment_terms"],
 		);
 
 		$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);

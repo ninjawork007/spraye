@@ -11,7 +11,7 @@
 		"source": "https://github.com/bcit-ci/CodeIgniter"
 	},
 	"require": {
-		"php": "^7.3||^8.0",
+		"php": "^7.2||^8.0",
 		"hownowstephen/php-foursquare": "^v1.2.0",
 		"quickbooks/v3-php-sdk": "^5.0",
 		"aws/aws-sdk-php": "2.*",

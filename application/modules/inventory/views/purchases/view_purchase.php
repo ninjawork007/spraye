@@ -369,6 +369,13 @@
 
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
+										<label for="shipping_method_1" class="d-block">Shipping Method</label>
+										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" value="<?= $new_purchase[0]->shipping_method_1 ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
 										<label for="place_of_origin" class="d-block">Place of Origin</label>
 										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" value="<?= $new_purchase[0]->place_of_origin ?>"/>
 									</div>
@@ -501,6 +508,13 @@
 								</div>
 							</div>
 
+							<div>
+								<div class="form-group">
+									<label for="payment_terms" class="d-block">Payment Terms</label>
+									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"><?= $new_purchase[0]->payment_terms ?></textarea>
+								</div>
+							</div>
+
 							<hr class="mt-4" />
 
 							<div class="text-right mt-2 mb-2">
@@ -627,6 +641,8 @@ function showDiv(divId, element){
 			let location = $('select[name=location]').val()
 			let sublocation = $('select[name=sub_location]').val()
 			let vendor = $('select[name=vendor]').val()
+
+			getVendorDetails();
 			
 			if(location != '' && location != null && sublocation != '' && sublocation != null && vendor != '' && vendor != null) {
 				selectedLocation = location
@@ -1149,6 +1165,8 @@ function updatePO() {
 		expected_date: $('input[name=expected_date]').val(),
 		unit_measrement: $('input[name=unit_measrement]').val(),
 		shipping_point: $('input[name=shipping_point]').val(),
+		shipping_method_1: $('input[name=shipping_method_1]').val(),
+		payment_terms: $('textarea[name=payment_terms]').val(),
 		destination: $('input[name=destination]').val(),
 		place_of_origin: $('input[name=place_of_origin]').val(),
 		place_of_destination: $('input[name=place_of_destination]').val(),
@@ -1244,6 +1262,23 @@ function deletePOInvoice() {
 		   });
 	   }
    })
+}
+
+function getVendorDetails(){
+	var vendor = $('select[name=vendor]').val()
+	var url = '<?= base_url('inventory/Backend/Vendors/Details') ?>';
+	var request_method = "GET";
+	
+	$.ajax({
+		type: request_method,
+		url: url,
+		data: {vendor: vendor},
+		dataType:'JSON', 
+		success: function(response){
+			console.log(response);
+			$("#payment_terms").val(response.terms);
+		}
+	});
 }
 
 </script>

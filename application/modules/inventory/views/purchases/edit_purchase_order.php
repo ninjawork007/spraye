@@ -361,6 +361,13 @@
 
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
+										<label for="shipping_method_1" class="d-block">Shipping Method</label>
+										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" value="<?= $new_purchase[0]->shipping_method_1 ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
 										<label for="destination" class="d-block">Destination</label>
 										<input type="text" id="destination" name="destination" class="form-control" value="<?= $new_purchase[0]->destination ?>"/>
 									</div>
@@ -495,6 +502,13 @@
 											</tr>
 										</tbody>
 									</table>
+								</div>
+							</div>
+
+							<div>
+								<div class="form-group">
+									<label for="payment_terms" class="d-block">Payment Terms</label>
+									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"><?= $new_purchase[0]->payment_terms ?></textarea>
 								</div>
 							</div>
 
@@ -1004,6 +1018,7 @@ function updateTotals() {
 			expected_date: $('input[name=expected_date]').val(),
 			unit_measrement: $('input[name=unit_measrement]').val(),
 			shipping_point: $('input[name=shipping_point]').val(),
+			shipping_method_1: $('input[name=shipping_method_1]').val(),
 			destination: $('input[name=destination]').val(),
 			place_of_origin: $('input[name=place_of_origin]').val(),
 			place_of_destination: $('input[name=place_of_destination]').val(),
@@ -1014,6 +1029,7 @@ function updateTotals() {
 			discount_type: 'amount',
 			tax: $('input[name=tax]').val(),
 			notes: $('textarea[name=purchase_order_order_notes]').val(),
+			payment_terms: $('textarea[name=payment_terms]').val(),
 			status: purchase.purchase_order_status,
 			purchase_sent_status: $('#purchase_sent_status').val(),
 			total_units: purchase.total_units,
