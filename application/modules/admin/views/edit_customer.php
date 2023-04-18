@@ -5016,6 +5016,24 @@ border-color : #fd7e14;
                <option <?=$customerData//['payment_type'] == "card" ? "selected" : ""?> value="card" > Card </option>
              <?php //endif; ?> -->
             </select>
+
+
+
+            <label for="responsible_party">Responsible Party</label>
+            <select class="form-control" id="responsible_party" name="responsible_party[]" multiple required>
+                <?php
+                foreach($CompaniesUser as $UserListCompany){
+                ?>
+                <option value="<?php echo $UserListCompany->id ?>"><?php echo $UserListCompany->user_first_name ?> <?php echo $UserListCompany->user_last_name ?></option>
+                <?php
+                }
+                ?>
+            </select>
+
+
+            <label for="credit_notes">Reason for Entering Credit</label>
+            <input class="form-control" required type="text" id="credit_notes" name="credit_notes" spellcheck="true">
+
           </div>
           <div class="col">
             <div class="modal-footer">

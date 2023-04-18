@@ -104,7 +104,8 @@
                 <th>Customer</th>
                 <th>Property</th>
                 <th>Estimate Program/Service</th>
-                <th>Estimate $</th>	
+                <th>Estimate #</th>
+                <th>Estimate $</th>
                 <th>Estimate Date</th>	
                 <th>Property Status</th>
               </tr>  
@@ -114,9 +115,12 @@
               if (!empty($pipeline_details)) { 
                 foreach ($pipeline_details as $value) { ?>
               <tr>         
-                <td style="text-transform: capitalize;"><?= $value->first_name.' '.$value->last_name ?></td>
+                <td style="text-transform: capitalize;">
+                  <a target="_blank" href="<?php echo base_url(); ?>/admin/editCustomer/<?= $value->customer_id ?>"><?= $value->first_name.' '.$value->last_name ?></a>
+                </td>
                 <td><?= $value->property_address ?></td>
                 <td><?= $value->program_name ?></td>
+                <td><a target="_blank" href="<?php echo base_url(); ?>/admin/Estimates/editEstimate/<?= $value->estimate_id ?>"><?= $value->estimate_id ?></a></td>
                 <td>
                   <?php 
                     $line_total = 0; 

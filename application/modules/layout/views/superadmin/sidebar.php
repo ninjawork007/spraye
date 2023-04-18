@@ -93,6 +93,8 @@
                      </ul>
                     </li>
                     <li class="<?= $active_sidebar == "materialResourcePlanningReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/MaterialResourcePlanningReport');?>" >Material Resource Planning</a></li>
+
+                    <li class="<?= $active_sidebar == "creditReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/creditReport');?>" >Credit Report</a></li>
                   </ul>
                 </li>
 

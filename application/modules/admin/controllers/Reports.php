@@ -495,6 +495,29 @@ class Reports extends MY_Controller {
         $page["page_content"] = $this->load->view("admin/report/view_invoice_age_report", $data, TRUE);
         $this->layout->superAdminInvoiceTemplateTable($page);
 	}
+
+
+    ## Customer Credit Report
+    public function creditReport(){
+        $company_id = $this->session->userdata['company_id'];
+        #populate filter dropdowns
+        $data['customers'] = $this->CustomerModel->getCustomerList(array('company_id' => $this->session->userdata['company_id']));
+
+        $whereArr = array(
+            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+            'is_credit' => 1
+        );
+        
+        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+
+        $page["active_sidebar"] = "creditReport";
+        $page["page_name"] = 'Customer Credit Report';
+        $page["page_content"] = $this->load->view("admin/report/view_credit_report", $data, TRUE);
+        $this->layout->superAdminInvoiceTemplateTable($page);
+    }
+
+
+
 ## Ajax Data for Invoice Age Report
 	public function ajaxDataForInvoiceAgeReport(){
 		$company_id = $this->session->userdata['company_id'];
@@ -873,6 +896,7 @@ class Reports extends MY_Controller {
             $body =  $this->load->view('admin/report/ajax_invoice_age_report', $data, false);
         }
 	}
+
 ## Download Invoice Age CSV
 	public function downloadInvoiceAgeCsv(){
 		$company_id = $this->session->userdata['company_id'];
@@ -1284,6 +1308,131 @@ class Reports extends MY_Controller {
         }    
 
     }
+
+
+
+    ## Ajax Data for Customer Credit Report
+    public function ajaxDataForCustomerCreditReport(){
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+
+        $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
+        
+        if(empty($customer)){
+            $whereArr = array(
+                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+                'is_credit' => 1
+            );
+        }else{
+            $whereArr = array(
+                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+                'invoice_tbl.customer_id' => $customer,
+                'is_credit' => 1
+            );
+        }
+        
+        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        $body =  $this->load->view('admin/report/ajax_customer_credit_report', $data, false);
+    }
+    
+
+    ## Download Customer Credit CSV
+    public function downloadCreditReportCsv(){
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+        
+        if(!empty($interval)){
+            $data['interval'] = $interval;
+        }else{
+            $data['interval'] = "30";
+        }
+        
+        if(!empty($customer)){
+            $customers = $this->CustomerModel->getCustomerList(array('customer_id'=> $customer));
+        }else{
+            $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
+        }
+
+        if($customer == ""){
+            $whereArr = array(
+                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+                'is_credit' => 1
+            );
+        }else{
+            $whereArr = array(
+                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+                'invoice_tbl.customer_id' => $customer,
+                'is_credit' => 1
+            );
+        }
+        
+        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        
+        if(count($data['invoices']) > 0){
+            $delimiter = ",";
+            $filename = "customer_credit_report_" . date('Y-m-d') . ".csv";
+
+            #create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            #set column headers
+            $fields = array('Customer','Date','Amount','Payment Type','Note','Responsible Party');
+            fputcsv($f, $fields, $delimiter);
+
+            #output each row of the data, format line as csv and write to file pointer
+            foreach($data['invoices'] as $row => $Invs){
+
+                $CustomerData = $this->db->select('*')->from("customers")->where(array("customer_id" => $Invs->customer_id))->get()->row();
+                $ResponsibleParty = "";
+                $Part = explode(",", $Invs->responsible_party);
+
+                foreach($Part as $PP){
+                    $PartData = $this->db->select('*')->from("users")->where(array("id" => $PP))->get()->row();
+                    $ResponsibleParty .= $PartData->user_first_name." ".$PartData->user_last_name.", ";
+                }
+
+                $paymentMothods = "";
+
+                if($Invs->payment_method == 0){
+                    $paymentMothods = "Cash";
+                }
+                if($Invs->payment_method == 1){
+                    $paymentMothods = "Check";
+                }
+                if($Invs->payment_method == 3){
+                    $paymentMothods = "Other";
+                }
+
+                $lineData = array(
+                                    $CustomerData->first_name. " " . $CustomerData->last_name,
+                                    date("d F, Y", strtotime($Invs->invoice_created)),
+                                    $Invs->credit_amount,
+                                    $paymentMothods,
+                                    $Invs->credit_notes,
+                                    $ResponsibleParty
+                                );
+                fputcsv($f, $lineData, $delimiter);
+            }
+
+            #move back to beginning of file
+            fseek($f, 0);
+
+            #set headers to download file rather than displayed
+            header('Content-Type: text/csv'); 
+            header('Content-Disposition: attachment; filename="' .$filename. '";');
+
+            #output all remaining data on a file pointer
+            fpassthru($f);
+
+        } else {
+             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
+             redirect("admin/reports/creditReport");
+        }    
+
+    }
+    
+
+
 ## Sales Tax Report
     public function salesTaxReport(){
 
