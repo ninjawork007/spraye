@@ -287,13 +287,10 @@
 				<div class="section variant-3">
 					<div class="header">
 						<div class="title">
-							Purchase Order # <span name="title"></span>
+							Purchase Return Order # <?php echo $purchase_return[0]->return_id ?>
 						</div>
 						<div class="desc">
 							Submit this form when you (will) return purchased merchandise from one of your vendors
-							<button  onclick="returnAll()" class="btn btn-success return-all ">
-								Return All Item(s)
-							</button>
 						</div>
 					</div>
 
@@ -305,8 +302,9 @@
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group" >
 										<label for="location" class="d-block">Location*</label>
-										<input type="text" name="location_name" id="location_name" class="form-control" readonly>
-										<input type="hidden" name="location_id" id="location_id">
+										<select class="custom-select" name="location_id" id="location_id">
+											<option value="<?= $purchase_return[0]->location_id ?>"  disabled selected><?php echo $purchase_return[0]->location_name ?></option>
+										</select>
 									</div>
 								</div>
 
@@ -323,8 +321,9 @@
 								<div class="column text-break pl-2 pr-2" id="hidden_sub">
 									<div class="form-group sublocation-container">
 										<label for="sub_location" class="d-block">Sub Location*</label>
-										<input type="text" name="sub_location_name" id="sub_location_name" class="form-control" readonly>
-										<input type="hidden" name="sub_location_id" id="sub_location_id">	
+										<select class="custom-select">
+											<option value="<?= $purchase_return[0]->sub_location_id ?>"  disabled selected><?php echo $purchase_return[0]->sub_location_name ?></option>
+										</select>
 									</div>
 								</div>
 
@@ -335,9 +334,9 @@
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="vendor" class="d-block">Vendor*</label>
-											<input type="text" name="vendor_name" id="vendor_name" class="form-control" readonly>
-											<input type="hidden" name="vendor_id" id="vendor_id">
-										<div class="invalid-feedback"></div>
+										<select class="custom-select" name="vendor_id" id="vendor_id">
+											<option value="<?= $purchase_return[0]->vendor_id ?>"  disabled selected><?php echo $purchase_return[0]->vendor_name ?></option>
+										</select>
 									</div>
 								</div>
 							</div>
@@ -350,8 +349,7 @@
 												<tr>
 													<th>Item name</th>
 													<th>Unit price</th>
-													<th>Received Qty</th>
-													<th>Return Qty</th>
+													<th>Return Qty </th>
 													<th>Total</th>
 												</tr>
 											</thead>
@@ -367,7 +365,7 @@
 								<div class="col-md-4 text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="freight" class="d-block">Shipping cost  (<?= $settings->currency_symbol ?>)</label>
-										<input type="text" name="freight" id="freight" class="form-control" value="0"  />
+										<input type="text" name="freight" id="freight" class="form-control" value="<?= $purchase_return[0]->freight ?>"  />
 										<div class="invalid-feedback"></div>
 									</div>
 								</div>
@@ -375,7 +373,7 @@
 								<div class="col-md-4 text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="discount" class="d-block">Discount (<?= $settings->currency_symbol ?>)</label>
-										<input type="text" name="discount" id="discount" class="form-control" value="0"  />
+										<input type="text" name="discount" id="discount" class="form-control" value="<?= $purchase_return[0]->discount ?>"  />
 										<div class="invalid-feedback"></div>
 									</div>
 								</div>
@@ -493,11 +491,15 @@ function showDiv(divId, element){
 			updateTotals();
 		});
 
-		// When changing return quantity of an item
-		$(document).on('input', '.returnqty', function() {
-			var qty = $(this).val();
+		// When changing quantity of an item
+		$(document).on('input', '.itemqty', function() {
 			updateTotals();
-		});
+		})
+
+		// When changing price of an item
+		$(document).on('input', '.itemprice', function() {
+			updateTotals();
+		})
 
 		// When changing shipping cost, discount or tax...
 		$('input[name=shipping_cost], input[name=discount], input[name=tax]').on('input', e => {
@@ -514,7 +516,7 @@ function showDiv(divId, element){
 	})
 
 function purchaseOrder(){
-	var purchase_order_id = <?= $purchase_order_id ?>;
+	var purchase_order_id = <?= $purchase_return[0]->return_id ?>;
 	var url = '<?= base_url('inventory/Backend/Purchases/returnOrder/') ?>'+purchase_order_id;
   	var request_method = "GET"; //get form GET/POST method
 	let total_units = 0;
@@ -525,26 +527,6 @@ function purchaseOrder(){
 		dataType:'JSON', 
 		success: function(res){
 			purchase = res.data[0];
-			console.log(purchase);
-			var purchase_order_id = purchase.purchase_order_id;
-			var purchase_order_number = purchase.purchase_order_number;
-			var location = purchase.location_name;
-			var subLocation = purchase.sub_location_name;
-			var vendor = purchase.vendor_name;
-
-			$('#location_name').val(location);
-			$('#location_id').val(purchase.location_id);
-
-			$('#vendor_name').val(vendor);
-			$('#vendor_id').val(purchase.vendor_id);
-
-			$('#sub_location_name').val(subLocation);
-			$('#sub_location_id').val(purchase.sub_location_id);
-
-			$('span[name=title]').html(purchase_order_number)
-			
-			$('input[name=freight]').val()
-
 			$('table#items tbody').html('')
 
 			purchase.items = JSON.parse(purchase.items);
@@ -562,33 +544,35 @@ function purchaseOrder(){
 				let quantity = item.received_qty;
 
 				let td1 = '<div class="d-flex">'
-					+ '<div>'
-					+ `<strong>${item.name}</strong>`
-					+ '<br />'
-					+ item.item_number
-					+ '</div>'
-					+ '</div>'
-				let td2 = unit_price
-				let td3 = quantity - returned
-				let td4 = '<div class="input-group input-group-sm">'
-					+ `<input type="number" class="form-control form-control-sm returnqty" min="0" max="${item.received_qty }" value="0" />`
-					+ '</div>'
-				let td5 = 0
-				let elem = `<tr data-item-id="${item.item_id}">`
-					+ `<td>${td1}</td>`
-					+ `<td data-item-td="unit_price">$ ${td2}</td>`
-					+ `<td data-item-td="quantity">${td3}</td>`
-					+ `<td data-item-td="returnqty">${td4}</td>`
-					+ `<td data-item-td="subtotal">$ ${td5}</td>`
-					+ '</tr>'
+				+ '<div>'
+				+ '<button type="button" class="btn item-delete btn-secondary"><i class="fa fa-trash"></i></button>'
+				+ '</div>'
+				+ '<div>'
+				+ `<strong>${item.name}</strong>`
+				+ '<br />'
+				+ item.item_number
+				+ '<br />'
+				+ item.unit_type
+				+ '</div>'
+				+ '</div>'
+			let td2 = `<input type="number" class="form-control form-control-sm itemprice" name="return_price" min="0" value="`+item.unit_price+`" />`;
+			let td3 = `<input type="number" class="form-control form-control-sm itemqty" name="itemqty" min="0" value="`+returned+`" />`;
+
+			//table#items
+			let elem = `<tr data-item-id="${item.item_id}">`
+				+ `<td>${td1}</td>`
+				+ `<td data-item-td="unit_price">${td2}</td>`
+				+ `<td data-item-td="quantity">${td3}</td>`
+				+ `<td data-item-td="total">0.0</td>`
+				+ '</tr>';
 
 				$('table#items').append(elem)
 			})
 			purchase.total_units = total_units;
 			purchase.return_total = 0;
 			
-			console.log('total_units = ' +purchase.total_units );
-		}	
+			updateTotals();
+		}
 	})
 }
 
@@ -676,10 +660,11 @@ function returnItems() {
 	// Build data object!
 	let data = {
 		purchase_order_id: purchase_order_id,
+		return_id: <?php echo $purchase_return[0]->return_id ?>,
 		purchase_order_number: $('span[name=title]').html(),
-		vendor_id: $('input[name=vendor_id]').val(),
-		location_id: $('input[name=location_id]').val(),
-		sub_location_id: $('input[name=sub_location_id]').val(),
+		vendor_id: $('select[name=vendor_id]').val(),
+		location_id: $('select[name=location_id]').val(),
+		sub_location_id: $('select[name=sub_location_id]').val(),
 		freight: $('input[name=freight]').val(),
 		discount: $('input[name=discount]').val(),
 		discount_type: 'amount',
@@ -695,8 +680,8 @@ function returnItems() {
 		data.items.push({
 			item_id: item.item_id,
 			item_number: item.item_number,
-			name: item.name,
-			received_qty: item.received_qty - item.return_qty ,
+			name: item.item_name,
+			unit_type: item.unit_type,
 			return_qty: item.return_qty,
 			unit_price: item.unit_price,
 			quantity: item.quantity
@@ -716,126 +701,6 @@ function returnItems() {
 			swal(
 				'Purchase Order Items!',
 				'Returned Successfully ',
-				'success'
-				).then(function() {
-				location.reload();
-				});
-			
-		}
-	});
-}
-
-function returnAll() {
-
-let subtotal = 0;
-let total_qty = 0;
-let receiving_total = 0;
-
-Object.values(purchase.items).forEach((item, i) => {
-	let received_qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val(item.quantity);
-	let item_price = item.unit_price;
-	console.log('received_qty = ' +received_qty);
-	// If quantity is greater than originally purchased, rewrite user input
-	if(received_qty > item.quantity) {
-		received_qty = item.quantity
-		$(`table#items tbody tr[data-item-id=${item.item_id}] input`).val(received_qty);
-	}
-	// Update quantity in the original array
-	purchase.items[i]['received_qty'] = received_qty;
-
-	let item_subtotal = received_qty * Number(item_price);
-	let item_total = Number(item_subtotal);
-	$(`table#items tbody tr[data-item-id=${item.item_id}] td[data-item-td="subtotal"]`).html(`${currency} ${parseFloat(item_subtotal).toFixed(2)}`);
-	$(`table#items tbody tr[data-item-id=${item.item_id}] td[data-item-td="total"]`).html(`${currency} ${parseFloat(item_total).toFixed(2)}`);
-
-	subtotal += item_total;
-	total_qty += Number(item.quantity);
-	receiving_total += Number(received_qty);
-	console.log('receiving = '+ receiving_total);
-});
-
-if(receiving_total == total_qty){
-	purchase.purchase_order_status = 3;
-	purchase['receiving_total'] = receiving_total;
-} else {
-	purchase.purchase_order_status = 2;
-	purchase['receiving_total'] = receiving_total;
-}
-
-let freight = $('input[name=freight]').val();
-let discount = $('input[name=discount]').val();
-let tax = $('input[name=tax]').val();
-freight = parseFloat(freight).toFixed(2);
-discount = parseFloat(discount).toFixed(2);
-tax = parseFloat(tax).toFixed(2);
-
-if(discount > subtotal){
-	discount = subtotal;
-};
-
-let grand_total = subtotal;
-grand_total = parseFloat(grand_total - discount).toFixed(2);
-grand_total =(Number(grand_total) + Number(freight));
-let tax_amount = Number(tax * grand_total / 100);
-grand_total = parseFloat(grand_total  + tax_amount).toFixed(2);
-
-
-$('table#summary tr td[data-summary-field="subtotal"]').html(`${currency} ${parseFloat(subtotal).toFixed(2)}`)
-$('table#summary tr td[data-summary-field="discount"]').html(`${currency} ${parseFloat(discount).toFixed(2)}`)
-$('table#summary tr td[data-summary-field="shipping"]').html(`${currency} ${parseFloat(freight).toFixed(2)}`)
-$('table#summary tr td[data-summary-field="tax"]').html(`${tax}%`)
-$('table#summary tr td[data-summary-field="total_return"]').html(`${currency} ${parseFloat(grand_total).toFixed(2)}`)
-
-var purchase_order_id = <?= $purchase_order_id ?>;
-// Now make sure we have at least one item
-if($('table#items tbody tr').length == 0) {
-	showError('error', "purchases.frontend.item_not_added")
-	return
-}
-console.log(purchase);
-// Build data object!
-let data = {
-	purchase_order_id: purchase_order_id,
-	purchase_order_number: $('span[name=title]').html(),
-	vendor_id: $('input[name=vendor_id]').val(),
-	location_id: $('input[name=location_id]').val(),
-	sub_location_id: $('input[name=sub_location_id]').val(),
-	freight: $('input[name=freight]').val(),
-	discount: $('input[name=discount]').val(),
-	discount_type: 'amount',
-	tax: $('input[name=tax]').val(),
-	notes: $('textarea[name=purchase_order_order_notes]').val(),
-	status: purchase.purchase_order_status,
-	total_purchase: purchase.total_units,
-	total_units: purchase.total_units,
-	items: []
-}
-
-Object.values(purchase.items).forEach(item => {
-	data.items.push({
-		item_id: item.item_id,
-		item_number: item.item_number,
-		name: item.name,
-		received_qty: item.received_qty - item.return_qty ,
-		return_qty: item.return_qty,
-		unit_price: item.unit_price,
-		quantity: item.quantity
-	})
-})
-
-	var url = '<?= base_url('inventory/Backend/Purchases/receivingItemsOrder/') ?>'+purchase_order_id;
-	var formData = data;
-
-	$.ajax({
-		type: 'POST',
-		url: url,
-		data: formData,
-		success: function (data){
-
-			$("#loading").css("display","none");
-			swal(
-				'Purchase Order Items!',
-				'All Returned Successfully ',
 				'success'
 				).then(function() {
 				location.reload();

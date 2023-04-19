@@ -432,7 +432,7 @@
 
             <table width="100%" class="main_table">
                 <tr>
-                    <td class="text-center"><?=$setting_details->tearm_condition?></td>
+                    <td class="text-center"><?= $purchase_order->payment_terms?></td>
                 </tr>
             </table>
 

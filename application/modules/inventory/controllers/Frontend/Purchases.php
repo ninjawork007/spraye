@@ -25,6 +25,7 @@ class Purchases extends MY_Controller{
         }
 
         $this->load->library('parser');
+        $this->load->library('aws_sdk');
         $this->load->helper('text');
         $this->loadModel();
     }
@@ -131,12 +132,12 @@ class Purchases extends MY_Controller{
     }
 
     public function newReturn($purchase_order_id = false) {
-        $data['purchase_order_id'] = $purchase_order_id;
-        $data['purchase_order'] = $this->PurchasesModel->getPurchase(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
         $settings = new stdClass();
         $settings->currency_symbol = '$';
         $settings->references_purchase_return_prepend = '';
         $settings->references_purchase_return_append = '';
+        $data['list_locations'] = $this->LocationsModel->getLocationsList();
+        $data['list_vendors'] = $this->VendorsModel->getVendorsList();
         $data['settings'] =  $settings;
         $data['purchaseId'] = 1;
         $page["active_sidebar"] = "returns";
@@ -1088,6 +1089,7 @@ class Purchases extends MY_Controller{
                 'invoice_total_amt' => $data['invoice_total_amt'],
                 'freight' => $data['freight'],
                 'discount' => $data['discount'],
+                'pay_by_date' => $data['pay_by_date'],
                 'tax' => $data['tax'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->session->userdata['id'],
@@ -1112,6 +1114,7 @@ class Purchases extends MY_Controller{
                 'invoice_total_amt' => $data['invoice_total_amt'],
                 'freight' => $data['freight'],
                 'discount' => $data['discount'],
+                'pay_by_date' => $data['pay_by_date'],
                 'tax' => $data['tax'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->session->userdata['id'],
@@ -1165,6 +1168,7 @@ class Purchases extends MY_Controller{
                 'invoice_total_amt' => $data['invoice_total_amt'],
                 'freight' => $data['freight'],
                 'discount' => $data['discount'],
+                'pay_by_date' => $data['pay_by_date'],
                 'tax' => $data['tax'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->session->userdata['id'],
@@ -2276,6 +2280,34 @@ class Purchases extends MY_Controller{
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
             redirect("inventory/Frontend/Purchases/MaterialResourcePlanningReport");
         }   
+    }
+
+    public function save_paid_po(){
+        $data = $this->input->post();
+        $file_name = "";
+
+        if (!empty($_FILES['paid_attachment']['name'])) {
+            $file_name_array  = explode(".", $_FILES['paid_attachment']['name']);
+            $fileext =  end($file_name_array);
+            $tmp_name   = $_FILES['paid_attachment']['tmp_name'];
+            $file_name  = $data['po_id'].'_'.date("ymdhis").'.'.$fileext ;
+            $key = '/uploads/po_attachments/'.$file_name;
+            $this->aws_sdk->saveObject($key, $tmp_name);
+        }
+
+        $where = array(
+          'purchase_order_tbl.purchase_order_id' => $data['po_id']
+        );
+      
+        $param = array(
+          'purchase_paid_status' => 2,
+          'paid_payment_method' => $data['paid_payment_method'],
+          'paid_notes' => $data['paid_notes'],
+          'paid_attachment' => $file_name,
+          'updated_at' => date("Y-m-d H:i:s")
+        );
+      
+        $result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
     }
 
 }

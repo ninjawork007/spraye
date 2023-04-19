@@ -210,7 +210,9 @@
                 break;
 
               case 'Returns':
-                  echo '<p class="navbar-text btn-head"><span class="label btn-primary "><a  href="'.base_url('inventory/Frontend/purchases/downloadPurchaseReturnsCSV').'" class="fas fa-download"> CSV Download</a></span></p>';
+                  echo '<p class="navbar-text btn-head"><span class="label green-btn "><a href="'.base_url('inventory/Frontend/purchases/newReturn').'" class="fas fa-plus"> New Purchase Return</a> </span></p>
+
+                  <p class="navbar-text btn-head"><span class="label btn-primary "><a  href="'.base_url('inventory/Frontend/purchases/downloadPurchaseReturnsCSV').'" class="fas fa-download"> CSV Download</a></span></p>';
                 break;
                  
            }

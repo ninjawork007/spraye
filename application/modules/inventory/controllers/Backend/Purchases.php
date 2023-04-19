@@ -478,14 +478,7 @@ class Purchases extends MY_Controller{
 	public function returnOrder($purchase_order_id) {
 		$data = $this->input->post();
         $data['purchase_order_id'] = $purchase_order_id;
-        $purchase_order = $this->PurchasesModel->checkPurchaseForReturnStatus(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
-
-		if($purchase_order->is_returned == 1){
-			$purchase_return = $this->ReturnsModel->getReturn(array('purchase_return_tbl.purchase_order_id' => $purchase_order_id));	
-		} else {
-			$purchase_return = $this->ReceivingsModel->getReceiving(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
-		}
-
+        $purchase_return = $this->ReturnsModel->getReturn(array('purchase_return_tbl.return_id' => $purchase_order_id));	
 		if ($purchase_return) {
 			$return_array =  array('status' => 200, 'msg' => 'Purchase Order found successfully.', 'data' => $purchase_return);
 		} else {
@@ -495,31 +488,26 @@ class Purchases extends MY_Controller{
 		echo json_encode($return_array);
 	}
 
-	public function returningItemsOrder($purchase_order_id) {
+	public function returningItemsOrder() {
 		$data = $this->input->post();
-		$purchase_order = $this->PurchasesModel->checkPurchaseForReturnStatus(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
-	
-		$where = array(
-			'purchase_order_tbl.purchase_order_id' => $purchase_order_id
-		);
-
 		$itemsArr = $data['items'];
 
-		if($purchase_order->is_returned == 1){
+		if($data["return_id"] != ""){
 
 			$where_return = array(
-				'purchase_return_tbl.return_id' => $purchase_order->return_id
+				'purchase_return_tbl.return_id' => $data["return_id"]
 			);
 
 			$returned = array(
 				'company_id' => $this->session->userdata['company_id'],
-				'purchase_order_number' => $purchase_order->purchase_order_number,
-				'purchase_order_id' => $purchase_order->purchase_order_id,
+				'purchase_order_number' => 0,
+				'purchase_order_id' => 0,
 				'vendor_id' => $data['vendor_id'],
 				'location_id' => $data['location_id'],
 				'sub_location_id' => $data['sub_location_id'],
 				'items' => json_encode($data['items']),
 				'discount' => $data['discount'],
+				'tax' => $data['tax'],
 				'freight' => $data['freight'],
 				'updated_at' => date('Y-m-d H:i:s'),
 			);
@@ -583,19 +571,18 @@ class Purchases extends MY_Controller{
                     $this->db->update('items_tbl', array('average_cost_per_unit' => number_format($new_average, 2)));
 				}
 			}
-
 		} else {
-
 			$returned = array(
 				'company_id' => $this->session->userdata['company_id'],
-				'purchase_order_number' => $purchase_order->purchase_order_number,
-				'purchase_order_id' => $purchase_order->purchase_order_id,
+				'purchase_order_number' => 0,
+				'purchase_order_id' => 0,
 				'vendor_id' => $data['vendor_id'],
 				'location_id' => $data['location_id'],
 				'sub_location_id' => $data['sub_location_id'],
 				'items' => json_encode($data['items']),
 				'discount' => $data['discount'],
 				'freight' => $data['freight'],
+				'tax' => $data['tax'],
 				'created_at' => date('Y-m-d H:i:s'),
 			);
 			
@@ -609,7 +596,7 @@ class Purchases extends MY_Controller{
 				'updated_at' => date("Y-m-d H:i:s")
 			);
 	
-			$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
+			//$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
 
 			#### UPDATES ITEMS COLUMN WITH RETURN QTY
 			$where_receiving = array(

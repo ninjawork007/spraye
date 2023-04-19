@@ -546,13 +546,17 @@
 					<div class="modal-body">
 						<div class="form-group">
 							<div class="row">
-								<div class="col-md-6 col-sm-4">
+								<div class="col-md-4 col-sm-4">
 									<label>Invoice #</label>
 									<input type="text" class="form-control" name="invoice_number" id="invoice_number" value = "" placeholder="Invoice #" >
 								</div>
-								<div class="col-md-6 col-sm-4">
+								<div class="col-md-4 col-sm-4">
 									<label>Total Amount of Invoice</label>
 									<input type="text" class="form-control" name="invoice_total_amt" id="invoice_total_amt" value = "" placeholder="Sub Total Amount of Invoice" >
+								</div>
+								<div class="col-md-4 col-sm-4">
+									<label>Pay By Date</label>
+									<input type="date" class="form-control" name="pay_by_date" id="pay_by_date" required >
 								</div>
 							</div>
 						</div>
@@ -788,6 +792,7 @@ function addInvoice() {
 		purchase_order_id : <?= $purchase_id ?>,
 		invoice_id: $('input[name=invoice_number]').val(),
 		invoice_total_amt: $('input[name=invoice_total_amt]').val(),
+		pay_by_date: $('input[name=pay_by_date]').val(),
 		freight: $('input[name=freight]').val(),
 		discount: $('input[name=discount]').val(),
 		tax: $('input[name=tax]').val()
