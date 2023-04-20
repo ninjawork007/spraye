@@ -64,6 +64,9 @@ class Reports extends MY_Controller {
         $this->load->model('Job_product_model', 'JobAssignProduct');
 		$this->load->model('Cancelled_services_model','CancelledModel');
         $this->load->model('Source_model', 'SourceModel');
+        $this->load->model('Save_tech_eff_report_model', 'TechEffReportModel');
+        $this->load->model('Save_sales_summary_filter_model', 'SalesSummarySaveModel');
+        $this->load->model('Save_sales_pipeline_filter_model', 'SaveSalesPipelineFilterModel');
     }
 
 
@@ -2388,6 +2391,7 @@ class Reports extends MY_Controller {
   public function techEfficiencyReport() 
   {
 	$data['tecnician_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
+    $data['SavedFilter'] = $this->TechEffReportModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
 	$data['initial_data'] = $this->initialLoadTechEfficiencyReport();
 	// $data['report_details'] = $this->RP->getAllRepots();
 	$page["active_sidebar"] = "techEfficiencyReport";
@@ -2396,9 +2400,15 @@ class Reports extends MY_Controller {
 	$this->layout->superAdminReportTemplateTable($page);
   }
 
-  public function initialLoadTechEfficiencyReport($from_date = null, $to_date = null) {
+  public function initialLoadTechEfficiencyReport($from_date = null, $to_date = null, $TcechIDs = []) {
 
-		$users = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
+    $ConditionArray = array('company_id' => $this->session->userdata['company_id']);
+
+    if(count($TcechIDs) > 0){
+        $ConditionArray = array('company_id' => $this->session->userdata['company_id'], "user_id" => $TcechIDs);
+    }
+
+    $users = $this->Administrator->getAllAdmin($ConditionArray);
 
 		$results = array();
 		foreach($users as $user)
@@ -2408,7 +2418,7 @@ class Reports extends MY_Controller {
 			$job_completed_date_to = $to_date ?? date('Y-m-d');
 
 			$conditions = array(
-				'technician_id' => $technician_id,
+				'technician_id' => explode(",", $technician_id),
 				'is_complete' => 1,
 				'date_from' => $job_completed_date_from,
 				'date_to' => $job_completed_date_to
@@ -2536,168 +2546,8 @@ class Reports extends MY_Controller {
 		$job_completed_date_from = $this->input->post('job_completed_date_from');
 		$job_completed_date_to = $this->input->post('job_completed_date_to');
 
-		if($technician_id == '0')
-		{
-			$resp_data = $this->initialLoadTechEfficiencyReport($job_completed_date_from, $job_completed_date_to);
-			echo json_encode($resp_data);
-		} else {
-
-			$conditions = array(
-				'technician_id' => $technician_id,
-				'is_complete' => 1,
-				'date_from' => $job_completed_date_from,
-				'date_to' => $job_completed_date_to
-			);
-			$days_worked = $this->RP->getTecnicianhDaysWorkedBetweenDates($conditions);
-			$jobs_completed = $this->RP->getTecnicianhJobsCompletedBetweenDates($conditions);
-			// die(print_r(json_encode($jobs_completed),true)); // 0
-			// die(print_r(json_encode($invoiceIds),true)); // []
-			$jobAssignIds = $this->RP->getTecnicianJobAssignIdsBetweenDates($conditions);
-			// die(print_r(json_encode($jobAssignIds),true)); // []
-			if($jobs_completed > 0 && count($jobAssignIds) > 0)
-			{
-				$reports = $this->RP->getTechJobReports($jobAssignIds);
-				$completed_sqft = 0;
-				$revenue = 0;
-				foreach($reports as $report)
-				{
-                    $rev_total = $report->cost;
-                    $tech_info = $this->RP->getReportTech($report->technician_job_assign_id);
-                    // print_r($tech_info);
-
-                    if(!empty($tech_info)){
-                            $job_discounts = $this->RP->getJobDiscounts($tech_info->job_id);
-                            if(!empty($job_discounts)){
-                                // print_r($job_discounts);
-                                foreach($job_discounts as $j_d){
-                                    if ($j_d->amount_calculation == 0){
-                                        $rev_total -= $j_d->amount;
-                                    } else if ($j_d->amount_calculation == 1){
-                                        $rev_total -= ($report->cost * ($j_d->amount / 100));
-                                    }
-                                }
-                            }
-                            $invoice_discounts = $this->RP->getInvoiceDiscounts($tech_info->invoice_id);
-                            if(!empty($invoice_discounts)){
-                                // print_r($invoice_discounts);
-                                foreach($invoice_discounts as $j_d){
-                                    if ($j_d->amount_calculation == 0){
-                                        $rev_total -= $j_d->amount;
-                                    } else if ($j_d->amount_calculation == 1){
-                                        $rev_total -= ($report->cost * ($j_d->amount / 100));
-                                    }
-                                }
-                            }
-
-
-
-
-                    }
-
-                    // if(!empty($discounts)){
-                    //     foreach($discounts as $discount){
-                    //         if(!empty($discount->job_coupon_id)){
-                    //             print_r('<p>Job Coupon Total is: ' . $rev_total . '</p><br/>');
-                    //             if($discount->job_calculation == 0){
-                    //                 $rev_total -= $discount->job_amount;
-                    //             } else if($discount->job_calculation == 1){
-                    //                 $rev_total -= ($report->cost * ($discount->job_amount / 100));
-                    //             }
-                    //         }
-                    //         if(!empty($discount->customer_coupon_id) && $discount->type == 1){
-                    //             // die(print_r($rev_total));
-                    //             print_r('<p>Customer Coupon Total is: ' . $rev_total . '</p><br/>');
-                    //             if($discount->customer_calculation == 0){
-                    //                 $rev_total -= $discount->customer_amount;
-                    //             } else if ($discount->customer_calculation == 1){
-                    //                 $rev_total -= ($report->cost * ($discount->customer_amount / 100));
-                    //             }
-                    //         } if(!empty($discount->invoice_coupon_id)){
-                    //             // die(print_r($rev_total));
-                    //             print_r('<p>Invoice Coupon Total is: ' . $rev_total . '</p<br/>');
-                    //             if($discount->invoice_calculation == 0){
-                    //                 $rev_total -= $discount->invoice_amount;
-                    //             } else if ($discount->invoice_calculation == 1){
-                    //                 $rev_total -= ($report->cost * ($discount->invoice_amount / 100));
-                    //             }
-                    //         }
-                    //     }
-                    // }
-                    // print_r($discounts[0]->invoice_id);
-
-
-                    // print_r('<h2>' . $rev_total . '</h2><br/>');
-					$completed_sqft += $report->yard_square_feet;
-					$revenue += floatval($rev_total);
-				}
-				$service_per_day = $jobs_completed / $days_worked;
-				$revenue_per_day = $revenue / $days_worked;
-				$sqft_per_day = $completed_sqft / $days_worked;
-				$job_times = $this->RP->getTecnicianhJobTimesBetweenDates($conditions);
-				$total_job_time = 0;
-				// $difference = 0;
-				foreach($job_times as $job_time)
-				{
-					$difference = 0;
-					$difference = round( abs( strtotime( $job_time->job_completed_time) - strtotime( $job_time->job_start_time )) / 60,2);
-					$total_job_time = $total_job_time + $difference;
-				}
-				$avg_revenue_per_hour = $revenue / $total_job_time * 60 ;
-
-                
-
-				$test = array(
-					'rev' => $revenue,
-					't' => $total_job_time,
-					'tr' => round( $total_job_time ),
-					'tmult' => $total_job_time * 60,
-					'tmultr' => round( $total_job_time * 60 ),
-					'avg' => $avg_revenue_per_hour
-				);
-				// die(print_r(json_encode( $test ),true));
-				$total_job_time = $this->convertToHoursMins($total_job_time);
-
-                if ($total_job_time < 60){
-                    $avg_revenue_per_hour = $revenue;
-                }
-				
-				if( $job_completed_date_from == '')
-				{
-					$job_completed_date_from = '∞';
-				}
-				$resp_data = array(
-					'date_range' => $job_completed_date_from.' - '.$job_completed_date_to,
-					't_days_worked' => $days_worked,
-					't_services' => $jobs_completed,
-					't_sqft' => $completed_sqft,
-					't_revenue' => $revenue,
-					'avg_services' => round($service_per_day, 2),
-					'avg_sqft' => round($sqft_per_day, 2),
-					'avg_revenue' => round($revenue_per_day, 2),
-					't_servce_time' => $total_job_time,
-					'avg_revenue_hr' => round( $avg_revenue_per_hour, 2)
-				);
-				echo json_encode($resp_data);
-			} else {
-				if( $job_completed_date_from == '')
-				{
-					$job_completed_date_from = '∞';
-				}				
-				$resp_data = array(
-					'date_range' => $job_completed_date_from.' - '.$job_completed_date_to,
-					't_days_worked' => 0,
-					't_services' => 0,
-					't_sqft' => 0,
-					't_revenue' => 0,
-					'avg_services' => 0,
-					'avg_sqft' => 0,
-					'avg_revenue' => 0,
-					't_servce_time' => "00:00",
-					'avg_revenue_hr' => 0
-				);
-				echo json_encode($resp_data);
-			}
-		}
+		$resp_data = $this->initialLoadTechEfficiencyReport($job_completed_date_from, $job_completed_date_to, explode(",", $technician_id));
+		echo json_encode($resp_data);
   }
 
 	function convertToHoursMins($time, $format = '%02d:%02d') {
@@ -3507,6 +3357,7 @@ class Reports extends MY_Controller {
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
+        $data['SavedFilter'] = $this->SalesSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
@@ -5633,6 +5484,7 @@ class Reports extends MY_Controller {
         //get the posts data
         // $data['pipeline_details'] = $this->EstimateModal->getAllEstimate();
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
+        $data['SavedFilter'] = $this->SaveSalesPipelineFilterModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
         $where = array('t_estimate.company_id' =>$this->session->userdata['company_id']);
@@ -7322,14 +7174,22 @@ class Reports extends MY_Controller {
         #get existing properties
         $existing_properties = [];
         $existing_cancelled_properties = [];
+
+        $PropertyConditionArray = array();
+
+        $PropertyConditionArray['property_tbl.company_id'] = $company_id;
+        if($this->input->post("rescom") != ""){
+            $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
+        }
+
         if(!empty($start)){
-            $existing_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),'',$start);
-            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id,'property_tbl.property_status'=>0),'',$start);
+            $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
+            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array($PropertyConditionArray,'property_tbl.property_status'=>0),'',$start);
         }
         $report_data['total_starting_properties'] = count($existing_properties);
 
         #get new properties
-        $new_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
+        $new_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,$start,$end);
         $report_data['total_new_properties'] = count($new_properties);
         
         #handle chart labels
@@ -7446,8 +7306,8 @@ class Reports extends MY_Controller {
             if(empty($comparison_end)){
                 $comparison_end = date('Y-m-d H:i:s',strtotime('now'));
             }
-            $comparison_existing_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),'',$comparison_start);
-            $comparison_existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id,'property_tbl.property_status'=>0),'',$comparison_start);
+            $comparison_existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$comparison_start);
+            $comparison_existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array($PropertyConditionArray,'property_tbl.property_status'=>0),'',$comparison_start);
         }
         $comparison_data['total_starting_properties'] = count($comparison_existing_properties);
 
@@ -7455,7 +7315,7 @@ class Reports extends MY_Controller {
         $comparison_new_properties = new stdClass();
         #get new properties
         if(!empty($comparison_start && $comparison_end)){
-        $comparison_new_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$comparison_start,$comparison_end);
+        $comparison_new_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,$comparison_start,$comparison_end);
         $comparison_data['total_new_properties'] = count($comparison_new_properties);
         }
         
@@ -7533,8 +7393,21 @@ class Reports extends MY_Controller {
             }
 //			$overall_cancel_percent = count($existing_cancelled_properties) + count($new_cancelled) / count($new_cancelled);
             $comparison_data['total_cancels'] = count($comparison_new_cancelled);
-            $comparison_cancel_percent = count($comparison_new_cancelled)/count($comparison_new_properties) * 100;
-			$comparison_cancel_v_sales = count($comparison_new_cancelled)/count($comparison_new_properties);
+
+            $comparison_new_properties = json_encode($comparison_new_properties);
+            $comparison_new_properties = json_decode($comparison_new_properties, true);
+
+            if(count($comparison_new_properties) > 0){
+                $comparison_cancel_percent = count($comparison_new_cancelled)/count($comparison_new_properties) * 100;
+            }else{
+                $comparison_cancel_percent = 0;
+            }
+
+            if(count($comparison_new_properties) > 0){
+    			$comparison_cancel_v_sales = count($comparison_new_cancelled)/count($comparison_new_properties);
+            }else{
+                $comparison_cancel_v_sales = 0;
+            }
             $comparison_data['total_cancelled_percent'] = number_format($comparison_cancel_percent,1);
             $comparison_data['total_cancels_vs_sales'] = number_format($comparison_cancel_v_sales,1);
         }
@@ -9191,5 +9064,42 @@ class Reports extends MY_Controller {
         unset($customer_number_link);
 	}
 
+    public function saveTechnicianFilter(){
+        $data = $this->input->post();
+        $data["user_id"] = $this->session->userdata['id'];
+        
+        $CheckReport = $this->TechEffReportModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
 
+        if(!isset($CheckReport["id"])){
+            $this->TechEffReportModel->createSaveReport($data);
+        }else{
+            $this->TechEffReportModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
+        }
+    }
+
+    public function saveSalesSummaryFilters(){
+        $data = $this->input->post();
+        $data["user_id"] = $this->session->userdata['id'];
+        
+        $CheckReport = $this->SalesSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
+
+        if(!isset($CheckReport["id"])){
+            $this->SalesSummarySaveModel->createSaveReport($data);
+        }else{
+            $this->SalesSummarySaveModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
+        }
+    }
+
+    public function saveSalesPipelineFilters(){
+        $data = $this->input->post();
+        $data["user_id"] = $this->session->userdata['id'];
+        
+        $CheckReport = $this->SaveSalesPipelineFilterModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
+
+        if(!isset($CheckReport["id"])){
+            $this->SaveSalesPipelineFilterModel->createSaveReport($data);
+        }else{
+            $this->SaveSalesPipelineFilterModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
+        }
+    }
 }

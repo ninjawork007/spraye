@@ -53,10 +53,23 @@ class Administrator extends CI_Model{
         
         $this->db->from(self::ADMINTBL);
 
+        if(isset($where_arr["user_id"])){
+            $IdString = "user_id IN (";
+            foreach($where_arr["user_id"] as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
+            unset($where_arr["user_id"]);
+        }
+        
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
         
+
 
         $this->db->order_by('id','desc');
         $result = $this->db->get();
