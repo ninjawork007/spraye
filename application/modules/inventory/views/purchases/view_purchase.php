@@ -720,6 +720,12 @@ function showDiv(divId, element){
 			updateTotals();
 		})
 
+		// When changing price of an item
+		$(document).on('input', '.itemPrice', function() {
+			var qty = $(this).val();
+			updateTotals();
+		})
+
 		// When changing received quantity of an item
 		$(document).on('input', '.receivedqty', function() {
 			var qty = $(this).val();
@@ -958,7 +964,7 @@ function purchaseOrder(){
 					+ item.item_number
 					+ '</div>'
 					+ '</div>'
-				let td2 = unit_price
+				let td2 = `<input type="number" class="form-control form-control-sm itemPrice" name="itemPrice" step="any" min="0" value="`+unit_price+`" />`;
 				let td3 = quantity 
 				let td4 = received - returned
 				let td5= 0
@@ -967,7 +973,7 @@ function purchaseOrder(){
 
 				let elem = `<tr data-item-id="${item.item_id}">`
 					+ `<td>${td1}</td>`
-					+ `<td data-item-td="unit_price">$ ${td2}</td>`
+					+ `<td data-item-td="unit_price">${td2}</td>`
 					+ `<td data-item-td="quantity">${td3}</td>`
 					+ `<td data-item-td="received_qty" >${td4}</td>`
 					+ `<td data-item-td="received_amt">${td5}</td>`
@@ -1035,7 +1041,8 @@ function updateTotals() {
 	Object.values(purchase.items).forEach((item, i) => {
 		let received_qty = $(`table#items tbody tr[data-item-id=${item.item_id}] td[data-item-td=received_qty]`).html();
 		let quantity = item.quantity;
-		let item_price = item.unit_price;
+		let item_price = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemPrice`).val();
+		console.log(item_price);
 
 		// If quantity is greater than originally purchased, rewrite user input
 		if(Number(received_qty) > Number(item.quantity)) {
@@ -1044,6 +1051,7 @@ function updateTotals() {
 		}
 		// Update quantity in the original array
 		purchase.items[i]['received_qty'] = received_qty;
+		purchase.items[i]['unit_price'] = item_price;
 
 		let item_subtotal = received_qty * Number(item_price);
 		let item_total = Number(item_subtotal);
@@ -1197,6 +1205,7 @@ function updatePO() {
 			received_qty: item.received_qty,
 			return_qty: item.return_qty,
 			unit_price: item.unit_price,
+			unit_type: item.unit_type,
 			quantity: item.quantity
 		})
 	})

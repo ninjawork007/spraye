@@ -303,7 +303,7 @@
 									<div class="form-group" >
 										<label for="location" class="d-block">Location*</label>
 										<select class="custom-select" name="location_id" id="location_id">
-											<option value="<?= $purchase_return[0]->location_id ?>"  disabled selected><?php echo $purchase_return[0]->location_name ?></option>
+											<option value="<?= $purchase_return[0]->location_id ?>" selected><?php echo $purchase_return[0]->location_name ?></option>
 										</select>
 									</div>
 								</div>
@@ -321,8 +321,8 @@
 								<div class="column text-break pl-2 pr-2" id="hidden_sub">
 									<div class="form-group sublocation-container">
 										<label for="sub_location" class="d-block">Sub Location*</label>
-										<select class="custom-select">
-											<option value="<?= $purchase_return[0]->sub_location_id ?>"  disabled selected><?php echo $purchase_return[0]->sub_location_name ?></option>
+										<select class="custom-select" name="sub_location_id" id="sub_location_id">
+											<option value="<?= $purchase_return[0]->sub_location_id ?>" selected><?php echo $purchase_return[0]->sub_location_name ?></option>
 										</select>
 									</div>
 								</div>
@@ -335,7 +335,7 @@
 									<div class="form-group">
 										<label for="vendor" class="d-block">Vendor*</label>
 										<select class="custom-select" name="vendor_id" id="vendor_id">
-											<option value="<?= $purchase_return[0]->vendor_id ?>"  disabled selected><?php echo $purchase_return[0]->vendor_name ?></option>
+											<option value="<?= $purchase_return[0]->vendor_id ?>" selected><?php echo $purchase_return[0]->vendor_name ?></option>
 										</select>
 									</div>
 								</div>
@@ -425,6 +425,13 @@
 											</tr>
 										</tbody>
 									</table>
+								</div>
+							</div>
+
+							<div>
+								<div class="form-group">
+									<label for="payment_term" class="d-block">Payment Term</label>
+									<textarea name="payment_term" id="payment_terms" class="form-control" rows="6"><?= $purchase_return[0]->payment_term ?></textarea>
 								</div>
 							</div>
 
@@ -532,13 +539,8 @@ function purchaseOrder(){
 			purchase.items = JSON.parse(purchase.items);
 			
 			Object.values(purchase.items).forEach((item, i) => {
-				if(item.return_qty == undefined){
-					item.return_qty = 0;
-				} else {
-					item.return_qty = item.return_qty;
-				}
-				
 				total_units += Number(item.received_qty);
+				console.log(item);
 				let unit_price = item.unit_price;
 				let returned = item.return_qty
 				let quantity = item.received_qty;
@@ -582,16 +584,18 @@ function updateTotals() {
 	let return_total = 0;
 	
 	Object.values(purchase.items).forEach((item, i) => {
-		let return_qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val();
-		let item_price = item.unit_price;
+		let return_qty = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemqty`).val();
+		let item_price = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemprice`).val();
 
 		// If quantity is greater than originally purchased, rewrite user input
-		if(Number(return_qty) > Number(item.received_qty)) {
+		/*if(Number(return_qty) > Number(item.received_qty)) {
 			return_qty = item.received_qty;
 			$(`table#items tbody tr[data-item-id=${item.item_id}] input`).val(return_qty);
-		}
+		}*/
 		// Update quantity in the original array
+		
 		purchase.items[i]['return_qty'] = return_qty;
+		purchase.items[i]['item_price'] = item_price;
 
 		let item_subtotal = return_qty * Number(item_price);
 		let item_total = Number(item_subtotal);
@@ -669,6 +673,7 @@ function returnItems() {
 		discount: $('input[name=discount]').val(),
 		discount_type: 'amount',
 		tax: $('input[name=tax]').val(),
+		payment_term: $("#payment_terms").val(),
 		notes: $('textarea[name=purchase_order_order_notes]').val(),
 		status: purchase.purchase_order_status,
 		total_return: purchase.return_total,
@@ -677,13 +682,14 @@ function returnItems() {
 	}
 	
 	Object.values(purchase.items).forEach(item => {
+		console.log(item);
 		data.items.push({
 			item_id: item.item_id,
 			item_number: item.item_number,
-			name: item.item_name,
+			name: item.name,
 			unit_type: item.unit_type,
 			return_qty: item.return_qty,
-			unit_price: item.unit_price,
+			unit_price: item.item_price,
 			quantity: item.quantity
 		})
 	})

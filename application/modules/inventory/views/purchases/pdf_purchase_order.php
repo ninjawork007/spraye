@@ -228,11 +228,12 @@
                     </td>
                 </tr>
             </table>
-            <table width="100%" class="table table-condensed">
+            <table width="100%" class="table table-condensed" cellspacing="0" cellpadding="10">
                 <tr class="first_tr">
-                    <td><strong>PURCHASE ORDER NO: # <?=$purchase_order->purchase_order_number?></strong></td>
-                    <td align="center"> Ordered by: <strong><?= $purchase_order->name ?></strong></td>
-                    <td align="right"> <strong><?=Date("m/d/Y", strtotime($purchase_order->created_at))?></strong></td>
+                    <td align="center"><strong>PURCHASE ORDER NO: #<br><?=$purchase_order->purchase_order_number?></strong></td>
+                    <td align="center"> <strong>ORDER DATE <br><?=Date("m/d/Y", strtotime($purchase_order->created_at))?></strong></td>
+                    <td align="center"><strong>ORDERED BY <br><?= $purchase_order->name ?></strong></td>
+                    <td align="center"> <strong>ORDER DATE <br> <?=Date("m/d/Y", strtotime($purchase_order->ordered_date))?></strong></td>
                 </tr>
             </table>
             <table width="100%" class="table table-condensed" style="margin-bottom: 20px;">
@@ -307,15 +308,22 @@
                 </tr>
             </table>
 
+            <table width="100%" class="table table-condensed main_table" cellspacing="0">
+                <tr><td><b>DELIVERY DATE : </b> <?=Date("m/d/Y", strtotime($purchase_order->estimated_delivery_date))?></td></tr>
+                <tr><td><b>PAYMENT TERM : </b> <?= $purchase_order->payment_terms ?></td></tr>
+                <tr><td><b>PLACE OF ORIGIN : </b> <?= $purchase_order->place_of_origin ?></td></tr>
+                <tr><td><b>PLACE OF DESTINATION : </b> <?= $purchase_order->place_of_destination ?></td></tr>
+            </table>
+
             <!-- END TOP FOLD -->
 
             <table width="100%" class="table table-condensed main_table" cellspacing="0">
                 <thead>
                     <tr style="background-color:<?=$setting_details->invoice_color?>!important;color: #fff;">
                         <td class="text-left" style="padding-left: 8px;"><strong>AMOUNT ORDERED</strong></td>
+                        <td class="text-left"><strong>UNIT OF MEASURE</strong></td>
                         <td class="text-left"><strong>ITEM NUMBER</strong></td>
                         <td class="text-left"><strong>ITEM NAME</strong></td>
-                        <!-- <td class="text-left"><strong>UofM</strong></td> -->
                         <td class="text-right" style="text-align: right; padding-right: 16px;"><strong>UNIT PRICE</strong></td>
                         <td class="text-center"><strong>EXT PRICE</strong></td>                     
                         <!-- <td class="text-right" style="display:none;"><strong>TAX %</strong></td> -->
@@ -332,9 +340,9 @@
                     ?>
                     <tr>
                         <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $value['quantity'] ?></td>
+                        <td><?=$value['unit_type']?></td>
                         <td class="text-left"><?=$value['item_number']?></td>
                         <td class="text-left"><?=$value['name']?></td>
-                        <!-- <td></td> -->
                         <td class="text-right" style="text-align: right; padding-right: 16px;">
                             <?='$   ' . number_format($value['unit_price'], 2) ?>
                         </td>
@@ -421,22 +429,32 @@
                 </tr>
             </table>
 
-
-            <?php if ($setting_details->tearm_condition != '') {?>
-
             <table width="100%" class="main_table">
-                <tr>
-                    <td class="text-center"><b>Terms & Conditions</b></td>
-                </tr>
+                <tr><td style="font-size: 20px;"><b>Invoices</b></td></tr>
             </table>
 
-            <table width="100%" class="main_table">
-                <tr>
-                    <td class="text-center"><?= $purchase_order->payment_terms?></td>
-                </tr>
-            </table>
+            <!-- END TOP FOLD -->
 
-            <?php }?>
+            <table width="100%" class="table table-condensed main_table" cellspacing="0">
+                <thead>
+                    <tr style="background-color:<?=$setting_details->invoice_color?>!important;color: #fff;">
+                        <td class="text-left" style="padding-left: 8px;"><strong>INVOICE NUMBER</strong></td>
+                        <td class="text-right"><strong>AMOUNT</strong></td>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <?php 
+                    foreach($purchase_order_invoices as $key => $value) {
+                    ?>
+                    <tr>
+                        <td class="text-left" style="padding-right: 16px;"><?php echo $value->po_invoice_id ?></td>
+                        <td class="text-right" style="padding-right: 16px;"><?='$   ' . number_format($value->invoice_total_amt, 2) ?></td>
+                    </tr>
+
+                    <?php }?>
+                </tbody>
+            </table>
 
             <table width="100%" class="main_table">
                 <tr>

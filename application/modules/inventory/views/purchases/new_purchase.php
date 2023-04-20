@@ -872,6 +872,7 @@
 				name: item.item_name,
 				received_qty: 0,
 				unit_price: item.price_per_unit,
+				unit_type: item.unit_type,
 				quantity: item.qty
 			})
 		})

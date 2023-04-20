@@ -430,6 +430,13 @@
 								</div>
 							</div>
 
+							<div>
+								<div class="form-group">
+									<label for="payment_term" class="d-block">Payment Term</label>
+									<textarea name="payment_term" id="payment_terms" class="form-control" rows="6"></textarea>
+								</div>
+							</div>
+
 							<hr class="mt-4" />
 
 							<div class="text-right mt-2 mb-2">
@@ -673,6 +680,8 @@ function getVendorDetails(){
 		dataType:'JSON', 
 		success: function(response){
 			console.log(response);
+			$("#payment_terms").val(response.terms);
+			$("#discount").val(response.po_discount);
 		}
 	});
 }
@@ -765,6 +774,7 @@ function createPurchase() {
 		freight: $('input[name=freight]').val(),
 		discount: $('input[name=discount]').val(),
 		discount_type: 'amount',
+		payment_term: $("#payment_terms").val(),
 		tax: $('input[name=tax]').val(),
 		notes: $('textarea[name=purchase_order_order_notes]').val(),
 		status: purchase.purchase_order_status,

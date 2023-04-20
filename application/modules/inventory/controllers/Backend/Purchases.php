@@ -505,8 +505,11 @@ class Purchases extends MY_Controller{
 				'vendor_id' => $data['vendor_id'],
 				'location_id' => $data['location_id'],
 				'sub_location_id' => $data['sub_location_id'],
+				'created_by' => $this->session->userdata['id'],
 				'items' => json_encode($data['items']),
 				'discount' => $data['discount'],
+				'notes' => $data['notes'],
+				'payment_term' => $data['payment_term'],
 				'tax' => $data['tax'],
 				'freight' => $data['freight'],
 				'updated_at' => date('Y-m-d H:i:s'),
@@ -579,9 +582,12 @@ class Purchases extends MY_Controller{
 				'vendor_id' => $data['vendor_id'],
 				'location_id' => $data['location_id'],
 				'sub_location_id' => $data['sub_location_id'],
+				'created_by' => $this->session->userdata['id'],
 				'items' => json_encode($data['items']),
+				'payment_term' => $data['payment_term'],
 				'discount' => $data['discount'],
 				'freight' => $data['freight'],
+				'notes' => $data['notes'],
 				'tax' => $data['tax'],
 				'created_at' => date('Y-m-d H:i:s'),
 			);
@@ -733,7 +739,98 @@ class Purchases extends MY_Controller{
 
 	public function updatePO($purchase_order_id) {
 		$data = $this->input->post();
+
+		$NewItemArray = array();
+		foreach($data["items"] as $DT){
+			$NewItemArray[$DT['item_id']] = $DT["unit_price"];
+		}
+
 		$purchase_order = $this->PurchasesModel->getPurchase(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
+
+		$POPriceUpdated = 0;
+		$GetOldItems = json_decode($purchase_order[0]->items);
+		foreach($GetOldItems as $GOI){
+			if($GOI->unit_price != $NewItemArray[$GOI->item_id]){
+				$POPriceUpdated = 1;
+			}
+		}
+
+		// Remove all received item and update quantity and average price
+		if($POPriceUpdated == 1){
+
+			foreach($GetOldItems as $itemArr){
+
+				$quantityArr = array(
+					'quantity_item_id' => $itemArr->item_id, 
+					'quantity_location_id' => $data['location_id'], 
+					'quantity_sublocation_id' => $data['sub_location_id'],
+					'company_id' => $this->session->userdata['company_id']
+				);
+
+	            $quantArr = array(
+	                'quantity_item_id' => $itemArr->item_id, 
+	                'company_id' => $this->session->userdata['company_id']
+	            );
+
+				$unit_amount = $this->ReceivingsModel->getUnitAmount($itemArr->item_id);
+				
+				$alreadyExists = $this->ReceivingsModel->getAlreadyExistingQuantities($quantityArr);
+
+	            $quant = $this->ReceivingsModel->getAlreadyExistingQuantity($quantArr);
+
+			
+				if(!empty($alreadyExists)){
+					
+					$this->db->where('quantity_id', $alreadyExists->quantity_id);
+					$this->db->update('quantities', array('quantity' => ($alreadyExists->quantity - ($itemArr->receiving_qty))));
+
+					$item_info = $this->ReceivingsModel->getCurrentAverageCostPerUnit($itemArr->item_id);
+
+					if($itemArr->receiving_qty != 0){
+						$new_average = $this->calculateAverageCostPerUnit(
+	                        $item_info->average_cost_per_unit, 
+	                        $quant, 
+	                        $itemArr->unit_price, 
+	                        0
+	                    );
+					}
+
+					$this->db->where('item_id', $itemArr->item_id);
+					$this->db->update('items_tbl', array('average_cost_per_unit' => number_format($new_average, 2)));
+				}
+			}
+		}
+
+		$where = array(
+			'purchase_order_id' => $purchase_order_id
+		);
+
+		if($POPriceUpdated == 1){
+			foreach($data["items"] as $Index => $DT){
+				$data["items"][$Index]["received_qty"] = 0;
+			}
+
+			$received = array(
+				'company_id' => $this->session->userdata['company_id'],
+				'purchase_order_number' => $purchase_order[0]->purchase_order_number,
+				'purchase_order_id' => $purchase_order[0]->purchase_order_id,
+				'total_units' => $data['total_units'],
+				'freight' => $data['freight'],
+				'discount' => $data['discount'],
+				'total_purchase_order_amount' => $purchase_order[0]->grand_total,
+				'received_by' => "",
+				'receiving_date' => "0000-00-00",
+				'location_id' => $data['location_id'],
+				'sub_location_id' => $data['sub_location_id'],
+				'items' => json_encode($data['items']),
+				'subtotal_received' => 0,
+				'total_received_amount' => 0,
+				'total_received' => 0,
+				'updated_at' => date('Y-m-d H:i:s'),
+			);
+
+			$receiving_update = $this->ReceivingsModel->updateReceivingOrder($where, $received);
+		}
 		
 		$where = array(
 			'purchase_order_tbl.purchase_order_id' => $purchase_order_id
@@ -753,6 +850,8 @@ class Purchases extends MY_Controller{
 			'place_of_origin' => $data["place_of_origin"],
 			'place_of_destination' => $data["place_of_destination"],
 			'payment_terms' => $data["payment_terms"],
+			'items' => json_encode($data['items']),
+			'is_receiving' => ($POPriceUpdated == 1) ? 0 : $purchase_order[0]->is_receiving,
 		);
 
 		$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);

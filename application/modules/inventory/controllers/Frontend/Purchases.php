@@ -68,10 +68,11 @@ class Purchases extends MY_Controller{
 
 
     public function index($purchaseId = false) {
-        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id']);
+        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id'], "purchase_order_status" => "!=3");
         $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
         $page["active_sidebar"] = "purchases";
         $page["page_name"] = 'Purchases';
+        $data['list_locations'] = $this->LocationsModel->getLocationsList();
         $page["page_content"] = $this->load->view("inventory/purchases/purchases", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
     }
@@ -306,6 +307,24 @@ class Purchases extends MY_Controller{
     
         if($status!=4) {
         $where['purchase_sent_status'] = $status;
+        }
+        
+        $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
+        $where = array('company_id' =>$this->session->userdata['company_id']);
+    
+         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
+    
+         $body  =  $this->load->view('inventory/purchases/ajax_data',$data,TRUE);
+         echo $body;
+    
+    } 
+
+    public function getAllPurchaseOrdersByLocartion($status){
+ 
+        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id']);
+    
+        if($status!=4) {
+        $where['purchase_order_tbl.location_id'] = $status;
         }
         
         $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
@@ -690,10 +709,11 @@ class Purchases extends MY_Controller{
 
         $where = array(
             "purchase_order_tbl.company_id" => $this->session->userdata['company_id'],
-            'purchase_order_tbl.purchase_order_id' =>$purchase_order_id 
+            'purchase_order_tbl.purchase_order_id' => $purchase_order_id 
         );    
 
         $data['purchase_order'] = $this->PurchasesModel->getOnePurchase($where);
+        $data['purchase_order_invoices'] = $this->PurchasesModel->getPOInvoice(array("purchase_order_id" => $purchase_order_id ));
 
         $settings = new stdClass();
         $settings->currency_symbol = '$';

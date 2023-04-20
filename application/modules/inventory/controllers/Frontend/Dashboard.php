@@ -120,6 +120,7 @@ class Dashboard extends MY_Controller{
 
         $where_arr = array(
             'purchase_order_tbl.company_id' => $company_id,
+            "purchase_order_status" => "!=3"
         );
         $data['all_purchases'] = $this->PurchaseModel->getAllPurchases($where_arr);
         $page["active_sidebar"] = "dashboard";
