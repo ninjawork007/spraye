@@ -6727,6 +6727,8 @@ class Reports extends MY_Controller {
 		
 		#get cancelled properties
 		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=> $this->session->userdata['company_id']));
+
+        $data["AllCancelledProperty"] = $cancelled_properties;
 		
 		#get cancelled services
 		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetails(array('cancelled_services_tbl.company_id' => $this->session->userdata['company_id']));
@@ -6834,6 +6836,8 @@ class Reports extends MY_Controller {
 		}
 		#get cancelled properties
 		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
+
+        $data["AllCancelledProperty"] = $cancelled_properties;
 
 		#get cancelled services
 		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetailsBetween($query,$start,$end);

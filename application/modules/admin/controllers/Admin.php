@@ -12944,7 +12944,7 @@ class Admin extends MY_Controller
 	$email_data['cancel_reason'] = $cancel_reason;
 	$email_data['services'] = [];
 	#update property status
-	$handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('property_status'=>0,'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
+	$handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('cancelled_by' => $this->session->userdata['id'], 'property_status'=>0,'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
 
 	#outstanding services should be cancelled
 	$outstandingServices = $this->PropertyModel->getUnassignJobsByProperty($property_id);
