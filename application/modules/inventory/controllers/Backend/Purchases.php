@@ -1018,17 +1018,17 @@ class Purchases extends MY_Controller{
     
 
 	public function calculateAverageCostPerUnit($current_average, $current_quantity, $po_cost, $po_units){
-		$average_cost = ((number_format($current_average, 2) * number_format($current_quantity, 2)) 
-            + (number_format($po_cost, 2) * number_format($po_units, 2))) 
-            / (number_format($current_quantity, 2) + number_format($po_units, 2));
-		    return number_format($average_cost, 2);
+		$average_cost = ((number_format($current_average, 4) * number_format($current_quantity, 4)) 
+            + (number_format($po_cost, 4) * number_format($po_units, 4))) 
+            / (number_format($current_quantity, 4) + number_format($po_units, 4));
+		    return number_format($average_cost, 4);
 	}
 
     public function calculateAverageCostPerUnitAfterReturn($current_average, $current_quantity, $po_cost, $po_units){
-		$average_cost = ((number_format($current_average, 2) * number_format($current_quantity, 2)) 
-            - (number_format($po_cost, 2) * number_format($po_units, 2))) 
-            / (number_format($current_quantity, 2) - number_format($po_units, 2));
-		    return number_format($average_cost, 2);
+		$average_cost = ((number_format($current_average, 4) * number_format($current_quantity, 4)) 
+            - (number_format($po_cost, 4) * number_format($po_units, 4))) 
+            / (number_format($current_quantity, 4) - number_format($po_units, 4));
+		    return number_format($average_cost, 4);
 	}
 
 }
