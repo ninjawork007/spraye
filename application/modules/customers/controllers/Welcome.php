@@ -1653,7 +1653,7 @@ class Welcome extends MY_Controller
 					if (!empty($coupon_invoice)) {
 						$coupon_invoice_amm = $coupon_invoice->coupon_amount;
 						$coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-		
+
 						if ($coupon_invoice_amm_calc == 0) { // flat amm
 							$invoice_total_cost -= (float) $coupon_invoice_amm;
                             $total_coupon_amount += $coupon_invoice_amm;
@@ -1679,7 +1679,7 @@ class Welcome extends MY_Controller
 						}
 					}
 				}
-	
+
 	            $late_fee = $this->INV->getLateFee($invoice_id);
 				$invoice_total_cost += $invoice_total_tax + $late_fee;
 				$total_tax_amount = $invoice_total_tax;
@@ -1693,7 +1693,7 @@ class Welcome extends MY_Controller
                 $this->load->view('card_connect_process', $data);
             } else if ($data['basys_details']){
                 $this->load->view('basys_card_processing', $data);
-            }               
+            }
 
         } else {
 
@@ -1726,10 +1726,10 @@ class Welcome extends MY_Controller
         }
 
         $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_details->cost + $total_tax_amount - $invoice_details->partial_payment) / 100),2);
-        
+
         ////////////////////////////////////
         // START INVOICE CALCULATION COST //
-        
+
         // invoice cost
         // $invoice_total_cost = $invoice->cost;
 
@@ -1840,8 +1840,8 @@ class Welcome extends MY_Controller
 
         // $total_amount = ($invoice_total_cost - $total_partial) + $convenience_fee - $invoice_details->partial_payment;
         $total_amount = $invoice_details->cost + $total_tax_amount + $convenience_fee - $invoice_details->partial_payment - $total_coupon_amount;
-	
-	   
+
+
         if ($total_amount < 0) {
             $total_amount = 0;
         }
@@ -1922,7 +1922,7 @@ class Welcome extends MY_Controller
                 );
 
                 $this->INV->updateInvoive(array('invoice_id' => $data['invoice_id']), $updatearr);
-               
+
                 // $company_id = $invoice_details->company_id;
                 $company_id = $this->session->userdata['company_id'];
 
@@ -2005,7 +2005,7 @@ class Welcome extends MY_Controller
               "phone" => $estimate_details->phone,
           ),
         );
-        
+
 
         if ($convenience_fee != 0) {
 
@@ -2102,14 +2102,14 @@ class Welcome extends MY_Controller
      */
     public function sendCustomerInvoices() {
         // Mail should send link with date and customerId.
-        $invoice_date = date('Y-m-d', strtotime(' -1 day'));        
+        $invoice_date = date('Y-m-d', strtotime(' -1 day'));
         $where = array(
             'invoice_date' => $invoice_date,
            // 'report_id >' => 0,
             'status' => 0
         );
         $completed_job_customer_detail = $this->INV->getCompletedJobCustomerDetail($where);
-		
+
 		//die(print_r($completed_job_customer_detail));
         $customer_wise_data = [];
         foreach($completed_job_customer_detail as $detail) {
@@ -2137,18 +2137,18 @@ class Welcome extends MY_Controller
 						}
 					}
 				}
-				
+
 			}
-			
-                        
+
+
         }
 		//die(print_r(count($customer_wise_data)));
         foreach($customer_wise_data as $customer_id=>$customer_data) {
-            $email = $customer_data[0]['email'];            
+            $email = $customer_data[0]['email'];
             $company_id = $customer_data[0]['company_id'];
             $data['customer_details'] = (object) $this->Customer->getCustomerDetail($customer_id);
             $invoice_id_list = array_column($customer_data,'invoice_id');
-            $hashstring = md5($email."-".$customer_id."-".date("Y-m-d H:i:s"));            
+            $hashstring = md5($email."-".$customer_id."-".date("Y-m-d H:i:s"));
             $data['link'] =  base_url('welcome/pdfDailyInvoice/').$hashstring;
             $where_company = array('company_id' =>$company_id);
             $data['setting_details'] = $this->CompanyModel->getOneCompany($where_company);
@@ -2162,7 +2162,7 @@ class Welcome extends MY_Controller
 					if(isset($invDetails->program_id)){
 						$getProgramDetails = $this->INV->getOneProgram($invDetails->program_id);
 						if($getProgramDetails->program_price == 2){
-							//check tech job assign table for complete status 
+							//check tech job assign table for complete status
 							$assigned_jobs = $this->AssignJobs->getAllJobAssignByInvoice(array('invoice_id'=>$inv));
 							if($assigned_jobs){
 								foreach($assigned_jobs as $k=>$v){
@@ -2206,11 +2206,11 @@ class Welcome extends MY_Controller
                 $res =   Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'Invoice Details - '.$invoice_date,$data['customer_details']->secondary_email, $file);
                 //Send_Mail_dynamic($company_email_details, "lforde@blayzer.com", array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'T Invoice Details - '.$invoice_date, '', $file);
             }
-			
+
         }
     }
-	
-	
+
+
 	public function sendCustomerReminders() {
 		// Test this function with the url below:
 		//https://emerald-dev3.blayzer.com/welcome/sendCustomerReminders
@@ -2219,42 +2219,42 @@ class Welcome extends MY_Controller
 		log_message('info', 'sendCustromerReminders');
         $reminder_date = date("Y-m-d", time() + 86400);//date('Y-m-d', strtotime(' -5 day'));  date('Y-m-d', strtotime(' -76 day'));
 		$email_array = array();
-		
+
 		//die($reminder_date );
-		
+
         $where = array(
             'job_assign_date =' => $reminder_date,
             'is_complete' => 0,
-            
+
         );
         $reminder_detail = $this->AssignJobs->getAllJobAssignGroup($where);
-		
+
 		//die($this->db->last_query() );
-		
+
 		//die(print_r($reminder_detail));
-		
+
         $customer_wise_data = [];
         foreach($reminder_detail as $detail) {
-			
+
 			$detail = (array)$detail;
-			
+
 			//die(print_r($detail));
             if(array_key_exists($detail['customer_id'],$customer_wise_data)) {
                 array_push($customer_wise_data[$detail['customer_id']],$detail);
             } else {
                 $customer_wise_data[$detail['customer_id']][] = $detail;
-            }            
+            }
         }
 		$i = 0;
         foreach($customer_wise_data as $customer_id=>$customer_data) {
 			$i++;
-			
+
 			//die(print_r($customer_data));
-            $email = $customer_data[0]['email'];            
+            $email = $customer_data[0]['email'];
             $company_id = $customer_data[0]['company_id'];
             $data['customer_details'] = (object) $this->Customer->getCustomerDetail($customer_id);
             $invoice_id_list = array_column($customer_data,'invoice_id');
-            $hashstring = md5($email."-".$customer_id."-".date("Y-m-d H:i:s"));            
+            $hashstring = md5($email."-".$customer_id."-".date("Y-m-d H:i:s"));
             $data['link'] =  base_url('welcome/pdfDailyInvoice/').$hashstring;
             $where_company = array('company_id' =>$company_id);
             $data['setting_details'] = $this->CompanyModel->getOneCompany($where_company);
@@ -2264,7 +2264,7 @@ class Welcome extends MY_Controller
             $company_email_details = $this->CompanyModel->getOneCompanyEmailArray($where_company);
             if(is_array($company_email_details) ) {
 				if($this->session->userdata['is_text_message'] && isset($company_email_details['one_day_prior_status_text']) && $company_email_details['one_day_prior_status_text'] == 1 && $data['customer_details']->is_mobile_text==1) {
-					
+
 					//$string = str_replace("{CUSTOMER_NAME}", $data['customer_details']->first_name . ' ' .$data['customer_details']->last_name,$company_email_details['one_day_prior_text']);
 					$text_res = Send_Text_dynamic($data['customer_details']->phone,$company_email_details['one_day_prior_text'],'Scheduled Reminder');
 				}
@@ -2284,13 +2284,13 @@ class Welcome extends MY_Controller
 					//if($company_id == 1){ FOR TESTING
 						//	$res =   Send_Mail_dynamic($company_email_details, 'support@blayzer.com', array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'Scheduled Reminder Details - '.$customer_data[0]['job_assign_date']);
 					//echo "potential email ".$data['customer_details']->email."<bR>";
-					if(!in_array($data['customer_details']->email,$email_array))	
+					if(!in_array($data['customer_details']->email,$email_array))
 					{
 						$res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'Scheduled Reminder Details - '.$customer_data[0]['job_assign_date']);
 						//echo "emailing ".$data['customer_details']->email."<bR><bR>";
 					}
 					$email_array[] = $data['customer_details']->email;
-					
+
 					if($i<5)
 					{
 						//$res =   Send_Mail_dynamic($company_email_details, "blance@blayzer.com", array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'Scheduled Reminder Details - '.$customer_data[0]['job_assign_date']);
@@ -2305,7 +2305,7 @@ class Welcome extends MY_Controller
 					}
 					//}
 				}
-				
+
             }
         }
     }
@@ -2318,7 +2318,7 @@ class Welcome extends MY_Controller
         $this->load->model('Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel');
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('AdminTbl_company_model', 'CompanyModel');
-        
+
         if($hashstring && $hashstring != "") {
 
             $where_arr = array("hashstring" => $hashstring);
@@ -2333,12 +2333,12 @@ class Welcome extends MY_Controller
                 $data['invoice_ids'] = $invoice_ids;
                 $data['company_id'] =  $company_id;
                 $invoice_ids = explode(",", $invoice_ids);
-                
+
                 foreach ($invoice_ids as $key => $value) {
-    
+
                     $where = array(
                         "invoice_tbl.company_id" => $company_id,
-                        'invoice_id' =>$value 
+                        'invoice_id' =>$value
                     );
 
                     $invoice_details =  $this->INV->getOneInvoive($where);
@@ -2349,24 +2349,24 @@ class Welcome extends MY_Controller
 
                     // echo $value . ' -- ' . json_encode($invoice_details->report_details);
                     // echo "<br><br>";
-        
+
                     //get job details
                     $jobs = array();
-        
+
                     $job_details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram(array('property_program_job_invoice.invoice_id' =>$value));
-        
+
                     if($job_details){
-        
+
                         foreach($job_details as $detail){
-        
+
                             $get_assigned_date = $this->Tech->getOneTechJobAssign(array('technician_job_assign.job_id'=>$detail['job_id'],'invoice_id'=>$value));
-        
+
                             if(isset($detail['report_id'])){
                                 $report = $this->RP->getOneRepots(array('report_id'=>$detail['report_id']));
                             }else{
                                 $report = '';
                             }
-        
+
                             // SERVICE WIDE COUPONS
                             $arry = array(
                                 'customer_id' => $invoice_details->customer_id,
@@ -2374,7 +2374,7 @@ class Welcome extends MY_Controller
                                 'property_id' => $invoice_details->property_id,
                                 'job_id' => $detail['job_id']
                             );
-                            
+
                             $coupon_job = $this->CouponModel->getOneCouponJob($arry);
                             $coupon_job_amm = 0;
                             $coupon_job_amm_calc = 5;
@@ -2449,7 +2449,7 @@ class Welcome extends MY_Controller
 
                 $where_company = array('company_id' =>$company_id);
                 $data['setting_details'] = $this->CompanyModel->getOneCompany($where_company);
-                
+
                 $where_arr = array(
                 'company_id' => $company_id,
                 'status' => 1
@@ -2477,14 +2477,14 @@ class Welcome extends MY_Controller
                 $this->dompdf->render();
 
                 //  // Output the generated PDF (1 = download and 0 = preview)
-                $companyName = str_replace(" ","",$data['setting_details']->company_name);       
+                $companyName = str_replace(" ","",$data['setting_details']->company_name);
                 $fileName = $companyName."_daily_invoices_bulk_".date("Y")."_".date("m")."_".date("d")."_".date("h")."_".date("i")."_".date("s");
                 $this->dompdf->stream($fileName.".pdf", array("Attachment"=>0));
                 exit;
-                
+
             } else {
                 echo "Invalid access or Link expired";
-            }        
+            }
         } else {
             echo "Invalid access";
         }
@@ -2502,7 +2502,7 @@ class Welcome extends MY_Controller
                 $data['invoice_ids'] = $invoice_ids;
                 $data['company_id'] =  $company_id;
                 $invoice_ids = explode(",", $invoice_ids);
-                
+
                 foreach ($invoice_ids as $key => $value) {
                     $where = array(
                         "invoice_tbl.company_id" => $company_id,
@@ -2536,15 +2536,15 @@ class Welcome extends MY_Controller
                 $this->dompdf->setPaper('A4', 'portrate');
                 ini_set('max_execution_time', '1800');
                 //  // Render the HTML as PDF
-                $this->dompdf->render();        
+                $this->dompdf->render();
                 //  // Output the generated PDF (1 = download and 0 = preview)
-                $companyName = str_replace(" ","",$data['setting_details']->company_name);       
+                $companyName = str_replace(" ","",$data['setting_details']->company_name);
                 $fileName = $companyName."_daily_invoices_bulk_".date("Y")."_".date("m")."_".date("d")."_".date("h")."_".date("i")."_".date("s");
                 $this->dompdf->stream($fileName.".pdf", array("Attachment"=>0));
                 exit;
             } else {
                 echo "Invalid access or Link expired";
-            }        
+            }
         } else {
             echo "Invalid access";
         }
@@ -2553,13 +2553,13 @@ class Welcome extends MY_Controller
         if($hashstring && $hashstring != "") {
             $where_arr = array("hashstring" => $hashstring);
             $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
-            $invoice_ids = $invoice_mini_list["invoice_ids"];            
-            
+            $invoice_ids = $invoice_mini_list["invoice_ids"];
+
             if($invoice_ids != "") {
                 $data["hashstring"] = $hashstring;
                 $company_id = $invoice_mini_list["company_id"];
 
-                $data['invoice_ids'] = $invoice_ids;                
+                $data['invoice_ids'] = $invoice_ids;
                 $invoice_ids = explode(",", $invoice_ids);
                 $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
                 foreach ($invoice_ids as $key => $value) {
@@ -2567,7 +2567,7 @@ class Welcome extends MY_Controller
                         "invoice_tbl.company_id" => $company_id,
                         'invoice_id' =>$value
                     );
-                    $invoice_details =  $this->INV->getOneInvoive($where);                    
+                    $invoice_details =  $this->INV->getOneInvoive($where);
                     if($invoice_details->payment_status != 2) {
                         $invoice_details->all_sales_tax =  $this->INV->getAllInvoiceSalesTax(array('invoice_id'=>$value));
                         $invoice_details->report_details =  $this->INV->getOneRepots(array('report_id'=>$invoice_details->report_id));
@@ -2579,10 +2579,10 @@ class Welcome extends MY_Controller
 
                         $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
                         $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
-                
+
                         // invoice cost
                         // $invoice_total_cost = $invoice->cost;
-                
+
                         // cost of all services (with price overrides) - service coupons
                         $job_cost_total = 0;
                         $total_coupon_amount = 0;
@@ -2592,9 +2592,9 @@ class Welcome extends MY_Controller
                         $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
                         if (!empty($proprojobinv)) {
                             foreach($proprojobinv as $job) {
-                
+
                                 $job_cost = $job['job_cost'];
-                
+
                                 $job_where = array(
                                     'job_id' => $job['job_id'],
                                     'customer_id' =>$job['customer_id'],
@@ -2602,45 +2602,45 @@ class Welcome extends MY_Controller
                                     'program_id' =>$job['program_id']
                                 );
                                 $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-                
+
                                 if (!empty($coupon_job_details)) {
-                
+
                                     foreach($coupon_job_details as $coupon) {
                                         $coupon_job_amm_total = 0;
                                         $coupon_job_amm = $coupon->coupon_amount;
                                         $coupon_job_calc = $coupon->coupon_amount_calculation;
-                
+
                                         if ($coupon_job_calc == 0) { // flat amm
                                             $coupon_job_amm_total = (float) $coupon_job_amm;
                                         } else { // percentage
                                             $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
                                         }
-                
+
                                         $job_cost = $job_cost - $coupon_job_amm_total;
                                         $total_coupon_amount += $coupon_job_amm_total;
-                
+
                                         if ($job_cost < 0) {
                                             $job_cost = 0;
                                         }
                                     }
                                 }
-                
+
                                 $job_cost_total += $job_cost;
                             }
                         } else {
                             $job_cost_total = $invoice_details->cost;
                         }
                         $invoice_total_cost = $job_cost_total;
-                
+
                         // check price override -- any that are not stored in just that ^^.
-                
+
                         // - invoice coupons
                         $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_details->invoice_id));
                         foreach ($coupon_invoice_details as $coupon_invoice) {
                             if (!empty($coupon_invoice)) {
                                 $coupon_invoice_amm = $coupon_invoice->coupon_amount;
                                 $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-                
+
                                 if ($coupon_invoice_amm_calc == 0) { // flat amm
                                     $invoice_total_cost -= (float) $coupon_invoice_amm;
                                     $total_coupon_amount += $coupon_invoice_amm;
@@ -2654,7 +2654,7 @@ class Welcome extends MY_Controller
                                 }
                             }
                         }
-                
+
                         // + tax cost
                         $invoice_total_tax = 0;
                         $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_details->invoice_id));
@@ -2668,27 +2668,27 @@ class Welcome extends MY_Controller
                         }
                         $invoice_total_cost += $invoice_total_tax;
                         $total_tax_amount = $invoice_total_tax;
-                
+
                         // END TOTAL INVOICE CALCULATION COST //
                         ////////////////////////////////////////
-                
+
                         $invoice_details->total_amount_minus_partial = number_format($invoice_total_cost, 2);
 
                         $data['invoice_details'][] = $invoice_details;
                     }
-                }                
+                }
                 if(isset($data['invoice_details'])) {
                     $this->load->view('customers/daily_invoice_list',$data);
                 } else {
                     echo "Invalid access";
                 }
-                
+
             } else {
                 echo "Invalid access";
-            }            
+            }
         } else {
             echo "Invalid access";
-        }        
+        }
     }
 
     public function dailyPayment($hashstring) {
@@ -2698,8 +2698,8 @@ class Welcome extends MY_Controller
             $invoice_ids = $invoice_mini_list["invoice_ids"];
             $unpaid_invoice_ids = [];
 
-            if($invoice_ids != "") {                
-                $invoice_ids_list = explode(',',$invoice_ids);                
+            if($invoice_ids != "") {
+                $invoice_ids_list = explode(',',$invoice_ids);
                 $invoice_cost = 0;
                 $total_tax_amount = 0;
                 $partial_payment = 0;
@@ -2716,18 +2716,18 @@ class Welcome extends MY_Controller
                     'setting_details' => false,
                     'cardconnect_details' => false,
                     'basys_details' => false,
-                );        
+                );
                 foreach($invoice_ids_list as $invoice_id) {
                     $where = array('invoice_id' => $invoice_id);
                     if($this->INV->getOneInvoive($where)) {
                         $invoice_details = $this->INV->getOneInvoive($where);
                         if($invoice_details->payment_status != 2) {
-                            array_push($unpaid_invoice_ids,$invoice_id);                            
+                            array_push($unpaid_invoice_ids,$invoice_id);
                             $invoice_cost += $invoice_details->cost;
                             $tax_details = $this->INV->getAllInvoiceSalesTax($where);
                             $total_tax_amount += array_sum(array_column($tax_details, 'tax_amount'));
-                            $partial_payment += $invoice_details->partial_payment;                            
-                            
+                            $partial_payment += $invoice_details->partial_payment;
+
                             // get coupon info
 
                             ////////////////////////////////////
@@ -2735,10 +2735,10 @@ class Welcome extends MY_Controller
 
                             $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
                             $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
-                    
+
                             // invoice cost
                             // $invoice_total_cost = $invoice->cost;
-                    
+
                             // cost of all services (with price overrides) - service coupons
                             $job_cost_total = 0;
                             $total_coupon_amount = 0;
@@ -2748,9 +2748,9 @@ class Welcome extends MY_Controller
                             $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
                             if (!empty($proprojobinv)) {
                                 foreach($proprojobinv as $job) {
-                    
+
                                     $job_cost = $job['job_cost'];
-                    
+
                                     $job_where = array(
                                         'job_id' => $job['job_id'],
                                         'customer_id' =>$job['customer_id'],
@@ -2758,45 +2758,45 @@ class Welcome extends MY_Controller
                                         'program_id' =>$job['program_id']
                                     );
                                     $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-                    
+
                                     if (!empty($coupon_job_details)) {
-                    
+
                                         foreach($coupon_job_details as $coupon) {
                                             $coupon_job_amm_total = 0;
                                             $coupon_job_amm = $coupon->coupon_amount;
                                             $coupon_job_calc = $coupon->coupon_amount_calculation;
-                    
+
                                             if ($coupon_job_calc == 0) { // flat amm
                                                 $coupon_job_amm_total = (float) $coupon_job_amm;
                                             } else { // percentage
                                                 $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
                                             }
-                    
+
                                             $job_cost = $job_cost - $coupon_job_amm_total;
                                             $total_coupon_amount += $coupon_job_amm_total;
-                    
+
                                             if ($job_cost < 0) {
                                                 $job_cost = 0;
                                             }
                                         }
                                     }
-                    
+
                                     $job_cost_total += $job_cost;
                                 }
                             } else {
                                 $job_cost_total = $invoice_details->cost;
                             }
                             $invoice_total_cost = $job_cost_total;
-                    
+
                             // check price override -- any that are not stored in just that ^^.
-                    
+
                             // - invoice coupons
                             $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_id));
                             foreach ($coupon_invoice_details as $coupon_invoice) {
                                 if (!empty($coupon_invoice)) {
                                     $coupon_invoice_amm = $coupon_invoice->coupon_amount;
                                     $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-                    
+
                                     if ($coupon_invoice_amm_calc == 0) { // flat amm
                                         $invoice_total_cost -= (float) $coupon_invoice_amm;
                                         $total_coupon_amount += $coupon_invoice_amm;
@@ -2810,7 +2810,7 @@ class Welcome extends MY_Controller
                                     }
                                 }
                             }
-                    
+
                             // + tax cost
                             $invoice_total_tax = 0;
                             $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_id));
@@ -2824,17 +2824,17 @@ class Welcome extends MY_Controller
                             }
                             $invoice_total_cost += $invoice_total_tax;
                             $total_tax_amount = $invoice_total_tax;
-                    
+
                             // END TOTAL INVOICE CALCULATION COST //
                             ////////////////////////////////////////
-                    
+
                             $total_amount_minus_partials += number_format($invoice_total_cost, 2);
 
                         }
                     }
                 }
                 if($invoice_cost > 0) {
-                    $invoice_ids = implode(',',$unpaid_invoice_ids);                    
+                    $invoice_ids = implode(',',$unpaid_invoice_ids);
                     $data['invoice_ids'] = $invoice_ids;
                     $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
                     $data['basys_details'] = $this->CompanyModel->getOneBasysRequest(array('company_id' => $company_id, 'status' => 1));
@@ -2853,7 +2853,7 @@ class Welcome extends MY_Controller
             }
         } else {
             echo "Invalid access";
-        }        
+        }
     }
     public function daily_paymentProcess() {
         $data = $this->input->post();
@@ -2893,10 +2893,10 @@ class Welcome extends MY_Controller
 
                 $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
                 $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
-        
+
                 // invoice cost
                 // $invoice_total_cost = $invoice->cost;
-        
+
                 // cost of all services (with price overrides) - service coupons
                 $job_cost_total = 0;
                 $total_coupon_amount = 0;
@@ -2906,9 +2906,9 @@ class Welcome extends MY_Controller
                 $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
                 if (!empty($proprojobinv)) {
                     foreach($proprojobinv as $job) {
-        
+
                         $job_cost = $job['job_cost'];
-        
+
                         $job_where = array(
                             'job_id' => $job['job_id'],
                             'customer_id' =>$job['customer_id'],
@@ -2916,45 +2916,45 @@ class Welcome extends MY_Controller
                             'program_id' =>$job['program_id']
                         );
                         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-        
+
                         if (!empty($coupon_job_details)) {
-        
+
                             foreach($coupon_job_details as $coupon) {
                                 $coupon_job_amm_total = 0;
                                 $coupon_job_amm = $coupon->coupon_amount;
                                 $coupon_job_calc = $coupon->coupon_amount_calculation;
-        
+
                                 if ($coupon_job_calc == 0) { // flat amm
                                     $coupon_job_amm_total = (float) $coupon_job_amm;
                                 } else { // percentage
                                     $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
                                 }
-        
+
                                 $job_cost = $job_cost - $coupon_job_amm_total;
                                 $total_coupon_amount += $coupon_job_amm_total;
-        
+
                                 if ($job_cost < 0) {
                                     $job_cost = 0;
                                 }
                             }
                         }
-        
+
                         $job_cost_total += $job_cost;
                     }
                 } else {
                     $job_cost_total = $invoice_details->cost;
                 }
                 $invoice_total_cost = $job_cost_total;
-        
+
                 // check price override -- any that are not stored in just that ^^.
-        
+
                 // - invoice coupons
                 $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_id));
                 foreach ($coupon_invoice_details as $coupon_invoice) {
                     if (!empty($coupon_invoice)) {
                         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
                         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-        
+
                         if ($coupon_invoice_amm_calc == 0) { // flat amm
                             $invoice_total_cost -= (float) $coupon_invoice_amm;
                             $total_coupon_amount += $coupon_invoice_amm;
@@ -2968,7 +2968,7 @@ class Welcome extends MY_Controller
                         }
                     }
                 }
-        
+
                 // + tax cost
                 $invoice_total_tax = 0;
                 $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_id));
@@ -2982,10 +2982,10 @@ class Welcome extends MY_Controller
                 }
                 $invoice_total_cost += $invoice_total_tax;
                 $total_tax_amount = $invoice_total_tax;
-        
+
                 // END TOTAL INVOICE CALCULATION COST //
                 ////////////////////////////////////////
-        
+
                 $total_amount_minus_partials += number_format($invoice_total_cost, 2);
                 $paid_invoice_details[$invoice_id]['tax_amount'] = $total_tax_amount;
                 $paid_invoice_details[$invoice_id]['cost'] = $invoice_total_cost-$total_tax_amount;
@@ -3000,11 +3000,11 @@ class Welcome extends MY_Controller
             exit;
         }
 
-        $order_id = (string)strtotime("now");        
+        $order_id = (string)strtotime("now");
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details->company_id));
-        // $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_cost + $total_tax_amount - $partial_payment) / 100),2);        
+        // $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_cost + $total_tax_amount - $partial_payment) / 100),2);
         // $total_amount = $invoice_cost + $total_tax_amount + $convenience_fee - $partial_payment;
-        $convenience_fee = number_format(($setting_details->convenience_fee * ($total_amount_minus_partials - $partial_payment) / 100),2);   
+        $convenience_fee = number_format(($setting_details->convenience_fee * ($total_amount_minus_partials - $partial_payment) / 100),2);
         $total_amount = $total_amount_minus_partials + $convenience_fee - $partial_payment;
 
         $post = array(
@@ -3082,9 +3082,9 @@ class Welcome extends MY_Controller
         }
         echo json_encode($return_arr);
     }
-    
 
-   
+
+
     public function ccPaymentProcess($value = ''){
         $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
         $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
@@ -3095,13 +3095,13 @@ class Welcome extends MY_Controller
         $where = array('invoice_id' => $data['invoice_id']);
         $invoice_details = $this->INV->getOneInvoice($where);
         // die(print_r($invoice_details));
-        
+
         $tax_details = $this->INV->getAllInvoiceSalesTax($where);
         $customer_details = $this->Customer->getCustomerDetail($invoice_details->customer_id);
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details->company_id));
-        
+
         $data['requestData']['email'] = $customer_details['email'];
-        
+
 
         $total_tax_amount = 0;
         if ($tax_details) {
@@ -3110,10 +3110,10 @@ class Welcome extends MY_Controller
         }
 
         $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_details->cost + $total_tax_amount - $invoice_details->partial_payment) / 100),2);
-        
+
         ////////////////////////////////////
         // START INVOICE CALCULATION COST //
-        
+
         // invoice cost
         // $invoice_total_cost = $invoice->cost;
 
@@ -3209,8 +3209,8 @@ class Welcome extends MY_Controller
 
         $total_amount = ($invoice_total_cost + $convenience_fee) - $invoice_details->partial_payment;
         // $total_amount = $invoice_details->cost + $total_tax_amount + $convenience_fee - $invoice_details->partial_payment - $total_coupon_amount;
-	
-	   
+
+
         if ($total_amount < 0) {
             $total_amount = 0;
         }
@@ -3244,7 +3244,7 @@ class Welcome extends MY_Controller
                         'amount' => number_format($total_amount, 2),
                         'invoiceid' => $data['invoice_id']
                     )
-                    
+
                 );
 
                 $captured = cardConnectCapture($cap);
@@ -3253,7 +3253,7 @@ class Welcome extends MY_Controller
 
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"></div>');
 
-                
+
 
                 if ($invoice_details->payment_status != 2){
                     $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
@@ -3277,7 +3277,7 @@ class Welcome extends MY_Controller
 
                     $this->INV->updateInvoive(array('invoice_id' => $data['invoice_id']), $updatearr);
                 }
-                
+
 
                 // die(print_r($customer_details));
 
@@ -3311,7 +3311,7 @@ class Welcome extends MY_Controller
                 $res = Send_Mail_dynamic($company_email_details, $data['user_details']->email,  array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email), $body, 'Transaction Information');
 
                 $res2 = Send_Mail_dynamic($company_email_details, $customer_details['email'], array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email), $body2, 'Transaction Information');
-                
+
                 $return_arr = array('status' => 200, 'msg' => 'Payment successfully received.', 'result' => $captured['result']);
 
             } else {
@@ -3329,12 +3329,12 @@ class Welcome extends MY_Controller
     }
 
     public function paymentPastDue($invoice_id){
-       
+
         $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_2');
         $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_2');
 
         $invoice_id = explode(",", base64_decode($invoice_id));
-        
+
         // die(print_r($invoice_id));
         $invoice_details = [];
         $where = array('invoice_id' => $invoice_id);
@@ -3348,7 +3348,7 @@ class Welcome extends MY_Controller
             'cardconnect_details' => false,
             'basys_details' => false,
         );
-       
+
         if ($invoice_details) {
 
             $data['invoice_id'] = $invoice_id;
@@ -3440,20 +3440,20 @@ class Welcome extends MY_Controller
                         }
                     }
 				}
-                
+
                 // die(print_r($invoice_total_cost));
 				// + tax cost
 				$invoice_total_tax = 0;
 				$invoice_sales_tax_details = $this->InvoiceSalesTax_2->getAllInvoiceSalesTaxWhereIn('invoice_id', $invoice_id);
                 // die(print_r($invoice_sales_tax_details));
-                
+
 				if (!empty($invoice_sales_tax_details)) {
 					foreach($invoice_sales_tax_details as $tax) {
                         // die(print_r($proprojobinv));
-                        
+
                                 $tax_amm_to_add = ((float) $tax['tax_amount']);
                                 array_push($actual_cost, $tax_amm_to_add);
-                        
+
 					}
                     array_push($actual_cost, $invoice_total_cost);
 
@@ -3473,7 +3473,7 @@ class Welcome extends MY_Controller
                 ##### GET ALL PAYMENTS MADE #####
                 $all_payments_details = [];
                 array_push($all_payments_details, $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $invoice_id));
-                
+
                 ##### SUM ANY PAYMENT MADE ON INVOICES #####
                 $actual_payments = 0;
                 foreach($all_payments_details as $p => $payment){
@@ -3597,7 +3597,7 @@ class Welcome extends MY_Controller
         // check price override -- any that are not stored in just that ^^.
 
         // - invoice coupons
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('invoice_id', $ids_explode);
+        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
         // die(print_r($coupon_invoice_details));
         foreach ($coupon_invoice_details as $coupon_invoice) {
             if (!empty($coupon_invoice)) {
@@ -3623,14 +3623,14 @@ class Welcome extends MY_Controller
         // + tax cost
 				$invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
                 // die(print_r($invoice_sales_tax_details));
-                
+
 				if (!empty($invoice_sales_tax_details)) {
 					foreach($invoice_sales_tax_details as $tax) {
                         // die(print_r($proprojobinv));
-                        
+
                                 $tax_amm_to_add = ((float) $tax['tax_amount']);
                                 array_push($actual_cost, $tax_amm_to_add);
-                        
+
 					}
                     array_push($actual_cost, $invoice_total_cost);
 
@@ -3650,7 +3650,7 @@ class Welcome extends MY_Controller
                 $all_payments_details = [];
                 $all_payments_details = $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $ids_explode);
                 // die(print_r($all_payments_details));
-                
+
                 ##### SUM ANY PAYMENT MADE ON INVOICES #####
                 $actual_payments = 0;
                 foreach($all_payments_details as $amount){
@@ -3670,15 +3670,15 @@ class Welcome extends MY_Controller
                 $data['total_payment_final'] = $data['actual_total_cost_miunus_partial'] + $data['convenience_fee'];
                 // die(print_r($data['total_payment_final']));
 
-        
+
         // END TOTAL INVOICE CALCULATION COST //
         ////////////////////////////////////////
-		
+
         $total_amount = $data['total_payment_final'];
         // die(print_r($total_amount));
         // die(print_r($invoice_details));
-	
-	   
+
+
         if ($total_amount < 0) {
             $total_amount = 0;
         }
@@ -3761,7 +3761,7 @@ class Welcome extends MY_Controller
                         // die(print_r($tax_amount));
 
                         $partial = 0;
-                        
+
                         foreach($payments_details as $payment){
                             if($invoice->invoice_id == $payment->invoice_id ){
                                 $partial +=  $payment->payment_applied;
@@ -3781,7 +3781,7 @@ class Welcome extends MY_Controller
                                        'payment_method' => 2,
                                        'customer_id' => $invoice->customer_id
                                    ));
-    
+
                                    $updatearr = array(
                                         'payment_status' => 2,
                                         'basys_transaction_id' => $basys_reasopnse['result']->data->id,
@@ -3789,22 +3789,22 @@ class Welcome extends MY_Controller
                                         'partial_payment' =>  $invoice->partial_payment + $sum_partial,
                                         'basys_order_id' => $order_id
                                     );
-    
+
                                     $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id ), $updatearr);
                     } else {
                         $tax_amount = 0;
                         if (!empty($tax_details)){
                             foreach($tax_details as $tax){
                                 if($invoice->invoice_id == $tax['invoice_id'] ){
-                                    
-                                    $tax_amount = $tax['tax_amount']; 
+
+                                    $tax_amount = $tax['tax_amount'];
                                     // die(print_r($invoice));
                                     ##### Create Payment Log #####
-                                    
+
                                 }
                             }
                         }
-                        
+
 
                         $partial = ($invoice->cost + $tax_amount);
 
@@ -3828,9 +3828,9 @@ class Welcome extends MY_Controller
                         $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id ), $updatearr);
                     }
                 }
-                
+
                 $company_id = $invoice_details[0]->company_id;
-                
+
                 $where = array('company_id' => $company_id);
 
                 $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
@@ -3871,12 +3871,12 @@ class Welcome extends MY_Controller
     }
 
     public function paymentTotal($invoice_id){
-       
+
         $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_2');
         $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_2');
 
         $invoice_id = explode(",", base64_decode($invoice_id));
-        
+
         // die(print_r($invoice_id));
         $invoice_details = [];
         $where = array('invoice_id' => $invoice_id);
@@ -3922,7 +3922,7 @@ class Welcome extends MY_Controller
 				$proprojobinv = $this->PropertyProgramJobInvoiceModel_2->getPropertyProgramJobInvoiceCouponWhereIn('property_program_job_invoice.invoice_id', $invoice_id);
 				if (!empty($proprojobinv)) {
 					foreach($proprojobinv as $job) {
-                        
+
 						$job_cost = $job['job_cost'];
                         $job_where = array(
                             'job_id' => $job['job_id'],
@@ -3958,7 +3958,7 @@ class Welcome extends MY_Controller
                         //var_dump($job_cost);
                         $invoice_total_by_id[$job["invoice_id"]] += $job_cost;
 					}
-                    
+
 				} else {
                     foreach($invoice_details as $i_d){
                         $job_cost_total += $i_d->cost;
@@ -4032,7 +4032,7 @@ class Welcome extends MY_Controller
                 ##### GET ALL PAYMENTS MADE #####
                 $all_payments_details = [];
                 array_push($all_payments_details, $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $invoice_id));
-                
+
                 ##### SUM ANY PAYMENT MADE ON INVOICES #####
                 $actual_payments = 0;
                 foreach($all_payments_details as $p => $payment){
@@ -4160,10 +4160,10 @@ class Welcome extends MY_Controller
         // check price override -- any that are not stored in just that ^^.
 
         // - invoice coupons
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('invoice_id', $ids_explode);
+        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
         // die(print_r($coupon_invoice_details));
         foreach ($coupon_invoice_details as $coupon_invoice) {
-            if (!empty($coupon_invoice)) {
+                if (!empty($coupon_invoice)) {
                 $coupon_invoice_amm = $coupon_invoice->coupon_amount;
                 $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
