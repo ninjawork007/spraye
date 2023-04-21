@@ -921,6 +921,28 @@ class Reports_model extends CI_Model{
                 $this->db->join('cancelled_services_tbl','cancelled_services_tbl.property_id = property_tbl.property_id','inner');
                 $this->db->where_in('cancelled_services_tbl.cancel_reason', $filters_array['filters']['cancel_reasons_multi']);
             }
+
+            if($filters_array['filters']['front_yard_grass'] != 'null' && $filters_array['filters']['front_yard_grass'] != NULL) {
+                $Grass = explode(",", $filters_array['filters']['front_yard_grass']);
+                $like_stmt = "(";
+                foreach($Grass as $tm) {
+                    $like_stmt .= "FIND_IN_SET('".$tm."', property_tbl.front_yard_grass) OR ";
+                }
+                $like_stmt = substr($like_stmt, 0, -3);
+                $this->db->where($like_stmt.")");
+            }
+
+            if($filters_array['filters']['back_yard_grass'] != 'null' && $filters_array['filters']['back_yard_grass'] != NULL) {
+                $Grass = explode(",", $filters_array['filters']['back_yard_grass']);
+                $like_stmt = "(";
+                foreach($Grass as $tm) {
+                    $like_stmt .= "FIND_IN_SET('".$tm."', property_tbl.back_yard_grass) OR ";
+                }
+                $like_stmt = substr($like_stmt, 0, -3);
+                $this->db->where($like_stmt.")");
+            }
+
+
             if($filters_array['filters']['last_date_program_start'] != "") {
                 // this means they set a start date, check for an end date and if not found default to today
                 if($filters_array['filters']['last_date_program_end'] != "") {

@@ -7152,6 +7152,9 @@ class Reports extends MY_Controller {
         $ending_properties = $existing_properties + count($properties);
         $total_ending_property_growth = 100; // default growth for all time = 100% 
         $report_data['total_ending_property_growth'] = number_format($total_ending_property_growth,1); 
+
+        $data['service_areas'] = $this->ServiceArea->getAllServiceAreaMarketing(array('company_id'=>$this->session->userdata['company_id']));
+        $data['programlist'] = $this->PropertyModel->getProgramList(array('company_id' => $this->session->userdata['company_id']));
         
 		$data['report_details'] = $report_data;
         $data['labels'] = $labels;
@@ -7205,6 +7208,15 @@ class Reports extends MY_Controller {
         if($this->input->post("rescom") != ""){
             $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
         }
+        if($this->input->post("serviceArea") != ""){
+            $PropertyConditionArray['property_tbl.property_area'] = $this->input->post("serviceArea");
+        }
+
+        if($this->input->post("assignProgram") != ""){
+            $PropertyConditionArray['property_program_assign.program_id'] = $this->input->post("assignProgram");
+        }
+        
+        
 
         if(!empty($start)){
             $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
@@ -8619,6 +8631,9 @@ class Reports extends MY_Controller {
         $filters_array["all_programs"] = $this->input->post('all_programs');
         $filters_array["all_pre_service"] = $this->input->post('all_pre_service');
         $filters_array["all_outstanding"] = $this->input->post('all_outstanding');
+
+        $filters_array["front_yard_grass"] = $this->input->post('front_yard_grass');
+        $filters_array["back_yard_grass"] = $this->input->post('back_yard_grass');
 
         
 		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));

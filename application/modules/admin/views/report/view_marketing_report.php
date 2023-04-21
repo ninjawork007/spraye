@@ -309,6 +309,47 @@ opacity: 1;
                                     </select>
                                 </div>
                             </div>
+                            <div class="row mt-15">
+                                <div class="col-md-3  multi-select-full">
+                                    <label>Front Yard Grass Type</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="front_yard_grass[]" id="front_yard_grass" multiple="multiple">
+                                        <option>Bent</option>
+                                        <option>Bermuda</option>
+                                        <option>Dichondra</option>
+                                        <option>Fine Fescue</option>
+                                        <option>Kentucky Bluegrass</option>
+                                        <option>Ryegrass</option>
+                                        <option>St. Augustine/Floratam</option>
+                                        <option>Tall Fescue</option>
+                                        <option>Zoysia</option>
+                                        <option>Centipede</option>
+                                        <option>Bluegrass/Rye/Fescue</option>
+                                        <option>Warm Season</option>
+                                        <option>Cool Season</option>
+                                        <option>Mixed Grass</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label>Back Yard Grass Type</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="back_yard_grass[]" id="back_yard_grass" multiple="multiple">
+                                        <option>Bent</option>
+                                        <option>Bermuda</option>
+                                        <option>Dichondra</option>
+                                        <option>Fine Fescue</option>
+                                        <option>Kentucky Bluegrass</option>
+                                        <option>Ryegrass</option>
+                                        <option>St. Augustine/Floratam</option>
+                                        <option>Tall Fescue</option>
+                                        <option>Zoysia</option>
+                                        <option>Centipede</option>
+                                        <option>Bluegrass/Rye/Fescue</option>
+                                        <option>Warm Season</option>
+                                        <option>Cool Season</option>
+                                        <option>Mixed Grass</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <br />
@@ -428,6 +469,10 @@ function searchFilter() {
     var zip_codes_multi = $('#zip_codes_multi').val();
     var cancel_reasons_multi = $('#cancel_reasons_multi').val();
     var outstanding_services_multi = $('#outstanding_services_multi').val();
+
+    var front_yard_grass = $("#front_yard_grass").val();
+    var back_yard_grass = $("#back_yard_grass").val();
+
     var customer_status = $('#customer_status').val();
     var estimate_accpeted = $('#estimate_accpeted').val();
     var all_tags = false;
@@ -496,7 +541,9 @@ function searchFilter() {
             '&all_tags='+all_tags+
             '&all_programs='+all_programs+
             '&all_pre_service='+all_pre_service+
-            '&all_outstanding='+all_outstanding
+            '&all_outstanding='+all_outstanding+
+            '&front_yard_grass='+front_yard_grass+
+            '&back_yard_grass='+back_yard_grass
         ,
         success: function (html) {
             $(".loading").css("display", "none");

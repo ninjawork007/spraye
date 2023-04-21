@@ -658,6 +658,7 @@ class AdminTbl_property_model extends CI_Model
     public function getPropertyByDateRange($where,$from='',$to=''){
         $this->db->select('*');
         $this->db->from('property_tbl');
+        $this->db->join('property_program_assign','property_program_assign.property_id = property_tbl.property_id ','inner');
         $this->db->where($where);
 		if($from != ''){            
            $this->db->where('property_tbl.property_created >=', $from);

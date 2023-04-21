@@ -47,13 +47,39 @@
 
 
                     <div class="row">
-                         <div class="col-md-6">
+                         <div class="col-md-4">
                             <div class="form-group">
                               <label>Residential or Commercial</label>
                               <select class="form-control" name="res_or_com" id="res_or_com">
                                     <option value="">None selected</option>
                                     <option value="Residential"> Residential </option>
                                     <option value="Commercial"> Commercial </option>
+                                </select>
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label>Service Area</label>
+                              <select class="form-control" name="serviceArea" id="serviceArea">
+                                    <option value="">None selected</option>
+                                    <?php foreach ($service_areas as $area): ?>
+                                            <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
+                                        <?php endforeach ?>
+                                </select>
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label>Assign Program</label>
+                              <select class="form-control" name="assignProgram" id="assignProgram">
+                                    <option value="">None selected</option>
+                                    <?php foreach ($programlist as $value) : ?>
+                                        <?php if(!strstr($value->program_name, '- Standalone')){?>
+                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                        <?php } ?>                                        
+                                        <?php endforeach ?>
                                 </select>
                             </div>
                           </div>
@@ -400,6 +426,8 @@ function searchFilter() {
 	var comparison_end_date = $('#comparison_end_date').val();
 	var user = $('#user').val();
     var rescom = $("#res_or_com").val();
+    var serviceArea = $("#serviceArea").val();
+    var assignProgram = $("#assignProgram").val();
 
     $('.loading').css("display", "block");
 	
@@ -408,7 +436,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCustomerGrowthReport',
-        data:'start_date='+start_date+'&end_date='+end_date+'&comparison_start_date='+comparison_start_date+'&comparison_end_date='+comparison_end_date+'&user='+user+"&rescom="+rescom,
+        data:'start_date='+start_date+'&end_date='+end_date+'&comparison_start_date='+comparison_start_date+'&comparison_end_date='+comparison_end_date+'&user='+user+"&rescom="+rescom+"&serviceArea="+serviceArea+"&assignProgram="+assignProgram,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#customer-growth-report-list').html(html);
