@@ -6729,6 +6729,7 @@ class Reports extends MY_Controller {
 		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=> $this->session->userdata['company_id']));
 
         $data["AllCancelledProperty"] = $cancelled_properties;
+        $data['ServiceArea'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
 		
 		#get cancelled services
 		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetails(array('cancelled_services_tbl.company_id' => $this->session->userdata['company_id']));
@@ -6835,7 +6836,26 @@ class Reports extends MY_Controller {
 			$query['cancelled_services_tbl.user_id'] = $user;
 		}
 		#get cancelled properties
-		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
+        $ConditionProperty = array();
+        $ConditionProperty['property_tbl.company_id'] = $company_id;
+		
+        if($this->input->post("serviceArea") != ""){
+            $ConditionProperty['property_tbl.property_area'] = $this->input->post("serviceArea");
+        }
+
+        if($this->input->post("newExisting") == "1"){
+            $ConditionProperty['property_tbl.tags'] = 1;
+        }
+
+        if($this->input->post("newExisting") == "0"){
+            $ConditionProperty['property_tbl.tags'] = "!=1";
+        }
+
+        if($this->input->post("reason") != ""){
+            $ConditionProperty['property_tbl.cancel_reason like '] = "%".$this->input->post("reason")."%";
+        }
+
+        $cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange($ConditionProperty, $start, $end);
 
         $data["AllCancelledProperty"] = $cancelled_properties;
 

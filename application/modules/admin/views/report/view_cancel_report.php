@@ -26,6 +26,31 @@
 								</select>
 							</div>
 						</div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Service Area</label>
+                                <select class="bootstrap-select form-control" name="service_area" id="service_area" data-live-search="true">
+                                    <option value="" selected>All</option>
+                                    <?php if(!empty($ServiceArea)) {
+                                        foreach ($ServiceArea as $area) { ?>
+                                            <option value=<?= $area->property_area_cat_id ?>> <?= $area->category_area_name ?> </option>
+                                    <?php } } ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>New/Existing</label>
+                                <select class="bootstrap-select form-control" name="newExisting" id="newExisting" data-live-search="true">
+                                    <option value="" selected>All</option>
+                                    <option value="1">New</option>
+                                    <option value="0">Existing</option>
+                                </select>
+                            </div>
+                        </div>
+
 						 <div class="col-md-4">
 							<div class="form-group">
 							  <label>Start Date</label>
@@ -39,6 +64,13 @@
 							  <input type="date" id="date_to" name="date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
 							</div>
 						  </div>
+
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label>Cancel Reason</label>
+                              <input type="text" id="reason" name="reason" class="form-control">
+                            </div>
+                          </div>
 				  	</div>
 					<div class="row">
 						<div class="text-center">
@@ -182,6 +214,9 @@ function searchFilter() {
 	var date_from = $('#date_from').val();
 	var date_to = $('#date_to').val();
 	var user = $('#user').val();
+    var serviceArea = $("#service_area").val();
+    var newExisting = $("#newExisting").val();
+    var reason = $("#reason").val();
 
     $('.loading').css("display", "block");
 	
@@ -190,7 +225,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCancelReport',
-        data:'date_from='+date_from+'&date_to='+date_to+'&user='+user,
+        data:'date_from='+date_from+'&date_to='+date_to+'&user='+user+"&serviceArea="+serviceArea+"&newExisting="+newExisting+"&reason="+reason,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#cancel-report-list').html(html);

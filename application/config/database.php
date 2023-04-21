@@ -3,8 +3,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 if (ENVIRONMENT == 'development') {
     define('RDS_HOSTNAME', "127.0.0.1");
-    define('RDS_USERNAME', "root");
-    define('RDS_PASSWORD', "");
+    define('RDS_USERNAME', "spraye");
+    define('RDS_PASSWORD', "spraye");
     define('RDS_DB_NAME', "spraye");
 } else {
     define('RDS_HOSTNAME', $_SERVER['RDS_HOSTNAME']);
