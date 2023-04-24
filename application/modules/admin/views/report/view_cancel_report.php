@@ -43,7 +43,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>New/Existing</label>
-                                <select class="bootstrap-select form-control" name="newExisting" id="newExisting" data-live-search="true">
+                                <select class="bootstrap-select form-control" name="newExisting" id="newExisting">
                                     <option value="" selected>All</option>
                                     <option value="1">New</option>
                                     <option value="0">Existing</option>
@@ -68,7 +68,7 @@
                           <div class="col-md-4">
                             <div class="form-group">
                               <label>Cancel Reason</label>
-                              <input type="text" id="reason" name="reason" class="form-control">
+                              <input type="text" id="reason" name="reason" class="form-control" placeholder="Enter reason for cancel">
                             </div>
                           </div>
 				  	</div>
