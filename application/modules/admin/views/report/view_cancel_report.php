@@ -163,8 +163,8 @@
                                 <td><?= $CanclPrprty->property_title ?></td>
                                 <td><?= $CanclPrprty->email ?></td>
                                 <td><?= $CanclPrprty->work_phone ?></td>
-                                <td></td>
-                                <td></td>
+                                <td>$<?= $CanclPrprty->job_cost ?></td>
+                                <td><?= $CanclPrprty->SalesRep ?></td>
                                 <td><?= $CanclPrprty->tags == 1 ? "New" : "Existing" ?></td>
                                 <td><?= $CanclPrprty->cancel_reason ?></td>
                             </tr>

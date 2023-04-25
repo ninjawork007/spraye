@@ -520,6 +520,105 @@ class Reports extends MY_Controller {
     }
 
 
+    #List all cancelled serive
+    public function cancelService(){
+        $company_id = $this->session->userdata['company_id'];
+        #populate filter dropdowns
+        $data['customers'] = $this->CustomerModel->getCustomerList(array('company_id' => $this->session->userdata['company_id']));
+
+        $company_id = $this->session->userdata['company_id'];
+
+        $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id));
+
+        $NewServiceArray = array();
+
+        $TotalRevenueLost = 0;
+        $TotlaNewRevenueLost = 0;
+        $TotalExistingRevenueLost = 0;
+
+        foreach($data['all_services'] as $all_services) {
+            $cost = 0;
+
+            $canc_arr = array(
+                'job_id' => $all_services->job_id,
+                'customer_id' => $all_services->customer_id,
+                'property_id' => $all_services->property_id
+            );
+            $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
+
+            if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {
+                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
+
+                if ($priceOverrideData->is_price_override_set == 1) {
+                    // $price = $priceOverrideData->price_override;
+                    $cost =  $priceOverrideData->price_override;
+                } else {
+                    //else no price overrides, then calculate job cost
+                    $lawn_sqf = $all_services->yard_square_feet;
+                    $job_price = $all_services->job_price;
+
+                    //get property difficulty level
+                    if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                    } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                    } else {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                    }
+
+                    //get base fee 
+                    if (isset($all_services->base_fee_override)) {
+                        $base_fee = $all_services->base_fee_override;
+                    } else {
+                        $base_fee = $data['setting_details']->base_service_fee;
+                    }
+
+                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+
+                    //get min. service fee
+                    if (isset($all_services->min_fee_override)) {
+                        $min_fee = $all_services->min_fee_override;
+                    } else {
+                        $min_fee = $data['setting_details']->minimum_service_fee;
+                    }
+
+                    // Compare cost per sf with min service fee
+                    if ($cost_per_sqf > $min_fee) {
+                        $cost = $cost_per_sqf;
+                    } else {
+                        $cost = $min_fee;
+                    }
+                }
+
+                $TotalRevenueLost += $cost;
+                if($CenInfo[0]->created_at < date("Y-m-d", strtotime("-30 days"))){
+                    $TotalExistingRevenueLost += $cost;
+                }else{
+                    $TotlaNewRevenueLost += $cost;
+                }
+
+                $all_services->job_cost = $cost;
+                $all_services->cancel_reason = $CenInfo[0]->cancel_reason;
+                $all_services->created_at = $CenInfo[0]->created_at;
+                $NewServiceArray[] = $all_services;
+            }
+        }
+
+        $data['Services'] = $NewServiceArray;
+
+        $data['TotalRevenueLost'] = $TotalRevenueLost;
+        $data['TotalExistingRevenueLost'] = $TotalExistingRevenueLost;
+        $data['TotlaNewRevenueLost'] = $TotlaNewRevenueLost;
+
+        
+        $page["active_sidebar"] = "cancelService";
+        $page["page_name"] = 'Cancelled Service';
+        $page["page_content"] = $this->load->view("admin/report/view_cancel_service_report", $data, TRUE);
+        $this->layout->superAdminInvoiceTemplateTable($page);
+    }
+
+
 
 ## Ajax Data for Invoice Age Report
 	public function ajaxDataForInvoiceAgeReport(){
@@ -1337,6 +1436,93 @@ class Reports extends MY_Controller {
         $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
         $body =  $this->load->view('admin/report/ajax_customer_credit_report', $data, false);
     }
+
+    ## Ajax Data for Cancel Service
+    public function ajaxDataForCancelService(){
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+
+        $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
+        
+        if(empty($customer)){
+            $whereArr = array(
+                'jobs.company_id' => $company_id,
+                'property_tbl.company_id' => $company_id
+            );
+        }else{
+            $whereArr = array(
+                'jobs.company_id' => $company_id,
+                'property_tbl.company_id' => $company_id,
+                'customers.customer_id' => $customer,
+            );
+        }
+        
+        $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
+        $NewServiceArray = array();
+        foreach($data['all_services'] as $all_services) {
+            $cost = 0;
+
+            $canc_arr = array(
+                'job_id' => $all_services->job_id,
+                'customer_id' => $all_services->customer_id,
+                'property_id' => $all_services->property_id
+            );
+            $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
+
+            if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {
+                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
+
+                if ($priceOverrideData->is_price_override_set == 1) {
+                    // $price = $priceOverrideData->price_override;
+                    $cost =  $priceOverrideData->price_override;
+                } else {
+                    //else no price overrides, then calculate job cost
+                    $lawn_sqf = $all_services->yard_square_feet;
+                    $job_price = $all_services->job_price;
+
+                    //get property difficulty level
+                    if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                    } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                    } else {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                    }
+
+                    //get base fee 
+                    if (isset($all_services->base_fee_override)) {
+                        $base_fee = $all_services->base_fee_override;
+                    } else {
+                        $base_fee = $data['setting_details']->base_service_fee;
+                    }
+
+                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+
+                    //get min. service fee
+                    if (isset($all_services->min_fee_override)) {
+                        $min_fee = $all_services->min_fee_override;
+                    } else {
+                        $min_fee = $data['setting_details']->minimum_service_fee;
+                    }
+
+                    // Compare cost per sf with min service fee
+                    if ($cost_per_sqf > $min_fee) {
+                        $cost = $cost_per_sqf;
+                    } else {
+                        $cost = $min_fee;
+                    }
+                }
+                $all_services->job_cost = $cost;
+                $all_services->cancel_reason = $CenInfo[0]->cancel_reason;
+                $all_services->created_at = $CenInfo[0]->created_at;
+                $NewServiceArray[] = $all_services;
+            }
+        }
+
+        $data['Services'] = $NewServiceArray;
+        $body =  $this->load->view('admin/report/ajax_cancel_service_report', $data, false);
+    }
     
 
     ## Download Customer Credit CSV
@@ -1413,6 +1599,135 @@ class Reports extends MY_Controller {
                                     $paymentMothods,
                                     $Invs->credit_notes,
                                     $ResponsibleParty
+                                );
+                fputcsv($f, $lineData, $delimiter);
+            }
+
+            #move back to beginning of file
+            fseek($f, 0);
+
+            #set headers to download file rather than displayed
+            header('Content-Type: text/csv'); 
+            header('Content-Disposition: attachment; filename="' .$filename. '";');
+
+            #output all remaining data on a file pointer
+            fpassthru($f);
+
+        } else {
+             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
+             redirect("admin/reports/creditReport");
+        }    
+
+    }
+
+
+
+    ## Download Cancelled Service CSV
+    public function downloadCancelServiceReportCsv(){
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+        
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+
+        $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
+        
+        if(empty($customer)){
+            $whereArr = array(
+                'jobs.company_id' => $company_id,
+                'property_tbl.company_id' => $company_id
+            );
+        }else{
+            $whereArr = array(
+                'jobs.company_id' => $company_id,
+                'property_tbl.company_id' => $company_id,
+                'customers.customer_id' => $customer,
+            );
+        }
+        
+        $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
+        $NewServiceArray = array();
+        foreach($data['all_services'] as $all_services) {
+            $cost = 0;
+
+            $canc_arr = array(
+                'job_id' => $all_services->job_id,
+                'customer_id' => $all_services->customer_id,
+                'property_id' => $all_services->property_id
+            );
+            $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
+
+            if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {
+                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
+
+                if ($priceOverrideData->is_price_override_set == 1) {
+                    // $price = $priceOverrideData->price_override;
+                    $cost =  $priceOverrideData->price_override;
+                } else {
+                    //else no price overrides, then calculate job cost
+                    $lawn_sqf = $all_services->yard_square_feet;
+                    $job_price = $all_services->job_price;
+
+                    //get property difficulty level
+                    if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                    } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                    } else {
+                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                    }
+
+                    //get base fee 
+                    if (isset($all_services->base_fee_override)) {
+                        $base_fee = $all_services->base_fee_override;
+                    } else {
+                        $base_fee = $data['setting_details']->base_service_fee;
+                    }
+
+                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+
+                    //get min. service fee
+                    if (isset($all_services->min_fee_override)) {
+                        $min_fee = $all_services->min_fee_override;
+                    } else {
+                        $min_fee = $data['setting_details']->minimum_service_fee;
+                    }
+
+                    // Compare cost per sf with min service fee
+                    if ($cost_per_sqf > $min_fee) {
+                        $cost = $cost_per_sqf;
+                    } else {
+                        $cost = $min_fee;
+                    }
+                }
+                $all_services->job_cost = $cost;
+                $all_services->cancel_reason = $CenInfo[0]->cancel_reason;
+                $all_services->created_at = $CenInfo[0]->created_at;
+                $NewServiceArray[] = $all_services;
+            }
+        }
+        
+        if(count($NewServiceArray) > 0){
+            $delimiter = ",";
+            $filename = "cancel_service_report_" . date('Y-m-d') . ".csv";
+
+            #create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            #set column headers
+            $fields = array('Customer','Service Name','Cost','Reason','Cancel Date');
+            fputcsv($f, $fields, $delimiter);
+
+            #output each row of the data, format line as csv and write to file pointer
+            foreach($NewServiceArray as $row => $Invs){
+                $CustomerData = $this->db->select('*')->from("customers")->where(array("customer_id" => $Invs->customer_id))->get()->row();
+                $lineData = array(
+                                    $CustomerData->first_name. " " . $CustomerData->last_name,
+                                    $Invs->job_name,
+                                    $Invs->job_cost,
+                                    $Invs->cancel_reason,
+                                    date("d F, Y", strtotime($Invs->created_at))
                                 );
                 fputcsv($f, $lineData, $delimiter);
             }
@@ -6730,9 +7045,71 @@ class Reports extends MY_Controller {
 
         $data["AllCancelledProperty"] = $cancelled_properties;
         $data['ServiceArea'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
-		
-		#get cancelled services
-		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetails(array('cancelled_services_tbl.company_id' => $this->session->userdata['company_id']));
+
+        $company_id = $this->session->userdata['company_id'];
+
+        foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
+            $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByCustomer($CanPropers->customer_id);
+
+            $cost = 0;
+            foreach($AllServicesOfCustomer as $all_services) {
+                if($all_services->job_cost == NULL) {
+                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+                    $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
+                        
+                        if ($priceOverrideData->is_price_override_set == 1) {
+                            $cost +=  $priceOverrideData->price_override;
+                        } else {
+                            //else no price overrides, then calculate job cost
+                            $lawn_sqf = $all_services->yard_square_feet;
+                            $job_price = $all_services->job_price;
+
+                            //get property difficulty level
+                            if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                                $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                            } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                                $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                            } else {
+                                $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                            }
+
+                            //get base fee 
+                            if (isset($all_services->base_fee_override)) {
+                                $base_fee = $all_services->base_fee_override;
+                            } else {
+                                $base_fee = $data['setting_details']->base_service_fee;
+                            }
+
+                            $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+
+                            //get min. service fee
+                            if (isset($all_services->min_fee_override)) {
+                                $min_fee = $all_services->min_fee_override;
+                            } else {
+                                $min_fee = $data['setting_details']->minimum_service_fee;
+                            }
+
+                            // Compare cost per sf with min service fee
+                            if ($cost_per_sqf > $min_fee) {
+                                $cost += $cost_per_sqf;
+                            } else {
+                                $cost += $min_fee;
+                            }
+                    }
+                }
+            }
+
+            $where_estimate = array(
+                'customers.customer_id' => $CanPropers->customer_id,
+                'property_tbl.property_id' => $CanPropers->property_id,
+            );
+            
+            $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
+            $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
+            $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
+            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = $SaleRepObj[0]->user_first_name." ".$SaleRepObj[0]->user_last_name;
+        }
+
 		if(!empty($all_cancelled)){
             $properties = [];
 			$total_cancelled_revenue = 0;
