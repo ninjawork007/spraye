@@ -244,18 +244,18 @@ function Send_Mail_dynamic($smtparray=array(), $to,$company_data,$body,$subject,
 		
 		
 		 if (@$res) {
-			$errorLog = fopen('logemail_'.date("m-d-Y").'.csv', 'a')  ;
-			fwrite($errorLog,$from_email.",".$reply_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$res.",Passed\n");
-			fclose($errorLog);
+			//$errorLog = fopen('logemail_'.date("m-d-Y").'.csv', 'a')  ;
+			//fwrite($errorLog,$from_email.",".$reply_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$res.",Passed\n");
+			//fclose($errorLog);
 
 			 return	array('status'=>true,'message'=>'Email send succefully');
 
 		 } else {
 
-			  $errorLog = fopen('logemail_'.date("m-d-Y").'.csv', 'a')  ;
-			fwrite($errorLog,$from_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$mail->ErrorInfo."\n");
+			  //$errorLog = fopen('logemail_'.date("m-d-Y").'.csv', 'a')  ;
+			//fwrite($errorLog,$from_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$mail->ErrorInfo."\n");
 
-			fclose($errorLog);
+			//fclose($errorLog);
 			// die(print_r($mail));
 
 			return	array('status'=>false,'message'=>print_r($res));
