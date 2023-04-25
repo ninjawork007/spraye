@@ -40,7 +40,8 @@ class Admin extends MY_Controller
 		$this->load->library('session');
         $this->load->helper('form');
         $this->load->helper('form_validation_rule_helper');
-		
+        $this->load->helper('available_days_helper');
+
 		if ( !$this->session->userdata('spraye_technician_login') && isset($_SERVER['REQUEST_URI'])) {
             $actual_link = $_SERVER['REQUEST_URI'];
             $_SESSION['iniurl'] = $actual_link;
@@ -597,7 +598,6 @@ class Admin extends MY_Controller
                 $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearchProperty($where, $where_like, $limit, $start, $order, $dir, $search, true);
                 $var_total_item_count_for_pagination = count($var_total_item_count_for_pagination);
             } else {
-               
                 $tempdata  = $this->DashboardModel->getTableDataAjaxSearchProperty($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in);
                 $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearchProperty($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in);
                 $var_total_item_count_for_pagination = count($var_total_item_count_for_pagination);                
@@ -733,16 +733,17 @@ class Admin extends MY_Controller
             6 => '`property_tbl`.`yard_square_feet`',
             7 => 'completed_date_property',
             8 => 'completed_date_property_program',
-            9 => 'service_due',
-            10 => 'property_address',
-            11 => 'property_type',
-            12 => 'property_notes',
-            13 => 'category_area_name',
-            14 => 'program_name',
-            15 => 'reschedule_message',
-            16 => 'tags',
-            17 => 'action',
-            18 => 'program_services'
+            9 => 'completed_date_last_service_by_type',
+            10 => 'service_due',
+            11 => 'property_address',
+            12 => 'property_type',
+            13 => 'property_notes',
+            14 => 'category_area_name',
+            15 => 'program_name',
+            16 => 'reschedule_message',
+            17 => 'tags',
+            18 => 'action',
+            19 => 'program_services'
         );
 
         $limit = $this->input->post('length');
@@ -838,7 +839,7 @@ class Admin extends MY_Controller
                         }
 
                         // $dbg = explode(',', $val);
-                    } else if ($colm_num == 18) {
+                    } else if ($colm_num == 19) {
                         $col = 'program_services';
                         $val = $column['search']['value'];
                         if (strpos($column['search']['value'], ',') !== false) {
@@ -861,7 +862,7 @@ class Admin extends MY_Controller
                             } else {
                                 $where_like[$col] = $val;
                             }
-                        } else if($colm_num==13){
+                        } else if($colm_num==14){
                             if (strpos($column['search']['value'], ',') !== false){
                                 $where_in[$col]  = explode(',',$val);
                             } else {
@@ -916,7 +917,6 @@ class Admin extends MY_Controller
             {
                 $tempdata  = $this->DashboardModel->getMapDataAjax($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where, $northEastLng, $northEastLat, $northWestLng, $northWestLat, $southWestLng, $southWestLat, $southEastLng, $southEastLat);
                 $var_total_item_count_for_pagination = $this->DashboardModel->getMapDataAjax($where, $where_like, $limit, $start, $order, $dir, true, $where_in, $or_where, $northEastLng, $northEastLat, $northWestLng, $northWestLat, $southWestLng, $southWestLat, $southEastLng, $southEastLat);
-
             }
 
 
@@ -990,6 +990,7 @@ class Admin extends MY_Controller
 //                        $value->reschedule_message = $assign_table_data->reschedule_message;
 //                    }
 //                }
+                $concat_is_rescheduled = 0;
                 if ($value->is_job_mode == 2) {
                     //$concat_is_rescheduled = 2;
                     $value->mode = 'Rescheduled';
@@ -1044,6 +1045,7 @@ class Admin extends MY_Controller
 
                 $data[$i]['last_service_date'] = isset($value->completed_date_property) && $value->completed_date_property != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_property)) : '';
                 $data[$i]['last_program_service_date'] = isset($value->completed_date_property_program) && $value->completed_date_property_program != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_property_program)) : '';
+                $data[$i]['completed_date_last_service_by_type'] = isset($value->completed_date_last_service_by_type) && $value->completed_date_last_service_by_type != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_last_service_by_type)) : '';
                 $data[$i]['last_program_service_date'] = $value->completed_date_property_program;
                 //service due styling for datatable rendering
                 switch ($value->service_due) {
@@ -1629,7 +1631,8 @@ class Admin extends MY_Controller
             'jobs.company_id' => $company_id,
             'property_tbl.company_id' => $company_id,
             'customer_status' => 1
-        );        
+        );
+//        die(var_dump($where));
         $service_list = $this->DashboardModel->getUnassignedServiceList($where);
         if($ajax == true)
         {
@@ -1910,12 +1913,15 @@ class Admin extends MY_Controller
         $company_tags = $this->TagsModel->get_all_tags(array('company_id' => $this->session->userdata['company_id']));
 		if(isset($company_tags) && count($company_tags)>0){
 			foreach($company_tags as $tag){
-				$data['filter_tags'].= '<option value='.$tag->id.'>'.$tag->tags_title.'</option>';
+				$data['filter_tags'].= '<option value='.$tag->id.'>'.addslashes($tag->tags_title).'</option>';
 			}
 		}
 		$data['filter_tags'] .='</select>';
-        
-        // die(print_r($data['all_jobs']));
+
+        // Available days for filter list
+        $data['available_days_list'] = availableDaysArrayForTableFilter();
+
+//         die(print_r($data['filter_tags']));
         // die(print_r($data['service_list']));
         //$page["page_content"] = $this->load->view("admin/assign_job", $data, TRUE);
         $page["page_content"] = $this->load->view("admin/assign_job_clone", $data, TRUE);
@@ -2033,7 +2039,7 @@ class Admin extends MY_Controller
         $d2 = new DateTime('last day of this month');
         $date1 = strtotime($d->format('Y-m-d'));
         $date2 = strtotime($d2->format('Y-m-d'));
-        $data['need_to_reschedule'] = 0;
+
         $company_id = $this->session->userdata['company_id'];
         $page["active_sidebar"] = "dashboardnav";
         $page["page_name"] = "Dashboard";
@@ -2134,11 +2140,6 @@ class Admin extends MY_Controller
             $data['widget_data'] = array(); 
         }
 
-        $where_arr = [
-            'company_id' => $this->session->userdata['company_id'],
-            'is_job_mode'=>2
-        ];
-        $data['need_to_reschedule'] = $this->Tech->GetCountOfRescheduledJobs($where_arr);
         $data['tecnician_details'] = $this->Administrator->getAllAdmin(array('role_id' => 4, 'company_id' => $this->session->userdata['company_id']));
         $page["page_content"] = $this->load->view("admin/dashboard2", $data, TRUE);
         $this->layout->superAdminTemplateTable($page);
@@ -5021,9 +5022,7 @@ class Admin extends MY_Controller
             $program_id   = $this->programAddByProperty($program_param);
 
             if (!$property_info) {
-
-                $geo = $this->getLatLongByAddress($property_param['property_address']);
-
+                $geo = $this->getLatLongByAddress2($property_param['property_address']);
                 if ($geo) {
                     $property_param['property_latitude'] = $geo['lat'];
                     $property_param['property_longitude'] = $geo['long'];
@@ -6318,6 +6317,9 @@ class Admin extends MY_Controller
     }
 
     public function propertyList(){
+
+
+
         $company_id = $this->session->userdata['company_id'];
         // $where =  array('property_tbl.company_id' => $company_id);
 
@@ -6348,18 +6350,20 @@ class Admin extends MY_Controller
                 $data['polygon_bounds'][] = ["latlng" => $v->service_area_polygon,"marker" => $v->category_area_name, "property_area_cat_id" => $v->property_area_cat_id];
         }
 
-        // die(print_r($data['programlist']));
-       
         $data['servicelist'] = $this->JobModel->getJobList($where);
+
 		$data['cancel_reasons'] = $this->CustomerModel->getCancelReasons($company_id);
+
         $page["active_sidebar"] = "properties";
         $page["page_name"] = "Properties";
         $page["page_content"] = $this->load->view("admin/property_view", $data, TRUE);
         //auto status update
-         $this->PropertyModel->autoStatusCheck();
-        $this->CustomerModel->autoStatusCheck(0,$this->session->userdata['company_id']);
+//         $this->PropertyModel->autoStatusCheck();
+
+//        $this->CustomerModel->autoStatusCheck(0,$this->session->userdata['company_id']);
 
         $this->layout->superAdminTemplateTable($page);
+
     }
 
 	public function assignProgramToProperies($value = '')
@@ -6738,7 +6742,11 @@ class Admin extends MY_Controller
         }
         $data['customerlist'] = $this->PropertyModel->getCustomerList($where);
         $data['customerData'] = $this->CustomerModel->getCustomerDetail($customer_id);
-        $data['customer_name'] = $data['customerData']['first_name']." ".$data['customerData']['last_name'];
+
+        if (isset($data['customerData']))
+            $data['customer_name'] = $data['customerData']['first_name']." ".$data['customerData']['last_name'];
+        else
+            $data['customer_name'] = '';
 //		die(print_r($data['customerlist']));
         $data['sales_tax_details'] = $this->SalesTax->getAllSalesTaxArea($where);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
@@ -7140,6 +7148,9 @@ class Admin extends MY_Controller
             }
             $geo = $this->getLatLongByAddress($data['property_address']);
 
+            // Determine Available Days
+            $param['available_days'] = json_encode(determineAvailableDays($data));
+
             if (!$geo) {
 
                 //    echo "0inva";
@@ -7377,6 +7388,9 @@ class Admin extends MY_Controller
 
             $geo = $this->getLatLongByAddress($data['property_address']);
 
+            // Determine Available Days
+            $param['available_days'] = json_encode(determineAvailableDays($data));
+
             if (!$geo) {
                 $return_array =  array('status' => 400, 'msg' => 'Invalid property address.');
             } else {
@@ -7566,7 +7580,7 @@ class Admin extends MY_Controller
 		$data['groupBilling'] = $this->PropertyModel->getGroupBillingByProperty($propertyID);
         $data['selectedprogramlist'] = $this->PropertyModel->getSelectedProgram($propertyID);
         $data['propertyconditionslist'] = $this->PropertyModel->getCompanyPropertyConditions(array('company_id' => $this->session->userdata['company_id']));
-        
+
         $data['selectedpropertyconditions'] = array();
         $getAssignedConditions = $this->PropertyModel->getAssignedPropertyConditions(array('property_id'=>$propertyID));
         if(!empty($getAssignedConditions)){
@@ -7869,6 +7883,9 @@ class Admin extends MY_Controller
 			}
 
 			$geo = $this->getLatLongByAddress($post_data['property_address']);
+
+            // Determine Available Days
+            $param['available_days'] = json_encode(determineAvailableDays($post_data));
 
 			if ($geo) {
 
@@ -10644,6 +10661,33 @@ class Admin extends MY_Controller
         }
     }
 
+    function getLatLongByAddress2($address) {
+        $address = urlencode($address);
+        $url = "https://maps.google.com/maps/api/geocode/json?key=".GoogleMapKey."&address={$address}&sensor=false";
+        $curl = curl_init();
+
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_URL => $url,
+        ]);
+
+        $data = curl_exec($curl);
+
+        curl_close($curl);
+        $output = json_decode($data);
+        if (!empty($output->results[0]->geometry->location->lat)) {
+
+            $geolocation = array(
+                'lat' => $output->results[0]->geometry->location->lat,
+                'long' => $output->results[0]->geometry->location->lng
+            );
+            return $geolocation;
+        } else {
+
+            return false;
+        }
+    }
+
 
     public function createCustomerInQuickbook($param)
     {
@@ -11214,8 +11258,8 @@ class Admin extends MY_Controller
             // die(' search');
             $search = $this->input->post('search')['value'];
 
-            $tempdata  = $this->DashboardModel->getTableRouteDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false);
-            $var_total_item_count_for_pagination = $this->DashboardModel->getTableRouteDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true);
+            $tempdata  = $this->DashboardModel->getTableRouteDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $search);
+            $var_total_item_count_for_pagination = $this->DashboardModel->getTableRouteDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $search);
             $var_total_item_count_for_pagination = count($var_total_item_count_for_pagination);
             //$var_last_query = $this->db->last_query ();
             // return die("last query runs ". $var_last_query);
@@ -13372,16 +13416,19 @@ class Admin extends MY_Controller
             6 => '`property_tbl`.`yard_square_feet`',
             7 => 'completed_date_property',
             8 => 'completed_date_property_program',
-            9 => 'service_due',
-            10 => 'property_address',
-            11 => 'property_type',
-            12 => 'property_notes',
-            13 => 'category_area_name',
-            14 => 'program_name',
-            15 => 'reschedule_message',
-            16 => 'tags',
-            17 => 'action',
-            18 => 'program_services'
+            9 => 'completed_date_last_service_by_type',
+            10 => 'property_program_date',
+            11 => 'service_due',
+            12 => 'property_address',
+            13 => 'property_type',
+            14 => 'property_notes',
+            15 => 'category_area_name',
+            16 => 'program_name',
+            17 => 'reschedule_message',
+            18 => 'tags',
+            19 => 'available_days',
+            20 => 'action',
+            21 => 'program_services'
         );
 
         $limit = $this->input->post('length');
@@ -13421,16 +13468,26 @@ class Admin extends MY_Controller
                         }
 
                         // $dbg = explode(',', $val);	
-                    } else if( $colm_num == 18)	{
+                    } else if( $colm_num == 21)	{
                         $col = 'program_services';
                         $val = $column['search']['value'];
                         if (strpos($column['search']['value'], ',') !== false){
-                            $where_like[$col]  = explode(',',$val);
+                            $where_in[$col]  = explode(',',$val);
                         } else {
-                            $where[$col] =  $val;
+                            $where_in[$col] =  $val;
                         }
 
-                        // $dbg = explode(',', $val);
+                     } else if( $colm_num == 19)	{
+                        // Available Days filtering
+                         $col = 'available_days';
+                         $val = $column['search']['value'];
+                         if (strpos($column['search']['value'], ',') !== false){
+                             $where_in[$col]  = explode(',',$val);
+                         } else {
+                             //$where_in[$col] = $val;
+                             $where_in[$col] = explode(',',$val);
+                         }
+
                     } else {
                         $col = $column['data'];	
                         $val = $column['search']['value'];	
@@ -13444,7 +13501,7 @@ class Admin extends MY_Controller
                             }else{
                                 $where_like[$col]=$val;
                             }
-                        } else if($colm_num==13){
+                        } else if($colm_num==14){
                             if (strpos($column['search']['value'], ',') !== false){
                                 $where_in[$col]  = explode(',',$val);
                             } else {
@@ -13463,11 +13520,8 @@ class Admin extends MY_Controller
 
         if (empty($this->input->post('search')['value'])) {
 
-            
-
             if ( isset($where['program_services'])  || (isset($where_like['program_services']) && is_array($where_like['program_services']))){
                 $property_outstanding_services  = $this->DashboardModel->getOutstandingServicesFromProperty_forTable($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where);
-//                die(print_r($property_outstanding_services));
                 $tempdata  = $this->DashboardModel->getTableDataAjax_new($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where,$property_outstanding_services);
                 $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjax_new($where, $where_like, $limit, $start, $order, $dir, true, $where_in, $or_where,$property_outstanding_services)/3;
                 //die('total ' .$var_total_item_count_for_pagination );
@@ -13475,15 +13529,11 @@ class Admin extends MY_Controller
             else
             {
                 $tempdata  = $this->DashboardModel->getTableDataAjax_new($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where );
-                //die($this->db->last_query());
                 $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjax_new($where, $where_like, $limit, $start, $order, $dir, true, $where_in, $or_where);
-
             }
          } else {
             $search = $this->input->post('search')['value'];
-
             if ( isset($where['program_services'])  || (isset($where_like['program_services']) && is_array($where_like['program_services']))){
-
                 $property_outstanding_services  = $this->DashboardModel->getOutstandingServicesFromProperty_forTable($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where);
                 $tempdata  = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in, $or_where,$property_outstanding_services);
                 $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in, $or_where,$property_outstanding_services);
@@ -13519,16 +13569,23 @@ class Admin extends MY_Controller
                     'program_id' => $value->program_id,
                     'property_id' => $value->property_id,
                 );
-                $assign_table_data = $this->Tech->GetOneRow($arrayName); // select * from technician_job_assign where __
+//                $assign_table_data = $this->Tech->GetOneRow($arrayName); // select * from technician_job_assign where __
+//                $assignedServices = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id,'customers.customer_id' => 42190));
+//                die(var_dump($services));
                 $value->mode = '';
                 $value->reschedule_message = '';
                 $concat_is_rescheduled = 0;
-                if ($assign_table_data) {
-                    if ($assign_table_data->is_job_mode == 2) {
-                        $concat_is_rescheduled = 2;
-                        $value->mode = 'Rescheduled';
-                        $value->reschedule_message = $assign_table_data->reschedule_message;
-                    }
+//                if ($assign_table_data) {
+//                    if ($assign_table_data->is_job_mode == 2) {
+//                        $concat_is_rescheduled = 2;
+//                        $value->mode = 'Rescheduled';
+//                        $value->reschedule_message = $assign_table_data->reschedule_message;
+//                    }
+//                }
+                if ($value->assign_table_data == 1) {
+                    $concat_is_rescheduled = 2;
+                    $value->mode = 'Rescheduled';
+                    $value->reschedule_message = $value->assign_reschedule_message;
                 }
 
                 // set property type
@@ -13548,8 +13605,19 @@ class Admin extends MY_Controller
                 // if no resschedule message, set default
                 if ($value->is_job_mode == 2) {
                     $concat_is_rescheduled = 2;
+                    $technicianName = '';
+                    if(isset($value->user_first_name) && isset($value->user_last_name))
+                        $technicianName = $value->user_first_name . ' '. $value->user_last_name;
                     if (empty($value->reschedule_message)) {
-                        $value->reschedule_message = "Unassigned by System";
+                        if ($technicianName != '') {
+                            $value->reschedule_message = $technicianName . " - Unassigned by System";
+                        } else {
+                            $value->reschedule_message = "Unassigned by System";
+                        }
+                    } else {
+                        if ($technicianName != '') {
+                            $value->reschedule_message = $technicianName . " - ".$value->reschedule_message;
+                        }
                     }
                 } else {
                     $value->reschedule_message = '';
@@ -13579,7 +13647,9 @@ class Admin extends MY_Controller
                 $data[$i]['square_feet'] = $value->yard_square_feet;
                 $data[$i]['last_service_date'] = isset($value->completed_date_property) && $value->completed_date_property != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_property)) : '';
                 $data[$i]['last_program_service_date'] = isset($value->completed_date_property_program) && $value->completed_date_property_program != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_property_program)) : '';
-                $data[$i]['last_program_service_date'] = $value->completed_date_property_program;
+                $data[$i]['property_program_date'] = isset($value->property_program_date) && $value->property_program_date != '0000-00-00' ? date('m-d-Y', strtotime($value->property_program_date)) : '';
+                $data[$i]['completed_date_last_service_by_type'] = isset($value->completed_date_last_service_by_type) && $value->completed_date_last_service_by_type != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_last_service_by_type)) : '';
+                $data[$i]['last_program_service_date'] = isset($value->completed_date_property_program) && $value->completed_date_property_program != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_property_program)) : '' ;
                 //service due styling for datatable rendering
                 switch ($value->service_due) {
                     case "Due":
@@ -13655,6 +13725,10 @@ class Admin extends MY_Controller
                 // $data[$i]['service_note'] = $value->service_note;
                 // $data[$i]['job_notes'] = $value->job_notes;
 
+                // Available days
+                $available_days = formatAvailableDays($value->available_days);
+                $data[$i]['available_days'] = implode(", ", $available_days);
+
                 $data[$i]['action'] = "<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='unassigned-services-element confirm_delete_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$value->property_id'  ><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li></ul>";
                 $data[$i]['index'] = $i;
                 $i++;
@@ -13663,8 +13737,8 @@ class Admin extends MY_Controller
 
         $json_data = array(
             "draw"            => intval($this->input->post('draw')),
-            "recordsTotal"    => $var_total_item_count_for_pagination, // "(filtered from __ total entries)"
-            "recordsFiltered" => $var_total_item_count_for_pagination, // actual total that determines page counts
+            "recordsTotal"    => intval($var_total_item_count_for_pagination), // "(filtered from __ total entries)"
+            "recordsFiltered" => intval($var_total_item_count_for_pagination), // actual total that determines page counts
             "data"            => $data
         );
         echo json_encode($json_data);

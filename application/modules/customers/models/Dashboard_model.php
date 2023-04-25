@@ -197,7 +197,7 @@ class Dashboard_model extends CI_Model{
     }
 
     public function getTableDataAjax($where_arr = '', $where_like = '', $limit, $start, $col, $dir, $is_for_count) {
-        $this->db->select("customers.first_name,customers.last_name,billing_street,billing_street_2,jobs.job_id,job_name,program_name,customers.customer_id,jobs.job_id,programs.program_id,`property_tbl`.`property_id`,`property_tbl`.`yard_square_feet`,`property_tbl`.`property_latitude`,`property_tbl`.`property_longitude`,`category_area_name`,property_address,priority,property_type,property_title, completed_date_property, completed_date_property_program, technician_job_assign.is_job_mode, unassigned_Job_delete.unassigned_Job_delete_id,`property_tbl`.`property_state`,`property_tbl`.`property_city`,`property_tbl`.`property_zip`");
+        $this->db->select("property_program_assign.property_program_date,customers.first_name,customers.last_name,billing_street,billing_street_2,jobs.job_id,job_name,program_name,customers.customer_id,jobs.job_id,programs.program_id,`property_tbl`.`property_id`,`property_tbl`.`yard_square_feet`,`property_tbl`.`property_latitude`,`property_tbl`.`property_longitude`,`category_area_name`,property_address,priority,property_type,property_title, completed_date_property, completed_date_property_program, technician_job_assign.is_job_mode, unassigned_Job_delete.unassigned_Job_delete_id,`property_tbl`.`property_state`,`property_tbl`.`property_city`,`property_tbl`.`property_zip`");
 
         $this->db->from('jobs');
 
@@ -247,7 +247,7 @@ class Dashboard_model extends CI_Model{
     }
 
     public function getTableDataAjaxSearch($where_arr = '', $where_like = '', $limit, $start, $col, $dir, $search, $is_for_count) {
-        $this->db->select("customers.first_name,customers.last_name,billing_street,billing_street_2,jobs.job_id,job_name,program_name,customers.customer_id,jobs.job_id,programs.program_id,`property_tbl`.`property_id`,`property_tbl`.`yard_square_feet`,`property_tbl`.`property_latitude`,`property_tbl`.`property_longitude`,`category_area_name`,property_address,priority,property_type,property_title, completed_date_property, completed_date_property_program, technician_job_assign.is_job_mode, unassigned_Job_delete.unassigned_Job_delete_id, technician_job_assign.reschedule_message,`property_tbl`.`property_state`,`property_tbl`.`property_city`,`property_tbl`.`property_zip`");
+        $this->db->select("property_program_assign.property_program_date, customers.first_name,customers.last_name,billing_street,billing_street_2,jobs.job_id,job_name,program_name,customers.customer_id,jobs.job_id,programs.program_id,`property_tbl`.`property_id`,`property_tbl`.`yard_square_feet`,`property_tbl`.`property_latitude`,`property_tbl`.`property_longitude`,`category_area_name`,property_address,priority,property_type,property_title, completed_date_property, completed_date_property_program, technician_job_assign.is_job_mode, unassigned_Job_delete.unassigned_Job_delete_id, technician_job_assign.reschedule_message,`property_tbl`.`property_state`,`property_tbl`.`property_city`,`property_tbl`.`property_zip`");
 
         $this->db->from('jobs');
 

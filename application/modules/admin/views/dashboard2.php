@@ -343,7 +343,9 @@
                         <div class="panel">
                            <div class="panel-body">
                               <h5 class="no-margin" >Scheduled Services</h5>
-                              <div class="text-muted text-size-small text-warning"><?= getJobCoutsThisMonth() ?></div>
+                              <div class="text-muted text-size-small text-warning">
+                                  <span id='scheduled-services-value'> -- </span>
+                              </div>
                            </div>
                         </div>
                      </a>
@@ -355,7 +357,8 @@
                         <div class="panel">
                            <div class="panel-body">
                               <h5 class="no-margin" >To Be Rescheduled </h5>
-                              <div class="text-muted text-size-small text-danger"><?= $need_to_reschedule ?>  
+                              <div class="text-muted text-size-small text-danger">
+                                  <span id='rescheduled-value'> -- </span>
                               </div>
                            </div>
                         </div>
@@ -382,7 +385,10 @@
                         <div class="panel">
                            <div class="panel-body">
                               <h5 class="no-margin" >Completed Services</h5>
-                              <div class="text-muted text-size-small text-success"><?= getCompleteJobCouts()  ?>  <span class="text-muted month-txt" >This month</span></div>
+                              <div class="text-muted text-size-small text-success">
+                                  <span id='completed-services-value'> -- </span>
+                                  <span class="text-muted month-txt" >This month</span>
+                              </div>
                            </div>
                         </div>
                      </a>
@@ -843,4 +849,35 @@
 <script type="text/javascript">
    hljs.configure({tabReplace: '    '});
    hljs.initHighlightingOnLoad();
+</script>
+
+
+<script type="text/javascript">
+// delay load summary statistics on dashboard until page load
+$( document ).ready(function() {
+
+    updateDashboardValue(
+        "<?= base_url('admin/summarystatistics/getJobCount/month') ?>"
+        ,"#scheduled-services-value");
+
+    updateDashboardValue(
+        "<?= base_url('admin/summarystatistics/getCountOfRescheduledJobs') ?>"
+        ,"#rescheduled-value");
+
+    updateDashboardValue(
+        "<?= base_url('admin/summarystatistics/getCompletedJobCount/month') ?>"
+        ,"#completed-services-value");
+
+});
+
+function updateDashboardValue(url,elementid)
+{
+    const data = {};
+    $.getJSON(url, data, (data, status) => {
+        console.log(data);
+        if (data.status === 200) {
+            $(elementid).text(data.result);
+        }
+    });
+}
 </script>

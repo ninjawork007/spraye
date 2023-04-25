@@ -410,6 +410,62 @@
 							</div>
 						</div>
 					</div>
+
+					<!-- Property Available Days -->
+					<div class="row">
+						<div class="col-md-6" style="margin: 16px auto">
+							<div class="form-group">
+								<label class="control-label col-lg-3">Property Available Days</label>
+								<div class="col-lg-9" style="padding-left: 11px;">
+                                <span style="color:red;">
+                                    <?php echo form_error('checkbox_available_monday') ?>
+									<?php echo form_error('checkbox_available_tuesday') ?>
+									<?php echo form_error('checkbox_available_wednesday') ?>
+									<?php echo form_error('checkbox_available_thursday') ?>
+									<?php echo form_error('checkbox_available_friday') ?>
+									<?php echo form_error('checkbox_available_saturday') ?>
+									<?php echo form_error('checkbox_available_sunday') ?>
+                                </span>
+
+									<?php $daysOfWeek = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']; ?>
+
+									<?php foreach($daysOfWeek as $day): ?>
+										<?php $checkboxid = 'available_'.$day; $formattedDay=ucfirst($day); ?>
+										<div class="col-md-6">
+											<div id="subscribeTooltip" class="checkbox" data-popup="tooltip-custom"
+												 title="Turning this option off will indicate this property is not available on this day"
+												 data-placement="left">
+												<label class="checkbox-inline checkbox-right">
+													<input id="checkbox_<?= $checkboxid ?>" type="checkbox" name="checkbox_<?= $checkboxid ?>" class="switchery_checkbox_<?= $checkboxid ?>" checked>
+													<?= $formattedDay ?></label>
+											</div>
+										</div>
+									<?php endforeach; ?>
+
+									<script>
+										<?php foreach($daysOfWeek as $day): ?>
+										<?php $checkboxid = 'available_'.$day; ?>
+										var checkbox_<?= $checkboxid ?> = document.querySelector('.switchery_checkbox_<?= $checkboxid ?>');
+										var switchery = new Switchery(checkbox_<?= $checkboxid ?>, {
+											color: '#36c9c9', secondaryColor: "#dfdfdf",
+										});
+										<?php endforeach; ?>
+									</script>
+
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- \Property Available Days -->
+
+					<div class="row">
+						<div class="col-md-12">
+							<div class="form-group">
+
+							</div>
+						</div>
+					</div>
+
 					<div class="addcustomeridinmodal"></div>
 					<div class="row">
 						<div class="col-md-12">

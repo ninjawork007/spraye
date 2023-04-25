@@ -615,21 +615,42 @@ class AdminTbl_property_model extends CI_Model
                 }
             }
         }
+
         // now we need to handle the next line of logic
         // If a property has a “Sales Call” currently scheduled to be completed, then the property status should change to “Sales Call Scheduled” ONLY FROM PROSPECT!
-        $this->db->select("is_complete,job_name,technician_job_assign.property_id, property_status");
-        $this->db->from('technician_job_assign');
-        $this->db->join('jobs','jobs.job_id=technician_job_assign.job_id','inner');
-        $this->db->join('property_tbl','property_tbl.property_id=technician_job_assign.property_id','inner');
-        $this->db->where('technician_job_assign.is_job_mode = 0');
-		
-        $result2 = $this->db->get();
-        $data2 = $result2->result();
-        foreach($data2 as $d2) {
-            if(strpos($d2->job_name, 'Sales Visit') !== false && $d2->property_status == "2") {
-                $this->db->update(self::PMTBL,['property_status' => 4], ['property_id' => $d2->property_id]);
-            }
-        }
+
+//        $this->db->select("is_complete,job_name,technician_job_assign.property_id, property_status");
+//        $this->db->from('technician_job_assign');
+//        $this->db->join('jobs','jobs.job_id=technician_job_assign.job_id','inner');
+//        $this->db->join('property_tbl','property_tbl.property_id=technician_job_assign.property_id','inner');
+//        $this->db->where('technician_job_assign.is_job_mode = 0');
+//
+//        $result2 = $this->db->get();
+//        $data2 = $result2->result();
+        $sql = "
+            UPDATE
+                technician_job_assign
+            INNER JOIN
+                jobs ON jobs.job_id = technician_job_assign.job_id
+            INNER JOIN
+                property_tbl ON property_tbl.property_id = technician_job_assign.property_id
+            SET
+                property_status = 4
+            WHERE
+                technician_job_assign.is_job_mode = 0
+            AND
+                job_name = 'Sales Visit'
+            AND
+                property_status = 2;";
+        $this->db->query($sql);
+//        die(print_r($this->db->last_query()));
+//        foreach($data2 as $d2) {
+//            if(strpos($d2->job_name, 'Sales Visit') !== false && $d2->property_status == "2") {
+//                $this->db->update(self::PMTBL,['property_status' => 4], ['property_id' => $d2->property_id]);
+//            }
+//        }
+//        $time_elapsed_secs = microtime(true) - $start;
+//        die(var_dump($time_elapsed_secs));
     }
 
 	public function getUnassignJobsByProperty($property_id) {

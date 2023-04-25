@@ -510,6 +510,7 @@
                                                     <th>Square Feet</th>
                                                     <th>Last Service Date</th>
                                                     <th>Last Program Service Date</th>
+                                                    <th>Last Program Service Type Date</th>
                                                     <th>Service Due</th>
                                                     <th>Address</th>
                                                     <th>Property Type</th>
@@ -527,6 +528,7 @@
                                                     <td id="priority_filter">PRIORITY</td>
                                                     <td id="service_name_filter">SERVICE NAME</td>
                                                     <td id="notify_filter">NOTIFY CUSTOMER</td>
+                                                    <td></td>
                                                     <td></td>
                                                     <td></td>
                                                     <td></td>
@@ -1477,6 +1479,11 @@
                         {
                             "data": "last_program_service_date",
                             "name": "Last Program Service Date",
+                            "orderable": true
+                        },
+                        {
+                            "data": "completed_date_last_service_by_type",
+                            "name": "Last Service Type Date",
                             "orderable": true
                         },
                         {
