@@ -25,11 +25,12 @@ class Purchases extends MY_Controller{
         }
 
         $this->load->library('parser');
+        $this->load->library('aws_sdk');
         $this->load->helper('text');
         $this->loadModel();
     }
 
-	private function loadModel(){
+    private function loadModel(){
         $this->load->model("Administrator");
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('Invoice_model', 'INV');
@@ -66,17 +67,18 @@ class Purchases extends MY_Controller{
     }
 
 
-	public function index($purchaseId = false) {
-        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id']);
+    public function index($purchaseId = false) {
+        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id'], "purchase_order_status" => "!=3");
         $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
-		$page["active_sidebar"] = "purchases";
+        $page["active_sidebar"] = "purchases";
         $page["page_name"] = 'Purchases';
+        $data['list_locations'] = $this->LocationsModel->getLocationsList();
         $page["page_content"] = $this->load->view("inventory/purchases/purchases", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
     public function new() {
-		$data['vendors'] = $this->VendorsModel->getVendorsList();
+        $data['vendors'] = $this->VendorsModel->getVendorsList();
         $data['list_locations'] = $this->LocationsModel->getLocationsList();
         $data['last_purchase_order_id'] = $this->PurchasesModel->getLastIdPlusOne();
         $data['list_sub_locations'] = $this->LocationsModel->getSubLocationsList();
@@ -88,20 +90,20 @@ class Purchases extends MY_Controller{
         $page["page_name"] = 'New Purchases';
         $page["page_content"] = $this->load->view("inventory/purchases/new_purchase", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
-	public function receiving($purchaseId = false) {
+    public function receiving($purchaseId = false) {
 
         $where_arr = array(
             'purchase_receiving_tbl.company_id =' => $this->session->userdata['company_id'],
         );
         
         $data['all_receiving'] = $this->ReceivingsModel->getAllReceivingTable($where_arr);
-		$page["active_sidebar"] = "receiving";
+        $page["active_sidebar"] = "receiving";
         $page["page_name"] = 'Receiving';
         $page["page_content"] = $this->load->view("inventory/purchases/purchases_receiving", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
     public function newReceiving($purchase_order_id) {
         $data['purchase_order_id'] = $purchase_order_id;
@@ -115,35 +117,35 @@ class Purchases extends MY_Controller{
         $page["page_name"] = 'New Purchase Order Receiving';
         $page["page_content"] = $this->load->view("inventory/purchases/new_receiving", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
-	public function returns($returnId = false) {
-		
+    public function returns($returnId = false) {
+        
         $where_arr = array(
             'return_id !=' => 0
         );
 
         $data['all_returns'] = $this->ReturnsModel->getAllReturns($where_arr);
-		$page["active_sidebar"] = "returns";
+        $page["active_sidebar"] = "returns";
         $page["page_name"] = 'Returns';
         $page["page_content"] = $this->load->view("inventory/purchases/purchases_returns", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
-	public function newReturn($purchase_order_id = false) {
-        $data['purchase_order_id'] = $purchase_order_id;
-        $data['purchase_order'] = $this->PurchasesModel->getPurchase(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
+    public function newReturn($purchase_order_id = false) {
         $settings = new stdClass();
         $settings->currency_symbol = '$';
         $settings->references_purchase_return_prepend = '';
         $settings->references_purchase_return_append = '';
+        $data['list_locations'] = $this->LocationsModel->getLocationsList();
+        $data['list_vendors'] = $this->VendorsModel->getVendorsList();
         $data['settings'] =  $settings;
         $data['purchaseId'] = 1;
         $page["active_sidebar"] = "returns";
         $page["page_name"] = 'New Purchase Order Return';
         $page["page_content"] = $this->load->view("inventory/purchases/new_purchase_return", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
     public function ajaxGetPurchases(){
         $tblColumns = array(
@@ -317,6 +319,24 @@ class Purchases extends MY_Controller{
     
     } 
 
+    public function getAllPurchaseOrdersByLocartion($status){
+ 
+        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id']);
+    
+        if($status!=4) {
+        $where['purchase_order_tbl.location_id'] = $status;
+        }
+        
+        $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
+        $where = array('company_id' =>$this->session->userdata['company_id']);
+    
+         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
+    
+         $body  =  $this->load->view('inventory/purchases/ajax_data',$data,TRUE);
+         echo $body;
+    
+    } 
+
     public function getAllPurchaseOrdersByPO($status){
  
         $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id']);
@@ -368,13 +388,12 @@ class Purchases extends MY_Controller{
     
          $body  =  $this->load->view('inventory/purchases/ajax_data',$data,TRUE);
          echo $body;
-    
     } 
 
     public function viewOrder($purchase_id) {
         $data['new_purchase'] = $this->PurchasesModel->getPurchase(array('purchase_order_tbl.purchase_order_id' => $purchase_id));
         $data['purchase_id'] = $purchase_id;
-		$data['vendors'] = $this->VendorsModel->getVendorsList();
+        $data['vendors'] = $this->VendorsModel->getVendorsList();
         $data['list_locations'] = $this->LocationsModel->getLocationsList();
         $data['list_sub_locations'] = $this->LocationsModel->getSubLocationsList();
         $data['list_vendors'] = $this->VendorsModel->getVendorsList();
@@ -390,7 +409,7 @@ class Purchases extends MY_Controller{
         }
         
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
     public function viewReturn($return_id) {
         $data['purchase_return'] = $this->ReturnsModel->getReturn(array('purchase_return_tbl.return_id' => $return_id));
@@ -402,7 +421,7 @@ class Purchases extends MY_Controller{
         $page["page_name"] = 'Purchase Order Return';
         $page["page_content"] = $this->load->view("inventory/purchases/view_return", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
     public function viewReceiving($receiving_id) {
         $data['purchase_receiving'] = $this->ReceivingsModel->getReceiving(array('purchase_receiving_tbl.purchase_receiving_id' => $receiving_id));
@@ -416,7 +435,7 @@ class Purchases extends MY_Controller{
         $page["page_name"] = 'Purchase Order Receiving';
         $page["page_content"] = $this->load->view("inventory/purchases/view_receiving", $data, TRUE);
         $this->layout->inventoryTemplateTable($page);
-	}
+    }
 
     public function changeStatusSent() {
 
@@ -548,6 +567,43 @@ class Purchases extends MY_Controller{
       
         $result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
 
+        if($data["status"] == 1){
+            $company_id = $this->session->userdata['company_id'];
+            $purchase_order_id =   $data['purchase_order_id'];
+              
+             // get second message
+            $message  = "PO Status changed to Ready for Payment";
+            $data['msgtext'] =   $message[0];
+
+            // get first message    
+            $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);    
+            $data['msgtext_one'] = $purchase_order->notes;
+            $data['vendor_details'] = $this->VendorsModel->getOneVendor($purchase_order->vendor_id);
+            $data['link'] =  base_url('welcome/pdfPurchaseOrder/').base64_encode($purchase_order_id);
+            $data['link_acc'] =  base_url('welcome/PurchaseOrderAccept/').base64_encode($purchase_order_id);
+          
+            $where = array('purchase_order_id' =>$purchase_order_id);    
+            $param = array('purchase_sent_status' =>1,'updated_at' => date("Y-m-d H:i:s"),
+            'sent_date' => date("Y-m-d H:i:s"));   
+            $this->PurchasesModel->updatePurchaseOrder($where,$param);
+
+            $where_company = array('company_id' =>$company_id);
+          
+            $data['setting_details'] = $this->CompanyModel->getOneCompany($where_company);
+            $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo != '') ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
+          
+            $body = $this->load->view('inventory/purchases/purchase_order_email',$data,true);
+            
+            $where_company['is_smtp'] = 1;
+            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where_company);
+                        
+            if (!$company_email_details) {
+                $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+            } 
+
+            $res = Send_Mail_dynamic($company_email_details, $data['vendor_details']->vendor_email_address,array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
+        }
+
         if ($result) {
             echo "true";
         } else {
@@ -566,8 +622,8 @@ class Purchases extends MY_Controller{
         $message  = $this->input->post('message');
         $data['msgtext'] =   $message[0];
 
-        // get first message	
-        $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);	
+        // get first message    
+        $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);    
         $data['msgtext_one'] = $purchase_order->notes;
         $data['vendor_details'] = $this->VendorsModel->getOneVendor($purchase_order->vendor_id);
         $data['link'] =  base_url('welcome/pdfPurchaseOrder/').base64_encode($purchase_order_id);
@@ -614,8 +670,8 @@ class Purchases extends MY_Controller{
                 $param = array('purchase_sent_status' =>1,'updated_at' => date("Y-m-d H:i:s"));   
                 $this->PurchasesModel->updatePurchaseOrder($where,$param);
 
-                // get first message	
-                $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);	
+                // get first message    
+                $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);    
                 print_r($purchase_order);
                 
                 $data['msgtext_one'] = $purchase_order->notes;
@@ -653,10 +709,11 @@ class Purchases extends MY_Controller{
 
         $where = array(
             "purchase_order_tbl.company_id" => $this->session->userdata['company_id'],
-            'purchase_order_tbl.purchase_order_id' =>$purchase_order_id 
+            'purchase_order_tbl.purchase_order_id' => $purchase_order_id 
         );    
 
         $data['purchase_order'] = $this->PurchasesModel->getOnePurchase($where);
+        $data['purchase_order_invoices'] = $this->PurchasesModel->getPOInvoice(array("purchase_order_id" => $purchase_order_id ));
 
         $settings = new stdClass();
         $settings->currency_symbol = '$';
@@ -1052,6 +1109,7 @@ class Purchases extends MY_Controller{
                 'invoice_total_amt' => $data['invoice_total_amt'],
                 'freight' => $data['freight'],
                 'discount' => $data['discount'],
+                'pay_by_date' => $data['pay_by_date'],
                 'tax' => $data['tax'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->session->userdata['id'],
@@ -1076,6 +1134,7 @@ class Purchases extends MY_Controller{
                 'invoice_total_amt' => $data['invoice_total_amt'],
                 'freight' => $data['freight'],
                 'discount' => $data['discount'],
+                'pay_by_date' => $data['pay_by_date'],
                 'tax' => $data['tax'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->session->userdata['id'],
@@ -1129,6 +1188,7 @@ class Purchases extends MY_Controller{
                 'invoice_total_amt' => $data['invoice_total_amt'],
                 'freight' => $data['freight'],
                 'discount' => $data['discount'],
+                'pay_by_date' => $data['pay_by_date'],
                 'tax' => $data['tax'],
                 'created_at' => date('Y-m-d H:i:s'),
                 'created_by' => $this->session->userdata['id'],
@@ -1136,13 +1196,13 @@ class Purchases extends MY_Controller{
             
             $result = $this->PurchasesModel->insert_purchase_invoice($invoiced);
         }
-		
-		if ($result) {
+        
+        if ($result) {
             echo "true";
         } else {
             echo "false";
         }
-		
+        
     }
 
     public function deletePOInvoice($purchase_order_inv){
@@ -1330,7 +1390,7 @@ class Purchases extends MY_Controller{
        
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
         $data['joblist'] = $joblist;
-	    $page["active_sidebar"] = "materialResourcePlanningReportINV";
+        $page["active_sidebar"] = "materialResourcePlanningReportINV";
         $page["page_name"] = 'Material Resource Planning Report';
         $page["page_content"] = $this->load->view("inventory/report/view_material_resource_planning_report", $data, TRUE);
         $this->layout->superAdminReportTemplateTable($page);
@@ -2240,6 +2300,35 @@ class Purchases extends MY_Controller{
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
             redirect("inventory/Frontend/Purchases/MaterialResourcePlanningReport");
         }   
+    }
+
+    public function save_paid_po(){
+        $data = $this->input->post();
+        $file_name = "";
+
+        if (!empty($_FILES['paid_attachment']['name'])) {
+            $file_name_array  = explode(".", $_FILES['paid_attachment']['name']);
+            $fileext =  end($file_name_array);
+            $tmp_name   = $_FILES['paid_attachment']['tmp_name'];
+            $file_name  = $data['po_id'].'_'.date("ymdhis").'.'.$fileext ;
+            $key = '/uploads/po_attachments/'.$file_name;
+            $this->aws_sdk->saveObject($key, $tmp_name);
+        }
+
+        $where = array(
+          'purchase_order_tbl.purchase_order_id' => $data['po_id']
+        );
+      
+        $param = array(
+          'purchase_paid_status' => 2,
+          'paid_payment_method' => $data['paid_payment_method'],
+          'paid_notes' => $data['paid_notes'],
+          'paid_attachment' => $file_name,
+          'updated_at' => date("Y-m-d H:i:s")
+        );
+      
+        $result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
+        redirect("inventory/Frontend/Dashboard");
     }
 
 }

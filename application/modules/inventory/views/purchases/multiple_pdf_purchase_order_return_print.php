@@ -270,7 +270,7 @@
             </table>
             <table width="100%" class="table table-condensed">
                 <tr class="first_tr">
-                     <td><strong>PURCHASE ORDER NO: # <?=$value->purchase_order_number?></strong></td>
+                     <td><strong>PURCHASE ORDER NO: # <?=$value->return_id?></strong></td>
                     <td align="center"> Ordered by: <strong><?= $value->name ?></strong></td>
                     <td align="right"> <strong><?=Date("m/d/Y", strtotime($value->created_at))?></strong></td>
                 </tr>
@@ -356,8 +356,6 @@
                     <table width="100%" class="table table-condensed main_table" cellspacing="0">
                         <thead>
                             <tr class="first_tr" style="background-color:<?= $setting_details->invoice_color  ?>!important;color: #fff;">
-                               <td class="text-left" style="padding-left: 8px;"><strong>PN_ORDERED</strong></td>
-                               <td class="text-left" style="padding-left: 8px;"><strong>PN_RECEIVED</strong></td>
                                <td class="text-left" style="padding-left: 8px;"><strong>PN_RETURNED</strong></td>
                                 <td class="text-left"><strong>ITEM NUMBER</strong></td>
                                 <td class="text-left"><strong>ITEM NAME</strong></td>
@@ -375,8 +373,6 @@
                                     foreach ($items as $key => $v2) {
                             ?>
                             <tr>
-                                <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $v2['quantity'] ?></td>
-                                <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $v2['received_qty'] ?></td>
                                 <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $v2['return_qty'] ?></td>
                                 <td class="text-left"><?=$v2['item_number']?></td>
                                 <td class="text-left"><?=$v2['name']?></td>
@@ -483,7 +479,7 @@
 
                     <table width="100%" class="main_table">
                         <tr>
-                            <td class="text-center"><?= $setting_details->tearm_condition ?></td>
+                            <td class="text-center"><?=$value->payment_term?></td>
                         </tr>
                     </table>
                     <?php } ?>

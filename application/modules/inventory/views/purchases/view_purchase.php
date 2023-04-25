@@ -316,15 +316,75 @@
 									</div>
 								</div>
 
-								<!-- Separator -->
-								<div class="columns-separator"></div>
-
 								<!-- Right -->
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="estimated_delivery_date" class="d-block">Estimated Delivery Date</label>
-											<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" value="<?= $new_purchase[0]->estimated_delivery_date ?>"  />
+											<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" value="<?= $new_purchase[0]->estimated_delivery_date ?>" />
 										<div class="invalid-feedback"></div>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="created_date" class="d-block">Created Date</label>
+										<input type="date" id="created_date" name="created_date" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="ordered_date" class="d-block">Ordered Date</label>
+										<input type="date" id="ordered_date" name="ordered_date" class="form-control" value="<?= $new_purchase[0]->ordered_date ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="expected_date" class="d-block">Expected Date</label>
+										<input type="date" id="expected_date" name="expected_date" class="form-control" value="<?= $new_purchase[0]->expected_date ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="unit_measrement" class="d-block">Unit of Measure</label>
+										<input type="text" id="unit_measrement" name="unit_measrement" class="form-control" value="<?= $new_purchase[0]->unit_measrement ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_point" class="d-block">Shipping Point</label>
+										<input type="text" id="shipping_point" name="shipping_point" class="form-control" value="<?= $new_purchase[0]->shipping_point ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="destination" class="d-block">Destination</label>
+										<input type="text" id="destination" name="destination" class="form-control" value="<?= $new_purchase[0]->destination ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_method_1" class="d-block">Shipping Method</label>
+										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" value="<?= $new_purchase[0]->shipping_method_1 ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_origin" class="d-block">Place of Origin</label>
+										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" value="<?= $new_purchase[0]->place_of_origin ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_destination" class="d-block">Place of Destination</label>
+										<input type="text" id="place_of_destination" name="place_of_destination" class="form-control" value="<?= $new_purchase[0]->place_of_destination ?>"/>
 									</div>
 								</div>
 							</div>
@@ -448,6 +508,13 @@
 								</div>
 							</div>
 
+							<div>
+								<div class="form-group">
+									<label for="payment_terms" class="d-block">Payment Terms</label>
+									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"><?= $new_purchase[0]->payment_terms ?></textarea>
+								</div>
+							</div>
+
 							<hr class="mt-4" />
 
 							<div class="text-right mt-2 mb-2">
@@ -479,13 +546,17 @@
 					<div class="modal-body">
 						<div class="form-group">
 							<div class="row">
-								<div class="col-md-6 col-sm-4">
+								<div class="col-md-4 col-sm-4">
 									<label>Invoice #</label>
 									<input type="text" class="form-control" name="invoice_number" id="invoice_number" value = "" placeholder="Invoice #" >
 								</div>
-								<div class="col-md-6 col-sm-4">
+								<div class="col-md-4 col-sm-4">
 									<label>Total Amount of Invoice</label>
 									<input type="text" class="form-control" name="invoice_total_amt" id="invoice_total_amt" value = "" placeholder="Sub Total Amount of Invoice" >
+								</div>
+								<div class="col-md-4 col-sm-4">
+									<label>Pay By Date</label>
+									<input type="date" class="form-control" name="pay_by_date" id="pay_by_date" required >
 								</div>
 							</div>
 						</div>
@@ -574,6 +645,8 @@ function showDiv(divId, element){
 			let location = $('select[name=location]').val()
 			let sublocation = $('select[name=sub_location]').val()
 			let vendor = $('select[name=vendor]').val()
+
+			getVendorDetails();
 			
 			if(location != '' && location != null && sublocation != '' && sublocation != null && vendor != '' && vendor != null) {
 				selectedLocation = location
@@ -643,6 +716,12 @@ function showDiv(divId, element){
 
 		// When changing quantity of an item
 		$(document).on('input', '.itemqty', function() {
+			var qty = $(this).val();
+			updateTotals();
+		})
+
+		// When changing price of an item
+		$(document).on('input', '.itemPrice', function() {
 			var qty = $(this).val();
 			updateTotals();
 		})
@@ -719,6 +798,7 @@ function addInvoice() {
 		purchase_order_id : <?= $purchase_id ?>,
 		invoice_id: $('input[name=invoice_number]').val(),
 		invoice_total_amt: $('input[name=invoice_total_amt]').val(),
+		pay_by_date: $('input[name=pay_by_date]').val(),
 		freight: $('input[name=freight]').val(),
 		discount: $('input[name=discount]').val(),
 		tax: $('input[name=tax]').val()
@@ -884,7 +964,7 @@ function purchaseOrder(){
 					+ item.item_number
 					+ '</div>'
 					+ '</div>'
-				let td2 = unit_price
+				let td2 = `<input type="number" class="form-control form-control-sm itemPrice" name="itemPrice" step="any" min="0" value="`+unit_price+`" />`;
 				let td3 = quantity 
 				let td4 = received - returned
 				let td5= 0
@@ -893,7 +973,7 @@ function purchaseOrder(){
 
 				let elem = `<tr data-item-id="${item.item_id}">`
 					+ `<td>${td1}</td>`
-					+ `<td data-item-td="unit_price">$ ${td2}</td>`
+					+ `<td data-item-td="unit_price">${td2}</td>`
 					+ `<td data-item-td="quantity">${td3}</td>`
 					+ `<td data-item-td="received_qty" >${td4}</td>`
 					+ `<td data-item-td="received_amt">${td5}</td>`
@@ -961,7 +1041,8 @@ function updateTotals() {
 	Object.values(purchase.items).forEach((item, i) => {
 		let received_qty = $(`table#items tbody tr[data-item-id=${item.item_id}] td[data-item-td=received_qty]`).html();
 		let quantity = item.quantity;
-		let item_price = item.unit_price;
+		let item_price = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemPrice`).val();
+		console.log(item_price);
 
 		// If quantity is greater than originally purchased, rewrite user input
 		if(Number(received_qty) > Number(item.quantity)) {
@@ -970,6 +1051,7 @@ function updateTotals() {
 		}
 		// Update quantity in the original array
 		purchase.items[i]['received_qty'] = received_qty;
+		purchase.items[i]['unit_price'] = item_price;
 
 		let item_subtotal = received_qty * Number(item_price);
 		let item_total = Number(item_subtotal);
@@ -1091,6 +1173,16 @@ function updatePO() {
 	let data = {
 		purchase_order_id: purchase_order_id,
 		purchase_order_number: $('span[name=title]').html(),
+		created_date: $('input[name=created_date]').val(),
+		ordered_date: $('input[name=ordered_date]').val(),
+		expected_date: $('input[name=expected_date]').val(),
+		unit_measrement: $('input[name=unit_measrement]').val(),
+		shipping_point: $('input[name=shipping_point]').val(),
+		shipping_method_1: $('input[name=shipping_method_1]').val(),
+		payment_terms: $('textarea[name=payment_terms]').val(),
+		destination: $('input[name=destination]').val(),
+		place_of_origin: $('input[name=place_of_origin]').val(),
+		place_of_destination: $('input[name=place_of_destination]').val(),
 		location_id: $('select[name=location]').val(),
 		sub_location_id: $('select[name=sub_location]').val(),
 		freight: $('input[name=freight]').val(),
@@ -1113,6 +1205,7 @@ function updatePO() {
 			received_qty: item.received_qty,
 			return_qty: item.return_qty,
 			unit_price: item.unit_price,
+			unit_type: item.unit_type,
 			quantity: item.quantity
 		})
 	})
@@ -1183,6 +1276,23 @@ function deletePOInvoice() {
 		   });
 	   }
    })
+}
+
+function getVendorDetails(){
+	var vendor = $('select[name=vendor]').val()
+	var url = '<?= base_url('inventory/Backend/Vendors/Details') ?>';
+	var request_method = "GET";
+	
+	$.ajax({
+		type: request_method,
+		url: url,
+		data: {vendor: vendor},
+		dataType:'JSON', 
+		success: function(response){
+			console.log(response);
+			$("#payment_terms").val(response.terms);
+		}
+	});
 }
 
 </script>

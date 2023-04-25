@@ -293,16 +293,74 @@
 										<input type="text" id="purchase_order_number" name="purchase_order_number" class="form-control" value="<?= ($last_purchase_order_id != '' ? $last_purchase_order_id : 001) ?>" />
 									</div>
 								</div>
-
-								<!-- Separator -->
-								<div class="columns-separator"></div>
-
-								<!-- Right -->
 								
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="estimated_delivery_date" class="d-block">Estimated Delivery Date</label>
 										<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="created_date" class="d-block">Created Date</label>
+										<input type="date" id="created_date" name="created_date" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="ordered_date" class="d-block">Ordered Date</label>
+										<input type="date" id="ordered_date" name="ordered_date" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="expected_date" class="d-block">Expected Date</label>
+										<input type="date" id="expected_date" name="expected_date" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="unit_measrement" class="d-block">Unit of Measure</label>
+										<input type="text" id="unit_measrement" name="unit_measrement" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_point" class="d-block">Shipping Point</label>
+										<input type="text" id="shipping_point" name="shipping_point" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="destination" class="d-block">Destination</label>
+										<input type="text" id="destination" name="destination" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_method_1" class="d-block">Shipping Method</label>
+										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_origin" class="d-block">Place of Origin</label>
+										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_destination" class="d-block">Place of Destination</label>
+										<input type="text" id="place_of_destination" name="place_of_destination" class="form-control" />
 									</div>
 								</div>
 							</div>
@@ -448,6 +506,13 @@
 								</div>
 							</div>
 
+							<div>
+								<div class="form-group">
+									<label for="new_purchase_order_notes" class="d-block">Payment Terms</label>
+									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"></textarea>
+								</div>
+							</div>
+
 							<hr class="mt-4" />
 
 							<div class="row">
@@ -492,6 +557,7 @@
 			// Once a location and vendor are selected, enable items section
 			$('select[name=location], select[name=sub_location], select[name=vendor]').on('change', e => {
                 subLocation();
+                getVendorDetails();
 				let location = $('select[name=location]').val()
 				let sublocation = $('select[name=sub_location]').val()
 				let vendor = $('select[name=vendor]').val()
@@ -628,6 +694,24 @@
 		});
 	}
 
+	function getVendorDetails(){
+		var vendor = $('select[name=vendor]').val()
+		var url = '<?= base_url('inventory/Backend/Vendors/Details') ?>';
+		var request_method = "GET";
+		
+		$.ajax({
+			type: request_method,
+			url: url,
+			data: {vendor: vendor},
+			dataType:'JSON', 
+			success: function(response){
+				console.log(response);
+				$("#payment_terms").val(response.terms);
+				$("#discount").val(response.po_discount);
+			}
+		});
+	}
+
 	function addItem(itemId) {
 		// Item added already? Let the user know
 		if($(`table#items tr[data-item-id="${itemId}"]`).length) {
@@ -760,6 +844,15 @@
 			purchase_order_number: $('input[name=purchase_order_number]').val(),
 			estimated_delivery_date: $('input[name=estimated_delivery_date]').val(),
 			vendor_id: $('select[name=vendor]').val(),
+			created_date: $('input[name=created_date]').val(),
+			ordered_date: $('input[name=ordered_date]').val(),
+			expected_date: $('input[name=expected_date]').val(),
+			unit_measrement: $('input[name=unit_measrement]').val(),
+			shipping_point: $('input[name=shipping_point]').val(),
+			shipping_method_1: $('input[name=shipping_method_1]').val(),			
+			destination: $('input[name=destination]').val(),
+			place_of_origin: $('input[name=place_of_origin]').val(),
+			place_of_destination: $('input[name=place_of_destination]').val(),
 			location_id: $('select[name=location]').val(),
 			sub_location_id: $('select[name=sub_location]').val(),
 			freight: $('input[name=freight]').val(),
@@ -767,6 +860,7 @@
 			discount_type: 'amount',
 			tax: $('input[name=tax]').val(),
 			notes: $('textarea[name=new_purchase_order_notes]').val(),
+			payment_terms: $('textarea[name=payment_terms]').val(),
 			items: [],
 			purchase_sent_status: $('input[name=purchase_sent_status]').val()
 		}
@@ -778,6 +872,7 @@
 				name: item.item_name,
 				received_qty: 0,
 				unit_price: item.price_per_unit,
+				unit_type: item.unit_type,
 				quantity: item.qty
 			})
 		})

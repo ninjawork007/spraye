@@ -133,7 +133,7 @@
                 <table  id= "estimatetable"class="table datatable-filter-custom">
                     <thead>
                     <tr>
-                        <th><input type="checkbox" id="select_all"    /></th>
+                        <th><input type="checkbox" id="select_all" /></th>
                         <th>Estimate #</th>
                         <th>Customer Name</th>
                         <th>Property</th>

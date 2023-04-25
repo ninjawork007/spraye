@@ -19,6 +19,7 @@
 class Invoice_model extends CI_Model{   
 
     const INVTBL="invoice_tbl";
+    const SRATBL="payment_invoice_logs";
 
     public function getinvoicedata($where_arr = '') {
 
@@ -685,6 +686,98 @@ class Invoice_model extends CI_Model{
 		
 		//print_r($this->db->last_query());
         return $data;
+    }
+
+    public function getUnpaidInvoices($customer_id=0){
+        $this->db->select('invoice_id as unpaid_invoice, cost, partial_payment as paid_already');
+
+        $this->db->from('invoice_tbl');
+
+        $this->db->where(array('customer_id' => $customer_id, 'status !=' => 0, 'payment_status !=' => 2, 'is_archived' => 0));
+
+        $data = $this->db->get();
+        
+        $result = $data->result();        
+
+        if(!empty($result)){            
+            
+            foreach($result as $res){
+
+                $this->db->select('coupon_amount_calculation, coupon_amount');
+                $this->db->from('coupon_invoice');
+                $this->db->where('invoice_id', $res->unpaid_invoice);
+                $coup_data = $this->db->get();
+                $coupons = $coup_data->result();
+
+                $this->db->select('tax_value');
+                $this->db->from('invoice_sales_tax');
+                $this->db->where('invoice_id', $res->unpaid_invoice);
+                $tax_data = $this->db->get();
+                $taxes = $tax_data->result();
+
+                $tax_value = 0;
+
+                $res->unpaid_amount = $res->cost;
+
+                if(!empty($coupons)){
+                    foreach($coupons as $coupon){
+                        if($coupon->coupon_amount){
+                            if($coupon->coupon_amount_calculation){
+                                $coupon_value = $res->unpaid_amount * ($coupon->coupon_amount * .01);
+                                $res->unpaid_amount -= $coupon_value;
+                            } else {
+                                $coupon_value = $coupon->coupon_amount;
+                                $res->unpaid_amount -= $coupon_value;
+                            }
+                        }
+                    }
+
+                     
+                }
+
+                if(!empty($taxes)){
+                    foreach($taxes as $tax){
+                        $tax_value += $res->unpaid_amount * ($tax->tax_value * .01);
+                    }
+
+                    $res->unpaid_amount += $tax_value;
+                }
+
+                $res->unpaid_amount = number_format($res->unpaid_amount, 2, '.', '');
+            }
+        }
+        return $result;
+    }
+
+    public function getOneInvoice($invoice_id) {
+         $this->db->select('*');  
+         $this->db->from('invoice_tbl');
+         $this->db->where('invoice_id',$invoice_id);
+         $result = $this->db->get();
+         $data = $result->row(); 
+         return $data;
+    }
+
+    public function createOnePartialPayment($post) {
+        $query = $this->db->insert(self::SRATBL, $post);
+        return $this->db->insert_id();
+    }
+
+    public function addCreditPayment($customer_id=0, $credit_amount=0, $payment_type="check"){
+        
+        if($customer_id){   
+         $row = $this->db->select('credit_amount')->from('customers')->where(['customer_id' => $customer_id])->get()->row();
+         $new_credit_amount = $row->credit_amount + $credit_amount;
+         
+         $result = $this->db->update('customers',['credit_amount' => $new_credit_amount, 'payment_type' => $payment_type],['customer_id' => $customer_id]);
+        }
+        return !empty($result) ? $result : false;
+    }
+
+    public function updateInvovice($wherearr, $updatearr) {
+        $this->db->where($wherearr);
+        $this->db->update(self::INVTBL, $updatearr);
+        return $this->db->affected_rows();
     }
 }
 

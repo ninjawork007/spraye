@@ -28,7 +28,7 @@ return true;
 }
 
 
-function Send_Mail_dynamic($smtparray=array(),$to,$company_data,$body,$subject,$secondary_email='',$file=[])
+function Send_Mail_dynamic($smtparray=array(), $to,$company_data,$body,$subject,$secondary_email='',$file=[])
 {
 	if(GLOBAL_EMAIL_ON != 'true'){
 		return array('status'=>false,'message'=>'GLOBAL MAIL SETTINGS TURNED OFF');
@@ -244,16 +244,16 @@ function Send_Mail_dynamic($smtparray=array(),$to,$company_data,$body,$subject,$
 		
 		
 		 if (@$res) {
-			// $errorLog = fopen($_SERVER['DOCUMENT_ROOT'].'/logemail_'.date("m-d-Y").'.csv', 'a')  ;
-			//	fwrite($errorLog,$from_email.",".$reply_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$res.",Passed\n");
+			//$errorLog = fopen('logemail_'.date("m-d-Y").'.csv', 'a')  ;
+			//fwrite($errorLog,$from_email.",".$reply_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$res.",Passed\n");
 			//fclose($errorLog);
 
 			 return	array('status'=>true,'message'=>'Email send succefully');
 
 		 } else {
 
-			  //$errorLog = fopen($_SERVER['DOCUMENT_ROOT'].'/logemail_'.date("m-d-Y").'.csv', 'a')  ;
-			//	fwrite($errorLog,$from_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$mail->ErrorInfo."\n");
+			  //$errorLog = fopen('logemail_'.date("m-d-Y").'.csv', 'a')  ;
+			//fwrite($errorLog,$from_email.",". $to .",". $subject .",". @$request.",".  date("m-d-Y H:i:s").",".$mail->ErrorInfo."\n");
 
 			//fclose($errorLog);
 			// die(print_r($mail));

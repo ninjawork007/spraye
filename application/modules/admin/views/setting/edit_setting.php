@@ -1813,7 +1813,9 @@ line-height: normal;
 
 
     <!-- ///////////////////////////////////////// sales tax area //////////////////////////////// -->
+
     <div class="row sales_container form2"  >
+
         <div class="col-md-12">
             <fieldset class="content-group">
                 <legend class="text-bold">Sales Tax Areas</legend>
@@ -4234,7 +4236,9 @@ tags_input.onpaste = e => e.preventDefault();
 			color: '#36c9c9',
 			secondaryColor: "#dfdfdf",
 		});
+
    /* $('input[name=is_sales_tax]').click(function() {
+
         if ($(this).prop("checked") == true) {
             $('.sales_container').css('display', 'block')
         } else if ($(this).prop("checked") == false) {

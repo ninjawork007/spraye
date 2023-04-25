@@ -1075,3 +1075,227 @@ function  filterPayment(status) {
       });
 
 </script>
+
+
+
+<!-- start add credit modal -->
+<div id="modal_batch_payment" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h6 class="modal-title">Add Batch Payments</h6>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="<?= base_url('inventory/Backend/Customers/AddBatchCredit') ?>">
+
+         <div class="row">
+            <div class="col-lg-3">Customer</div>
+            <div class="col-lg-3">Amount</div>
+            <div class="col-lg-2">Payment Type</div>
+            <div class="col-lg-2">Check Number</div>
+            <div class="col-lg-2"></div>
+         </div>
+
+         <div class="row" id="BatchRow1">
+            <div class="col-lg-3" id="autocomplete-container-1">
+               <input class="form-control CusInxBox" id="SearchCustomerBox-1" required spellcheck="true" name="customer_name[]">
+               <ul class="dropdown-menu" id="itemSuggestions-1"></ul>
+            </div>
+            <div class="col-lg-3">
+               <input class="form-control CusInxBoxAmount" required onchange="getAll()" onblur="getAll()" type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]">
+            </div>
+            <div class="col-lg-2">
+               <select class="form-control" name="payment_type[]">
+                  <option selected value="check">Check</option>
+                  <option value="cash">Cash</option>
+                  <option value="other">Other</option>
+               </select>
+            </div>
+            <div class="col-lg-2">
+               <input class="form-control" type="text" spellcheck="true" name="BatchReason[]">
+            </div>
+            <div class="col-lg-2">
+               <button class="btn btn-danger mt-5 mb-5" onclick="RemoveBatchRow('BatchRow1')" type="button"> - Remove</button>
+            </div>
+         </div>
+         <div id="LoadBathchRowNew"></div>
+
+         <button onclick="AddMoreRowBatch()" class="btn btn-primary mt-5 mb-5" type="button"><i class="icon-plus22"></i> Add More</button>
+
+         <h5>Total</h5>
+         <div class="row">
+            <div class="col-lg-3" id="ShowTotalNoCustomers">0</div>
+            <div class="col-lg-3" id="ShowTotalNoAmount">0.0</div>
+            <div class="col-lg-3"></div>
+            <div class="col-lg-3"></div>
+         </div>
+
+          <div class="col">
+            <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!--end add credit modal -->
+
+
+
+<div id="modal_add_csv" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h6 class="modal-title">Batch Payment</h6>
+      </div>
+      <form name="csvfileimport" action="<?= base_url('inventory/Backend/Customers/AddBatchCsv') ?>" method="post"
+        enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="form-group">
+            <div class="row">
+              <div class="col-sm-12">
+                <label>Select csv file</label>
+                <input type="file" name="csv_file">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            <button type="submit" id="assignjob" class="btn btn-success">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script>
+   var counter = 1;
+   function AddMoreRowBatch(){
+      counter++;
+      var HTML = "";
+      HTML +='<div class="row" id="BatchRow'+counter+'">';
+      HTML +='<div class="col-lg-3" id="autocomplete-container-'+counter+'">';
+      HTML +='<ul class="dropdown-menu" id="itemSuggestions-'+counter+'"></ul>';
+      HTML +='<input class="form-control CusInxBox" id="SearchCustomerBox-'+counter+'" required spellcheck="true" name="customer_name[]">';
+      HTML +='</div>';
+      HTML +='<div class="col-lg-3">';
+      HTML +='<input class="form-control CusInxBoxAmount" onchange="getAll()" onblur="getAll()" required type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]">';
+      HTML +='</div>';
+      HTML +='<div class="col-lg-2">';
+      HTML +='<select class="form-control" name="payment_type[]">';
+      HTML +='<option selected value="check">Check</option>';
+      HTML +='<option value="cash">Cash</option>';
+      HTML +='<option value="other">Other</option>';
+      HTML +='</select>';
+      HTML +='</div>';
+      HTML +='<div class="col-lg-2">';
+      HTML +='<input class="form-control" type="text" spellcheck="true" name="BatchReason[]">';
+      HTML +='</div>';
+      HTML +='<div class="col-lg-2">';
+      HTML +='<button class="btn btn-danger mt-5 mb-5" onclick=RemoveBatchRow("BatchRow'+counter+'") type="button"> - Remove</button>';
+      HTML +='</div>';
+      HTML +='</div>';
+
+      $("#LoadBathchRowNew").append(HTML);
+
+      $('#SearchCustomerBox-'+counter).on('focus', e => {
+         $('#autocomplete-container-'+counter).addClass('open')
+      })
+
+      $('#SearchCustomerBox-'+counter).on('blur', e => {
+         // Timeout so that the item clicked listener can fire
+         setTimeout(() => {
+            $('#autocomplete-container-'+counter).removeClass('open')
+         }, 200)
+      })
+
+      // Listen for changes on the autocomplete input
+      $('#SearchCustomerBox-'+counter).on('input', e => {
+         autocomplete(e.target.value, counter);
+         getAll();
+      })
+
+      $('ul#itemSuggestions-'+counter).on('click', 'li', e => {
+         let id = $(e.currentTarget).data('item-id')
+         $('#SearchCustomerBox-'+counter).val(id);
+         getAll();
+      })
+   }
+
+   function RemoveBatchRow(id){
+      $("#"+id).remove();
+      getAll();
+   }
+
+
+   // When focusing on the autocomplete, show list
+   $('#SearchCustomerBox-1').on('focus', e => {
+      $('#autocomplete-container-1').addClass('open')
+   })
+
+   $('#SearchCustomerBox-1').on('blur', e => {
+      // Timeout so that the item clicked listener can fire
+      setTimeout(() => {
+         $('#autocomplete-container-1').removeClass('open')
+      }, 200)
+   })
+
+   // Listen for changes on the autocomplete input
+   $('#SearchCustomerBox-1').on('input', e => {
+      autocomplete(e.target.value, 1);
+      getAll();
+   })
+
+   $('ul#itemSuggestions-1').on('click', 'li', e => {
+      let id = $(e.currentTarget).data('item-id')
+      $('#SearchCustomerBox-1').val(id);
+      getAll();
+   })
+
+   function autocomplete(search, counter) {
+      var url = '<?= base_url('inventory/Backend/Customers/Search') ?>';
+      var request_method = "GET";
+      $.ajax({
+         type: request_method,
+         url: url,
+         data: {search: search},
+         dataType:'JSON', 
+         success: function(response){
+            $('ul#itemSuggestions-'+counter).empty()
+            response.result.forEach(item => {
+            let elem = `<li data-item-id="${item.customer_id}">`
+               + `<span class="item-name">${item.first_name} ${item.last_name} - ${item.customer_id}</span>`
+               + '</li>'
+
+            $('ul#itemSuggestions-'+counter).append(elem)
+            })
+         }
+      });
+   }
+
+   function getAll(){
+      var totalCustomers = 0;
+      var totalAmount = 0;
+      $(".CusInxBox").each(function () {
+         if($(this).val() != ""){
+            totalCustomers += 1;
+         }
+      });
+
+      $(".CusInxBoxAmount").each(function () {
+         if($(this).val() != ""){
+            totalAmount += parseFloat($(this).val());
+         }
+      });
+
+      $("#ShowTotalNoCustomers").html(totalCustomers);
+      $("#ShowTotalNoAmount").html(totalAmount);
+   }
+
+</script>
