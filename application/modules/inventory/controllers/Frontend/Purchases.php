@@ -2328,6 +2328,7 @@ class Purchases extends MY_Controller{
         );
       
         $result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
+        redirect("inventory/Frontend/Dashboard");
     }
 
 }

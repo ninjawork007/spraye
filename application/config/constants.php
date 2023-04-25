@@ -133,5 +133,5 @@ if(isset($_SERVER['CI_ENV']) && $_SERVER['CI_ENV'] == 'production') {
   define('S3_BUCKET_NAME','spraye-staging');
   define('CLOUDFRONT_URL','https://assets-dashboard-staging.spraye.io/');
   define('SIGNWELL_TEST_MODE','true');
-  define('GLOBAL_EMAIL_ON','false');	
+  define('GLOBAL_EMAIL_ON','true');	
 }

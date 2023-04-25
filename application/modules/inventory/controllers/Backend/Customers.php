@@ -217,6 +217,14 @@ class Customers extends MY_Controller {
 			$CreditAmount = $data["BatchAmount"][$RowIndex];
 			$PaymentType = $data["payment_type"][$RowIndex];
 
+			$PaymentMethodNumber = 1;
+			if($PaymentType == "cash"){
+				$PaymentMethodNumber = 0;
+			}
+			if($PaymentType == "other"){
+				$PaymentMethodNumber = 3;
+			}
+
 
 			$items = $this->customer->getOneCustomerDetail($customer_id);
 			if($items == ""){
@@ -240,6 +248,8 @@ class Customers extends MY_Controller {
 			$invoice_data['status'] = 0;
 			$invoice_data['is_credit'] = 1;
 			$invoice_data['is_archived'] = 1;
+			$invoice_data['check_number'] = $data["BatchReason"][$RowIndex];
+			$invoice_data['payment_method'] = $PaymentMethodNumber;
 			$invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
 			$invoice_data['is_created'] =  1;
 			$invoice_data['notes'] = $invoice_data['description'] = "Adding {$CreditAmount} Credit to customer's account";
@@ -262,7 +272,7 @@ class Customers extends MY_Controller {
 							'payment_applied' => $invoice_amount,
 							'payment_datetime' => date("Y-m-d H:i:s"),
 							'payment_method' => 5,
-							'check_number' => null,
+							'check_number' => $data["BatchReason"][$RowIndex],
 							'cc_number' => null,
 							'payment_note' => "Payment made from credit amount {$CreditAmount}",
 							'customer_id' => $customer_id,
@@ -285,7 +295,7 @@ class Customers extends MY_Controller {
 							'payment_applied' => $credit_amount,
 							'payment_datetime' => date("Y-m-d H:i:s"),
 							'payment_method' => 5,
-							'check_number' => null,
+							'check_number' => $data["BatchReason"][$RowIndex],
 							'cc_number' => null,
 							'payment_note' => "Payment made from credit amount {$CreditAmount}",
 							'customer_id' => $customer_id,
@@ -303,7 +313,7 @@ class Customers extends MY_Controller {
 	                    'payment_applied' => $CreditAmount,
 	                    'payment_datetime' => date("Y-m-d H:i:s"),
 	                    'payment_method' => 1,
-	                    'check_number' => null,
+	                    'check_number' => $data["BatchReason"][$RowIndex],
 	                    'cc_number' => null,
 	                    'payment_note' => "Adding Credit to customer's account",
 	                    'customer_id' => $customer_id,
@@ -317,7 +327,7 @@ class Customers extends MY_Controller {
 					'payment_applied' => $CreditAmount,
 					'payment_datetime' => date("Y-m-d H:i:s"),
 					'payment_method' => 1,
-					'check_number' => null,
+					'check_number' => $data["BatchReason"][$RowIndex],
 					'cc_number' => null,
 					'payment_note' => "Adding Credit to customer's account",
 					'customer_id' => $customer_id,
@@ -332,9 +342,11 @@ class Customers extends MY_Controller {
 
 	public function Search(){
 		$search = $this->input->get('search', TRUE) ?? '';
-		$items = $this->customer->getCustomerList(array("customer_id like " => "%".$search."%"));
-		$return_array =  array( 'result' => $items);
-		echo json_encode($return_array);
+		if($search != ""){
+			$items = $this->customer->searchCustomerWithNumberName($search);
+			$return_array =  array( 'result' => $items);
+			echo json_encode($return_array);
+		}
 	}
 
 	/**

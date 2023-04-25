@@ -7326,6 +7326,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
         $param = array(
             'partial_payment' => ($data['payment_amount'] - $data['partial_payments']),
+            'payment_status' => 0,
         );
 
         $invoice_details = $this->INV->updateInvoive($where, $param);
@@ -7535,6 +7536,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             // $refunded_amount = ($data['payment_amount'] - $data['partial_payments'] );
 
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['user_id'],
+                'action' => "Refund Given Amount ".$data['partial_payment']
+            ));
+
             $param = array(
                 'payment_invoice_logs_id' => $payment_log_id,
                 'invoice_id' => $invoice_id,
@@ -7620,6 +7627,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             );
 
             $invoice_details = $this->INV->updateInvoive($where, $param);
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['user_id'],
+                'action' => "Refund Given Amount ".$data['partial_payment']
+            ));
 
             ##### CREATE A NEW REFUND PAYMENT LOG #####
             $param = array(

@@ -1092,8 +1092,9 @@ function  filterPayment(status) {
          <div class="row">
             <div class="col-lg-3">Customer</div>
             <div class="col-lg-3">Amount</div>
-            <div class="col-lg-3">Payment Type</div>
-            <div class="col-lg-3"></div>
+            <div class="col-lg-2">Payment Type</div>
+            <div class="col-lg-2">Check Number</div>
+            <div class="col-lg-2"></div>
          </div>
 
          <div class="row" id="BatchRow1">
@@ -1104,14 +1105,17 @@ function  filterPayment(status) {
             <div class="col-lg-3">
                <input class="form-control CusInxBoxAmount" required onchange="getAll()" onblur="getAll()" type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]">
             </div>
-            <div class="col-lg-3">
+            <div class="col-lg-2">
                <select class="form-control" name="payment_type[]">
                   <option selected value="check">Check</option>
                   <option value="cash">Cash</option>
                   <option value="other">Other</option>
                </select>
             </div>
-            <div class="col-lg-3">
+            <div class="col-lg-2">
+               <input class="form-control" type="text" spellcheck="true" name="BatchReason[]">
+            </div>
+            <div class="col-lg-2">
                <button class="btn btn-danger mt-5 mb-5" onclick="RemoveBatchRow('BatchRow1')" type="button"> - Remove</button>
             </div>
          </div>
@@ -1183,14 +1187,17 @@ function  filterPayment(status) {
       HTML +='<div class="col-lg-3">';
       HTML +='<input class="form-control CusInxBoxAmount" onchange="getAll()" onblur="getAll()" required type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]">';
       HTML +='</div>';
-      HTML +='<div class="col-lg-3">';
+      HTML +='<div class="col-lg-2">';
       HTML +='<select class="form-control" name="payment_type[]">';
       HTML +='<option selected value="check">Check</option>';
       HTML +='<option value="cash">Cash</option>';
       HTML +='<option value="other">Other</option>';
       HTML +='</select>';
       HTML +='</div>';
-      HTML +='<div class="col-lg-3">';
+      HTML +='<div class="col-lg-2">';
+      HTML +='<input class="form-control" type="text" spellcheck="true" name="BatchReason[]">';
+      HTML +='</div>';
+      HTML +='<div class="col-lg-2">';
       HTML +='<button class="btn btn-danger mt-5 mb-5" onclick=RemoveBatchRow("BatchRow'+counter+'") type="button"> - Remove</button>';
       HTML +='</div>';
       HTML +='</div>';

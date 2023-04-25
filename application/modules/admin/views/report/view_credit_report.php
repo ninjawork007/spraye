@@ -67,7 +67,7 @@
 
 					foreach($Part as $PP){
 						$PartData = $this->db->select('*')->from("users")->where(array("id" => $PP))->get()->row();
-						$ResponsibleParty .= $PartData->user_first_name." ".$PartData->user_last_name.", ";
+						$ResponsibleParty .= @$PartData->user_first_name." ".@$PartData->user_last_name.", ";
 					}
 				?>
 				<tr>
