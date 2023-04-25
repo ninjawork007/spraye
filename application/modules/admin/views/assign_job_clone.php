@@ -1,5 +1,6 @@
 
 <style>
+
    .togglebutton{
       font-size:13px;
    }
@@ -301,6 +302,31 @@
 
                       </div>
 
+                      <!-- Available days filter -->
+                      <div class="col-md-3">
+                          <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
+                              <label for="programs_service_ids_filter">Available Days
+                                  <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing the days below, Spraye will show only properties that are available on all of the chosen days."><i class=" icon-info22 tooltip-icon"></i></span>
+                              </label>
+                              <select class="multiselect-select-all-filtering form-control" name="available_days_filter[]" id="available_days_filter" multiple="multiple">
+                                  <?php foreach ($available_days_list as $key => $value): ?>
+                                      <option value="<?= $value ?>" > <?= $key ?> </option>
+                                  <?php endforeach ?>
+                              </select>
+                          </div>
+                      </div>
+                      <!-- \Available days filter -->
+
+
+                      <div class="col-md-3">
+
+                          <div class="col-md-12" id="update_filter" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
+                              <label for="update_filter">Update Filters</label>
+                              <button id="update_filter_btn" class="btn btn-success" style="display:block; width: 200px">Update</button>
+                          </div>
+
+                      </div>
+
 
                   </div>
 
@@ -319,6 +345,8 @@
                                  <th>Square Feet</th>
                                  <th>Last Service Date</th>
                                  <th>Last Program Service Date</th>
+                                 <th>Last Service Type Date</th>
+                                 <th>Service Added Date</th>
                                  <th>Service Due</th>
                                  <th>Address</th>
                                  <th>Property Type</th>
@@ -327,6 +355,7 @@
                                  <th>Program</th>
                                  <th>Rescheduled Reason</th>
 								 <th>Tags</th>
+                                 <th>Available Days</th>
                                  <th>Action</th>
                               </tr>
                            </thead>
@@ -341,7 +370,9 @@
                                  <td></td>
                                  <td></td>
                                  <td></td>
-                                 <td id="service_due_filter">SERVICE DUE</td>
+                                 <td></td>
+                                 <td></td>
+                                 <td id="service_due_filter" style="width:300px;">SERVICE DUE</td>
                                  <td></td>
                                  <td id="property_type_filter">PROPERTY TYPE</td>
 								 <td></td>
@@ -349,6 +380,7 @@
                                  <td></td>
                                  <td></td>
 								 <td id="tag_filter">TAG</td>
+                                 <td></td>
                                  <td></td>
                               </tr>
                            </tfoot>
@@ -448,6 +480,8 @@
 </div>
 <!-- /primary modal -->
 <!--begin edit assign job  -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 
 <script>
    let serviceList = <?= json_encode($service_list) ?>;
@@ -510,6 +544,34 @@
          $('#allMessage').prop('disabled', false);
          $('#multiple-delete-id,#multiple-restore-id').prop('disabled', false);
       }
+       var sqftTotal = 0;
+       $('#unassigntbl tbody input:checked').each(function() {
+           sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+       });
+       $('#totalSqFt').val(sqftTotal);
+
+       let applicationSqft = 0;
+       let tmpAddressArray = [];
+       $('#unassigntbl tbody input:checked').each(function() {
+           let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+           if(!tmpAddressArray.includes(currentAddress)) {
+               tmpAddressArray.push(currentAddress);
+               applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+           }
+           console.log(applicationSqft);
+           console.log(tmpAddressArray);
+       });
+       $('#applicationSqFt').val(applicationSqft);
+
+       //uncheck "select all", if one of the listed checkbox item is unchecked
+       if(this.checked == false){ //if this item is unchecked
+           $("#select_all")[0].checked = false; //change "select all" checked status to false
+       }
+
+       //check "select all" if all checkbox items are checked
+       if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
+           $("#select_all")[0].checked = true; //change "select all" checked status to true
+       }
    });
 
 </script>
@@ -666,9 +728,12 @@ $(document).ready(function() {
        if (title=='PRIORITY' || title=='SERVICE NAME' || title=='PROPERTY TYPE' ) {
          $(this).html( '<input type="text" class="form-control dtatableInput" placeholder="'+title+'" />' );
        } else if(title=='SERVICE DUE' ){ //Adding select option for service due filter
-         $(this).html( '<select class="form-control dtatableInput" placeholder="'+title+'" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>' );
+           let html =
+               "<select name=\"services_statuses_filter[]\" id=\"service_statuses_filter_filter\" multiple style=\"width: 100%;\" class='form-control'><option value=\"0\" class=\"default-option\" style=\"width: 100%;\">-- DUE</option><option value=\"1\">Due</option><option value=\"2\">Overdue</option><option value=\"3\">Not Due</option></select>";
+           $(this).html(html);
+         // $(this).html( '<select class="multiselect-select-all-filtering form-control dtatableInput" name="statuses_multi_filter[]" multiple="multiple" placeholder="'+title+'" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>' );
        } else if(title=='NOTIFY CUSTOMER' ){ //Adding select option for service due filter
-           $(this).html( '<select class="form-control dtatableInput" placeholder="'+title+'" ><option value="0" class="default-option">-- NOTIFY</option><option value="1">CALL AHEAD</option><option value="2">TEXT ETA</option><option value="3">PRE-NOTIFIED</option></select>' );
+           $(this).html( '<select class="form-control dtatableInput" id="teste" placeholder="'+title+'" ><option value="0" class="default-option">-- NOTIFY</option><option value="1">CALL AHEAD</option><option value="2">TEXT ETA</option><option value="3">PRE-NOTIFIED</option></select>' );
        } else /*if(title=='SERVICE AREA' ){ //Adding select option for service due filter
            var serviceArea = '<?php echo $filter_service_area_list; ?>';
            $(this).html(serviceArea);
@@ -679,7 +744,10 @@ $(document).ready(function() {
          $(this).addClass('noSpacingInput');
        }
    } );
-
+    $('#service_statuses_filter_filter').select2({
+        allowClear: true,
+        placeholder: "-- DUE",
+    });
    // DataTable
    var table =  $('#unassigntbl').DataTable({
        "aLengthMenu": [[10,20,50,100,200,500],[10,20,50,100,200,500]],
@@ -688,6 +756,7 @@ $(document).ready(function() {
 		   "paging":true,
 		   "pageLength":<?= $this ->session->userdata('compny_details')-> default_display_length?>,
 		   "order":[[1,"asc"]],
+           "deferLoading": 0,
 		   "ajax":{
 		     "url": "<?= base_url('admin/ajaxGetRoutingFORTABLE/')?>",
 		     "dataType": "json",
@@ -701,6 +770,7 @@ $(document).ready(function() {
 				{"targets": [0], "checkboxes":{"selectRow":true,"stateSave": true}},
 			],
 		   "select":"multi",
+           "searchDelay": 2000,
 		   "columns": [
             {"data": "checkbox", "checkboxes":true, "stateSave":true, "searchable":false, "orderable":false},
             {"data": "priority", "name":"Priority", "orderable": true, "searchable": true },
@@ -711,6 +781,8 @@ $(document).ready(function() {
             {"data": "square_feet", "name":"Square Feet", "orderable": true },
             {"data": "last_service_date", "name":"Last Service Date", "orderable": true },
             {"data": "last_program_service_date", "name":"Last Program Service Date", "orderable": true },
+            {"data": "completed_date_last_service_by_type", "name":"Last Service Type Date", "orderable": true },
+            {"data": "property_program_date", "name":"Service Added Date", "orderable": true },
             {"data": "service_due", "name":"Service Due", "searchable":true, "orderable": true },
             {"data": "address", "name":"Address", "searchable":true, "orderable": true },
             {"data": "property_type", "name":"Property Type", "orderable": true },
@@ -719,19 +791,21 @@ $(document).ready(function() {
             {"data": "program", "name":"Program", "orderable": true },
             {"data": "reschedule_message", "name":"Note", "orderable": true},
 			{"data": "tags", "name":"Tags", "orderable": true},
+            {"data": "available_days", "name":"Available Days", "orderable": false},
             {"data": "action", "name":"Action", "orderable": false},
-            {"data": "program_services", "name":"Tags", "orderable": false, "visible": false}
+            {"data": "program_services", "name":"Tags", "orderable": false, "visible": false},
 		       ],
 		   language: {
               search: '<span></span> _INPUT_',
               lengthMenu: '<span>Show:</span> _MENU_',
-              paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' }
+              paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' },
+              emptyTable: "To see unassigned services use a filter or sort by a column."
           },
          dom: 'Bl<"toolbar">frtip',
            init: function(){
                // $("#loading").css("display","none");
            },
-         initComplete: function(){
+         initComplete: function(oSettings, json){
              //$("#loading").css("display","none");
             $("div.toolbar")
                .html('');
@@ -743,86 +817,6 @@ $(document).ready(function() {
 
             // $("#unassigntbl_filter label").after('<button disabled="disabled" id="multiple-delete-id" class="ml-5 btn btn-danger unassigned-services-element">Delete Services</button>');
 
-            // Connect the filter inputs to filter data
-            $('#priority_filter').on('input', function() { // PRIORITY
-                  var filter_input_val = this.querySelector('input').value;
-                  table.columns( 1 ).search( filter_input_val ).draw();
-            });
-
-
-
-            // Connect the filter inputs to filter data
-            $('#service_name_filter').on('input', function() { // SERVICE NAME
-                  var filter_input_val = this.querySelector('input').value;
-                  table.columns( 2 ).search( filter_input_val ).draw();
-            });
-
-            // Connect the filter inputs to filter data
-            $('#notify_filter').on('input', function() { // PRIORITY
-                  var filter_input_val = this.querySelector('select').value;
-                  table.columns( 3 ).search( filter_input_val ).draw();
-            });
-            // Connect the filter inputs to filter data
-            $('#service_due_filter').on('change', function() { // PROPERTY TYPE
-                  var filter_input_val = this.querySelector('select').value;
-                  table.columns( 9 ).search( filter_input_val ).draw();
-            });
-
-            // Connect the filter inputs to filter data
-            $('#property_type_filter').on('input', function() { // PROPERTY TYPE
-                  var filter_input_val = this.querySelector('input').value;
-                  table.columns( 11 ).search( filter_input_val ).draw();
-            });
-            
-            // Connect the filter inputs to filter data
-            // $('#service_area_filter').on('change', function() { // SERVICE AREA
-            //       var filter_input_val = this.querySelector('select').value;
-            //       table.columns( 13 ).search( filter_input_val ).draw();
-            // });
-
-            // Connect the filter inputs to filter data
-            $('#tag_filter').on('change', function() { // PROPERTY TYPE
-                  var filter_input_val = this.querySelector('select').value;
-                  table.columns( 16 ).search( filter_input_val ).draw();
-            });
-//			// Connect the filter inputs to filter data
-//             $('#tag_filter').on('input', function() { // TAG 
-//                   var filter_input_val = this.querySelector('input').value;
-//                   table.columns(15).search(filter_input_val).draw();
-//             });
-
-            // BLUE ROWS for rescheduled on page load
-            $('.myCheckBox').each(function() {
-                  var row_job_mode = $(this).data('row-job-mode');
-                  if (row_job_mode == 2) {
-                     $(this).parent().parent().addClass('rescheduled_row');
-                  }
-            });
-
-            // Connect Multi-Select input to filter data
-            $('#services_multi_filter').on('change', function() { // Service Name
-               $('#applicationSqFt').val('');
-               $('#totalSqFt').val('');
-               let val = $(this).val();
-               table.columns( 2 ).search( val ).draw();
-
-            });
-             // Connect Multi-Select input to filter data
-             $('#service_area_filter').on('change', function() { // Service Name
-                 $('#applicationSqFt').val('');
-                 $('#totalSqFt').val('');
-                 let val = $(this).val();
-                 table.columns( 13 ).search( val ).draw();
-
-             });
-            // Connect Multi-Select input to filter data
-            $('#programs_service_filter').on('change', function() { // Service Name
-                $('#applicationSqFt').val('');
-                $('#totalSqFt').val('');
-                let multi_service_val = $(this).val();
-                table.columns( 18 ).search( multi_service_val.toString() ).draw();
-
-            });
 
             // CALCULATE total square feet
             $('.myCheckBox').change(function(){
@@ -859,57 +853,60 @@ $(document).ready(function() {
 
             // CALCULATE application square feet
 
-
-            // FIRE EVERYTIME AFTER TABLE HAS RENDERED
-            table.on( 'draw', function () {
-                // $("#loading").css("display","none");
-                  // BLUE ROWS for rescheduled on ajax table refresh
-                  $('.myCheckBox').each(function() {
+            if (table && table !== undefined)
+            {
+                // FIRE EVERYTIME AFTER TABLE HAS RENDERED
+                table.on( 'draw', function () {
+                    // $("#loading").css("display","none");
+                    // BLUE ROWS for rescheduled on ajax table refresh
+                    $('.myCheckBox').each(function() {
                         var row_job_mode = $(this).data('row-job-mode');
                         if (row_job_mode == 2) {
-                           $(this).parent().parent().addClass('rescheduled_row');
+                            $(this).parent().parent().addClass('rescheduled_row');
                         }
-                  });
+                    });
 
-                  // CALCULATE total square feet on ajax table refresh
-                  $('.myCheckBox').change(function(){
+                    // CALCULATE total square feet on ajax table refresh
+                    $('.myCheckBox').change(function(){
 
                         var sqftTotal = 0;
                         $('#unassigntbl tbody input:checked').each(function() {
-                           sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+                            sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
                         });
                         $('#totalSqFt').val(sqftTotal);
 
-                  let applicationSqft = 0;
-                  let tmpAddressArray = [];
-                  $('#unassigntbl tbody input:checked').each(function() {
-                     let currentAddress = $(this).parent().parent().find('td').eq(10).text();
-                     if(!tmpAddressArray.includes(currentAddress)) {
-                        tmpAddressArray.push(currentAddress);
-                        applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
-                     }
-                     console.log(applicationSqft);
-                     console.log(tmpAddressArray);
-                  });
-                  $('#applicationSqFt').val(applicationSqft);
+                        let applicationSqft = 0;
+                        let tmpAddressArray = [];
+                        $('#unassigntbl tbody input:checked').each(function() {
+                            let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+                            if(!tmpAddressArray.includes(currentAddress)) {
+                                tmpAddressArray.push(currentAddress);
+                                applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+                            }
+                            console.log(applicationSqft);
+                            console.log(tmpAddressArray);
+                        });
+                        $('#applicationSqFt').val(applicationSqft);
 
                         //uncheck "select all", if one of the listed checkbox item is unchecked
                         if(this.checked == false){ //if this item is unchecked
-                              $("#select_all")[0].checked = false; //change "select all" checked status to false
+                            $("#select_all")[0].checked = false; //change "select all" checked status to false
                         }
 
                         //check "select all" if all checkbox items are checked
                         if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
-                              $("#select_all")[0].checked = true; //change "select all" checked status to true
+                            $("#select_all")[0].checked = true; //change "select all" checked status to true
                         }
-                  });
-					//after search
-				   $('.customer_in_hold').each(function() {
-						var _col=$(this).parent();
-						var _row=$(_col).parent();
-						$(_row).addClass('row_in_hold');
-				   });
-            } );
+                    });
+                    //after search
+                    $('.customer_in_hold').each(function() {
+                        var _col=$(this).parent();
+                        var _row=$(_col).parent();
+                        $(_row).addClass('row_in_hold');
+                    });
+                } );
+            }
+
 
 			 //on draw
 				$('.customer_in_hold').each(function() {
@@ -928,6 +925,135 @@ $(document).ready(function() {
             ],
 	   }
        );
+    $("#update_filter_btn").click(function () {
+
+        // PRIORITY
+        var filter_input_val = $("#priority_filter").find('input')[0].value;
+        table.columns( 1 ).search( filter_input_val );
+
+        // SERVICE NAME
+        var filter_input_val = $("#service_name_filter").find('input')[0].value;
+        table.columns( 2 ).search( filter_input_val );
+
+        // NOTIIFY CUSTOMER
+        var filter_input_val = $("#notify_filter").find('select')[0].value;
+        table.columns( 3 ).search( filter_input_val );
+
+
+        // SERVICE DUE
+        var filter_input_val = $("#service_due_filter").find('select')[0].value;
+        table.columns( 11 ).search( filter_input_val );
+
+        // PROPERTY TYPE
+        var filter_input_val = $("#property_type_filter").find('input')[0].value;
+        table.columns( 13 ).search( filter_input_val );
+
+        // TAG FILTER
+        var filter_input_val = $("#tag_filter").find('select')[0].value;
+        table.columns( 18 ).search( filter_input_val );
+
+        $('#applicationSqFt').val('');
+        $('#totalSqFt').val('');
+
+        let val = $("#services_multi_filter").val();
+        table.columns( 2 ).search( val );
+        val = $("#service_area_filter").val();
+        table.columns( 15 ).search( val );
+        let multi_service_val = $("#programs_service_filter").val();
+        table.columns( 21 ).search( multi_service_val.toString() );
+
+        let service_statuses_filter_filter = $("#service_statuses_filter_filter").val();
+        table.columns( 11 ).search( service_statuses_filter_filter.toString() );
+
+        // Available Days filter
+        let available_days_val = $("#available_days_filter").val();
+        table.columns( 19 ).search( available_days_val );
+
+
+        table.draw();
+        // Service Name
+
+        // Connect the filter inputs to filter data
+        // $('#priority_filter').on('input', function() { // PRIORITY
+        //       var filter_input_val = this.querySelector('input').value;
+        //       table.columns( 1 ).search( filter_input_val ).draw();
+        // });
+
+
+
+        // Connect the filter inputs to filter data
+        // $('#service_name_filter').on('input', function() { // SERVICE NAME
+        //       var filter_input_val = this.querySelector('input').value;
+        //       table.columns( 2 ).search( filter_input_val ).draw();
+        // });
+
+        // Connect the filter inputs to filter data
+        // $('#notify_filter').on('input', function() { // NOTIIFY CUSTOMER
+        //       var filter_input_val = this.querySelector('select').value;
+        //       table.columns( 3 ).search( filter_input_val ).draw();
+        // });
+        // Connect the filter inputs to filter data
+        // $('#service_due_filter').on('change', function() { // PROPERTY TYPE
+        //       var filter_input_val = this.querySelector('select').value;
+        //       table.columns( 11 ).search( filter_input_val ).draw();
+        // });
+
+        // Connect the filter inputs to filter data
+        // $('#property_type_filter').on('input', function() { // PROPERTY TYPE
+        //       var filter_input_val = this.querySelector('input').value;
+        //       table.columns( 13 ).search( filter_input_val ).draw();
+        // });
+
+        // Connect the filter inputs to filter data
+        // $('#service_area_filter').on('change', function() { // SERVICE AREA
+        //       var filter_input_val = this.querySelector('select').value;
+        //       table.columns( 13 ).search( filter_input_val ).draw();
+        // });
+
+        // Connect the filter inputs to filter data
+        // $('#tag_filter').on('change', function() { // PROPERTY TYPE
+        //       var filter_input_val = this.querySelector('select').value;
+        //       table.columns( 18 ).search( filter_input_val ).draw();
+        // });
+        //			// Connect the filter inputs to filter data
+        //             $('#tag_filter').on('input', function() { // TAG
+        //                   var filter_input_val = this.querySelector('input').value;
+        //                   table.columns(15).search(filter_input_val).draw();
+        //             });
+
+        // BLUE ROWS for rescheduled on page load
+        $('.myCheckBox').each(function() {
+            var row_job_mode = $(this).data('row-job-mode');
+            if (row_job_mode == 2) {
+                $(this).parent().parent().addClass('rescheduled_row');
+            }
+        });
+
+        // Connect Multi-Select input to filter data
+        // $('#services_multi_filter').on('change', function() { // Service Name
+        //     $('#applicationSqFt').val('');
+        //     $('#totalSqFt').val('');
+        //     let val = $(this).val();
+        //     table.columns( 2 ).search( val ).draw();
+        //
+        // });
+        // // Connect Multi-Select input to filter data
+        // $('#service_area_filter').on('change', function() { // Service Name
+        //     $('#applicationSqFt').val('');
+        //     $('#totalSqFt').val('');
+        //     let val = $(this).val();
+        //     table.columns( 15 ).search( val ).draw();
+        //
+        // });
+        // // Connect Multi-Select input to filter data
+        // $('#programs_service_filter').on('change', function() { // Service Name
+        //     $('#applicationSqFt').val('');
+        //     $('#totalSqFt').val('');
+        //     let multi_service_val = $(this).val();
+        //     table.columns( 20 ).search( multi_service_val.toString() ).draw();
+        //
+        // });
+    }) ;
    });
 
    $('input[name=changeview]').click(function () {

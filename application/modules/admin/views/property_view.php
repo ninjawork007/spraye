@@ -69,7 +69,11 @@
 
 
         <div class="col-md-4" id="mapdiv" >
-             <div id="dvMap"></div>
+            <div id="dvMap"><span style="
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -50px 0 0 -50px;">No data found!</span></div>
         </div>
 
     
@@ -408,7 +412,7 @@ $("#service-polygon-form").submit(function() {
     });
 </script>
 
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=<?php echo GoogleMapKey; ?>"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=geometry,drawing&key=<?php echo GoogleMapKey; ?>&sensor=false"></script>
 <script type="text/javascript">
 var markers_array = [];
    // DataTable
@@ -591,172 +595,192 @@ var markers_array = [];
     table.on('xhr.dt',
         function (e, settings, data, xhr) {
             markers_array = [];
+            // data = null;
+            if (data && data.data && data.data.length > 0) {
+                data.data.forEach(function (data) {
+                    markers_array.push(data.marker[0]);
+                });
+            }
 
-            data.data.forEach(function(data) {
-                markers_array.push(data.marker[0]);
-            });
 
             markers = markers_array;
-            LoadMap();
-            map;
-            var marker;
-            function LoadMap() {
-                var mapOptions = {
+            if (markers.length > 0) {
+                LoadMap();
+                map;
 
-                    center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
-                    zoom: 10,
-                    mapTypeId: google.maps.MapTypeId.ROADMAP
+
+                var marker;
+
+                function LoadMap() {
+                    var mapOptions = {
+
+                        center: new google.maps.LatLng(markers[0].lat, markers[0].lng),
+                        zoom: 10,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    };
+                    map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
+                    $("#dvMap").find('span').remove()
+                    SetMarker(0);
                 };
-                map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
-                SetMarker(0);
-            };
 
-            var all_overlays = [];
-            var selectedShape;
-            var selectedId;
-            var selectedName;
-            var drawingManager;
-            var coordinates;
-            var coordinates_array = [];
-            function clearSelection() {
-                if (selectedShape) {
-                    selectedShape.setEditable(false);
-                    selectedShape = null;
-                }
-            }
-            function setSelection(shape,elm) {
-                clearSelection();
-                selectedShape = shape;
-                selectedId = elm !== undefined ?  elm.property_area_cat_id : null;
-                selectedName = elm !== undefined ? elm.marker : null;
-                shape.setEditable(true);
-            }
-            function deleteSelectedShape() {
-                if (selectedShape) {
-                    selectedShape.setMap(null);
-                    if(selectedId){
-                        $.post("/admin/setting/addServicrAreaData", {"service_area_polygon": null,"property_area_cat_id" : selectedId,"category_area_name" : selectedName,}, (d) => {
-                            if (d) {
-                                swal(
-                                    'Property Updated!',
-                                    'Property Service Area Polygon Deleted',
-                                    'success'
-                                ).then(function() {
-                                    location.reload(); 
-                                });
-                            }else{
-                                swal({
-                                    type: 'error',
-                                    title: 'Oops...',
-                                    text: 'Something went wrong!'
-                                })
-                            }
-                        });
+                var all_overlays = [];
+                var selectedShape;
+                var selectedId;
+                var selectedName;
+                var drawingManager;
+                var coordinates;
+                var coordinates_array = [];
+
+                function clearSelection() {
+                    if (selectedShape) {
+                        selectedShape.setEditable(false);
+                        selectedShape = null;
                     }
                 }
-            }
-            function deleteAllShape() {
-                for (var i = 0; i < all_overlays.length; i++) {
-                    all_overlays[i].overlay.setMap(null);
-                }
-                all_overlays = [];
-            }
 
-            function SetMarker(position) {
-                // Remove previous Marker.
-                if (marker != null) {
-                    marker.setMap(null);
+                function setSelection(shape, elm) {
+                    clearSelection();
+                    selectedShape = shape;
+                    selectedId = elm !== undefined ? elm.property_area_cat_id : null;
+                    selectedName = elm !== undefined ? elm.marker : null;
+                    shape.setEditable(true);
                 }
-                // Set Marker on Map.
-                if(position){
 
-                }else{
-                    allunchecked();
+                function deleteSelectedShape() {
+                    if (selectedShape) {
+                        selectedShape.setMap(null);
+                        if (selectedId) {
+                            $.post("/admin/setting/addServicrAreaData", {
+                                "service_area_polygon": null,
+                                "property_area_cat_id": selectedId,
+                                "category_area_name": selectedName,
+                            }, (d) => {
+                                if (d) {
+                                    swal(
+                                        'Property Updated!',
+                                        'Property Service Area Polygon Deleted',
+                                        'success'
+                                    ).then(function () {
+                                        location.reload();
+                                    });
+                                } else {
+                                    swal({
+                                        type: 'error',
+                                        title: 'Oops...',
+                                        text: 'Something went wrong!'
+                                    })
+                                }
+                            });
+                        }
+                    }
                 }
-            };
 
-            drawingManager = new google.maps.drawing.DrawingManager({
-                drawingMode: google.maps.drawing.OverlayType.POLYGON,
-                drawingControl: true,
-                drawingControlOptions: {
-                    position: google.maps.ControlPosition.TOP_CENTER,
-                    drawingModes: [
-                        google.maps.drawing.OverlayType.POLYGON,
-                    ]
-                },
-                polygonOptions: {
-                    editable: true
+                function deleteAllShape() {
+                    for (var i = 0; i < all_overlays.length; i++) {
+                        all_overlays[i].overlay.setMap(null);
+                    }
+                    all_overlays = [];
                 }
-            });
-            drawingManager.setMap(map);
-            google.maps.event.addListener(drawingManager, 'overlaycomplete', function (e) {
-                all_overlays.push(e);
-                if (e.type != google.maps.drawing.OverlayType.MARKER) {
-                    // Switch back to non-drawing mode after drawing a shape.
-                    drawingManager.setDrawingMode(null);
-                    // Add an event listener that selects the newly-drawn shape when the user
-                    // mouses down on it.
-                    var newShape = e.overlay;
-                    newShape.type = e.type;
-                    google.maps.event.addListener(newShape, 'click', function () {
+
+                function SetMarker(position) {
+                    // Remove previous Marker.
+                    if (marker != null) {
+                        marker.setMap(null);
+                    }
+                    // Set Marker on Map.
+                    if (position) {
+
+                    } else {
+                        allunchecked();
+                    }
+                };
+
+                drawingManager = new google.maps.drawing.DrawingManager({
+                    drawingMode: google.maps.drawing.OverlayType.POLYGON,
+                    drawingControl: true,
+                    drawingControlOptions: {
+                        position: google.maps.ControlPosition.TOP_CENTER,
+                        drawingModes: [
+                            google.maps.drawing.OverlayType.POLYGON,
+                        ]
+                    },
+                    polygonOptions: {
+                        editable: true
+                    }
+                });
+                drawingManager.setMap(map);
+                google.maps.event.addListener(drawingManager, 'overlaycomplete', function (e) {
+                    all_overlays.push(e);
+                    if (e.type != google.maps.drawing.OverlayType.MARKER) {
+                        // Switch back to non-drawing mode after drawing a shape.
+                        drawingManager.setDrawingMode(null);
+                        // Add an event listener that selects the newly-drawn shape when the user
+                        // mouses down on it.
+                        var newShape = e.overlay;
+                        newShape.type = e.type;
+                        google.maps.event.addListener(newShape, 'click', function () {
+                            setSelection(newShape);
+                        });
                         setSelection(newShape);
-                    });
-                    setSelection(newShape);
-                }
-            });
-            google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
-                coordinates = (polygon.getPath().getArray());
-            });
-            google.maps.event.addListener(drawingManager, 'drawingmode_changed', clearSelection);
-            google.maps.event.addListener(map, 'click', clearSelection);
-            google.maps.event.addDomListener(document.getElementById('delete-button'), 'click', deleteSelectedShape);
-            google.maps.event.addDomListener(document.getElementById('delete-all-button'), 'click', deleteAllShape);
-            function getCoordinates() {
-
-                for (var i = 0; i < coordinates.length; i++) { 
-                    lat = coordinates[i].lat(); 
-                    lng = coordinates[i].lng(); 
-                    coordinates_array.push({"lat": lat, "lng": lng});
-                }
-                $("#modal_service_area_polygon").modal("show");
-                $("input[name=service_area_polygon]").val(JSON.stringify(coordinates_array));
-
-            }
-            google.maps.event.addDomListener(document.getElementById('CoordsButton'), 'click', getCoordinates);
-            var polygon_array = <?= (isset($polygon_bounds)&&$polygon_bounds!="" ? json_encode($polygon_bounds) : "");?>
-            // console.log(polygon_array);
-            // polygon_array = [JSON.parse(polygon_array)];
-            // var service_poly = [{lat:47.50744955379592, lng: -82.74775243632813},{lat:45.07884209539964, lng: -78.00165868632813},{lat:49.028402784002296, lng: -74.48603368632813}];
-            if(typeof polygon_array !== 'undefined') {
-                polygon_array.forEach(elm => {
-                    // console.log(elm)
-                    var poly_draw = new google.maps.Polygon({ 
-                        paths: [JSON.parse(elm.latlng)], 
-                        strokeColor: '#FF0000',
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
-                        fillColor: '#FF0000',
-                        fillOpacity: 0.35,
-                        name: elm.marker
-                    });
-                    poly_draw.setMap(map);
-                    attachPolygonInfoWindow(poly_draw, "Service area: "+elm.marker, elm)
-                })
-            }
-            function attachPolygonInfoWindow(polygon, label, elm) {
-                var infoWindow = new google.maps.InfoWindow();
-                google.maps.event.addListener(polygon, 'mouseover', function (e) {
-                    infoWindow.setContent(label);
-                    var latLng = e.latLng;
-                    infoWindow.setPosition(latLng);
-                    infoWindow.open(map);
+                    }
                 });
-                google.maps.event.addListener(polygon, 'click', function (e) {
-                    this.setOptions({strokeColor:"#000000", fillColor: '#333333'});
-                    setSelection(polygon,elm);
-                    infoWindow.close(map);
-                    // this.setEditable(true);
+                google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+                    coordinates = (polygon.getPath().getArray());
                 });
+                google.maps.event.addListener(drawingManager, 'drawingmode_changed', clearSelection);
+                google.maps.event.addListener(map, 'click', clearSelection);
+                google.maps.event.addDomListener(document.getElementById('delete-button'), 'click', deleteSelectedShape);
+                google.maps.event.addDomListener(document.getElementById('delete-all-button'), 'click', deleteAllShape);
+
+                function getCoordinates() {
+
+                    for (var i = 0; i < coordinates.length; i++) {
+                        lat = coordinates[i].lat();
+                        lng = coordinates[i].lng();
+                        coordinates_array.push({"lat": lat, "lng": lng});
+                    }
+                    $("#modal_service_area_polygon").modal("show");
+                    $("input[name=service_area_polygon]").val(JSON.stringify(coordinates_array));
+
+                }
+
+                google.maps.event.addDomListener(document.getElementById('CoordsButton'), 'click', getCoordinates);
+                var polygon_array = <?= (isset($polygon_bounds) && $polygon_bounds != "" ? json_encode($polygon_bounds) : "");?>
+                // console.log(polygon_array);
+                // polygon_array = [JSON.parse(polygon_array)];
+                // var service_poly = [{lat:47.50744955379592, lng: -82.74775243632813},{lat:45.07884209539964, lng: -78.00165868632813},{lat:49.028402784002296, lng: -74.48603368632813}];
+                if (typeof polygon_array !== 'undefined') {
+                    polygon_array.forEach(elm => {
+                        // console.log(elm)
+                        var poly_draw = new google.maps.Polygon({
+                            paths: [JSON.parse(elm.latlng)],
+                            strokeColor: '#FF0000',
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: '#FF0000',
+                            fillOpacity: 0.35,
+                            name: elm.marker
+                        });
+                        poly_draw.setMap(map);
+                        attachPolygonInfoWindow(poly_draw, "Service area: " + elm.marker, elm)
+                    })
+                }
+
+                function attachPolygonInfoWindow(polygon, label, elm) {
+                    var infoWindow = new google.maps.InfoWindow();
+                    google.maps.event.addListener(polygon, 'mouseover', function (e) {
+                        infoWindow.setContent(label);
+                        var latLng = e.latLng;
+                        infoWindow.setPosition(latLng);
+                        infoWindow.open(map);
+                    });
+                    google.maps.event.addListener(polygon, 'click', function (e) {
+                        this.setOptions({strokeColor: "#000000", fillColor: '#333333'});
+                        setSelection(polygon, elm);
+                        infoWindow.close(map);
+                        // this.setEditable(true);
+                    });
+                }
             }
         }
     ); 

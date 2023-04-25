@@ -297,6 +297,7 @@
         url: '<?php echo base_url(); ?>admin/Estimates/get_signwell_status',
         data: {estimate_id: estimate_id},
         success: function (data) {
+            alert(data)
             console.log(data)
             window.location.href = data;
 
