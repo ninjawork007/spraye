@@ -1,39 +1,16 @@
-# Request
-
-## Table of Contents
-* [__construct](#__construct)
-* [account](#account)
-* [api](#api)
-* [getLastResponse](#getlastresponse)
-* [send](#send)
-* [setOptions](#setoptions)
-
 ## Constants
+
 * **ACCOUNT_URL**
 * **API_URL**
+* **RETURN_ASSOC**
+* **RETURN_OBJECT**
 
 ## Methods
-### __construct
 
-
-```php
-Request::__construct($options)
-```
-
-Constructor<br>
-Set options.
-
-#### Arguments
-* `$options` **array\|object** - Optional. Options to set.
-
-
----
 ### account
 
 
-```php
-Request::account($method, $uri, $parameters, $headers)
-```
+    array SpotifyWebAPI\Request::account(string $method, string $uri, array $parameters, array $headers)
 
 Make a request to the "account" endpoint.
 
@@ -43,20 +20,22 @@ Make a request to the "account" endpoint.
 * `$parameters` **array** - Optional. Query string parameters or HTTP body, depending on $method.
 * `$headers` **array** - Optional. HTTP headers.
 
+
 #### Return values
 * **array** Response data.
-    * array\|object body The response body. Type is controlled by the `return_assoc` option.
-    * array headers Response headers.
+    * array\|object body The response body. Type is controlled by `Request::setReturnType()`.
+    * string headers Response headers.
     * int status HTTP status code.
     * string url The requested URL.
 
+
 ---
+
+
 ### api
 
 
-```php
-Request::api($method, $uri, $parameters, $headers)
-```
+    array SpotifyWebAPI\Request::api(string $method, string $uri, array $parameters, array $headers)
 
 Make a request to the "api" endpoint.
 
@@ -66,38 +45,56 @@ Make a request to the "api" endpoint.
 * `$parameters` **array** - Optional. Query string parameters or HTTP body, depending on $method.
 * `$headers` **array** - Optional. HTTP headers.
 
+
 #### Return values
 * **array** Response data.
-    * array\|object body The response body. Type is controlled by the `return_assoc` option.
-    * array headers Response headers.
+    * array\|object body The response body. Type is controlled by `Request::setReturnType()`.
+    * string headers Response headers.
     * int status HTTP status code.
     * string url The requested URL.
 
+
 ---
+
+
 ### getLastResponse
 
 
-```php
-Request::getLastResponse()
-```
+    array SpotifyWebAPI\Request::getLastResponse()
 
 Get the latest full response from the Spotify API.
 
 
 #### Return values
 * **array** Response data.
-    * array\|object body The response body. Type is controlled by the `return_assoc` option.
+    * array\|object body The response body. Type is controlled by `Request::setReturnType()`.
     * array headers Response headers.
     * int status HTTP status code.
     * string url The requested URL.
 
+
 ---
+
+
+### getReturnType
+
+
+    string SpotifyWebAPI\Request::getReturnType()
+
+Get a value indicating the response body type.
+
+
+#### Return values
+* **string** A value indicating if the response body is an object or associative array.
+
+
+---
+
+
 ### send
 
 
-```php
-Request::send($method, $url, $parameters, $headers)
-```
+    array SpotifyWebAPI\Request::send(string $method, string $url, array $parameters, array $headers)
 
 Make a request to Spotify.<br>
 You'll probably want to use one of the convenience methods instead.
@@ -108,27 +105,32 @@ You'll probably want to use one of the convenience methods instead.
 * `$parameters` **array** - Optional. Query string parameters or HTTP body, depending on $method.
 * `$headers` **array** - Optional. HTTP headers.
 
+
 #### Return values
 * **array** Response data.
-    * array\|object body The response body. Type is controlled by the `return_assoc` option.
+    * array\|object body The response body. Type is controlled by `Request::setReturnType()`.
     * array headers Response headers.
     * int status HTTP status code.
     * string url The requested URL.
 
+
 ---
-### setOptions
 
 
-```php
-Request::setOptions($options)
-```
+### setReturnType
 
-Set options
+
+    void SpotifyWebAPI\Request::setReturnType(string $returnType)
+
+Set the return type for the response body.
 
 #### Arguments
-* `$options` **array\|object** - Options to set.
+* `$returnType` **string** - One of the Request::RETURN_* constants.
+
 
 #### Return values
-* **self** 
+* **void** 
+
 
 ---
+

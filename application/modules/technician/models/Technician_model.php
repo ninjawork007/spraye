@@ -87,14 +87,14 @@ class Technician_model extends CI_Model{
    
 
      public function getAllJobAssign($where_arr) {
-           
-        $this->db->select("*,TIME_FORMAT (`specific_time`,'%H:%i') as  specific_time");
+        $this->db->select("technician_job_assign.*, customers.*, jobs.*, programs.*, property_tbl.*, program_job_assigned_customer_property.program_job_assigned_customer_property_id, program_job_assigned_customer_property.reason ,TIME_FORMAT (`specific_time`,'%H:%i') as  specific_time");
         
         $this->db->from(self::TJATBL);
         $this->db->join('customers',"customers.customer_id=technician_job_assign.customer_id","inner");
         $this->db->join('jobs',"jobs.job_id=technician_job_assign.job_id","inner");
         $this->db->join('programs',"programs.program_id=technician_job_assign.program_id","inner");
         $this->db->join('property_tbl',"property_tbl.property_id=technician_job_assign.property_id","inner");
+        $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
 
       
 

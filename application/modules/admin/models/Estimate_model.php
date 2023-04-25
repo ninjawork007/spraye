@@ -401,16 +401,7 @@ class Estimate_model extends CI_Model{
         }
         
         if(!empty($params['search']['sales_rep_id'])){    
-            $SaleRpID = explode(",", $params['search']['sales_rep_id']);
-
-            $IdString = "sales_rep IN (";
-            foreach($SaleRpID as $TcID){
-                $IdString .= "'".$TcID."',";
-            }
-            $IdString = substr($IdString, 0, -1);
-            $IdString .= ")";
-
-            $this->db->where($IdString);
+           $this->db->where("(`sales_rep` LIKE '%".$params['search']['sales_rep_id']."%' )");
         }
         if(!empty($params['search']['job_id'])){    
            $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");

@@ -26,31 +26,6 @@
 								</select>
 							</div>
 						</div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>Service Area</label>
-                                <select class="bootstrap-select form-control" name="service_area" id="service_area" data-live-search="true">
-                                    <option value="" selected>All</option>
-                                    <?php if(!empty($ServiceArea)) {
-                                        foreach ($ServiceArea as $area) { ?>
-                                            <option value=<?= $area->property_area_cat_id ?>> <?= $area->category_area_name ?> </option>
-                                    <?php } } ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>New/Existing</label>
-                                <select class="bootstrap-select form-control" name="newExisting" id="newExisting">
-                                    <option value="" selected>All</option>
-                                    <option value="1">New</option>
-                                    <option value="0">Existing</option>
-                                </select>
-                            </div>
-                        </div>
-
 						 <div class="col-md-4">
 							<div class="form-group">
 							  <label>Start Date</label>
@@ -64,13 +39,6 @@
 							  <input type="date" id="date_to" name="date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
 							</div>
 						  </div>
-
-                          <div class="col-md-4">
-                            <div class="form-group">
-                              <label>Cancel Reason</label>
-                              <input type="text" id="reason" name="reason" class="form-control" placeholder="Enter reason for cancel">
-                            </div>
-                          </div>
 				  	</div>
 					<div class="row">
 						<div class="text-center">
@@ -83,12 +51,10 @@
 			</div>
 		</div>
 	</div>
-
-    <div id="cancel-report-list">
     <div class="panel panel-flat">
         <div class="panel-body">
-            <div class="post-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
-                <div class="table-responsive table-spraye" style="min-height: 0px">
+            <div class="post-list" id="cancel-report-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
+                <div class="table-responsive table-spraye">
                     <table class="table" style="border:1px solid #6eb1fd;">
                         <thead>
                             <tr>
@@ -131,53 +97,6 @@
             </div>
         </div>
     </div>
-    <div class="panel panel-flat">
-        <div class="panel-body">
-            <div class="post-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
-                <div class="table-responsive table-spraye" style="min-height: 0px">
-                    <table class="table" style="border:1px solid #6eb1fd;">
-                        <thead>
-                            <tr>
-                                <th>Canceled Date</th>
-                                <th>Canceled By</th>
-                                <th>Customer Name</th>
-                                <th>Customer Start Date</th>
-                                <th>Property name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Lost Revenue</th>
-                                <th>Sales Rep.</th>
-                                <th>New Existing Customer</th>
-                                <th>Cancel Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            foreach($AllCancelledProperty as $CanclPrprty){
-                            ?>
-                            <tr>
-                                <td><?= date("d F, Y", strtotime($CanclPrprty->property_cancelled))?></td>
-                                <td><?= $CanclPrprty->user_first_name ?> <?= $CanclPrprty->user_last_name ?></td>
-                                <td><?= $CanclPrprty->first_name ?> <?= $CanclPrprty->last_name ?></td>
-                                <td><?= date("d F, Y", strtotime($CanclPrprty->property_created))?></td>
-                                <td><?= $CanclPrprty->property_title ?></td>
-                                <td><?= $CanclPrprty->email ?></td>
-                                <td><?= $CanclPrprty->work_phone ?></td>
-                                <td>$<?= $CanclPrprty->job_cost ?></td>
-                                <td><?= $CanclPrprty->SalesRep ?></td>
-                                <td><?= $CanclPrprty->tags == 1 ? "New" : "Existing" ?></td>
-                                <td><?= $CanclPrprty->cancel_reason ?></td>
-                            </tr>
-                            <?php
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 </div>
 <div class="loading" style="display:none;">
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
@@ -214,9 +133,6 @@ function searchFilter() {
 	var date_from = $('#date_from').val();
 	var date_to = $('#date_to').val();
 	var user = $('#user').val();
-    var serviceArea = $("#service_area").val();
-    var newExisting = $("#newExisting").val();
-    var reason = $("#reason").val();
 
     $('.loading').css("display", "block");
 	
@@ -225,7 +141,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCancelReport',
-        data:'date_from='+date_from+'&date_to='+date_to+'&user='+user+"&serviceArea="+serviceArea+"&newExisting="+newExisting+"&reason="+reason,
+        data:'date_from='+date_from+'&date_to='+date_to+'&user='+user,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#cancel-report-list').html(html);

@@ -147,16 +147,6 @@
               break;
                 case 'Invoices':
             echo '<p class="navbar-text btn-head"><span class="label green-btn "><a href="'.base_url('admin/Invoices/addInvoice').'" class="fas fa-plus"> New Invoice</a></span></p>
-            <p class="navbar-text btn-head"><span class="label green-btn "><a href="#" data-target="#modal_batch_payment" data-toggle="modal" class="fas fa-plus"> Batch Payment</a></span></p>
-
-            <p class="navbar-text btn-head"><span class="label btn-warning "><a href="#" data-toggle="modal" data-target="#modal_add_csv"  class="fas fa-upload">Bulk Upload Batch Payment</a>
-                   </span>
-                      </p>
-
-                      <p class="navbar-text btn-head"><span class="label btn-primary "><a  href="'.base_url('uploads/sample_file/BatchPaymentSample.csv').'" class="fas fa-file-text-o" download >Batch Payment Sample File</a>
-                  </span>
-                      </p>
-
             <p class="navbar-text btn-head"><span class="label btn-primary "><a href="'.base_url('admin/reports/invoiceAgeReport').'" class="fas fa-file-text-o"> Invoice Age Report</a></span></p>
             <p class="navbar-text btn-head"><span class="label btn-primary "><a onclick="csv_download()"  class="fas fa-download"> CSV Download</a>
                    </span>
@@ -210,9 +200,7 @@
                 break;
 
               case 'Returns':
-                  echo '<p class="navbar-text btn-head"><span class="label green-btn "><a href="'.base_url('inventory/Frontend/purchases/newReturn').'" class="fas fa-plus"> New Purchase Return</a> </span></p>
-
-                  <p class="navbar-text btn-head"><span class="label btn-primary "><a  href="'.base_url('inventory/Frontend/purchases/downloadPurchaseReturnsCSV').'" class="fas fa-download"> CSV Download</a></span></p>';
+                  echo '<p class="navbar-text btn-head"><span class="label btn-primary "><a  href="'.base_url('inventory/Frontend/purchases/downloadPurchaseReturnsCSV').'" class="fas fa-download"> CSV Download</a></span></p>';
                 break;
                  
            }

@@ -110,7 +110,7 @@ body {
         'Longitude' => $setting_details->end_location_long 
         );
     }
-  if (!empty($job_assign_details)) {    
+  if (!empty($job_assign_details)) {
     foreach ($job_assign_details as $key => $value) {     
       $Locations[$key]['Name'] = $value[0]['property_address'];
       $Locations[$key]['Latitude'] = $value[0]['property_latitude'];
@@ -872,6 +872,8 @@ function post_RealRoadOptimizeStops() {
     data: JSON.stringify(request),
     success: function(data) {
       var resp = JSON.stringify(data, null, '\t');
+      debugger
+      debugger
       renderMap(data);
       sample = jQuery.map(data.OptimizedStops, function(n, i) {
         return n.Name;
@@ -903,6 +905,13 @@ function post_RealRoadOptimizeStops() {
               if (phone) {
                   phone = '(' + phone[1] + ') ' + phone[2] + '-' + phone[3];
               }
+
+              let asap_reason = '';
+              let asap = response[i].program_job_assigned_customer_property_id;
+
+              if (asap && response[i].reason !== null) {
+                  asap_reason = '<a><span class="text-muted" style="background: red; color: white"><i class="icon-alert" ></i>&nbspASAP -  &nbsp' + response[i].reason + '</span></a><br>';
+              }
             $('#from_jquery_sorting').append(
               '<li><span class="feed-time text-muted" style="color: inherit !important; font-weight: 500 !important;">' +
               response[i].date + '<br>' + response[i].day +
@@ -910,7 +919,7 @@ function post_RealRoadOptimizeStops() {
               response[i].property_id + '" > <h6 class="no-margin text-semibold">' +
               response[i].property_title +
               '</h6><span class="text-muted"><i class=" icon-location4"></i>  ' + response[i]
-              .property_address + '</span>' + specific_time_html + '</a><br><a><span class="text-muted"><i class="icon-phone"></i>&nbsp' + phone + '</span></a><br><span class="text-muted">' + response[i].tags + '</span>'+response[i].pre_service_notification+'</div></div></div></li>');
+              .property_address + '</span>' + specific_time_html + '</a><br><a><span class="text-muted"><i class="icon-phone"></i>&nbsp' + phone + '</span></a><br>'+asap_reason+'<span class="text-muted">' + response[i].tags + '</span>'+response[i].pre_service_notification+'</div></div></div></li>');
             if (i == response.length) {
               $("#from_jquery_sorting").append('<li></li>');
             }

@@ -166,6 +166,10 @@
    .rescheduled_row {
     background: #b8d1f3 !important;
    }
+   .asap_row {
+       background: #FBE9E7 !important;
+       border: 1px solid #FF5722;
+   }
 	tr.row_in_hold td, tr.row_in_hold td a {	
 	color: #8080804f !important;	
 	}
@@ -250,85 +254,59 @@
                         </div>
 
 
-                  <div class="row">
-
-                     <div class="col-md-3">
-
-                        <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
-                           <label for="service_ids_filter">Filter Services
-                               <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose the service(s) below you would like to schedule."><i class=" icon-info22 tooltip-icon"></i></span>
-                           </label>
-                           <select class="multiselect-select-all-filtering form-control" name="services_multi_filter[]" id="services_multi_filter" multiple="multiple">
-                              <?php foreach ($service_list as $value): ?>
-
-                                 <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
-
-                              <?php endforeach ?>
-                           </select>
-                        </div>
-
-                     </div>
-
-                      <div class="col-md-3">
-
-                          <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
-                              <label for="programs_service_ids_filter">Filter Properties by Outstanding Services (require all)
-                                  <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing any of the services below, Spraye will show only properties that have all of the chosen services outstanding in their account."><i class=" icon-info22 tooltip-icon"></i></span>
-                              </label>
-                              <select class="multiselect-select-all-filtering form-control" name="programs_service_filter[]" id="programs_service_filter" multiple="multiple">
-                                  <?php foreach ($service_list as $value): ?>
-
-                                      <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
-
-                                  <?php endforeach ?>
-                              </select>
-                          </div>
-
-                      </div>
-
-
-                      <div class="col-md-3">
-
-                          <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
-                              <label for="programs_service_ids_filter">Service Area</label>
-                              <select class="multiselect-select-all-filtering form-control" name="service_area_filter[]" id="service_area_filter" multiple="multiple">
-                                  <?php foreach ($service_area_list as $value): ?>
-
-                                      <option value="<?= $value->category_area_name ?>"> <?= $value->category_area_name ?> </option>
-
-                                  <?php endforeach ?>
-                              </select>
-                          </div>
-
-                      </div>
-
-                      <!-- Available days filter -->
-                      <div class="col-md-3">
-                          <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
-                              <label for="programs_service_ids_filter">Available Days
-                                  <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing the days below, Spraye will show only properties that are available on all of the chosen days."><i class=" icon-info22 tooltip-icon"></i></span>
-                              </label>
-                              <select class="multiselect-select-all-filtering form-control" name="available_days_filter[]" id="available_days_filter" multiple="multiple">
-                                  <?php foreach ($available_days_list as $key => $value): ?>
-                                      <option value="<?= $value ?>" > <?= $key ?> </option>
-                                  <?php endforeach ?>
-                              </select>
-                          </div>
-                      </div>
-                      <!-- \Available days filter -->
-
-
-                      <div class="col-md-3">
-
-                          <div class="col-md-12" id="update_filter" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
-                              <label for="update_filter">Update Filters</label>
-                              <button id="update_filter_btn" class="btn btn-success" style="display:block; width: 200px">Update</button>
-                          </div>
-
-                      </div>
-
-
-                  </div>
+<!--                  <div class="row" style="display: none;">-->
+<!---->
+<!--                     <div class="col-md-3">-->
+<!---->
+<!--                        <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">-->
+<!--                           <label for="service_ids_filter">Filter Services-->
+<!--                               <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose the service(s) below you would like to schedule."><i class=" icon-info22 tooltip-icon"></i></span>-->
+<!--                           </label>-->
+<!--                           <select class="multiselect-select-all-filtering form-control" name="services_multi_filter[]" id="services_multi_filter" multiple="multiple">-->
+<!--                              --><?php //foreach ($service_list as $value): ?>
+<!---->
+<!--                                 <option value="--><?php //= $value['job_name'] ?><!--"> --><?php //= $value['job_name'] ?><!-- </option>-->
+<!---->
+<!--                              --><?php //endforeach ?>
+<!--                           </select>-->
+<!--                        </div>-->
+<!---->
+<!--                     </div>-->
+<!---->
+<!--                      <div class="col-md-3">-->
+<!---->
+<!--                          <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">-->
+<!--                              <label for="programs_service_ids_filter">Filter Properties by Outstanding Services (require all)-->
+<!--                                  <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing any of the services below, Spraye will show only properties that have all of the chosen services outstanding in their account."><i class=" icon-info22 tooltip-icon"></i></span>-->
+<!--                              </label>-->
+<!--                              <select class="multiselect-select-all-filtering form-control" name="programs_service_filter[]" id="programs_service_filter" multiple="multiple">-->
+<!--                                  --><?php //foreach ($service_list as $value): ?>
+<!---->
+<!--                                      <option value="--><?php //= $value['job_name'] ?><!--"> --><?php //= $value['job_name'] ?><!-- </option>-->
+<!---->
+<!--                                  --><?php //endforeach ?>
+<!--                              </select>-->
+<!--                          </div>-->
+<!---->
+<!--                      </div>-->
+<!---->
+<!---->
+<!--                      <div class="col-md-3">-->
+<!---->
+<!--                          <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">-->
+<!--                              <label for="programs_service_ids_filter">Service Area</label>-->
+<!--                              <select class="multiselect-select-all-filtering form-control" name="service_area_filter[]" id="service_area_filter" multiple="multiple">-->
+<!--                                  --><?php //foreach ($service_area_list as $value): ?>
+<!---->
+<!--                                      <option value="--><?php //= $value->category_area_name ?><!--"> --><?php //= $value->category_area_name ?><!-- </option>-->
+<!---->
+<!--                                  --><?php //endforeach ?>
+<!--                              </select>-->
+<!--                          </div>-->
+<!---->
+<!--                      </div>-->
+<!---->
+<!--                  </div>-->
 
                   <div class="panel-body"  style="padding: 20px 0px;">
 
@@ -355,6 +333,7 @@
                                  <th>Program</th>
                                  <th>Rescheduled Reason</th>
 								 <th>Tags</th>
+								 <th>ASAP Reason</th>
                                  <th>Available Days</th>
                                  <th>Action</th>
                               </tr>
@@ -362,9 +341,9 @@
                            <tfoot>
                               <tr>
                                  <td></td>
-                                 <td id="priority_filter">PRIORITY</td>
-                                 <td id="service_name_filter">SERVICE NAME</td>
-                                 <td id="notify_filter">NOTIFY CUSTOMER</td>
+                                 <td id="priority_filter"></td>
+                                 <td id="service_name_filter"></td>
+                                 <td id="notify_filter"></td>
                                  <td></td>
                                  <td></td>
                                  <td></td>
@@ -372,14 +351,15 @@
                                  <td></td>
                                  <td></td>
                                  <td></td>
-                                 <td id="service_due_filter" style="width:300px;">SERVICE DUE</td>
+                                 <td id="service_due_filter" style="width:300px;"></td>
                                  <td></td>
-                                 <td id="property_type_filter">PROPERTY TYPE</td>
+                                 <td id="property_type_filter"></td>
 								 <td></td>
-                                 <td id="service_area_filter">SERVICE AREA</td>
+                                 <td id="service_area_filter"></td>
                                  <td></td>
                                  <td></td>
-								 <td id="tag_filter">TAG</td>
+								 <td id="tag_filter"></td>
+								 <td></td>
                                  <td></td>
                                  <td></td>
                               </tr>
@@ -393,6 +373,147 @@
          </div>
       </div>
    </div>
+</div>
+<div id="modal_add_filters" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title">Filter Criteria</h6>
+            </div>
+            <div class="modal-body ">
+                <div class="form-group ">
+
+                    <div class="container-mt-2">
+                        <!-- <div class="row"> -->
+                        <div class="col-md-6 ">
+                            <div class="priority-filter">
+                                <label>Priority</label>
+                                <input type="text" id = "pfilter" name = "pfilter" class="form-control dtatableInput" placeholder="PRIORITY">
+                            </div>
+
+                            <div class="property-type-filter">
+                                <label>Property Type</label>
+                                <input type="text" id = "ptfilter" name = "ptfilter" class="form-control dtatableInput" placeholder="PROPERTY TYPE">
+                            </div>
+
+                            <div class="service-name-filter">
+                                <label>Service Name</label>
+                                <input type="text" id = "snfilter" name = "snfilter" class="form-control dtatableInput" placeholder="SERVICE NAME">
+                            </div>
+
+                            <!-- <div class="service-area-filter">
+                                 <label>Service Area</label>
+                                 <input type="text" id = "safilter" name = "safilter" class="form-control dtatableInput" placeholder="SERVICE AREA">
+                             </div>-->
+                            <div class="multi-select-full" id="service-area-filter_parent" >
+                                <label for="service-area-filter">Service Area
+                                </label>
+                                <select class="multiselect-select-all-filtering form-control" name="service-area-filter[]" id="service-area-filter" multiple="multiple">
+
+                                    <?php foreach ($service_area_list as $value): ?>
+                                        <option value="<?= $value->category_area_name ?>"> <?= $value->category_area_name ?> </option>
+                                    <?php endforeach ?>
+
+                                </select>
+
+                            </div>
+                            <div class="service-name-filter">
+                                <label>Show Only ASAP?</label>
+                                <select class="form-control" name="asap_reason" id="asap-reason">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="col-md-6">
+                            <div class="notify-customer-filter">
+                                <label>Notify</label>
+                                <select class="form-control dtatableInput" id = "ncfilter" name = "ncfilter" placeholder="NOTIFY CUSTOMER" ><option value="0" class="default-option">-- NOTIFY</option><option value="1">CALL AHEAD</option><option value="2">TEXT ETA</option><option value="3">PRE-NOTIFIED</option></select>
+                            </div>
+
+                            <div class="tags-filter">
+                                <label>Tags</label>
+                                <?php echo $filter_tags; ?>
+                            </div>
+                            <div class="multi-select-full" id="service_ids_filter_parent" >
+                                <label for="service_ids_filter">Due
+                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose status below you would like to filter."><i class=" icon-info22 tooltip-icon"></i></span>
+                                </label>
+                                <div class="service-due-filter">
+                                    <select name="services_statuses_filter[]" id="sdfilter" multiple style="width: 100%;" class="multiselect-select-all-filtering form-control><option value="0" class="default-option" style="width: 100%;">-- DUE</option><option value="1">Due</option><option value="2">Overdue</option><option value="3">Not Due</option></select>
+                                    <!--                                            <select class="form-control dtatableInput" id = "sdfilter" name = "sdfilter" placeholder="SERVICE DUE" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>-->
+                                </div>
+                            </div>
+
+                            <div class="multi-select-full" id="service_ids_filter_parent" >
+                                <label for="service_ids_filter">Filter Services
+                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose the service(s) below you would like to schedule."><i class=" icon-info22 tooltip-icon"></i></span>
+                                </label>
+                                <select class="multiselect-select-all-filtering form-control" name="services_multi_filter[]" id="services_multi_filter" multiple="multiple">
+
+                                    <?php foreach ($service_list as $value): ?>
+                                        <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
+                                    <?php endforeach ?>
+
+                                </select>
+
+                            </div>
+                            <div class="multi-select-full " id="program_service_ids_filter_parent" >
+                                <label for="programs_service_ids_filter">Filter Properties by Outstanding Services (require all)
+                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing any of the services below, Spraye will show only properties that have all of the chosen services outstanding in their account."><i class=" icon-info22 tooltip-icon"></i></span>
+                                </label>
+                                <select class="multiselect-select-all-filtering form-control" name="program_services_multi_filter[]" id="program_services_multi_filter" multiple="multiple">
+                                    <?php foreach ($service_list as $value): ?>
+
+                                        <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
+
+                                    <?php endforeach ?>
+                                </select>
+                            </div>
+
+                            <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
+                                <label for="programs_service_ids_filter">Available Days
+                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing the days below, Spraye will show only properties that are available on all of the chosen days."><i class=" icon-info22 tooltip-icon"></i></span>
+                                </label>
+                                <select class="multiselect-select-all-filtering form-control" name="available_days_filter[]" id="available_days_filter" multiple="multiple">
+                                    <?php foreach ($available_days_list as $key => $value): ?>
+                                        <option value="<?= $value ?>" > <?= $key ?> </option>
+                                    <?php endforeach ?>
+                                </select>
+                            </div>
+
+
+
+                        </div>
+                        <!-- </div> -->
+                    </div>
+                </div>
+
+
+                <div class="row modal-footer">
+                    <div class="row">
+                        <div class="col-md-6" style="display: none">
+                        </div>
+                        <div class="col-md-6" style="float: right">
+                            <div class="col-md-12" id="update_filter" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
+                                <button id="update_filter_btn" class="btn btn-success" style="display:block; width: 295px">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button> -->
+                    <div  id="update-map-div" class= "col-md-12" style="padding-top:10px">
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 <!-- Primary modal -->
 <div id="modal_theme_primary" class="modal fade">
@@ -479,6 +600,9 @@
    </div>
 </div>
 <!-- /primary modal -->
+<!---  Add Filter Criteria template --->
+
+<!-------------------------------------------->
 <!--begin edit assign job  -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
@@ -721,29 +845,30 @@
 
 
 $(document).ready(function() {
+    $(".service-due-filter").find(".btn-group").css("width", "100%");
     //$("#loading").css("display","block");
       // Setup - add a text input to each footer cell
-   $('#unassigntbl tfoot td').each( function () {
-       var title = $(this).text();
-       if (title=='PRIORITY' || title=='SERVICE NAME' || title=='PROPERTY TYPE' ) {
-         $(this).html( '<input type="text" class="form-control dtatableInput" placeholder="'+title+'" />' );
-       } else if(title=='SERVICE DUE' ){ //Adding select option for service due filter
-           let html =
-               "<select name=\"services_statuses_filter[]\" id=\"service_statuses_filter_filter\" multiple style=\"width: 100%;\" class='form-control'><option value=\"0\" class=\"default-option\" style=\"width: 100%;\">-- DUE</option><option value=\"1\">Due</option><option value=\"2\">Overdue</option><option value=\"3\">Not Due</option></select>";
-           $(this).html(html);
-         // $(this).html( '<select class="multiselect-select-all-filtering form-control dtatableInput" name="statuses_multi_filter[]" multiple="multiple" placeholder="'+title+'" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>' );
-       } else if(title=='NOTIFY CUSTOMER' ){ //Adding select option for service due filter
-           $(this).html( '<select class="form-control dtatableInput" id="teste" placeholder="'+title+'" ><option value="0" class="default-option">-- NOTIFY</option><option value="1">CALL AHEAD</option><option value="2">TEXT ETA</option><option value="3">PRE-NOTIFIED</option></select>' );
-       } else /*if(title=='SERVICE AREA' ){ //Adding select option for service due filter
-           var serviceArea = '<?php echo $filter_service_area_list; ?>';
-           $(this).html(serviceArea);
-       } else*/ if(title=='TAG' ){ //Adding select option for service due filter
-			var filterTags = '<?php echo $filter_tags; ?>';
-			$(this).html(filterTags);
-       } else {
-         $(this).addClass('noSpacingInput');
-       }
-   } );
+   //$('#unassigntbl tfoot td').each( function () {
+   //    var title = $(this).text();
+   //    if (title=='PRIORITY' || title=='SERVICE NAME' || title=='PROPERTY TYPE' ) {
+   //      $(this).html( '<input type="text" class="form-control dtatableInput" placeholder="'+title+'" />' );
+   //    } else if(title=='SERVICE DUE' ){ //Adding select option for service due filter
+   //        let html =
+   //            "<select name=\"services_statuses_filter[]\" id=\"service_statuses_filter_filter\" multiple style=\"width: 100%;\" class='form-control'><option value=\"0\" class=\"default-option\" style=\"width: 100%;\">-- DUE</option><option value=\"1\">Due</option><option value=\"2\">Overdue</option><option value=\"3\">Not Due</option></select>";
+   //        $(this).html(html);
+   //      // $(this).html( '<select class="multiselect-select-all-filtering form-control dtatableInput" name="statuses_multi_filter[]" multiple="multiple" placeholder="'+title+'" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>' );
+   //    } else if(title=='NOTIFY CUSTOMER' ){ //Adding select option for service due filter
+   //        $(this).html( '<select class="form-control dtatableInput" id="teste" placeholder="'+title+'" ><option value="0" class="default-option">-- NOTIFY</option><option value="1">CALL AHEAD</option><option value="2">TEXT ETA</option><option value="3">PRE-NOTIFIED</option></select>' );
+   //    } else /*if(title=='SERVICE AREA' ){ //Adding select option for service due filter
+   //        var serviceArea = '<?php //echo $filter_service_area_list; ?>//';
+   //        $(this).html(serviceArea);
+   //    } else*/ if(title=='TAG' ){ //Adding select option for service due filter
+	//		var filterTags = '<?php //echo $filter_tags; ?>//';
+	//		$(this).html(filterTags);
+   //    } else {
+   //      $(this).addClass('noSpacingInput');
+   //    }
+   //} );
     $('#service_statuses_filter_filter').select2({
         allowClear: true,
         placeholder: "-- DUE",
@@ -791,6 +916,7 @@ $(document).ready(function() {
             {"data": "program", "name":"Program", "orderable": true },
             {"data": "reschedule_message", "name":"Note", "orderable": true},
 			{"data": "tags", "name":"Tags", "orderable": true},
+			{"data": "asap_reason", "name":"Asap Reason", "orderable": true},
             {"data": "available_days", "name":"Available Days", "orderable": false},
             {"data": "action", "name":"Action", "orderable": false},
             {"data": "program_services", "name":"Tags", "orderable": false, "visible": false},
@@ -809,103 +935,103 @@ $(document).ready(function() {
              //$("#loading").css("display","none");
             $("div.toolbar")
                .html('');
-            var r = $('#unassigntbl tfoot td');
-            $("div.toolbar")
-                  .append('<span class="tmpspan" >Filter: </span>');
-            $("div.toolbar")
-                  .append(r);
+            // var r = $('#unassigntbl tfoot td');
+            // $("div.toolbar")
+            //       .append('<span class="tmpspan" >Filter: </span>');
+            // $("div.toolbar")
+            //       .append(r);
 
             // $("#unassigntbl_filter label").after('<button disabled="disabled" id="multiple-delete-id" class="ml-5 btn btn-danger unassigned-services-element">Delete Services</button>');
 
 
             // CALCULATE total square feet
-            $('.myCheckBox').change(function(){
-
-                  var sqftTotal = 0;
-                  $('#unassigntbl tbody input:checked').each(function() {
-                     sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
-                  });
-                  $('#totalSqFt').val(sqftTotal);
-
-                  let applicationSqft = 0;
-                  let tmpAddressArray = [];
-                  $('#unassigntbl tbody input:checked').each(function() {
-                     let currentAddress = $(this).parent().parent().find('td').eq(10).text();
-                     if(!tmpAddressArray.includes(currentAddress)) {
-                        tmpAddressArray.push(currentAddress);
-                        applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
-                     }
-                     console.log(applicationSqft);
-                     console.log(tmpAddressArray);
-                  });
-                  $('#applicationSqFt').val(applicationSqft);
-
-                  //uncheck "select all", if one of the listed checkbox item is unchecked
-                  if(this.checked == false){ //if this item is unchecked
-                        $("#select_all")[0].checked = false; //change "select all" checked status to false
-                  }
-
-                  //check "select all" if all checkbox items are checked
-                  if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
-                        $("#select_all")[0].checked = true; //change "select all" checked status to true
-                  }
-            });
+            // $('.myCheckBox').change(function(){
+            //
+            //       var sqftTotal = 0;
+            //       $('#unassigntbl tbody input:checked').each(function() {
+            //          sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+            //       });
+            //       $('#totalSqFt').val(sqftTotal);
+            //
+            //       let applicationSqft = 0;
+            //       let tmpAddressArray = [];
+            //       $('#unassigntbl tbody input:checked').each(function() {
+            //          let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+            //          if(!tmpAddressArray.includes(currentAddress)) {
+            //             tmpAddressArray.push(currentAddress);
+            //             applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+            //          }
+            //          console.log(applicationSqft);
+            //          console.log(tmpAddressArray);
+            //       });
+            //       $('#applicationSqFt').val(applicationSqft);
+            //
+            //       //uncheck "select all", if one of the listed checkbox item is unchecked
+            //       if(this.checked == false){ //if this item is unchecked
+            //             $("#select_all")[0].checked = false; //change "select all" checked status to false
+            //       }
+            //
+            //       //check "select all" if all checkbox items are checked
+            //       if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
+            //             $("#select_all")[0].checked = true; //change "select all" checked status to true
+            //       }
+            // });
 
             // CALCULATE application square feet
 
-            if (table && table !== undefined)
-            {
-                // FIRE EVERYTIME AFTER TABLE HAS RENDERED
-                table.on( 'draw', function () {
-                    // $("#loading").css("display","none");
-                    // BLUE ROWS for rescheduled on ajax table refresh
-                    $('.myCheckBox').each(function() {
-                        var row_job_mode = $(this).data('row-job-mode');
-                        if (row_job_mode == 2) {
-                            $(this).parent().parent().addClass('rescheduled_row');
-                        }
-                    });
-
-                    // CALCULATE total square feet on ajax table refresh
-                    $('.myCheckBox').change(function(){
-
-                        var sqftTotal = 0;
-                        $('#unassigntbl tbody input:checked').each(function() {
-                            sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
-                        });
-                        $('#totalSqFt').val(sqftTotal);
-
-                        let applicationSqft = 0;
-                        let tmpAddressArray = [];
-                        $('#unassigntbl tbody input:checked').each(function() {
-                            let currentAddress = $(this).parent().parent().find('td').eq(10).text();
-                            if(!tmpAddressArray.includes(currentAddress)) {
-                                tmpAddressArray.push(currentAddress);
-                                applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
-                            }
-                            console.log(applicationSqft);
-                            console.log(tmpAddressArray);
-                        });
-                        $('#applicationSqFt').val(applicationSqft);
-
-                        //uncheck "select all", if one of the listed checkbox item is unchecked
-                        if(this.checked == false){ //if this item is unchecked
-                            $("#select_all")[0].checked = false; //change "select all" checked status to false
-                        }
-
-                        //check "select all" if all checkbox items are checked
-                        if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
-                            $("#select_all")[0].checked = true; //change "select all" checked status to true
-                        }
-                    });
-                    //after search
-                    $('.customer_in_hold').each(function() {
-                        var _col=$(this).parent();
-                        var _row=$(_col).parent();
-                        $(_row).addClass('row_in_hold');
-                    });
-                } );
-            }
+            // if (table && table !== undefined)
+            // {
+            //     // FIRE EVERYTIME AFTER TABLE HAS RENDERED
+            //     table.on( 'draw', function () {
+            //         // $("#loading").css("display","none");
+            //         // BLUE ROWS for rescheduled on ajax table refresh
+            //         $('.myCheckBox').each(function() {
+            //             var row_job_mode = $(this).data('row-job-mode');
+            //             if (row_job_mode == 2) {
+            //                 $(this).parent().parent().addClass('rescheduled_row');
+            //             }
+            //         });
+            //
+            //         // CALCULATE total square feet on ajax table refresh
+            //         $('.myCheckBox').change(function(){
+            //
+            //             var sqftTotal = 0;
+            //             $('#unassigntbl tbody input:checked').each(function() {
+            //                 sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+            //             });
+            //             $('#totalSqFt').val(sqftTotal);
+            //
+            //             let applicationSqft = 0;
+            //             let tmpAddressArray = [];
+            //             $('#unassigntbl tbody input:checked').each(function() {
+            //                 let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+            //                 if(!tmpAddressArray.includes(currentAddress)) {
+            //                     tmpAddressArray.push(currentAddress);
+            //                     applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+            //                 }
+            //                 console.log(applicationSqft);
+            //                 console.log(tmpAddressArray);
+            //             });
+            //             $('#applicationSqFt').val(applicationSqft);
+            //
+            //             //uncheck "select all", if one of the listed checkbox item is unchecked
+            //             if(this.checked == false){ //if this item is unchecked
+            //                 $("#select_all")[0].checked = false; //change "select all" checked status to false
+            //             }
+            //
+            //             //check "select all" if all checkbox items are checked
+            //             if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
+            //                 $("#select_all")[0].checked = true; //change "select all" checked status to true
+            //             }
+            //         });
+            //         //after search
+            //         $('.customer_in_hold').each(function() {
+            //             var _col=$(this).parent();
+            //             var _row=$(_col).parent();
+            //             $(_row).addClass('row_in_hold');
+            //         });
+            //     } );
+            // }
 
 
 			 //on draw
@@ -925,31 +1051,96 @@ $(document).ready(function() {
             ],
 	   }
        );
+    // FIRE EVERYTIME AFTER TABLE HAS RENDERED
+    table.on( 'draw', function () {
+        // $("#loading").css("display","none");
+        // BLUE ROWS for rescheduled on ajax table refresh
+        $('.myCheckBox').each(function() {
+            var row_job_mode = $(this).data('row-job-mode');
+            if (row_job_mode == 2) {
+                $(this).parent().parent().addClass('rescheduled_row');
+            }
+            let asap_job_mode = $(this).data('row-asap');
+            if (asap_job_mode == 1){
+                $(this).parent().parent().addClass('asap_row');
+            }
+        });
+
+        // CALCULATE total square feet on ajax table refresh
+        $('.myCheckBox').change(function(){
+
+            var sqftTotal = 0;
+            $('#unassigntbl tbody input:checked').each(function() {
+                sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+            });
+            $('#totalSqFt').val(sqftTotal);
+
+            let applicationSqft = 0;
+            let tmpAddressArray = [];
+            $('#unassigntbl tbody input:checked').each(function() {
+                let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+                if(!tmpAddressArray.includes(currentAddress)) {
+                    tmpAddressArray.push(currentAddress);
+                    applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+                }
+                console.log(applicationSqft);
+                console.log(tmpAddressArray);
+            });
+            $('#applicationSqFt').val(applicationSqft);
+
+            //uncheck "select all", if one of the listed checkbox item is unchecked
+            if(this.checked == false){ //if this item is unchecked
+                $("#select_all")[0].checked = false; //change "select all" checked status to false
+            }
+
+            //check "select all" if all checkbox items are checked
+            if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
+                $("#select_all")[0].checked = true; //change "select all" checked status to true
+            }
+        });
+        //after search
+        $('.customer_in_hold').each(function() {
+            var _col=$(this).parent();
+            var _row=$(_col).parent();
+            $(_row).addClass('row_in_hold');
+        });
+    } );
+    $('#filter-criteria-id').remove();
+    $('#multiple-delete-id').remove();
+
+    $(".dataTables_filter")
+        .append('<button id="filter-criteria-id" class="btn btn-primary " style="margin-left: 10px;">Filters</button>');
+
+    $("#filter-criteria-id").unbind('click');
+    $("#filter-criteria-id").click(function() {
+        $('#modal_add_filters').modal('show');
+    });
     $("#update_filter_btn").click(function () {
 
         // PRIORITY
-        var filter_input_val = $("#priority_filter").find('input')[0].value;
+        var filter_input_val = $("#pfilter").val();
         table.columns( 1 ).search( filter_input_val );
 
         // SERVICE NAME
-        var filter_input_val = $("#service_name_filter").find('input')[0].value;
-        table.columns( 2 ).search( filter_input_val );
+        var service_name = $("#snfilter").val();
+        if (service_name != '')
+            table.columns( 2 ).search( service_name );
 
         // NOTIIFY CUSTOMER
-        var filter_input_val = $("#notify_filter").find('select')[0].value;
+        var filter_input_val = $("#ncfilter").val();
         table.columns( 3 ).search( filter_input_val );
 
 
         // SERVICE DUE
-        var filter_input_val = $("#service_due_filter").find('select')[0].value;
+        var filter_input_val = $("#sdfilter").val();
         table.columns( 11 ).search( filter_input_val );
 
         // PROPERTY TYPE
-        var filter_input_val = $("#property_type_filter").find('input')[0].value;
+        var filter_input_val = $("#ptfilter").val();
         table.columns( 13 ).search( filter_input_val );
 
         // TAG FILTER
-        var filter_input_val = $("#tag_filter").find('select')[0].value;
+        var filter_input_val = $(".tags-filter").find('select').val();
         table.columns( 18 ).search( filter_input_val );
 
         $('#applicationSqFt').val('');
@@ -957,17 +1148,19 @@ $(document).ready(function() {
 
         let val = $("#services_multi_filter").val();
         table.columns( 2 ).search( val );
-        val = $("#service_area_filter").val();
+        val = $("#service-area-filter").val();
         table.columns( 15 ).search( val );
-        let multi_service_val = $("#programs_service_filter").val();
+        let multi_service_val = $("#program_services_multi_filter").val();
         table.columns( 21 ).search( multi_service_val.toString() );
 
-        let service_statuses_filter_filter = $("#service_statuses_filter_filter").val();
+        let service_statuses_filter_filter = $("#sdfilter").val();
         table.columns( 11 ).search( service_statuses_filter_filter.toString() );
 
+        val = $("#asap-reason").val();
+        table.columns( 19 ).search( val );
         // Available Days filter
         let available_days_val = $("#available_days_filter").val();
-        table.columns( 19 ).search( available_days_val );
+        table.columns( 20 ).search( available_days_val );
 
 
         table.draw();
@@ -1053,6 +1246,7 @@ $(document).ready(function() {
         //     table.columns( 20 ).search( multi_service_val.toString() ).draw();
         //
         // });
+        $('#modal_add_filters').modal('hide');
     }) ;
    });
 

@@ -406,7 +406,8 @@ class ItemsModel extends CI_Model {
 		
 		$result = $this->db->get();
 		$data = $result->result();
-		//die(print_r($this->db->last_query()));
+		// die(print_r($this->db->last_query()));
+	
 			return $data;
 	}
 

@@ -34,42 +34,36 @@
       <div class="panel panel-body" style="background-color:#ededed;" >
         <form id="serchform" action="<?= base_url('admin/reports/downloadPipelineDetailCsv') ?>" method="post">            
           <div class="row">
-              <div class="col-md-12">
-
-                <div class="form-group multi-select-full">
-                <?php
-                $SelectedSalesRep = array();
-                if(isset($SavedFilter['id'])){
-                  $SelectedSalesRep = explode(",", $SavedFilter["sales_rep_id"]);
-                }
-                ?>
-                <label>Sales Rep</label>
-                <select id="sales_rep_id" name="sales_rep_id[]" multiple class="multiselect-select-all-filtering" placeholder="Select Rep">
-                   <?php if ($users) {
-                    foreach ($users as $user) { ?>
-                      <option <?php if(in_array($user->id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->id ?>> <?= $user->user_first_name . " " . $user->user_last_name ?> </option>
-                  <?php } } ?>                        
-                  </select>
-              </div>
+              <div class="col-md-2">
+                 <div class="form-group">
+								<label>Sales Rep</label>
+								<select class="bootstrap-select form-control" name="sales_rep_id"  id="sales_rep_id" data-live-search="true">
+									<option value="" >Select a Rep</option>
+									<?php if ($users) {
+										foreach ($users as $user) { ?>
+											<option value=<?= $user->id ?>> <?= $user->user_first_name . " " . $user->user_last_name ?> </option>
+									<?php } } ?>
+								</select>
+							</div>
               </div>
 
               <div class="col-md-2">
                   <div class="form-group">
                       <label>Customer Name</label>
-                      <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name" value="<?php echo $SavedFilter["customer_name"] ?>">
+                      <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Enter Customer Name">
                   </div>
               </div>
 
               <div class="col-md-2">
                   <div class="form-group">
                       <label>Property Address</label>
-                      <input type="text" id="property_address" name="property_address" class="form-control" placeholder="Enter Property Address" value="<?php echo $SavedFilter["address"] ?>">
+                      <input type="text" id="property_address" name="property_address" class="form-control" placeholder="Enter Property Address">
                   </div>
               </div>
               <div class="col-md-2">
                   <div class="form-group">
                       <label>Program/Service</label>
-                      <input type="text" id="program_name" name="program_name" class="form-control" placeholder="Program/Service" value="<?php echo $SavedFilter["service"] ?>">
+                      <input type="text" id="program_name" name="program_name" class="form-control" placeholder="Program/Service">
                   </div>
               </div>
 
@@ -77,14 +71,14 @@
               <div class="col-md-2">
                 <div class="form-group">
                   <label>Start Date</label>
-                  <input type="date" id="estimate_created_date_to" name="estimate_created_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
+                  <input type="date" id="estimate_created_date_to" name="estimate_created_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
                 </div>
               </div>
 
               <div class="col-md-2">
                 <div class="form-group">
                   <label>End Date</label>
-                  <input type="date" id="estimate_created_date_from" name="estimate_created_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
+                  <input type="date" id="estimate_created_date_from" name="estimate_created_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
                 </div>
               </div>
           </div>
@@ -93,7 +87,6 @@
             <button type="button" class="btn btn-success" onClick="searchFilter()" ><i class="icon-search4 position-left"></i> Search</button>
             <button type="button" class="btn btn-primary" onClick="resetform()" ><i class="icon-reset position-left"></i> Reset</button>
             <button type="submit" class="btn btn-info"  ><i class="icon-file-download position-left"></i> CSV Download</button>
-            <button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-search4 position-left"></i> Save Search</button>
           </div>
         </form>
       </div>
@@ -111,8 +104,7 @@
                 <th>Customer</th>
                 <th>Property</th>
                 <th>Estimate Program/Service</th>
-                <th>Estimate #</th>
-                <th>Estimate $</th>
+                <th>Estimate $</th>	
                 <th>Estimate Date</th>	
                 <th>Property Status</th>
               </tr>  
@@ -122,12 +114,9 @@
               if (!empty($pipeline_details)) { 
                 foreach ($pipeline_details as $value) { ?>
               <tr>         
-                <td style="text-transform: capitalize;">
-                  <a target="_blank" href="<?php echo base_url(); ?>/admin/editCustomer/<?= $value->customer_id ?>"><?= $value->first_name.' '.$value->last_name ?></a>
-                </td>
+                <td style="text-transform: capitalize;"><?= $value->first_name.' '.$value->last_name ?></td>
                 <td><?= $value->property_address ?></td>
                 <td><?= $value->program_name ?></td>
-                <td><a target="_blank" href="<?php echo base_url(); ?>/admin/Estimates/editEstimate/<?= $value->estimate_id ?>"><?= $value->estimate_id ?></a></td>
                 <td>
                   <?php 
                     $line_total = 0; 
@@ -304,7 +293,7 @@ function searchFilter() {
 
    $(document).ready(function() {
       tableintal();
-      searchFilter();
+
    })
 
    function tableintal(argument) {
@@ -345,24 +334,5 @@ function csvfile() {
     });
 }
 
-
-function saveSearchFilter(){
-    var sales_rep_id = $('#sales_rep_id').val();
-    var customer_name = $('#customer_name').val();
-    var address = $('#property_address').val();
-    var service = $('#program_name').val();
-    var start_date = $('#estimate_created_date_to').val();
-    var end_date = $('#estimate_created_date_from').val();
-
-    $.ajax({
-        type: 'POST',
-        url: '<?php echo base_url(); ?>admin/reports/saveSalesPipelineFilters',
-        data:'sales_rep_id='+sales_rep_id+'&customer_name='+customer_name+'&address='+address+'&service='+service+'&start_date='+start_date+'&end_date='+end_date,
-
-        success: function (resp) {
-            swal('Save','Filter Saved Successfully ','success')
-        },
-  });
-}
 
 </script>

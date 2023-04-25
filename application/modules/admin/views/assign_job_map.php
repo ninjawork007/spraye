@@ -267,6 +267,10 @@
         height: 100%;
         top:130px;
     }
+    .asap_row {
+        background: #FBE9E7 !important;
+        border: 1px solid #FF5722;
+    }
 </style>
 <script>
     var global_r = '';
@@ -282,6 +286,8 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/weather/css/responsive.css">
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/bootstrap-clockpicker.min.css">
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
 <div class="content">
     <div class="">
         <div class="mymessage"></div>
@@ -519,6 +525,8 @@
                                                     <th>Program</th>
                                                     <th>Rescheduled Reason</th>
                                                     <th>Tags</th>
+                                                    <th>ASAP Reason</th>
+                                                    <th>Available Days</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -542,6 +550,7 @@
                                                     <td></td>
                                                     <td></td>
                                                     <td id="tag_filter">TAG</td>
+                                                    <td></td>
                                                     <td></td> -->
                                                 </tr>
                                                 <!-- <tr>
@@ -694,6 +703,13 @@
                                         </select>
 
                                     </div>
+                                    <div class="service-name-filter">
+                                        <label>Show Only ASAP?</label>
+                                        <select class="form-control" name="asap_reason" id="asap-reason">
+                                            <option value="0">No</option>
+                                            <option value="1">Yes</option>
+                                        </select>
+                                    </div>
                                 </div>
                                         
                     
@@ -709,12 +725,15 @@
                                             <label>Tags</label>
                                                 <?php echo $filter_tags; ?>
                                         </div>
-
-                                        <div class=" service-due-filter">    
-                                            <label>Due</label>
-                                            <select class="form-control dtatableInput" id = "sdfilter" name = "sdfilter" placeholder="SERVICE DUE" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>
+                                        <div class="multi-select-full" id="service_ids_filter_parent" >
+                                            <label for="service_ids_filter">Due
+                                                <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose status below you would like to filter."><i class=" icon-info22 tooltip-icon"></i></span>
+                                            </label>
+                                            <div class="service-due-filter">
+                                                <select name="services_statuses_filter[]" id="sdfilter" multiple style="width: 100%;" class="multiselect-select-all-filtering form-control><option value="0" class="default-option" style="width: 100%;">-- DUE</option><option value="1">Due</option><option value="2">Overdue</option><option value="3">Not Due</option></select>
+    <!--                                            <select class="form-control dtatableInput" id = "sdfilter" name = "sdfilter" placeholder="SERVICE DUE" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>-->
+                                            </div>
                                         </div>
-
 
                                         <div class="multi-select-full" id="service_ids_filter_parent" >
                                             <label for="service_ids_filter">Filter Services
@@ -738,6 +757,16 @@
 
                                                     <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
 
+                                                <?php endforeach ?>
+                                            </select>
+                                        </div>
+                                        <div class="multi-select-full col-md-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
+                                            <label for="programs_service_ids_filter">Available Days
+                                                <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing the days below, Spraye will show only properties that are available on all of the chosen days."><i class=" icon-info22 tooltip-icon"></i></span>
+                                            </label>
+                                            <select class="multiselect-select-all-filtering form-control" name="available_days_filter[]" id="available_days_filter" multiple="multiple">
+                                                <?php foreach ($available_days_list as $key => $value): ?>
+                                                    <option value="<?= $value ?>" > <?= $key ?> </option>
                                                 <?php endforeach ?>
                                             </select>
                                         </div>
@@ -1109,7 +1138,11 @@
 
 <script>
     $(document).ready(function() {
-
+        // $('#service_statuses_filter_filter').select2({
+        //     allowClear: true,
+        //     placeholder: "-- DUE",
+        // });
+        $(".service-due-filter").find(".btn-group").css("width", "100%");
         function getRowNum() {
             let e = new Error();
             e = e.stack.split("\n")[2].split(":");
@@ -1527,7 +1560,17 @@
                             "data": "tags",	
                             "name":"Tags",	
                             "orderable": true	
-                        },	
+                        },
+                        {
+                            "data": "asap_reason",
+                            "name":"Asap Reason",
+                            "orderable": true
+                        },
+                        {
+                            "data": "available_days",
+                            "name":"Available Days",
+                            "orderable": false
+                        },
                         {
                             "data": "action",
                             "name": "Action",
@@ -1552,7 +1595,7 @@
                         }
                     },
                     pagingType: "simple_numbers",
-                    
+
                     paging: true,
                     pageLength: 10000, //not pulling all data. Only the first 100 (because client side)
                     order: [
@@ -1837,10 +1880,12 @@
                         // Connect the filter inputs to filter data
                         $('#sdfilter').on('change', function() { // SERVICE DUE
                             //var filter_input_val = $('#service_due_filter option:selected').val();
-                            var filter_input_val = $('#sdfilter option:selected').val();
+                            var filter_input_val = $('#sdfilter').val();
+                            let filter_input_val_arr = filter_input_val.join('|');
+
                             //console.log(filter_input_val);
                             sessionStorage.setItem("serv_due_input", filter_input_val);
-                            table.columns(9).search(filter_input_val).draw();
+                            table.columns(10).search(filter_input_val).draw();
                             $("#update-map-note").remove();
                             if (!$('input[name=changeview]').is(':checked')) {
                                 if (!$("#update-map-note").length > 0) {
@@ -1931,7 +1976,7 @@
                             $('#totalSqFt').val('');
                             let multi_service_val = $(this).val();
 
-                            table.columns( 13 ).search( multi_service_val).draw();
+                            table.columns( 14 ).search( multi_service_val).draw();
                             $("#update-map-note").remove();
                             if (!$('input[name=changeview]').is(':checked')) {
                                 if (!$("#update-map-note").length > 0) {
@@ -1958,13 +2003,48 @@
                                 }
                             }
                         });
+                        $('#asap-reason').on('blur', function() { // PROPERTY TYPE
+                            //var filter_input_val = this.querySelector('input').value;
+                            var filter_input_val = $(this).val();
+                            sessionStorage.setItem("asap-reason", filter_input_val);
+                            table.columns(18).search(filter_input_val).draw();
+                            $("#update-map-note").remove();
+                            if (!$('input[name=changeview]').is(':checked')) {
+                                if (!$("#update-map-note").length > 0) {
+                                    $("#update-map-div").append("<button type='button' id='update-map-note' class ='btn btn-danger ml-5'text-semibold' style='color:#FFFFFF;background-color:#fccecb;'>Update Map View</button>");
+                                    $("#update-map-div").prepend($("#loading-image"));
+                                    $("#loading-image").show();
+                                    $("#update-map-note").prop("disabled",true);
+                                }
+                            }
+                        });
 
+                        $('#available_days_filter').on('change', function() { // PROPERTY TYPE
+                            //var filter_input_val = this.querySelector('input').value;
+                            var filter_input_val = $(this).val();
+                            sessionStorage.setItem("available_days_filter", filter_input_val);
+                            table.columns(19).search(filter_input_val).draw();
+                            $("#update-map-note").remove();
+                            if (!$('input[name=changeview]').is(':checked')) {
+                                if (!$("#update-map-note").length > 0) {
+                                    $("#update-map-div").append("<button type='button' id='update-map-note' class ='btn btn-danger ml-5'text-semibold' style='color:#FFFFFF;background-color:#fccecb;'>Update Map View</button>");
+                                    $("#update-map-div").prepend($("#loading-image"));
+                                    $("#loading-image").show();
+                                    $("#update-map-note").prop("disabled",true);
+                                }
+                            }
+                        });
 
                         // BLUE ROWS for rescheduled on page load
                         $('.myCheckBox').each(function() {
                               var row_job_mode = $(this).data('row-job-mode');
                               if (row_job_mode == 2) {
                                  $(this).parent().parent().addClass('rescheduled_row');
+                              }
+                              let asap_job_mode = $(this).data('row-asap');
+
+                              if (asap_job_mode == 1){
+                                $(this).parent().parent().addClass('asap_row');
                               }
                         });
 
@@ -2015,7 +2095,18 @@
 
                             $('#loading-image').hide();
 
-                            
+                            // BLUE ROWS for rescheduled on page load
+                            $('.myCheckBox').each(function() {
+                                var row_job_mode = $(this).data('row-job-mode');
+                                if (row_job_mode == 2) {
+                                    $(this).parent().parent().addClass('rescheduled_row');
+                                }
+                                let asap_job_mode = $(this).data('row-asap');
+
+                                if (asap_job_mode == 1){
+                                    $(this).parent().parent().addClass('asap_row');
+                                }
+                            });
 
                             // Modal Update Map button dark red
                             if ($("#update-map-note").length > 0) {
@@ -2611,7 +2702,7 @@
         }
     }
 
-    $('.clockpicker').clockpicker();
+    // $('.clockpicker').clockpicker();
     hljs.configure({
         tabReplace: '    '
     });

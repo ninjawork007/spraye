@@ -154,12 +154,14 @@ class PurchasesReturnsModel extends CI_Model {
 
 	public function getReturn($where) {
 		// $this->db->select("purchase_order_tbl.*, locations_tbl.location_name, vendors_tbl.vendor_name ");
-        $this->db->select("purchase_return_tbl.*,purchase_return_tbl.freight, purchase_return_tbl.discount, tax, subtotal, grand_total, vendors_tbl.vendor_id, vendors_tbl.vendor_name, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, locations_tbl.location_id, locations_tbl.location_name, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name");
+        $this->db->select("purchase_return_tbl.*,purchase_order_tbl.purchase_order_number, purchase_return_tbl.freight, purchase_return_tbl.discount, discount_type, tax, subtotal, grand_total, purchase_order_tbl.created_at, purchase_order_tbl.updated_at, purchase_order_tbl.notes, purchase_order_tbl.created_by AS created_by_id, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, locations_tbl.location_id, locations_tbl.location_name, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name");
 
         $this->db->from('purchase_return_tbl');
-        $this->db->join('vendors_tbl', 'vendors_tbl.vendor_id = purchase_return_tbl.vendor_id', 'left');
-        $this->db->join('locations_tbl', 'locations_tbl.location_id = purchase_return_tbl.location_id', 'left');
-        $this->db->join('sub_locations_tbl','sub_locations_tbl.sub_location_id = purchase_return_tbl.sub_location_id','left');
+        $this->db->join('purchase_order_tbl', 'purchase_order_tbl.purchase_order_id = purchase_return_tbl.purchase_order_id', 'left');
+        $this->db->join('users', 'users.id = purchase_order_tbl.created_by', 'left');
+        $this->db->join('vendors_tbl', 'vendors_tbl.vendor_id = purchase_order_tbl.vendor_id', 'left');
+        $this->db->join('locations_tbl', 'locations_tbl.location_id = purchase_order_tbl.location_id', 'left');
+        $this->db->join('sub_locations_tbl','sub_locations_tbl.sub_location_id = purchase_order_tbl.sub_location_id','left');
     
         if (is_array($where)) {
             $this->db->where($where);
@@ -507,14 +509,15 @@ class PurchasesReturnsModel extends CI_Model {
     }
 
 	public function getOneReturn($where) {
-        $this->db->select("purchase_return_tbl.*, purchase_return_tbl.created_by AS created_by_id, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, company_name, vendor_phone_number, vendor_email_address, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, locations_tbl.location_id, locations_tbl.location_name, location_street, location_city, location_state, location_zip, location_phone, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name");
+		// $this->db->select("purchase_order_tbl.*, locations_tbl.location_name, vendors_tbl.vendor_name ");
+        $this->db->select("purchase_return_tbl.*,purchase_order_tbl.purchase_order_number, purchase_return_tbl.freight, purchase_return_tbl.discount, discount_type, tax, subtotal, grand_total, purchase_order_tbl.created_at, purchase_order_tbl.updated_at, purchase_order_tbl.notes, purchase_order_tbl.created_by AS created_by_id, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, company_name, vendor_phone_number, vendor_email_address, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, locations_tbl.location_id, locations_tbl.location_name, location_street, location_city, location_state, location_zip, location_phone, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name");
 
         $this->db->from('purchase_return_tbl');
-        
-        $this->db->join('users', 'users.id = purchase_return_tbl.created_by', 'left');
-        $this->db->join('vendors_tbl', 'vendors_tbl.vendor_id = purchase_return_tbl.vendor_id', 'left');
-        $this->db->join('locations_tbl', 'locations_tbl.location_id = purchase_return_tbl.location_id', 'left');
-        $this->db->join('sub_locations_tbl','sub_locations_tbl.sub_location_id = purchase_return_tbl.sub_location_id','left');
+        $this->db->join('purchase_order_tbl', 'purchase_order_tbl.purchase_order_id = purchase_return_tbl.purchase_order_id', 'left');
+        $this->db->join('users', 'users.id = purchase_order_tbl.created_by', 'left');
+        $this->db->join('vendors_tbl', 'vendors_tbl.vendor_id = purchase_order_tbl.vendor_id', 'left');
+        $this->db->join('locations_tbl', 'locations_tbl.location_id = purchase_order_tbl.location_id', 'left');
+        $this->db->join('sub_locations_tbl','sub_locations_tbl.sub_location_id = purchase_order_tbl.sub_location_id','left');
     
         if (is_array($where)) {
             $this->db->where($where);

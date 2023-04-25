@@ -230,7 +230,7 @@
             </table>
             <table width="100%" class="table table-condensed">
                 <tr class="first_tr">
-                    <td><strong>PURCHASE RETURN NO: # <?=$purchase_return->return_id?></strong></td>
+                    <td><strong>PURCHASE ORDER NO: # <?=$purchase_return->purchase_order_number?></strong></td>
                     <td align="center"> Ordered by: <strong><?= $purchase_return->name ?></strong></td>
                     <td align="right"> <strong><?=Date("m/d/Y", strtotime($purchase_return->created_at))?></strong></td>
                 </tr>
@@ -312,6 +312,8 @@
             <table width="100%" class="table table-condensed main_table" cellspacing="0">
                 <thead>
                     <tr style="background-color:<?=$setting_details->invoice_color?>!important;color: #fff;">
+                        <td class="text-left" style="padding-left: 8px;"><strong>PN_ORDERED</strong></td>
+                        <td class="text-left" style="padding-left: 8px;"><strong>PN_RECEIVED</strong></td>
                         <td class="text-left" style="padding-left: 8px;"><strong>PN_RETURNED</strong></td>
                         <td class="text-left"><strong>ITEM NUMBER</strong></td>
                         <td class="text-left"><strong>ITEM NAME</strong></td>
@@ -331,6 +333,8 @@
                             foreach ($items as $key => $value) {
                     ?>
                     <tr>
+                        <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $value['quantity'] ?></td>
+                        <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $value['received_qty'] ?></td>
                         <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $value['return_qty'] ?></td>
                         <td class="text-left"><?=$value['item_number']?></td>
                         <td class="text-left"><?=$value['name']?></td>
@@ -433,7 +437,7 @@
 
             <table width="100%" class="main_table">
                 <tr>
-                    <td class="text-center"><?=$purchase_return->payment_term?></td>
+                    <td class="text-center"><?=$setting_details->tearm_condition?></td>
                 </tr>
             </table>
 
@@ -441,7 +445,9 @@
 
             <table width="100%" class="main_table">
                 <tr>
-                    <td class="text-left" style="font-size: 14px"><strong style="color:<?=$setting_details->invoice_color?> ;">Sign here to accept purchase order and agree to terms & conditions:</strong>________________________________</td>
+                    <td class="text-left" style="font-size: 14px"><strong
+                            style="color:<?=$setting_details->invoice_color?> ;"><b>Sign here to accept purchase order and
+                                agree to terms & conditions:</b> </strong>________________________________</td>
                 </tr>
             </table>
 
