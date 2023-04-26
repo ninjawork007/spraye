@@ -833,6 +833,7 @@ class Purchases extends MY_Controller{
             );    
     
              $purchase_order_data = $this->PurchasesModel->getOnePurchase($where);
+             $data['purchase_order_invoices'] = $this->PurchasesModel->getPOInvoice(array("purchase_order_id" => $value ));
     
             $data['purchase_order_details'][] = $purchase_order_data;
 

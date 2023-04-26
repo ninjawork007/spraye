@@ -7053,7 +7053,7 @@ class Reports extends MY_Controller {
 
             $cost = 0;
             foreach($AllServicesOfCustomer as $all_services) {
-                if($all_services->job_cost == NULL) {
+                if(isset($all_services->job_cost) && $all_services->job_cost == NULL) {
                     // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
                     $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
                         

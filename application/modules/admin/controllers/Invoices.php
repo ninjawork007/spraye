@@ -5711,13 +5711,25 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             ##### CREATE A NEW REFUND PAYMENT LOG #####
 
             if ($data['payment_method'] == 1) {
-                $check_number = $data['payment_info'];
+                if(isst($data['payment_info'])){
+                    $check_number = $data['payment_info'];
+                }else{
+                    $check_number = $data['refund_note'];
+                }
                 $param['check_number'] = $check_number;
             } else if ($data['payment_method'] == 2 ) {
-                $cc_number = $data['payment_info'];
+                if(isst($data['payment_info'])){
+                    $cc_number = $data['payment_info'];
+                }else{
+                    $cc_number = $data['refund_note'];
+                }
                 $param['cc_number'] = $cc_number;
             } else if ($data['payment_method'] == 0 || $data['payment_method'] == 3) {
-                $other = $data['payment_info'];
+                if(isst($data['payment_info'])){
+                    $other = $data['payment_info'];
+                }else{
+                    $other = $data['refund_note'];
+                }
                 $param['other_note'] = $other;
             } else {
                 $refund_note = $data['refund_note'];

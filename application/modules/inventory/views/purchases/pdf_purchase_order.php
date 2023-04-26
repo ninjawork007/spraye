@@ -325,8 +325,7 @@
                         <td class="text-left"><strong>ITEM NUMBER</strong></td>
                         <td class="text-left"><strong>ITEM NAME</strong></td>
                         <td class="text-right" style="text-align: right; padding-right: 16px;"><strong>UNIT PRICE</strong></td>
-                        <td class="text-center"><strong>EXT PRICE</strong></td>                     
-                        <!-- <td class="text-right" style="display:none;"><strong>TAX %</strong></td> -->
+                        <td class="text-center"><strong>EXT PRICE</strong></td>
                     </tr>
                 </thead>
 
