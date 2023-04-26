@@ -985,6 +985,10 @@ border-color : #fd7e14;
     #suggestion-box2{
         color: #000;
     }
+    .asap_row {
+        background: #FBE9E7 !important;
+        border: 1px solid #FF5722;
+    }
 </style>
 
 <div class="content">
@@ -3196,9 +3200,11 @@ border-color : #fd7e14;
                                     <?php
                                      if (!empty($all_services)) {
 
-                                         foreach ($all_services as $value) {?>
+                                         foreach ($all_services as $value) {
+                                             $asapClass = $value->asap == 1 ? 'asap_row' : '';
+                                             ?>
 
-                                            <tr>
+                                            <tr class="<?=$asapClass?>">
 
                                                 <td><input name='group_id' type='checkbox'
 
@@ -3250,6 +3256,9 @@ border-color : #fd7e14;
                                                             <span class="label label-danger">Canceled</span>
                                                         <?php } else { ?>
                                                             <span class="label label-success">Active</span>
+                                                            <?php if ($value->asap == 1) { ?>
+                                                                <span class="label label-danger">ASAP</span>
+                                                            <?php } ?>
                                                         <?php }
                                                         ?>
                                                         </li>
@@ -3260,6 +3269,13 @@ border-color : #fd7e14;
                                                                     <i class="fa fa-remove position-center"  title="Cancel Service" style="color: #9a9797; size: 16px"></i>
                                                                 </a>
                                                             </li>
+                                                            <?php if ($value->asap == 0) { ?>
+                                                                <li style="display: inline; padding-right: 10px;" >
+                                                                    <a href="#" class="confirm_asap" onclick="markAsAsap(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)" >
+                                                                        <i class="fa fa-level-up position-center"  title="Mark as ASAP" style="color: #9a9797; size: 16px"></i>
+                                                                    </a>
+                                                                </li>
+                                                            <?php } ?>
                                                         <?php } ?>
                                                         </li>
                                                     </ul>
@@ -5486,8 +5502,42 @@ border-color : #fd7e14;
     </div>
   </div>
 </div> 
-<!-- End Cancel Property Modal --> 
- 
+<!-- End Cancel Property Modal -->
+
+<!-- Mark as ASAP -->
+<div class="modal fade" id="modal_asap_service">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title">Mark Service ASAP</h6>
+            </div>
+            <div class="modal-body">
+                <form action="<?= base_url('admin/markAsAsap') ?>" method="POST" enctype="multipart/form-data" id="mark-as-asap-service-form">
+                    <input type="hidden" name="property_id" id="asap_property_id" value="">
+                    <input type="hidden" name="customer_id" id="asap_customer_id" value="">
+                    <input type="hidden" name="program_id" id="asap_program_id" value="">
+                    <input type="hidden" name="job_id" id="asap_job_id" value="">
+                    <input type="hidden" name="original_customer" id="original_customer" value="<?=$customerData['customer_id']?>">
+                    <div class="row" id="reason-div" style="margin-top: 10px;">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <label>Reason:</label>
+                                <input type="text" class="form-control" name="reason">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                <button id="submit-mark-asap" type="submit" class="btn btn-success">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End mark as ASAP Modal -->
+
 <script>
 
     
@@ -7325,6 +7375,13 @@ var notes = <?= print_r(json_encode($combined_notes), TRUE); ?>;
 
 </script>
 <script>
+function markAsAsap(propertyId,customerId,programId,jobId){
+    $('input#asap_property_id').val(propertyId);
+    $('input#asap_customer_id').val(customerId);
+    $('input#asap_program_id').val(programId);
+    $('input#asap_job_id').val(jobId);
+    $('#modal_asap_service').modal('show');
+}
 // handle cancel property
 function cancelService(propertyId,customerId,programId,jobId){
 	$('input#cancel_property_id').val(propertyId);
@@ -7359,7 +7416,13 @@ $('#submit-cancel-property').click(function(e){
 		$('#modal_cancel_service').modal('hide');
 	  }
    });
-});	
+});
+
+$('#submit-mark-asap').click(function(e){
+   e.preventDefault();
+    $('form#mark-as-asap-service-form').submit();
+});
+
 // Select and show Div
 $(document).ready(function(){
     $(".assignservicesedicustumer").hide();

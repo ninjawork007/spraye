@@ -1999,6 +1999,158 @@ class Setting extends MY_Controller
         }
     }
 
+    public function markAsASAP()
+    {
+
+        $data = $this->input->post();
+
+
+        $job_data_csv = json_decode($data['job_data']);
+
+
+
+        if (!isset($job_data_csv) || empty($job_data_csv)) {
+
+            echo json_encode("Please select a service!");
+
+            die();
+        }
+
+
+
+        if (isset($coupon_id) && $coupon_id != '' && $coupon_id != 'REMOVE-ALL') {
+
+
+
+            // ASSIGN COUPON TO SERVICES HERE
+
+            foreach ($job_data_csv as $job) {
+
+
+
+                // customer_id, job_id, program_id, property_id
+
+                $data_arr = array();
+
+                $data_arr[] = str_getcsv($job);
+
+
+
+                $job_customer_id = $data_arr[0][0];
+
+                $job_job_id = $data_arr[0][1];
+
+                $job_program_id = $data_arr[0][2];
+
+                $job_property_id = $data_arr[0][3];
+
+
+
+                $where = array(
+
+                    'coupon_id' => $coupon_id,
+
+                    'job_id' => $job_job_id,
+
+                    'customer_id' => $job_customer_id,
+
+                    'program_id' => $job_program_id,
+
+                    'property_id' => $job_property_id
+
+                );
+
+                $already_exists = $this->CouponModel->getCouponJob($where);
+
+
+
+                if (!$already_exists) {
+
+                    $coupon_data = $this->CouponModel->getOneCoupon(array('coupon_id' => $coupon_id));
+
+
+
+                    $where = array(
+
+                        'coupon_id' => $coupon_id,
+
+                        'job_id' => $job_job_id,
+
+                        'coupon_code' => $coupon_data->code,
+
+                        'coupon_amount' => $coupon_data->amount,
+
+                        'coupon_amount_calculation' => $coupon_data->amount_calculation,
+
+                        'customer_id' => $job_customer_id,
+
+                        'program_id' => $job_program_id,
+
+                        'property_id' => $job_property_id
+
+                    );
+
+                    $result = $this->CouponModel->CreateOneCouponJob($where);
+                }
+            }
+        } else if (isset($coupon_id) && $coupon_id == 'REMOVE-ALL') {
+
+
+
+            // REMOVE ALL COUPONS FROM SERVICES
+
+            foreach ($job_data_csv as $job) {
+
+
+
+                // customer_id, job_id, program_id, property_id
+
+                $data_arr = array();
+
+                $data_arr[] = str_getcsv($job);
+
+
+
+                $job_customer_id = $data_arr[0][0];
+
+                $job_job_id = $data_arr[0][1];
+
+                $job_program_id = $data_arr[0][2];
+
+                $job_property_id = $data_arr[0][3];
+
+
+
+                $where = array(
+
+                    'job_id' => $job_job_id,
+
+                    'customer_id' => $job_customer_id,
+
+                    'program_id' => $job_program_id,
+
+                    'property_id' => $job_property_id
+
+                );
+
+
+
+                $result = $this->CouponModel->DeleteCouponJob($where);
+            }
+        } else {
+
+            echo json_encode("<p>Please select a discount!</p>");
+
+            die();
+        }
+
+
+
+        // echo json_encode($data_arr[0][0]);
+
+        echo 1;
+    }
+
     public function applyCouponData()
     {
 

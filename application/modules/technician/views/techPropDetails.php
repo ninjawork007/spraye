@@ -169,6 +169,12 @@ ul.dropdown-menu li.dropdown-header {
       padding-left:  19px;
       padding-right:   20px;
       }
+  .techmessage-asap {
+      padding-top:  5px;
+      padding-left:  19px;
+      padding-right:   20px;
+      background: #ff4747 !important;
+  }
 .panel-grey {
   background-color: #F5F5F5;
 }
@@ -271,6 +277,11 @@ padding-left: 10px;
 .property-condition-button{
 margin:5px;
 }
+.alert-danger-asap {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
 
 	  
 </style>
@@ -341,6 +352,14 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
         </div>-->
 
     <div class="row">
+        <?php if($job_assign_details[0]['reason']):?>
+            <div class="techmessage">
+                <div class="alert alert-danger-asap">
+                    <strong>ASAP: </strong> <?=$job_assign_details[0]['reason'];?>
+                </div>
+            </div>
+        <?php endif;?>
+
       <div class="techmessage">
          <b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
       </div>

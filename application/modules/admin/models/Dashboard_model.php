@@ -201,6 +201,7 @@ class Dashboard_model extends CI_Model{
         if ($is_for_count){
 
             $select = "jobs.job_id";
+            $this->db->select($select);
         } else {
             // New incoming commit statement
             $this->db->select("
@@ -231,6 +232,7 @@ class Dashboard_model extends CI_Model{
             `property_tbl`.`property_state`,
             `property_tbl`.`property_city`,
             `property_tbl`.`property_zip`,
+            `property_tbl`.`available_days`,
             customers.pre_service_notification,
             `property_tbl`.`tags`,
             `jobs`.`service_note`,
@@ -250,9 +252,20 @@ class Dashboard_model extends CI_Model{
 					tja.is_complete = 1
                     and j.service_type_id = jobs.service_type_id
                     and tja.property_id = property_program_assign.property_id
-            ) as completed_date_last_service_by_type
-        ");
+            ) as completed_date_last_service_by_type,
+            CASE 
+                WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                    THEN 1 
+                    ELSE 0
+                END asap,
+            CASE 
+                WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                    THEN program_job_assigned_customer_property.reason 
+                ELSE '' 
+            END as asap_reason 
+        ", FALSE);
         }
+
         $this->db->from('jobs');
 
 		$this->db->join('program_job_assign','program_job_assign.job_id =jobs.job_id','inner');
@@ -275,7 +288,7 @@ class Dashboard_model extends CI_Model{
         $this->db->join("unassigned_Job_delete", "unassigned_Job_delete.customer_id = customers.customer_id AND unassigned_Job_delete.job_id = jobs.job_id AND unassigned_Job_delete.program_id = programs.program_id AND unassigned_Job_delete.property_id = property_tbl.property_id", "left");
 
         $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
-
+        $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
         // Filtering job name and program services
 
         if (is_array($where_like) && array_key_exists( 'job_name', $where_like )) {
@@ -305,6 +318,14 @@ class Dashboard_model extends CI_Model{
                 unset($where_in['program_services']);
             }
         }
+        if (is_array($where_arr) && array_key_exists( 'program_job_assigned_customer_property', $where_arr)) {
+            $val = $where_arr['program_job_assigned_customer_property'];
+            if ($val == 1)
+                $this->db->where('program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL');
+            else
+                $this->db->where('program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NULL');
+            unset($where_arr['program_job_assigned_customer_property']);
+        }
 		if (is_array($where_arr)) {
 			$this->db->where($where_arr);
 		}
@@ -318,6 +339,13 @@ class Dashboard_model extends CI_Model{
 
         if (is_array($where_in) && array_key_exists( 'category_area_name', $where_in )) {
             $this->db->where_in('category_area_name',$where_in['category_area_name']);
+        }
+        // Available days
+        if (is_array($where_in) && array_key_exists( 'available_days', $where_in)) {
+            foreach($where_in['available_days'] as $day)
+            {
+                $this->db->where('JSON_VALUE(`property_tbl`.`available_days`, "$.'.$day.'" RETURNING UNSIGNED) IS TRUE');
+            }
         }
         /*
         if (!empty($or_where)) {
@@ -341,22 +369,44 @@ class Dashboard_model extends CI_Model{
             // We need to catch the service overdue flag and add to query, and unset the where_like['service_due'] elem,
             //@TODO check if CI has a better way of handling
             if(!empty($where_like['service_due'])){
-                switch ($where_like['service_due']) {
-                    case '2':
-                        $this->db->where("datediff(now(),completed_date_property_program) >= (programs.program_schedule_window + 5)");
-                        break;
+                $this->db->group_start();
+                $servicesDue = $where_like['service_due'];
+                foreach($servicesDue as $due) {
 
-                    case '3':
-                        $this->db->where("datediff(now(),completed_date_property_program) < (programs.program_schedule_window -5)");
-                        break;
+                    switch ($due) {
+                        case '2':
+                            $this->db->or_where("datediff(now(),completed_date_property_program) >= (programs.program_schedule_window + 5)");
+                            break;
 
-                    case '1':
-                        $this->db->where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL)");
-                        break;
+                        case '3':
+                            $this->db->or_where("datediff(now(),completed_date_property_program) < (programs.program_schedule_window -5)");
+                            break;
 
-                    default:
-                        break;
+                        case '1':
+                            $this->db->or_where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL)");
+                            break;
+
+                        default:
+                            break;
+                    }
                 }
+                $this->db->group_end();
+//                switch ($where_like['service_due']) {
+//                    case '2':
+//                        $this->db->where("datediff(now(),completed_date_property_program) >= (programs.program_schedule_window + 5)");
+//                        break;
+//
+//                    case '3':
+//                        $this->db->where("datediff(now(),completed_date_property_program) < (programs.program_schedule_window -5)");
+//                        break;
+//
+//                    case '1':
+//                        $this->db->where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL)");
+//                        break;
+//
+//                    default:
+//                        break;
+//                }
                 unset($where_like['service_due']);
             }
             if(!empty($where_like['pre_service_notification'])){
@@ -776,8 +826,18 @@ class Dashboard_model extends CI_Model{
                         job_id = jobs.job_id AND 
                         program_id = programs.program_id 
                         AND property_id = property_tbl.property_id
-                 ) assign_table_data
-                ");
+                 ) assign_table_data,
+                 CASE 
+                    WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                        THEN 1 
+                        ELSE 0
+                    END asap,
+                 CASE 
+                    WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                        THEN program_job_assigned_customer_property.reason 
+                    ELSE '' 
+                 END as asap_reason 
+                ", FALSE);
         }
 
 
@@ -802,7 +862,7 @@ class Dashboard_model extends CI_Model{
         $this->db->join("unassigned_Job_delete", "unassigned_Job_delete.customer_id = customers.customer_id AND unassigned_Job_delete.job_id = jobs.job_id AND unassigned_Job_delete.program_id = programs.program_id AND unassigned_Job_delete.property_id = property_tbl.property_id", "left");
         $this->db->join('users technician', 'technician.user_id = technician_job_assign.technician_id', 'left');
         $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
-
+        $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
 
         if (is_array($where_like) && array_key_exists( 'job_name', $where_like )) {
             $this->db->where_in( 'job_name', $where_in['job_name'] );
@@ -1105,8 +1165,18 @@ class Dashboard_model extends CI_Model{
             jobs.job_price,
             coupon_amount,
             jobs.base_fee_override,
-            jobs.min_fee_override
-        ");
+            jobs.min_fee_override,
+            CASE 
+                WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                    THEN 1 
+                    ELSE 0
+                END asap,
+            CASE 
+                WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                    THEN program_job_assigned_customer_property.reason 
+                ELSE '' 
+            END as asap_reason 
+        ", FALSE);
         $this->db->from('jobs');
         $this->db->join('program_job_assign','program_job_assign.job_id =jobs.job_id','inner');
         $this->db->join('property_program_assign','property_program_assign.program_id = program_job_assign.program_id','inner');
@@ -1122,7 +1192,7 @@ class Dashboard_model extends CI_Model{
         $this->db->join('t_estimate ', 'customer_property_assign.customer_id =  t_estimate.customer_id AND property_program_assign.program_id = t_estimate.program_id AND property_tbl.property_id = t_estimate.property_id', 'left');
         $this->db->join('users sales_rep', 'sales_rep.id = t_estimate.sales_rep', 'left');
         //$this->db->join('program_service_property_price_overrides psp', 'psp.property_id = property_tbl.property_id and psp.program_id = programs.program_id and psp.job_id = jobs.job_id' , 'left');
-
+        $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
@@ -1931,7 +2001,7 @@ class Dashboard_model extends CI_Model{
              ) assign_table_data,   
              property_program_assign.property_program_date,
              technician.user_first_name,
-             technician.user_last_name,             
+             technician.user_last_name,
              (
                 SELECT
                     MAX(job_completed_date) AS completed_date_last_service_by_type
@@ -1955,13 +2025,23 @@ class Dashboard_model extends CI_Model{
             CASE WHEN datediff(now(), (
 	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
             )) >= (IFNULL(programs.program_schedule_window, 30)+ 5) THEN 'Overdue' WHEN datediff(now(), 
-            ( SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id)) < (IFNULL(programs.program_schedule_window, 30) - 5)  THEN 'Not Due' ELSE 'Due' END as service_due
+            ( SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id)) < (IFNULL(programs.program_schedule_window, 30) - 5)  THEN 'Not Due' ELSE 'Due' END as service_due,
+            CASE 
+                WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                    THEN 1 
+                    ELSE 0
+                END asap,
+            CASE 
+                WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                    THEN program_job_assigned_customer_property.reason 
+                ELSE '' 
+            END as asap_reason 
             ";
 
 
         }
 
-        $this->db->select($select);
+        $this->db->select($select, FALSE);
         $this->db->from('jobs');
 
         $this->db->join('program_job_assign','program_job_assign.job_id =jobs.job_id','inner');
@@ -1984,6 +2064,7 @@ class Dashboard_model extends CI_Model{
         $this->db->join("unassigned_Job_delete", "unassigned_Job_delete.customer_id = customers.customer_id AND unassigned_Job_delete.job_id = jobs.job_id AND unassigned_Job_delete.program_id = programs.program_id AND unassigned_Job_delete.property_id = property_tbl.property_id", "left");
         $this->db->join('users technician', 'technician.user_id = technician_job_assign.technician_id', 'left');
         $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
+        $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
 
 
 
@@ -2014,10 +2095,16 @@ class Dashboard_model extends CI_Model{
                 unset($where_in['program_services']);
             }
         }
-
-        // die(print_r($where_in));
         if (is_array($where_in) && array_key_exists( 'category_area_name', $where_in )) {
             $this->db->where_in('category_area_name',$where_in['category_area_name']);
+        }
+        if (is_array($where_arr) && array_key_exists( 'program_job_assigned_customer_property', $where_arr)) {
+            $val = $where_arr['program_job_assigned_customer_property'];
+            if ($val == 1)
+                $this->db->where('program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL');
+            else
+                $this->db->where('program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NULL');
+            unset($where_arr['program_job_assigned_customer_property']);
         }
 
         // Available days
