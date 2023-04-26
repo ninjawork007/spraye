@@ -349,6 +349,12 @@ opacity: 1;
                                         <option>Mixed Grass</option>
                                     </select>
                                 </div>
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label>how many services have been completed</label>
+                                    <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -472,6 +478,7 @@ function searchFilter() {
 
     var front_yard_grass = $("#front_yard_grass").val();
     var back_yard_grass = $("#back_yard_grass").val();
+    var serviceCompleted = $("#serviceCompleted").val();
 
     var customer_status = $('#customer_status').val();
     var estimate_accpeted = $('#estimate_accpeted').val();
@@ -543,7 +550,8 @@ function searchFilter() {
             '&all_pre_service='+all_pre_service+
             '&all_outstanding='+all_outstanding+
             '&front_yard_grass='+front_yard_grass+
-            '&back_yard_grass='+back_yard_grass
+            '&back_yard_grass='+back_yard_grass+
+            '&serviceCompleted='+serviceCompleted
         ,
         success: function (html) {
             $(".loading").css("display", "none");
