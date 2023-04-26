@@ -1,5 +1,4 @@
 # Following Artists, Playlists, and Users
-
 A Spotify user can follow artists, playlists, and users. The API contains methods for all of this functionality.
 
 ## Following an artist or user
@@ -25,13 +24,13 @@ var_dump($following);
 ## Following a playlist
 
 ```php
-$api->followPlaylist('PLAYLIST_ID');
+$api->followPlaylist('USER_ID', 'PLAYLIST_ID');
 ```
 
 ## Unfollowing a playlist
 
 ```php
-$api->unfollowPlaylist('PLAYLIST_ID');
+$api->unfollowPlaylist('USER_ID', 'PLAYLIST_ID');
 ```
 
 ## Checking if user(s) are following a playlist
@@ -42,7 +41,7 @@ $users = [
     'USER_2',
 ];
 
-$api->usersFollowsPlaylist('PLAYLIST_ID', [
+$api->userFollowsPlaylist('OWNER_ID', 'PLAYLIST_ID', [
     'ids' => $users,
 ]);
 ```

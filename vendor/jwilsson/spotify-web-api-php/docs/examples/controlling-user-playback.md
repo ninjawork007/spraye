@@ -2,17 +2,6 @@
 
 Using Spotify Connect, it's possible to control the playback of the currently authenticated user.
 
-## Getting user devices
-
-The `SpotifyWebAPI::getMyDevices()` method can be used to list out a user's devices.
-
-```php
-// Get the Devices
-$api->getMyDevices();
-```
-
-It is worth noting that if all devices have `is_active` set to `false` then using `SpotifyWebApi::play()` will fail.
-
 ## Start and stop playback
 ```php
 // With Device ID
@@ -35,24 +24,9 @@ $api->previous();
 $api->next();
 ```
 
-## Adding a track to the queue
-```php
-$api->queue('TRACK_ID');
-```
-
-## Get info about the queue
-```php
-$api->getMyQueue();
-```
-
 ## Get the currently playing track
 ```php
 $api->getMyCurrentTrack();
-```
-
-## Get info about the current playback
-```php
-$api->getMyCurrentPlaybackInfo();
 ```
 
 ## Move to a specific position in a track
@@ -95,10 +69,8 @@ try {
         }
     }
 } catch (Exception $e) {
-    $reason = $e->getReason();
-
-    // Check the reason for the failure and handle the error
+    // Handle the error
 }
 ```
 
-Read more about working with Spotify Connect in the [Spotify API docs](https://developer.spotify.com/documentation/web-api/guides/using-connect-web-api/).
+Read more about working with Spotify Connect in the [Spotify API docs](https://developer.spotify.com/web-api/working-with-connect/).

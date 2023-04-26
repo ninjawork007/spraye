@@ -948,8 +948,11 @@ class DataService
             return $responseBody;
         } else {
             $this->lastError = false;
-            
-            return $this->processDownloadedContent(new ContentWriter($responseBody), $responseCode, $dir, $this->getExportFileNameForPDF($entity, "pdf"));
+
+            if($raw)
+                return $responseBody;
+
+            return $this->processDownloadedContent(new ContentWriter($responseBody), $responseCode, $this->getExportFileNameForPDF($entity, "pdf"), $dir);
         }
     }
 
@@ -1664,7 +1667,7 @@ class DataService
      * @param string $fileName
      * @return mixed full path with filename or open handler
      */
-    protected function processDownloadedContent(ContentWriter $writer, $responseCode, $dir, $fileName = null)
+    protected function processDownloadedContent(ContentWriter $writer, $responseCode, $fileName = null, $dir)
     {
         $writer->setPrefix($this->getPrefixFromSettings());
         try {
