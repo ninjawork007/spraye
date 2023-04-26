@@ -742,8 +742,10 @@ class Admin extends MY_Controller
             15 => 'program_name',
             16 => 'reschedule_message',
             17 => 'tags',
-            18 => 'action',
-            19 => 'program_services'
+            18 => 'asap_reason',
+            19 => 'available_days',
+            20 => 'action',
+            21 => 'program_services'
         );
 
         $limit = $this->input->post('length');
@@ -839,7 +841,22 @@ class Admin extends MY_Controller
                         }
 
                         // $dbg = explode(',', $val);
-                    } else if ($colm_num == 19) {
+                    } else if( $colm_num == 18)	{
+                        $col = 'program_job_assigned_customer_property';
+                        $val = $column['search']['value'];
+                        $where[$col] = $val;
+                    } else if( $colm_num == 19)	{
+                        // Available Days filtering
+                        $col = 'available_days';
+                        $val = $column['search']['value'];
+                        if (strpos($column['search']['value'], ',') !== false){
+                            $where_in[$col]  = explode(',',$val);
+                        } else {
+                            //$where_in[$col] = $val;
+                            $where_in[$col] = explode(',',$val);
+                        }
+
+                    } else if ($colm_num == 21) {
                         $col = 'program_services';
                         $val = $column['search']['value'];
                         if (strpos($column['search']['value'], ',') !== false) {
@@ -848,6 +865,12 @@ class Admin extends MY_Controller
                             $where[$col] = $val;
                         }
 
+                        // $dbg = explode(',', $val);
+                    } else if ($colm_num == 10) {
+                        $col = 'service_due';
+                        $val = $column['search']['value'];
+
+                        $where_like[$col] = explode(',', $val);
                         // $dbg = explode(',', $val);
                     } else {
                         $col = $column['data'];
@@ -897,12 +920,12 @@ class Admin extends MY_Controller
 
         */ //-----------------------------------------------------------------------------------
 
-
+        $start_time = microtime(true);
         //-------------------------------------------------------------------------------
         if (empty($this->input->post('search')['value'])) {
-            $file = fopen("test.txt","w");
-            fwrite($file,"We are inside getTableDataAjax function");
-            fclose($file);
+//            $file = fopen("test.txt","w");
+//            fwrite($file,"We are inside getTableDataAjax function");
+//            fclose($file);
 
 
             if ( isset($where['program_services'])  || (isset($where_like['program_services']) && is_array($where_like['program_services']))){
@@ -948,10 +971,7 @@ class Admin extends MY_Controller
         //---------------------------------------------------------------------------------
         //  $var_last_query = $this->db->last_query ();
 
-
-
         if (!empty($tempdata)) {
-			//die(print_r(count($tempdata)));
             $i = 0;
 
             $property_id_array = array();
@@ -1026,11 +1046,15 @@ class Admin extends MY_Controller
                 $IsCustomerInHold=1;
                 }
                 }
+
+                $asapHighligth = 0;
+                if ($value->asap == 1)
+                    $asapHighligth = 1;
                 if($IsCustomerInHold==0){  //print_r($data);die();
-                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox map' />";
+                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox map' />";
                 }
                 else {
-                $data[$i]['checkbox'] ="<input title='Customer Account On Hold'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox customer_in_hold' />";
+                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-row-asap='$asapHighligth' name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox customer_in_hold' />";
                 }
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' class='myCheckBox map' />";
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' value='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' data-iter=$i class='myCheckBox' />";
@@ -1047,6 +1071,8 @@ class Admin extends MY_Controller
                 $data[$i]['last_program_service_date'] = isset($value->completed_date_property_program) && $value->completed_date_property_program != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_property_program)) : '';
                 $data[$i]['completed_date_last_service_by_type'] = isset($value->completed_date_last_service_by_type) && $value->completed_date_last_service_by_type != '0000-00-00' ? date('m-d-Y', strtotime($value->completed_date_last_service_by_type)) : '';
                 $data[$i]['last_program_service_date'] = $value->completed_date_property_program;
+                $data[$i]['asap'] = $value->asap;
+                $data[$i]['asap_reason'] = $value->asap_reason;
                 //service due styling for datatable rendering
                 switch ($value->service_due) {
                     case "Due":
@@ -1127,6 +1153,9 @@ class Admin extends MY_Controller
                 $data[$i]['index'] = $i;
                 $data[$i]['lat'] = $value->property_latitude;
                 $data[$i]['lng'] = $value->property_longitude;
+                // Available days
+                $available_days = formatAvailableDays($value->available_days);
+                $data[$i]['available_days'] = implode(", ", $available_days);
                 // easy way to console log out
                 // $data[$i]['note'] = json_encode($_POST);
                 // $data[$i]['note'] = json_encode($this->input->post('columns')[1]['search']['value']);
@@ -1956,6 +1985,8 @@ class Admin extends MY_Controller
 		}
 		$data['filter_tags'] .='</select>';
         // die(print_r($data['all_jobs']));
+        // Available days for filter list
+        $data['available_days_list'] = availableDaysArrayForTableFilter();
         // die(print_r($data['service_list']));
         $page["page_content"] = $this->load->view("admin/assign_job_map", $data, TRUE);
         //$page["page_content"] = $this->load->view("admin/assign_job_clone", $data, TRUE);
@@ -13169,6 +13200,33 @@ class Admin extends MY_Controller
         }
     }
 
+    public function markAsAsap()
+    {
+        $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
+
+        $data = $this->input->post();
+        $property_id = $data['property_id'];
+        $customer_id = $data['customer_id'];
+        $reason= $data['reason'];
+        $originalCustomer = $data['original_customer'];
+
+
+        $param2 = array(
+            'customer_id' => $customer_id,
+            'property_id' => $property_id,
+            'program_id' => $data['program_id'],
+            'job_id' => $data['job_id'],
+            'reason' => $reason,
+        );
+
+        if ($this->PJACPM->createProgramJobAssignedCustomerProperty($param2)) {
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Service </strong> marked as ASAP successfully</div>');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Something </strong> went wrong</div>');
+        }
+        redirect("/admin/editCustomer/".$originalCustomer);
+
+    }
     public function calculateInvoiceCouponValue($param){
         $total_cost = $param['cost'];
         $coupon_invoices = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $param['invoice_id']));
@@ -13426,9 +13484,10 @@ class Admin extends MY_Controller
             16 => 'program_name',
             17 => 'reschedule_message',
             18 => 'tags',
-            19 => 'available_days',
-            20 => 'action',
-            21 => 'program_services'
+            19 => 'asap_reason',
+            20 => 'available_days',
+            21 => 'action',
+            22 => 'program_services'
         );
 
         $limit = $this->input->post('length');
@@ -13468,16 +13527,31 @@ class Admin extends MY_Controller
                         }
 
                         // $dbg = explode(',', $val);	
-                    } else if( $colm_num == 21)	{
+                    } else if( $colm_num == 19)	{
+                         $col = 'program_job_assigned_customer_property';
+                         $val = $column['search']['value'];
+                         $where[$col] = $val;
+                     } else if( $colm_num == 22)	{
                         $col = 'program_services';
+                        $val = $column['search']['value'];
+                        if (strpos($column['search']['value'], ',') !== false){
+                            $where_like[$col]  = explode(',',$val);
+                        } else {
+                            $where[$col] =  $val;
+                        }
+
+                        // $dbg = explode(',', $val);
+                    } else if( $colm_num == 15)	{
+                        $col = 'category_area_name';
                         $val = $column['search']['value'];
                         if (strpos($column['search']['value'], ',') !== false){
                             $where_in[$col]  = explode(',',$val);
                         } else {
-                            $where_in[$col] =  $val;
+                            $where[$col] =  $val;
                         }
 
-                     } else if( $colm_num == 19)	{
+                        // $dbg = explode(',', $val);
+                     } else if( $colm_num == 20)	{
                         // Available Days filtering
                          $col = 'available_days';
                          $val = $column['search']['value'];
@@ -13630,11 +13704,15 @@ class Admin extends MY_Controller
                 $IsCustomerInHold=1;
                 }
                 }
+                $asapHighligth = 0;
+                if ($value->asap == 1)
+                    $asapHighligth = 1;
+
                 if($IsCustomerInHold==0){  //print_r($data);die();
-                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox map' />";
+                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox map' />";
                 }
                 else {
-                $data[$i]['checkbox'] ="<input title='Customer Account On Hold'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox customer_in_hold' />";
+                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-row-asap='$asapHighligth'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox customer_in_hold' />";
                 }
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' class='myCheckBox map' />";
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' value='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' data-iter=$i class='myCheckBox' />";
@@ -13691,6 +13769,8 @@ class Admin extends MY_Controller
                 $data[$i]['program'] = $value->program_name;
                 $data[$i]['program_services'] = isset($value->program_services)?$value->program_services:array();
                 $data[$i]['reschedule_message'] = $value->reschedule_message;
+                $data[$i]['asap'] = $value->asap;
+                $data[$i]['asap_reason'] = $value->asap_reason;
                 $tags_list="";
                 $tags_list_array=[];
                     if($value->tags!=null && !empty($value->tags))
