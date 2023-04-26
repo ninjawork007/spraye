@@ -272,7 +272,12 @@
                      <td align="center"><strong>PURCHASE ORDER NO: #<br><?=$value->purchase_order_number?></strong></td>
                     <td align="center"> <strong>ORDER DATE <br><?=Date("m/d/Y", strtotime($value->created_at))?></strong></td>
                     <td align="center"><strong>ORDERED BY <br><?= $value->name ?></strong></td>
-                    <td align="center"> <strong>ORDER DATE <br> <?=Date("m/d/Y", strtotime($value->ordered_date))?></strong></td>
+                    <td align="center"> <strong>ORDER DATE <br>
+                        <?php
+                        if($value->ordered_date != "" && $value->ordered_date != null && $value->ordered_date != "0000-00-00"){
+                            echo date("m/d/Y", strtotime($value->ordered_date));
+                        }?>
+                    </strong></td>
                 </tr>
             </table>
             <table width="100%" class="table table-condensed" style="margin-bottom: 20px;">
