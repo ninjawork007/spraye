@@ -9048,7 +9048,7 @@ class Reports extends MY_Controller {
 
             
 
-            if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != null){
+            if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
                 $ExploseSoldService = explode(",", $this->input->post('serviceSoldNotNow'));
                 $ServiceSoldShowCustomer = 0;
 
