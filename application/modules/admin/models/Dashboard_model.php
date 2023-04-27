@@ -2458,4 +2458,30 @@ class Dashboard_model extends CI_Model{
         return $data;
     }
 
+
+
+
+
+    public function getCustomerAllServicesForReport($where_arr = '') {
+        $this->db->select("
+            jobs.job_id,
+            is_job_mode
+        ", FALSE);
+        $this->db->from('jobs');
+        $this->db->join('program_job_assign','program_job_assign.job_id =jobs.job_id','inner');
+        $this->db->join('property_program_assign','property_program_assign.program_id = program_job_assign.program_id','inner');
+        $this->db->join('property_tbl','property_tbl.property_id = property_program_assign.property_id','inner');
+        $this->db->join('programs','programs.program_id = property_program_assign.program_id','inner');
+        $this->db->join('customer_property_assign','customer_property_assign.property_id = property_program_assign.property_id ','inner');
+        $this->db->join('customers','customer_property_assign.customer_id = customers.customer_id ','inner');
+        $this->db->join('technician_job_assign', 'jobs.job_id = technician_job_assign.job_id AND customers.customer_id = technician_job_assign.customer_id AND programs.program_id = technician_job_assign.program_id AND property_tbl.property_id = technician_job_assign.property_id', 'left');
+
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+
 }

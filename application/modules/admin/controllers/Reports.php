@@ -9030,23 +9030,21 @@ class Reports extends MY_Controller {
 		#not seeing specific role for sales rep so getting all users 
 		$report_data = array();
         foreach($data['customers'] as $customer) {
-            $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
-
-            $TotalServiceCompleted = 0;
-
-            foreach($ServicesByCustomer as $SBC){
-                if($SBC->is_job_mode == 1){
-                    $TotalServiceCompleted++;
-                }
-            }
-
             if($HowManyServiceCompleted != ""){
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
+
+                $TotalServiceCompleted = 0;
+
+                foreach($ServicesByCustomer as $SBC){
+                    if($SBC->is_job_mode == 1){
+                        $TotalServiceCompleted++;
+                    }
+                }
+
                 if($HowManyServiceCompleted > $TotalServiceCompleted){
                     continue;
                 }
             }
-
-            
 
             if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
                 $ExploseSoldService = explode(",", $this->input->post('serviceSoldNotNow'));
