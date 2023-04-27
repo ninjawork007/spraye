@@ -3205,30 +3205,15 @@ border-color : #fd7e14;
                                              ?>
 
                                             <tr class="<?=$asapClass?>">
-
-                                                <td><input name='group_id' type='checkbox'
-
-                                                        value="<?php echo $value->customer_id .",". $value->job_id .",". $value->program_id .",". $value->property_id ?>"
-
-                                                        class='myCheckBox' /></td>
-
+                                                <td><input name='group_id' type='checkbox' value="<?php echo $value->customer_id .",". $value->job_id .",". $value->program_id .",". $value->property_id ?>" class='myCheckBox' /></td>
                                                 <td><?= $value->user_first_name.' '.$value->user_last_name; ?></td>
-
                                                 <td><?=$value->job_name; ?></td>
-
-                                                <td><?php if(isset($value->job_assign_date)){ echo date('m-d-Y', strtotime($value->job_assign_date));} ?>
-
-                                                </td>
-
+                                                <td><?php if(isset($value->job_assign_date)){ echo date('m-d-Y', strtotime($value->job_assign_date));} ?></td>
                                                 <td><?= $value->property_address ?></td>
-
                                                 <td><?php if(isset($value->category_area_name)){ echo $value->category_area_name; } else { echo 'None'; } ?></td>
-
                                                 <td><?=$value->program_name ?></td>
                                                 <td><?=$value->job_cost ?></td>
-
                                                 <td>
-
                                                     <?php
                                                           switch ($value->is_job_mode) {
                                                             case 0:
@@ -3247,7 +3232,6 @@ border-color : #fd7e14;
                                                      ?>
                                                 </td>
                                                 <td><?php if(isset($value->sales_rep_name)){ echo $value->sales_rep_name; } ?></td>
-
                                                 <td><?= $value->coupon_code_csv ?></td>
                                                 <td class="table-action">
                                                     <ul style="list-style-type: none; padding-left: 0px;">

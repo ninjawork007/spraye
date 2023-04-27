@@ -777,11 +777,12 @@ class Invoice_model extends CI_Model{
     }
 	public function getAllInvoicesReport($where_arr = '') {
 
-        $this->db->select('invoice_tbl.*,invoice_sales_tax.tax_name,invoice_sales_tax.tax_value,invoice_sales_tax.tax_amount,property_tbl.property_area');
+        $this->db->select('invoice_tbl.*,invoice_sales_tax.tax_name,invoice_sales_tax.tax_value,invoice_sales_tax.tax_amount,property_tbl.property_area, users.user_first_name, users.user_last_name');
 
         $this->db->from(self::INVTBL);
         $this->db->join('invoice_sales_tax', 'invoice_tbl.invoice_id = invoice_sales_tax.invoice_id', 'left');
 		$this->db->join('property_tbl', 'invoice_tbl.property_id = property_tbl.property_id', 'left');
+        $this->db->join('users', 'invoice_tbl.credit_given_user = users.id', 'left');
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);

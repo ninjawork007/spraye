@@ -252,6 +252,7 @@ class Customers extends MY_Controller {
 			$invoice_data['payment_method'] = $PaymentMethodNumber;
 			$invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
 			$invoice_data['is_created'] =  1;
+			$invoice_data['credit_given_user'] =  $this->session->userdata['id'];
 			$invoice_data['notes'] = $invoice_data['description'] = "Adding {$CreditAmount} Credit to customer's account";
 
 			$invoice_id = $this->INV->createOneInvoice($invoice_data);
@@ -575,6 +576,7 @@ class Customers extends MY_Controller {
 					$invoice_data['status'] = 0;
 					$invoice_data['is_credit'] = 1;
 					$invoice_data['is_archived'] = 1;
+					$invoice_data['credit_given_user'] =  $this->session->userdata['id'];
 					$invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
 					$invoice_data['is_created'] =  1;
 					$invoice_data['notes'] = $invoice_data['description'] = "Adding {$CreditAmount} Credit to customer's account";

@@ -9373,6 +9373,7 @@ class Technician extends MY_Controller {
             $invoice_data['is_archived'] = 1;
             $invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
             $invoice_data['is_created'] =  1;
+            $invoice_data['credit_given_user'] =  $this->session->userdata['id'];
 
             $invoice_data['responsible_party'] =  implode(",", $data["responsible_party"]);
             $invoice_data['credit_notes'] = $data["credit_notes"];

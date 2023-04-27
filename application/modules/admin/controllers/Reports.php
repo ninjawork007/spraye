@@ -9012,6 +9012,8 @@ class Reports extends MY_Controller {
         $filters_array["front_yard_grass"] = $this->input->post('front_yard_grass');
         $filters_array["back_yard_grass"] = $this->input->post('back_yard_grass');
 
+        $HowManyServiceCompleted = $this->input->post('serviceCompleted');
+
         
 		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
@@ -9028,6 +9030,40 @@ class Reports extends MY_Controller {
 		#not seeing specific role for sales rep so getting all users 
 		$report_data = array();
         foreach($data['customers'] as $customer) {
+            $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
+
+            $TotalServiceCompleted = 0;
+
+            foreach($ServicesByCustomer as $SBC){
+                if($SBC->is_job_mode == 1){
+                    $TotalServiceCompleted++;
+                }
+            }
+
+            if($HowManyServiceCompleted != ""){
+                if($HowManyServiceCompleted > $TotalServiceCompleted){
+                    continue;
+                }
+            }
+
+            
+
+            if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != null){
+                $ExploseSoldService = explode(",", $this->input->post('serviceSoldNotNow'));
+                $ServiceSoldShowCustomer = 0;
+
+                foreach($ExploseSoldService as $ESS){
+                    $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id, 'jobs.job_id' => $ESS, "job_assign_date >=" => $this->input->post('ServiceSoldNotNowStart'), "job_assign_date <=" => $this->input->post('ServiceSoldNotNowEnd')));
+                    if(count($ServicesByCustomer) == 0){
+                        $ServiceSoldShowCustomer = 1;
+                    }
+                }
+
+                if($ServiceSoldShowCustomer == 0){
+                    continue;
+                }
+            }
+
             //var_dump(memory_get_usage());
             $data['customer_properties_data'] = $this->PropertyModel->getAllCustomerPropertiesMarketing($customer->customer_id);
             // this needs to be set to blank at the top of every customer loop
@@ -9212,7 +9248,6 @@ class Reports extends MY_Controller {
             unset($customer_work_phone);
             unset($customer_number_link);
         }
-		
         
 		$data['report_details'] = $report_data;
 		$body =  $this->load->view('admin/report/ajax_marketing_customer_data_report', $data, false);

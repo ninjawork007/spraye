@@ -235,8 +235,8 @@
                     <td align="center"><strong>ORDERED BY <br><?= $purchase_order->name ?></strong></td>
                     <td align="center"> <strong>ORDER DATE <br>
                         <?php
-                        if($value->ordered_date != "" && $value->ordered_date != null && $value->ordered_date != "0000-00-00"){
-                            echo date("m/d/Y", strtotime($value->ordered_date));
+                        if($purchase_order->ordered_date != "" && $purchase_order->ordered_date != null && $purchase_order->ordered_date != "0000-00-00"){
+                            echo date("m/d/Y", strtotime($purchase_order->ordered_date));
                         }?>
                     </strong></td>
                 </tr>

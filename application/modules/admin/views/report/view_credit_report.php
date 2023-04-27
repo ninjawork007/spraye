@@ -51,6 +51,7 @@
 				<tr>
 					<th>Customer</th>
 					<th>Date</th>
+					<th>User</th>
 					<th>Amount</th>
 					<th>Payment Type</th>
 					<th>Note</th>
@@ -73,6 +74,7 @@
 				<tr>
 					<td><?php echo $CustomerData->first_name. " " . $CustomerData->last_name ?></td>
 					<td><?php echo date("d F, Y", strtotime($Invs->invoice_created)) ?></td>
+					<td><?php echo $Invs->user_first_name. " " . $Invs->user_last_name ?></td>
 					<td><?php echo $Invs->credit_amount ?></td>
 					<td>
 						<?php 

@@ -387,6 +387,22 @@
 										<input type="text" id="place_of_destination" name="place_of_destination" class="form-control" value="<?= $new_purchase[0]->place_of_destination ?>"/>
 									</div>
 								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="place_of_destination" class="d-block">Paid File</label>
+										<?php
+										if($new_purchase[0]->paid_attachment != ""){
+										?>
+											<a href="<?php echo base_url() ?>uploads/po_attachments/<?= $new_purchase[0]->paid_attachment ?>">View</a>
+										<?php
+										}else{
+											echo "No file uploaded yet";
+										}
+										?>
+									</div>
+								</div>
+
 							</div>
 							<div class="row mt-n3">
 								<!-- Left -->

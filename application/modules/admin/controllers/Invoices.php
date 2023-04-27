@@ -2686,6 +2686,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             $payment_note = $data['payment_info'];
                         }
 
+                        $result = $this->PaymentLogModel->createLogRecord(array(
+                            'invoice_id' => $invoice_details->invoice_id,
+                            'user_id' => $this->session->userdata['user_id'],
+                            'action' => "Payment Added ".$over_all_due - $total_invoice_partial_logs
+                        ));
+
                         $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                             'invoice_id' => $invoice_details->invoice_id,
                             'payment_amount' => $over_all_due - $total_invoice_partial_logs,
@@ -2724,6 +2730,12 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         } else {
                             $payment_note = $data['payment_info'];
                         }
+
+                        $result = $this->PaymentLogModel->createLogRecord(array(
+                            'invoice_id' => $invoice_details->invoice_id,
+                            'user_id' => $this->session->userdata['user_id'],
+                            'action' => "Payment Added ".$data['new_partial_payment']
+                        ));
 
                         $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                             'invoice_id' => $invoice_details->invoice_id,

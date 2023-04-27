@@ -354,6 +354,31 @@ opacity: 1;
                                     <label>how many services have been completed</label>
                                     <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
                                 </div>
+                            </div>
+                            <div class="row mt-15">
+                                <div class="col-md-4 multi-select-full">
+                                    <label>Service Sold During Year Do not have now</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="serviceSoldNotNow[]" id="serviceSoldNotNow" multiple="multiple">
+                                        <?php $already_used_job_names = array(); ?>
+                                        <?php foreach ($outstanding_services as $outstanding): ?>
+                                            <?php  
+                                                // do some logic so we dont get any repeated names
+                                                if(!in_array($outstanding->job_name, $already_used_job_names)) {
+                                                    $already_used_job_names[] = $outstanding->job_name;
+                                            ?>
+                                            <option value="<?= $outstanding->job_id ?>"> <?= $outstanding->job_name ?> </option>
+                                            <?php } ?>
+                                        <?php endforeach ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Service Check Start Date</label>
+                                    <input type="date" id="ServiceSoldNotNowStart" name="ServiceSoldNotNowStart" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Service Check End Date</label>
+                                    <input type="date" id="ServiceSoldNotNowEnd" name="ServiceSoldNotNowEnd" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                </div>
 
                             </div>
                         </div>
@@ -478,6 +503,9 @@ function searchFilter() {
 
     var front_yard_grass = $("#front_yard_grass").val();
     var back_yard_grass = $("#back_yard_grass").val();
+    var serviceSoldNotNow = $("#serviceSoldNotNow").val();
+    var ServiceSoldNotNowStart = $("#ServiceSoldNotNowStart").val();
+    var ServiceSoldNotNowEnd = $("#ServiceSoldNotNowEnd").val();
     var serviceCompleted = $("#serviceCompleted").val();
 
     var customer_status = $('#customer_status').val();
@@ -551,7 +579,10 @@ function searchFilter() {
             '&all_outstanding='+all_outstanding+
             '&front_yard_grass='+front_yard_grass+
             '&back_yard_grass='+back_yard_grass+
-            '&serviceCompleted='+serviceCompleted
+            '&serviceCompleted='+serviceCompleted+
+            '&serviceSoldNotNow='+serviceSoldNotNow+
+            '&ServiceSoldNotNowStart='+ServiceSoldNotNowStart+
+            '&ServiceSoldNotNowEnd='+ServiceSoldNotNowEnd
         ,
         success: function (html) {
             $(".loading").css("display", "none");
