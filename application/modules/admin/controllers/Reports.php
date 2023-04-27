@@ -9030,7 +9030,7 @@ class Reports extends MY_Controller {
 		#not seeing specific role for sales rep so getting all users 
 		$report_data = array();
         foreach($data['customers'] as $customer) {
-            /*if($HowManyServiceCompleted != ""){
+            if($HowManyServiceCompleted != ""){
                 $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
 
                 $TotalServiceCompleted = 0;
@@ -9060,7 +9060,7 @@ class Reports extends MY_Controller {
                 if($ServiceSoldShowCustomer == 0){
                     continue;
                 }
-            }*/
+            }
 
             //var_dump(memory_get_usage());
             $data['customer_properties_data'] = $this->PropertyModel->getAllCustomerPropertiesMarketing($customer->customer_id);
@@ -9077,6 +9077,7 @@ class Reports extends MY_Controller {
             $invoices_to_be_checked = $ids_already_checked = array();
             $got_rid_of_all_properties = true;
             $filters_set = false;
+
             foreach($filters_array as $fa) {
                 if(is_array($fa)) {
                     if($fa[0] != "null" && $fa[0] != "" && $fa[0] != null && $fa[0] != "false" && $fa[0] != false ) {
@@ -9224,7 +9225,7 @@ class Reports extends MY_Controller {
                     'lot_size' => $lot_size,
                     'annual_revenue_per_1000' => $annual_per_1000
                 );
-            } 
+            }
             unset($properties_still_going);
             unset($invocies_for_this_customer);
             unset($lot_size);
