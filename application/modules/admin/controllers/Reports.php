@@ -9030,7 +9030,7 @@ class Reports extends MY_Controller {
 		#not seeing specific role for sales rep so getting all users 
 		$report_data = array();
         foreach($data['customers'] as $customer) {
-            if($HowManyServiceCompleted != ""){
+            /*if($HowManyServiceCompleted != ""){
                 $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
 
                 $TotalServiceCompleted = 0;
@@ -9051,7 +9051,7 @@ class Reports extends MY_Controller {
                 $ServiceSoldShowCustomer = 0;
 
                 foreach($ExploseSoldService as $ESS){
-                    $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id, 'jobs.job_id' => $ESS, "job_assign_date >=" => $this->input->post('ServiceSoldNotNowStart'), "job_assign_date <=" => $this->input->post('ServiceSoldNotNowEnd')));
+                    $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id, 'jobs.job_id' => $ESS, "job_assign_date >=" => $this->input->post('ServiceSoldNotNowStart'), "job_assign_date <=" => $this->input->post('ServiceSoldNotNowEnd')));
                     if(count($ServicesByCustomer) == 0){
                         $ServiceSoldShowCustomer = 1;
                     }
@@ -9060,7 +9060,7 @@ class Reports extends MY_Controller {
                 if($ServiceSoldShowCustomer == 0){
                     continue;
                 }
-            }
+            }*/
 
             //var_dump(memory_get_usage());
             $data['customer_properties_data'] = $this->PropertyModel->getAllCustomerPropertiesMarketing($customer->customer_id);
