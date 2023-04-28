@@ -400,7 +400,7 @@ class Estimate_model extends CI_Model{
            $this->db->where("(`user_first_name` LIKE '%".$params['search']['sales_rep']."%' OR `user_last_name` LIKE '%".$params['search']['sales_rep']."%')");
         }
         
-        if(!empty($params['search']['sales_rep_id'])){    
+        if(!empty($params['search']['sales_rep_id'])){
             $SaleRpID = explode(",", $params['search']['sales_rep_id']);
 
             $IdString = "sales_rep IN (";
@@ -412,6 +412,7 @@ class Estimate_model extends CI_Model{
 
             $this->db->where($IdString);
         }
+
         if(!empty($params['search']['job_id'])){    
            $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
         }
@@ -477,7 +478,7 @@ class Estimate_model extends CI_Model{
 
         $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
         $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
-        
+
         $this->db->where($where_arr);
         $result = $this->db->get();
         $data = $result->result();
@@ -538,8 +539,18 @@ class Estimate_model extends CI_Model{
         }
         
         if(!empty($params['search']['sales_rep_id'])){    
-           $this->db->where("(`sales_rep` LIKE '%".$params['search']['sales_rep_id']."%' )");
+           $SaleRpID = explode(",", $params['search']['sales_rep_id']);
+
+            $IdString = "sales_rep IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
         }
+
         if(!empty($params['search']['job_id'])){    
            $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
         }
@@ -644,8 +655,16 @@ class Estimate_model extends CI_Model{
    }
    
    if(!empty($params['search']['sales_rep_id'])){    
-      $this->db->where("(`sales_rep` LIKE '%".$params['search']['sales_rep_id']."%' )");
+    $SaleRpID = explode(",", $params['search']['sales_rep_id']);
+    $IdString = "sales_rep IN (";
+    foreach($SaleRpID as $TcID){
+        $IdString .= "'".$TcID."',";
+    }
+    $IdString = substr($IdString, 0, -1);
+    $IdString .= ")";
+    $this->db->where($IdString);
    }
+
    if(!empty($params['search']['job_id'])){    
       $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
    }

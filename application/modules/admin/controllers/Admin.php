@@ -7729,7 +7729,7 @@ class Admin extends MY_Controller
 				$service_specific_id = $type->type_id;
 			}
 		}
-		$data['service_specific_note_type_id'] = $service_specific_id; 
+		$data['service_specific_note_type_id'] = $service_specific_id;
 
         $page["active_sidebar"] = "properties";
         $page["page_name"] = "Update Property";

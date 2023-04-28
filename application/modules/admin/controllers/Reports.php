@@ -3862,7 +3862,7 @@ class Reports extends MY_Controller {
         $date_range_date_from = $this->input->post('date_range_date_from');
         
 
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
 
@@ -3878,7 +3878,7 @@ class Reports extends MY_Controller {
         $comparision_range_date_to = $this->input->post('comparision_range_date_to');
         $comparision_range_date_from = $this->input->post('comparision_range_date_from');
         
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
         
@@ -4835,6 +4835,7 @@ class Reports extends MY_Controller {
         //set conditions for search
         $job_name = $this->input->post('job_name');
         $sales_rep_id = $this->input->post('sales_rep_id');
+
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
        
@@ -4842,7 +4843,7 @@ class Reports extends MY_Controller {
         if(!empty($job_name)){
             $conditions_1['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
         if(!empty($date_range_date_to)){
@@ -4862,7 +4863,7 @@ class Reports extends MY_Controller {
         if(!empty($job_name)){
             $conditions_2['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
         if(!empty($comparision_range_date_to)){
@@ -5071,7 +5072,7 @@ class Reports extends MY_Controller {
         if(!empty($job_name)){
             $conditions_1['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
         if(!empty($date_range_date_to)){
@@ -5090,7 +5091,7 @@ class Reports extends MY_Controller {
         if(!empty($job_name)){
             $conditions_2['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
         if(!empty($comparision_range_date_to)){
@@ -5341,12 +5342,12 @@ class Reports extends MY_Controller {
         $conditions_1['search']['status'] = 5;
         
         $data['declined_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        $data['declined_estimates_1'] = count($data['declined_estimates_1']);
+        $data['declined_estimates_1'] = (is_array($data['declined_estimates_1'])) ? count($data['declined_estimates_1']) : 0;
         
         $conditions_2['search']['status'] = 5;
         
         $data['declined_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        $data['declined_estimates_2'] = count($data['declined_estimates_2']);
+        $data['declined_estimates_2'] = (is_array($data['declined_estimates_2'])) ? count($data['declined_estimates_2']) : 0;
         
         ##### DECLINED ESTIMATES CONDITION #1
            $declined_summary_1 = [];

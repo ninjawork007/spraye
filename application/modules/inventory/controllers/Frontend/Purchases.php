@@ -2314,9 +2314,7 @@ class Purchases extends MY_Controller{
             $file_name  = $data['po_id'].'_'.date("ymdhis").'.'.$fileext ;
             $key = '/uploads/po_attachments/'.$file_name;
             $Retulst = $this->aws_sdk->saveFile($key, $tmp_name);
-            echo '<pre>';
-            print_r($Retulst);
-            die;
+            $file_name = $Retulst->get("ObjectURL");
         }
 
         $where = array(

@@ -33,16 +33,21 @@
 						</div>
 					</div>
 					<div class="row">
-						<div class="form-group">
-							<label>Sales Rep</label>
-							<select class="bootstrap-select form-control" name="sales_rep_id"  id="sales_rep_id" data-live-search="true">
-							<option value="" >Select a Rep</option>
-							<?php if ($users) {
-								foreach ($users as $user) { ?>
-								<option value=<?= $user->id ?>> <?= $user->user_first_name . " " . $user->user_last_name ?> </option>
-							<?php } } ?>
-							</select>
-						</div>
+						<div class="form-group multi-select-full">
+			                <?php
+			                $SelectedSalesRep = array();
+			                if(isset($SavedFilter['id'])){
+			                  $SelectedSalesRep = explode(",", $SavedFilter["techniciean_ids"]);
+			                }
+			                ?>
+			                <label>Sales Rep</label>
+			                <select id="sales_rep_id" name="sales_rep_id[]" multiple class="multiselect-select-all-filtering" placeholder="Select Rep">
+			                   <?php if ($users) {
+			                    foreach ($users as $user) { ?>
+			                      <option <?php if(in_array($user->id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->id ?>> <?= $user->user_first_name . " " . $user->user_last_name ?> </option>
+			                  <?php } } ?>                        
+			                  </select>
+			              </div>
 					</div>
 				</div>
 				<div class="col-md-8">

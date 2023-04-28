@@ -6684,6 +6684,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     foreach ($customer_data as $value) {
                         $hash_tbl_arr = array();
                         $update_arr = array('last_modify' => date("Y-m-d H:i:s"));
+                        $credit_balance_check = 0;
+                        
                         if ($value['invoice_status'] == 0) {
                             $update_arr['status'] = 1;
                             $update_arr['sent_date'] = date("Y-m-d H:i:s");

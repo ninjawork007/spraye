@@ -69,7 +69,6 @@ class Welcome extends MY_Controller
         $this->load->model('Reports_model', 'ReportsModel');
 
 
-
         // $this->load->model('Customer_statement_model', 'CustomerStatement');
 
     }
@@ -621,11 +620,14 @@ class Welcome extends MY_Controller
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('AdminTbl_company_model', 'CompanyModel');
         $this->load->model('Job_model', 'JobModel');
+        $this->load->model('Payment_logs_model', 'PaymentLogModel');
+
 
         if ($hashstring && $hashstring != "") {
 
             $where_arr = array("hashstring" => $hashstring);
             $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
+
             $invoice_ids = $invoice_mini_list["invoice_ids"];
             $all_invoice_paid = true;
 
@@ -646,7 +648,7 @@ class Welcome extends MY_Controller
 
                     // die(print_r($value));
 
-                    $invoice_details =  $this->INV->getOneInvoive($where);
+                    $invoice_details = $this->INV->getOneInvoive($where);
 
                     $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $value));
 
@@ -807,8 +809,13 @@ class Welcome extends MY_Controller
                             }
                         }
                     }
+
                     $invoice_details->jobs = $jobs;
                     $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $value));
+
+                    $invoice_details->logs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $value));
+                    $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $value));
+                    
                     $data['invoice_details'][] = $invoice_details;
                 }
 

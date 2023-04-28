@@ -1080,7 +1080,7 @@ function  filterPayment(status) {
 
 <!-- start add credit modal -->
 <div id="modal_batch_payment" class="modal fade">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -1090,20 +1090,22 @@ function  filterPayment(status) {
         <form method="POST" action="<?= base_url('inventory/Backend/Customers/AddBatchCredit') ?>">
 
          <div class="row">
-            <div class="col-lg-3">Customer</div>
-            <div class="col-lg-3">Amount</div>
+            <div class="col-lg-2">Customer</div>
+            <div class="col-lg-2">Amount</div>
             <div class="col-lg-2">Payment Type</div>
             <div class="col-lg-2">Check Number</div>
+            <div class="col-lg-1">Due</div>
+            <div class="col-lg-1">Balance Due</div>
             <div class="col-lg-2"></div>
          </div>
 
          <div class="row" id="BatchRow1">
-            <div class="col-lg-3" id="autocomplete-container-1">
+            <div class="col-lg-2" id="autocomplete-container-1">
                <input class="form-control CusInxBox" id="SearchCustomerBox-1" required spellcheck="true" name="customer_name[]">
                <ul class="dropdown-menu" id="itemSuggestions-1"></ul>
             </div>
-            <div class="col-lg-3">
-               <input class="form-control CusInxBoxAmount" required onchange="getAll()" onblur="getAll()" type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]">
+            <div class="col-lg-2">
+               <input class="form-control CusInxBoxAmount" required onchange="getAll()" onblur="getAll()" type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]" data-index="1">
             </div>
             <div class="col-lg-2">
                <select class="form-control" name="payment_type[]">
@@ -1115,6 +1117,8 @@ function  filterPayment(status) {
             <div class="col-lg-2">
                <input class="form-control" type="text" spellcheck="true" name="BatchReason[]">
             </div>
+            <div class="col-lg-1" id="TotalDueDiv-1">0.0</div>
+            <div class="col-lg-1" id="TotalBalanceDueDiv-1">0.0</div>
             <div class="col-lg-2">
                <button class="btn btn-danger mt-5 mb-5" onclick="RemoveBatchRow('BatchRow1')" type="button"> - Remove</button>
             </div>
@@ -1180,12 +1184,12 @@ function  filterPayment(status) {
       counter++;
       var HTML = "";
       HTML +='<div class="row" id="BatchRow'+counter+'">';
-      HTML +='<div class="col-lg-3" id="autocomplete-container-'+counter+'">';
+      HTML +='<div class="col-lg-2" id="autocomplete-container-'+counter+'">';
       HTML +='<ul class="dropdown-menu" id="itemSuggestions-'+counter+'"></ul>';
       HTML +='<input class="form-control CusInxBox" id="SearchCustomerBox-'+counter+'" required spellcheck="true" name="customer_name[]">';
       HTML +='</div>';
-      HTML +='<div class="col-lg-3">';
-      HTML +='<input class="form-control CusInxBoxAmount" onchange="getAll()" onblur="getAll()" required type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]">';
+      HTML +='<div class="col-lg-2">';
+      HTML +='<input class="form-control CusInxBoxAmount" onchange="getAll()" onblur="getAll()" required type="number" step="0.01" maxlength="100" size="100" spellcheck="true" name="BatchAmount[]" data-index="'+counter+'">';
       HTML +='</div>';
       HTML +='<div class="col-lg-2">';
       HTML +='<select class="form-control" name="payment_type[]">';
@@ -1197,6 +1201,8 @@ function  filterPayment(status) {
       HTML +='<div class="col-lg-2">';
       HTML +='<input class="form-control" type="text" spellcheck="true" name="BatchReason[]">';
       HTML +='</div>';
+      HTML +='<div class="col-lg-1" id="TotalDueDiv-'+counter+'">0.0</div>';
+      HTML +='<div class="col-lg-1" id="TotalBalanceDueDiv-'+counter+'">0.0</div>';
       HTML +='<div class="col-lg-2">';
       HTML +='<button class="btn btn-danger mt-5 mb-5" onclick=RemoveBatchRow("BatchRow'+counter+'") type="button"> - Remove</button>';
       HTML +='</div>';
@@ -1224,6 +1230,7 @@ function  filterPayment(status) {
       $('ul#itemSuggestions-'+counter).on('click', 'li', e => {
          let id = $(e.currentTarget).data('item-id')
          $('#SearchCustomerBox-'+counter).val(id);
+         getDueAmount(id, counter);
          getAll();
       })
    }
@@ -1255,8 +1262,23 @@ function  filterPayment(status) {
    $('ul#itemSuggestions-1').on('click', 'li', e => {
       let id = $(e.currentTarget).data('item-id')
       $('#SearchCustomerBox-1').val(id);
+      getDueAmount(id, 1);
       getAll();
    })
+
+   function getDueAmount(id, index){
+      var url = '<?= base_url('inventory/Backend/Customers/DueAmount/') ?>'+id;
+      var request_method = "GET";
+      $.ajax({
+         type: request_method,
+         url: url,
+         dataType:'JSON', 
+         success: function(response){
+            $("#TotalDueDiv-"+index).html(response);
+            $("#TotalBalanceDueDiv-"+index).html(response);
+         }
+      });
+   }
 
    function autocomplete(search, counter) {
       var url = '<?= base_url('inventory/Backend/Customers/Search') ?>';
@@ -1290,6 +1312,12 @@ function  filterPayment(status) {
 
       $(".CusInxBoxAmount").each(function () {
          if($(this).val() != ""){
+            OldDue = $("#TotalDueDiv-"+$(this).data("index")).html();
+            OldDue = parseFloat(OldDue);
+
+            NewDue = OldDue - parseFloat($(this).val());
+            $("#TotalBalanceDueDiv-"+$(this).data("index")).html(NewDue);
+
             totalAmount += parseFloat($(this).val());
          }
       });

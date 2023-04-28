@@ -810,11 +810,8 @@ class Invoice_model extends CI_Model{
         } else {
             return;
         }
-
-        // if(isset($data) && !empty($data)){ die(print_r($data)); }
-
-
     }
+
     public function getLateFee($invoice_id){
         $sql = "SELECT 
                     IF(apply_late_fee
