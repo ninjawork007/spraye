@@ -394,7 +394,7 @@
 										<?php
 										if($new_purchase[0]->paid_attachment != ""){
 										?>
-											<a href="<?php echo base_url() ?>uploads/po_attachments/<?= $new_purchase[0]->paid_attachment ?>">View</a>
+											<a href="<?= $new_purchase[0]->paid_attachment ?>">View</a>
 										<?php
 										}else{
 											echo "No file uploaded yet";

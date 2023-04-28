@@ -393,6 +393,8 @@ class Customers extends MY_Controller {
 
         // die(print_r($data['invoice_details']));
 
+        $outstanding = array();
+
         foreach ($data['invoice_details'] as $k => $i) {
             //if invoice is NOT archived and invoice is NOT paid...
             if ($i->is_archived != 1 && $i->payment_status != 2 && $i->status !== 0) {

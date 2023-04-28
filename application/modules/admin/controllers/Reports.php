@@ -4879,12 +4879,12 @@ class Reports extends MY_Controller {
         $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
         #### Adding status to conditions1
         $data['total_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        $data['total_estimates_1'] = count($data['total_estimates_1']);
+        $data['total_estimates_1'] = is_array($data['total_estimates_1']) ? count($data['total_estimates_1']) : 0;
         
         
         ####  Adding status to conditions1
         $data['total_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        $data['total_estimates_2'] = count($data['total_estimates_2']);
+        $data['total_estimates_2'] = is_array($data['total_estimates_2']) ? count($data['total_estimates_2']) : 0;
         // die(print_r($data['total_estimates_2']));
        
         $service_summary_1 = [];
