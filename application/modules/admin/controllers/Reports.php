@@ -5829,7 +5829,7 @@ class Reports extends MY_Controller {
         if(!empty($customer_name)){
             $conditions['search']['customer_name'] = $customer_name;
         }
-        if(!empty($sales_rep_id)){
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions['search']['sales_rep_id'] = $sales_rep_id;
         }
 
@@ -9012,6 +9012,7 @@ class Reports extends MY_Controller {
 
         $filters_array["front_yard_grass"] = $this->input->post('front_yard_grass');
         $filters_array["back_yard_grass"] = $this->input->post('back_yard_grass');
+        $filters_array["total_yard_grass"] = $this->input->post('total_yard_grass');
 
         $HowManyServiceCompleted = $this->input->post('serviceCompleted');
 
@@ -9070,9 +9071,11 @@ class Reports extends MY_Controller {
             foreach($data['customer_properties_data'] as $props) {                   
                 $properties_still_going[] = $this->RP->find_property_from_filter(array('filters'=>$filters_array, 'prop_id'=>$props->property_id));
             }
+
             unset($data['customer_properties_data']);
             // the above line is sometimes adding a blank array to the array of properties, we need to get rid of those to see if the customer still needs to be shown
             $properties_still_going = array_filter($properties_still_going);
+
             $invocies_for_this_customer = array();
             $lot_size = $revenue = $revenue_ytd = $annual_per_1000 = $lot_size_for_1000_calc = $projected_annual_total = 0;
             $invoices_to_be_checked = $ids_already_checked = array();
@@ -9091,7 +9094,7 @@ class Reports extends MY_Controller {
                 }
             }
             
-            if(!empty($properties_still_going) || $filters_set == false) {
+            if(count($properties_still_going) > 0 || $filters_set == false) {
                 foreach($properties_still_going as $psg) {
                     $use_this_property = true;
                     if($filters_array["outstanding_services_multi"][0] != 'null') {
@@ -9308,6 +9311,7 @@ class Reports extends MY_Controller {
             foreach($data['customer_properties_data'] as $props) {                   
                 $properties_still_going[] = $this->RP->find_property_from_filter(array('filters'=>$filters_array, 'prop_id'=>$props->property_id));
             }
+
             // the above line is sometimes adding a blank array to the array of properties, we need to get rid of those to see if the customer still needs to be shown
             $properties_still_going = array_filter($properties_still_going);
             $invocies_for_this_customer = array();

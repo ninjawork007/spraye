@@ -350,6 +350,27 @@ opacity: 1;
                                     </select>
                                 </div>
 
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label>Total Yard Grass Type</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="total_yard_grass[]" id="total_yard_grass" multiple="multiple">
+                                        <option>Bent</option>
+                                        <option>Bermuda</option>
+                                        <option>Dichondra</option>
+                                        <option>Fine Fescue</option>
+                                        <option>Kentucky Bluegrass</option>
+                                        <option>Ryegrass</option>
+                                        <option>St. Augustine/Floratam</option>
+                                        <option>Tall Fescue</option>
+                                        <option>Zoysia</option>
+                                        <option>Centipede</option>
+                                        <option>Bluegrass/Rye/Fescue</option>
+                                        <option>Warm Season</option>
+                                        <option>Cool Season</option>
+                                        <option>Mixed Grass</option>
+                                    </select>
+                                </div>
+
                                 <div class="col-md-3  multi-select-full">
                                     <label>how many services have been completed</label>
                                     <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
@@ -503,6 +524,7 @@ function searchFilter() {
 
     var front_yard_grass = $("#front_yard_grass").val();
     var back_yard_grass = $("#back_yard_grass").val();
+    var total_yard_grass = $("#total_yard_grass").val();
     var serviceSoldNotNow = $("#serviceSoldNotNow").val();
     var ServiceSoldNotNowStart = $("#ServiceSoldNotNowStart").val();
     var ServiceSoldNotNowEnd = $("#ServiceSoldNotNowEnd").val();
@@ -579,6 +601,7 @@ function searchFilter() {
             '&all_outstanding='+all_outstanding+
             '&front_yard_grass='+front_yard_grass+
             '&back_yard_grass='+back_yard_grass+
+            '&total_yard_grass='+total_yard_grass+
             '&serviceCompleted='+serviceCompleted+
             '&serviceSoldNotNow='+serviceSoldNotNow+
             '&ServiceSoldNotNowStart='+ServiceSoldNotNowStart+
