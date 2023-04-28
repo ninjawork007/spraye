@@ -2313,7 +2313,10 @@ class Purchases extends MY_Controller{
             $tmp_name   = $_FILES['paid_attachment']['tmp_name'];
             $file_name  = $data['po_id'].'_'.date("ymdhis").'.'.$fileext ;
             $key = '/uploads/po_attachments/'.$file_name;
-            $this->aws_sdk->saveObject($key, $tmp_name);
+            $Retulst = $this->aws_sdk->saveFile($key, $tmp_name);
+            echo '<pre>';
+            print_r($Retulst);
+            die;
         }
 
         $where = array(

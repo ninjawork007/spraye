@@ -4456,6 +4456,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
             $invoice_details->logs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $invoiceID));
 
+            $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoiceID));
+
             $data['invoice_details'][] = $invoice_details;
             //die(print_r($data["invoice_details"]));
             // INVOICE WIDE COUPONS
@@ -4842,6 +4844,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
         //  // Render the HTML as PDF
         $this->dompdf->render();
+
         if(@$post_data['email']){
             $body = ' ';
             $data['customer_details'] = $this->CustomerModel->getOneCustomerDetail($customer_id);

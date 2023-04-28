@@ -1121,8 +1121,31 @@
             </table>
             <!-- END APPLICATION PRODTUCTS SECTION -->
 
+            <b>Payments</b>
 
+            <table border="1" cellpadding="5" cellspacing="0" width="100%" class="table table-condensed">
+                <tr class="first_tr">
+                    <td><strong>Sr. No.</strong> </td>
+                    <td><strong>Amount</strong></td>
+                    <td><strong>Date</strong>
+                    </td>
+                </tr>
+                <?php
+                foreach($invoice_detail->invoice_partials_payments as $LogIndex => $Lgs)
+                {
+                ?>
+                <tr>
+                    <td><?php echo $LogIndex + 1 ?></td>
+                    <td>$<?php echo $Lgs->payment_amount ?></td>
+                    <td><?php echo date("d F, Y", strtotime($Lgs->payment_datetime)) ?></td>
+                    </td>
+                </tr>
+                <?php
+                }
+                ?>
+            </table>
             
+            <b>Logs</b>
 
             <table border="1" cellpadding="5" cellspacing="0" width="100%" class="table table-condensed">
                 <tr class="first_tr">
