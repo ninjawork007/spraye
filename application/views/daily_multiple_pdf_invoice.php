@@ -511,17 +511,19 @@
                                 <?php } ?>
 
                                 <?php
-                                foreach($invoice_detail->invoice_partials_payments as $PayLogs){
-                                ?>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td class="border-bottom-blank-td text-left default-font-color">Partial Payment<br><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
-                                    <td class="border-bottom-blank-td text-right">$
-                                        <?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
-                                    </td>
-                                </tr>
-                                <?php
+                                if(isset($invoice_detail->invoice_partials_payments)){
+                                    foreach($invoice_detail->invoice_partials_payments as $PayLogs){
+                                    ?>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td class="border-bottom-blank-td text-left default-font-color">Partial Payment<br><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                        <td class="border-bottom-blank-td text-right">$
+                                            <?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                    }
                                 }
                                 ?>
 
