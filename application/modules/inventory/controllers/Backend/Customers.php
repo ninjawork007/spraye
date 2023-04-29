@@ -517,8 +517,7 @@ class Customers extends MY_Controller {
                 if ($i->payment_status != 2) {
                     $outstanding[] = array(
                         'invoice_id' => $i->invoice_id,
-                        'amount_due' => $balance_due,
-                        'due_date' => date('Y-m-d', strtotime($invoiceDate . '+ ' . $payment_terms . ' day')),
+                        'amount_due' => $balance_due
                     );
                 }
             }

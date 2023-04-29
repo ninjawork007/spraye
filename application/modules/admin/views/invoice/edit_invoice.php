@@ -816,6 +816,7 @@ label.control-label.col-lg-3 {
                     <th>Sr. No.</th>
                     <th>Log</th>
                     <th>Date</th>
+                    <th>Created By</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -827,6 +828,7 @@ label.control-label.col-lg-3 {
                       <td><?php echo ($Index + 1) ?></td>
                       <td><?php echo $LogInvs->action ?></td>
                       <td><?php echo date("d F, Y", strtotime($LogInvs->created_at)) ?></td>
+                      <td><?php echo $LogInvs->user_first_name." ".$LogInvs->user_last_name ?></td>
                     </tr>
 
                     <?php

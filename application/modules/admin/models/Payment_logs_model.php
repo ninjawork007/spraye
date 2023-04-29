@@ -15,16 +15,15 @@ class Payment_logs_model extends CI_Model{
     }
 
     public function getAllPaymentLogs($where_arr = '') {
-           
-        $this->db->select('*');
-        
+        $this->db->select('payment_logs.*, users.user_first_name, users.user_last_name');
+        $this->db->join('users','users.id = payment_logs.user_id','left');
         $this->db->from(self::SRATBL);
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
         
-        $this->db->order_by('created_at','asc');
+        $this->db->order_by('created_at','desc');
         $result = $this->db->get();
 
         $data = $result->result();

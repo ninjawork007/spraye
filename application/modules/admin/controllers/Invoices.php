@@ -2688,7 +2688,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                         $result = $this->PaymentLogModel->createLogRecord(array(
                             'invoice_id' => $invoice_details->invoice_id,
-                            'user_id' => $this->session->userdata['user_id'],
+                            'user_id' => $this->session->userdata['id'],
                             'action' => "Payment Added ".$over_all_due - $total_invoice_partial_logs
                         ));
 
@@ -2733,7 +2733,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                         $result = $this->PaymentLogModel->createLogRecord(array(
                             'invoice_id' => $invoice_details->invoice_id,
-                            'user_id' => $this->session->userdata['user_id'],
+                            'user_id' => $this->session->userdata['id'],
                             'action' => "Payment Added ".$data['new_partial_payment']
                         ));
 
@@ -5381,7 +5381,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                 $result = $this->PaymentLogModel->createLogRecord(array(
                     'invoice_id' => $tmp_invoice_id,
-                    'user_id' => $this->session->userdata['user_id'],
+                    'user_id' => $this->session->userdata['id'],
                     'action' => "Payment Added ".$over_all_due - $total_cost_all_partial_payment_logs
                 ));
 
@@ -5433,7 +5433,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                     $result = $this->PaymentLogModel->createLogRecord(array(
                         'invoice_id' => $tmp_invoice_id,
-                        'user_id' => $this->session->userdata['user_id'],
+                        'user_id' => $this->session->userdata['id'],
                         'action' => "Payment Added ".$data['partial_payment']
                     ));
 
@@ -5531,7 +5531,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $tmp_invoice_id,
-                'user_id' => $this->session->userdata['user_id'],
+                'user_id' => $this->session->userdata['id'],
                 'action' => "Payment Added ".$due_balance
             ));
     
@@ -5635,7 +5635,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $tmp_invoice_id,
-                'user_id' => $this->session->userdata['user_id'],
+                'user_id' => $this->session->userdata['id'],
                 'action' => "Refund Given Amount ".$data['refund_payment']
             ));
 
@@ -5768,7 +5768,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $tmp_invoice_id,
-                'user_id' => $this->session->userdata['user_id'],
+                'user_id' => $this->session->userdata['id'],
                 'action' => "Refund Given Amount ".$data['refund_payment']
             ));
 
@@ -6296,7 +6296,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                 $result = $this->PaymentLogModel->createLogRecord(array(
                     'invoice_id' => $tmp_invoice_id,
-                    'user_id' => $this->session->userdata['user_id'],
+                    'user_id' => $this->session->userdata['id'],
                     'action' => "Refund Given Amount ".$data['refund_payment']
                 ));
 
@@ -6391,7 +6391,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                 $result = $this->PaymentLogModel->createLogRecord(array(
                     'invoice_id' => $tmp_invoice_id,
-                    'user_id' => $this->session->userdata['user_id'],
+                    'user_id' => $this->session->userdata['id'],
                     'action' => "Refund Given Amount ".$data['refund_payment']
                 ));
 
@@ -7367,7 +7367,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
         $result = $this->PaymentLogModel->createLogRecord(array(
             'invoice_id' => $invoice_id,
-            'user_id' => $this->session->userdata['user_id'],
+            'user_id' => $this->session->userdata['id'],
             'action' => "Partial Payment Delete"
         ));
 
@@ -7432,7 +7432,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $invoice_id,
-                'user_id' => $this->session->userdata['user_id'],
+                'user_id' => $this->session->userdata['id'],
                 'action' => "Refund Given Amount ".$data['partial_payment']
             ));
 
@@ -7567,7 +7567,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $invoice_id,
-                'user_id' => $this->session->userdata['user_id'],
+                'user_id' => $this->session->userdata['id'],
                 'action' => "Refund Given Amount ".$data['partial_payment']
             ));
 
@@ -7659,7 +7659,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $invoice_id,
-                'user_id' => $this->session->userdata['user_id'],
+                'user_id' => $this->session->userdata['id'],
                 'action' => "Refund Given Amount ".$data['partial_payment']
             ));
 

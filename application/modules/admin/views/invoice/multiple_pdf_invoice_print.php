@@ -412,13 +412,29 @@
                                         <td></td>
                                         <td></td>
                                         <td></td>
-                                        <td class="border-bottom-blank-td text-left default-font-color">SUBTOTAL</td>
+                                        <td class="border-bottom-blank-td text-left default-font-color">SUB TOTAL</td>
                                         <td class="border-bottom-blank-td text-right"></td>
                                         <td class="border-bottom-blank-td text-right">$
                                             <?= number_format($total_inv_line_costs,2); ?>
                                         </td>
-
                                     </tr>
+
+                                    <?php
+                                    foreach($invoice_detail->invoice_partials_payments as $PayLogs){
+                                    ?>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td class="border-bottom-blank-td text-left default-font-color">Partial Payment</td>
+                                        <td class="border-bottom-blank-td" align="center"><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                        <td class="border-bottom-blank-td text-right">$
+                                            <?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
+                                        </td>
+                                    </tr>
+                                    <?php
+                                    }
+                                    ?>
 
                                     <?php 
 
@@ -502,7 +518,7 @@
 
                                     <?php  if ( $invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>
 
-                                        <tr>
+                                        <!--<tr>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -516,7 +532,7 @@
                                                 $invoice_total_cost = $invoice_total_cost-$invoice_detail->partial_payment;
                                                 ?>
                                             </td>
-                                        </tr>
+                                        </tr>-->
 
 
                                     <?php } ?>
@@ -1120,57 +1136,7 @@
                 <?php } ?>                                        
             </table>
             <!-- END APPLICATION PRODTUCTS SECTION -->
-
-            <b>Payments</b>
-
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" class="table table-condensed">
-                <tr class="first_tr">
-                    <td><strong>Sr. No.</strong> </td>
-                    <td><strong>Amount</strong></td>
-                    <td><strong>Date</strong>
-                    </td>
-                </tr>
-                <?php
-                foreach($invoice_detail->invoice_partials_payments as $LogIndex => $Lgs)
-                {
-                ?>
-                <tr>
-                    <td><?php echo $LogIndex + 1 ?></td>
-                    <td>$<?php echo $Lgs->payment_amount ?></td>
-                    <td><?php echo date("d F, Y", strtotime($Lgs->payment_datetime)) ?></td>
-                    </td>
-                </tr>
-                <?php
-                }
-                ?>
-            </table>
-            
-            <b>Logs</b>
-
-            <table border="1" cellpadding="5" cellspacing="0" width="100%" class="table table-condensed">
-                <tr class="first_tr">
-                    <td><strong>Sr. No.</strong> </td>
-                    <td><strong>Log</strong></td>
-                    <td><strong>Date</strong>
-                    </td>
-                </tr>
-                <?php
-                foreach($invoice_detail->logs as $LogIndex => $Lgs)
-                {
-                ?>
-                <tr>
-                    <td><?php echo $LogIndex + 1 ?></td>
-                    <td><?php echo $Lgs->action ?></td>
-                    <td><?php echo date("d F, Y", strtotime($Lgs->created_at)) ?></td>
-                    </td>
-                </tr>
-                <?php
-                }
-                ?>
-            </table>
-
         </div>
-
         <?php } ?>
     </body>
 
