@@ -414,25 +414,24 @@
                                         <td></td>
                                         <td class="border-bottom-blank-td text-left default-font-color">SUB TOTAL</td>
                                         <td class="border-bottom-blank-td text-right"></td>
-                                        <td class="border-bottom-blank-td text-right">$
-                                            <?= number_format($total_inv_line_costs,2); ?>
-                                        </td>
+                                        <td class="border-bottom-blank-td text-right" style="width: 100px; text-align: right;">$<?= number_format($total_inv_line_costs,2); ?></td>
                                     </tr>
 
                                     <?php
-                                    foreach($invoice_detail->invoice_partials_payments as $PayLogs){
-                                    ?>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td class="border-bottom-blank-td text-left default-font-color">Partial Payment</td>
-                                        <td class="border-bottom-blank-td" align="center"><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
-                                        <td class="border-bottom-blank-td text-right">$
-                                            <?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
-                                        </td>
-                                    </tr>
-                                    <?php
+                                    if(isset($invoice_detail->invoice_partials_payments)){
+                                        foreach($invoice_detail->invoice_partials_payments as $PayLogs){
+                                        ?>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="border-bottom-blank-td text-left default-font-color">Partial Payment</td>
+                                            <td class="border-bottom-blank-td" align="center"><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                            <td class="border-bottom-blank-td text-right" style="width: 100px; text-align: right;">$<?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                        }
                                     }
                                     ?>
 
@@ -546,9 +545,7 @@
                                             <td class="border-bottom-blank-last text-left default-font-color">REFUND ISSUED
                                             </td>
                                             <td class="border-bottom-blank-td"></td>
-                                            <td class="border-bottom-blank-last text-right">+ $
-                                                <?php echo number_format($invoice_detail->refund_amount_total,2); ?>
-                                            </td>
+                                            <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">+ $<?php echo number_format($invoice_detail->refund_amount_total,2); ?></td>
                                         </tr>
 
 
@@ -563,9 +560,7 @@
                                             <td class="border-bottom-blank-last text-left default-font-color">REFUND PAID
                                             </td>
                                             <td class="border-bottom-blank-td"></td>
-                                            <td class="border-bottom-blank-last text-right">- $
-                                                <?php echo number_format($invoice_detail->refund_amount_total,2); ?>
-                                            </td>
+                                            <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">$-<?php echo number_format($invoice_detail->refund_amount_total,2); ?></td>
                                         </tr>
 
 
@@ -580,9 +575,7 @@
                                             <td class="border-bottom-blank-last text-left default-font-color">LATE FEE
                                             </td>
                                             <td class="border-bottom-blank-td"></td>
-                                            <td class="border-bottom-blank-last text-right"> $
-                                                <?php echo number_format($invoice_detail->late_fee,2); ?>
-                                            </td>
+                                            <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">$<?php echo number_format($invoice_detail->late_fee,2); ?></td>
                                         </tr>
 
 
@@ -620,7 +613,7 @@
                                         </td>
 
                                         <td class="border-bottom-blank-last"></td>
-                                        <td class="border-bottom-blank-last text-right">$
+                                        <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">$
                                             <?php
                                             if($invoice_detail->payment_status == 2)  {
                                                 echo number_format(0,2);
