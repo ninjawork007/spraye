@@ -655,7 +655,7 @@ class Customers extends MY_Controller {
 		     $total_invoice_amount = array_sum($total_cost_arr);
 		 }
 		 $total_balance_due = $total_invoice_amount - $total_partial + $total_late_fee;
-		 echo round($total_balance_due, 2)."";
+		 echo number_format($total_balance_due, 2);
 	}
 
 	/**
