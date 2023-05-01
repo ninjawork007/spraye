@@ -3199,6 +3199,9 @@ class Welcome extends MY_Controller
                     }
                     $invoice_details->jobs = $jobs;
                     $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $value));
+                    $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $value));
+                    
+
                     $data['invoice_details'][] = $invoice_details;
                 }
 

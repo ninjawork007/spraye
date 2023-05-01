@@ -821,6 +821,21 @@ class Invoice_model extends CI_Model{
         return !empty($result) ? $result->late_fee_amount : 0 ;
 
     }
+
+    public function getAllCreditAmountsApplied($cred_arr){
+        $this->db->select('*');
+        $this->db->from('payment_invoice_logs');
+        if (is_array($cred_arr)) {
+            $this->db->where($cred_arr);
+        }
+
+        $result = $this->db->get();
+
+        $data = $result->result();
+
+        return $data;
+
+    }
 }
 
  

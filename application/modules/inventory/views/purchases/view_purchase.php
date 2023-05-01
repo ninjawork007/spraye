@@ -327,29 +327,8 @@
 
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
-										<label for="created_date" class="d-block">Created Date</label>
-										<input type="date" id="created_date" name="created_date" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
 										<label for="ordered_date" class="d-block">Ordered Date</label>
 										<input type="date" id="ordered_date" name="ordered_date" class="form-control" value="<?= $new_purchase[0]->ordered_date ?>"/>
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="expected_date" class="d-block">Expected Date</label>
-										<input type="date" id="expected_date" name="expected_date" class="form-control" value="<?= $new_purchase[0]->expected_date ?>"/>
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="unit_measrement" class="d-block">Unit of Measure</label>
-										<input type="text" id="unit_measrement" name="unit_measrement" class="form-control" value="<?= $new_purchase[0]->unit_measrement ?>"/>
 									</div>
 								</div>
 
@@ -373,18 +352,13 @@
 										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" value="<?= $new_purchase[0]->shipping_method_1 ?>"/>
 									</div>
 								</div>
-
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
-										<label for="place_of_origin" class="d-block">Place of Origin</label>
-										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" value="<?= $new_purchase[0]->place_of_origin ?>"/>
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="place_of_destination" class="d-block">Place of Destination</label>
-										<input type="text" id="place_of_destination" name="place_of_destination" class="form-control" value="<?= $new_purchase[0]->place_of_destination ?>"/>
+										<label for="fob" class="d-block">FOB - Freight on Board</label>
+										<select id="fob" name="fob" class="form-control">
+											<option <?php if($new_purchase[0]->fob == "Place of Origin") { echo 'selected'; } ?>>Place of Origin</option>
+											<option <?php if($new_purchase[0]->fob == "Place of Destination") { echo 'selected'; } ?>>Place of Destination</option>
+										</select>
 									</div>
 								</div>
 
@@ -437,6 +411,7 @@
 											<thead style="background: #36c9c9;border-color: #36c9c9;">
 												<tr>
 													<th>Item name</th>
+													<th>Unit</th>
 													<th>Unit price</th>
 													<th>Quantity</th>
 													<th>Qty Received</th>
@@ -730,12 +705,6 @@ function showDiv(divId, element){
 			updateTotals();
 		})
 
-		// When changing quantity of an item
-		$(document).on('input', '.itemqty', function() {
-			var qty = $(this).val();
-			updateTotals();
-		})
-
 		// When changing price of an item
 		$(document).on('input', '.itemPrice', function() {
 			var qty = $(this).val();
@@ -986,9 +955,11 @@ function purchaseOrder(){
 				let td5= 0
 				let td6 = 0
 				let td7 = returned
+				let td8 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+item.unit_type+`" />`;
 
 				let elem = `<tr data-item-id="${item.item_id}">`
 					+ `<td>${td1}</td>`
+					+ `<td data-item-td="unit_price">${td8}</td>`
 					+ `<td data-item-td="unit_price">${td2}</td>`
 					+ `<td data-item-td="quantity">${td3}</td>`
 					+ `<td data-item-td="received_qty" >${td4}</td>`
@@ -1058,7 +1029,7 @@ function updateTotals() {
 		let received_qty = $(`table#items tbody tr[data-item-id=${item.item_id}] td[data-item-td=received_qty]`).html();
 		let quantity = item.quantity;
 		let item_price = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemPrice`).val();
-		console.log(item_price);
+		let item_unit = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemunit`).val();
 
 		// If quantity is greater than originally purchased, rewrite user input
 		if(Number(received_qty) > Number(item.quantity)) {
@@ -1068,6 +1039,9 @@ function updateTotals() {
 		// Update quantity in the original array
 		purchase.items[i]['received_qty'] = received_qty;
 		purchase.items[i]['unit_price'] = item_price;
+		purchase.items[i]['unit_type'] = item_unit;
+
+		
 
 		let item_subtotal = received_qty * Number(item_price);
 		let item_total = Number(item_subtotal);
@@ -1204,6 +1178,7 @@ function updatePO() {
 		freight: $('input[name=freight]').val(),
 		discount: $('input[name=discount]').val(),
 		discount_type: 'amount',
+		fob: $('select[name=fob]').val(),
 		tax: $('input[name=tax]').val(),
 		total_received_amount: $('table#summary tr td[data-summary-field="total_received"]').text(),
 		notes: $('textarea[name=purchase_order_order_notes]').val(),

@@ -386,7 +386,7 @@
                             ?>
                             <tr>
                                 <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $v2['quantity'] ?></td>
-                                <td><?=$v2['unit_type']?></td>
+                                <td><?php echo @$v2['unit_type']?></td>
                                 <td class="text-left"><?=$v2['item_number']?></td>
                                 <td class="text-left"><?=$v2['name']?></td>
                                 <!-- <td></td> -->

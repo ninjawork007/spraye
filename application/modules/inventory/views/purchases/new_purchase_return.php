@@ -384,7 +384,7 @@
 								<div class="col-md-4 text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="tax" class="d-block">Tax  (%)</label>
-										<input type="text" name="tax" id="tax" class="form-control" value="<?= $purchase_order[0]->tax ?>"  />
+										<input type="text" name="tax" id="tax" class="form-control" value=""/>
 										<div class="invalid-feedback"></div>
 									</div>
 								</div>
@@ -394,7 +394,7 @@
 								<div class="col-md-6 text-break pl-2 pr-2 mt-3">
 									<div class="form-group">
 										<label for="purchase_order_order_notes" class="d-block">Notes</label>
-										<textarea name="purchase_order_order_notes" id="purchase_order_order_notes" class="form-control" rows="6"><?= $purchase_order[0]->notes ?></textarea>
+										<textarea name="purchase_order_order_notes" id="purchase_order_order_notes" class="form-control" rows="6"></textarea>
 									</div>
 								</div>
 
@@ -419,7 +419,7 @@
 											</tr>
 											<tr>
 												<th width="40" class="font-weight-normal">Tax</th>
-												<td width="60" data-summary-field="tax"><?= $purchase_order[0]->tax ?>%</td>
+												<td width="60" data-summary-field="tax">0%</td>
 											</tr>
 											<tr>
 												<th width="40" class="font-weight-bold">Total Return</th>

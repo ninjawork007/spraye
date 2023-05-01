@@ -51,7 +51,6 @@ class Invoices extends MY_Controller
 
     private function loadModel()
     {
-
         $this->load->model("Administrator");
 
         $this->load->model('Technician_model', 'Tech');

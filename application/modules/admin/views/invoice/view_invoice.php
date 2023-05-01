@@ -1156,7 +1156,7 @@ function  filterPayment(status) {
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h6 class="modal-title">Batch Payment</h6>
       </div>
-      <form name="csvfileimport" action="<?= base_url('inventory/Backend/Customers/AddBatchCsv') ?>" method="post"
+      <form name="csvfileimport" action="<?= base_url('admin/AddBatchCsv') ?>" method="post"
         enctype="multipart/form-data">
         <div class="modal-body">
           <div class="form-group">

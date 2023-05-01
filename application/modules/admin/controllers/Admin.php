@@ -42,6 +42,8 @@ class Admin extends MY_Controller
         $this->load->helper('form_validation_rule_helper');
         $this->load->helper('available_days_helper');
 
+        $this->load->model('Customer_model', 'customer');
+
 		if ( !$this->session->userdata('spraye_technician_login') && isset($_SERVER['REQUEST_URI'])) {
             $actual_link = $_SERVER['REQUEST_URI'];
             $_SESSION['iniurl'] = $actual_link;
@@ -13836,5 +13838,55 @@ class Admin extends MY_Controller
             $result = $this->PropertyModel->updatePropertyData(['property_area' => $v['property_area']], ['property_id' => $v['property_id']]);
         }
         print $result ? 1 : 0;
+    }
+
+
+
+    public function AddBatchCsv(){
+        $filename = $_FILES["csv_file"]["tmp_name"];
+
+        $Array = array();
+        if ($_FILES["csv_file"]["size"] > 0) {
+            $company_id = $this->session->userdata('company_id');
+            $user_id = $this->session->userdata('user_id');
+            $row = 1;
+            if (($handle = fopen($filename, "r")) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                    if ($row == 1) {
+                        $row++;
+                        continue;
+                    }
+
+                    $customer_id = $data[0];
+                    $CreditAmount = $data[1];
+                    $PaymentType = $data[2];
+                    $CheckNumber = $data[3];
+
+
+                    $items = $this->customer->getOneCustomerDetail($customer_id);
+                    if($items == ""){
+                        continue;
+                    }
+
+                    if($CreditAmount == "" && $CreditAmount == 0){
+                        continue;
+                    }
+
+                    $Array[] = array("Customer" => $customer_id, "Amount" => $CreditAmount, "PaymentType" => $PaymentType, "Reference" => $CheckNumber);
+                }
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> file</strong> can not read please check file.</div>');
+            }
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> Do</strong> not select black file.</div>');
+        }
+
+        $data['credits'] = $Array;
+        $page["active_sidebar"] = "invoice";
+        $page["page_name"] = "Batch Payments";
+        $page["page_content"] = $this->load->view("admin/batch_credit_verify", $data, TRUE);
+        $this->layout->superAdminTemplateTable($page);
+
+        //echo json_encode($Array);
     }
 }

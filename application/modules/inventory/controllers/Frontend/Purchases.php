@@ -320,21 +320,13 @@ class Purchases extends MY_Controller{
     } 
 
     public function getAllPurchaseOrdersByLocartion($status){
- 
         $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id']);
-    
-        if($status!=4) {
         $where['purchase_order_tbl.location_id'] = $status;
-        }
-        
         $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
         $where = array('company_id' =>$this->session->userdata['company_id']);
-    
-         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
-    
-         $body  =  $this->load->view('inventory/purchases/ajax_data',$data,TRUE);
-         echo $body;
-    
+        $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
+        $body  =  $this->load->view('inventory/purchases/ajax_data',$data,TRUE);
+        echo $body;
     } 
 
     public function getAllPurchaseOrdersByPO($status){

@@ -323,32 +323,10 @@
 									</div>
 								</div>
 
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="created_date" class="d-block">Created Date</label>
-										<input type="date" id="created_date" name="created_date" class="form-control" value="<?= $new_purchase[0]->created_date ?>"/>
-									</div>
-								</div>
-
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="ordered_date" class="d-block">Ordered Date</label>
 										<input type="date" id="ordered_date" name="ordered_date" class="form-control" value="<?= $new_purchase[0]->ordered_date ?>" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="expected_date" class="d-block">Expected Date</label>
-										<input type="date" id="expected_date" name="expected_date" class="form-control" value="<?= $new_purchase[0]->expected_date ?>"/>
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="unit_measrement" class="d-block">Unit of Measure</label>
-										<input type="text" id="unit_measrement" name="unit_measrement" class="form-control" value="<?= $new_purchase[0]->unit_measrement ?>"/>
 									</div>
 								</div>
 
@@ -372,18 +350,13 @@
 										<input type="text" id="destination" name="destination" class="form-control" value="<?= $new_purchase[0]->destination ?>"/>
 									</div>
 								</div>
-
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
-										<label for="place_of_origin" class="d-block">Place of Origin</label>
-										<input type="text" id="place_of_origin" name="place_of_origin" class="form-control" value="<?= $new_purchase[0]->place_of_origin ?>"/>
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="place_of_destination" class="d-block">Place of Destination</label>
-										<input type="text" id="place_of_destination" name="place_of_destination" class="form-control" value="<?= $new_purchase[0]->place_of_destination ?>"/>
+										<label for="fob" class="d-block">FOB - Freight on Board</label>
+										<select id="fob" name="fob" class="form-control">
+											<option <?php if($new_purchase[0]->fob == "Place of Origin") { echo 'selected'; } ?>>Place of Origin</option>
+											<option <?php if($new_purchase[0]->fob == "Place of Destination") { echo 'selected'; } ?>>Place of Destination</option>
+										</select>
 									</div>
 								</div>
 							</div>
@@ -425,6 +398,7 @@
 											<thead style="background: #36c9c9;border-color: #36c9c9;">
 												<tr>
 													<th>Item name</th>
+													<th>Unit</th>
 													<th>Unit price</th>
 													<th>Quantity</th>
 													<th>Total</th>
@@ -660,12 +634,15 @@
 			updateTotals();
 		})
 
+		$(document).on('input', '.itemunit', function() {
+			updateTotals();
+		})
+
 		// When changing quantity of an item
 		$(document).on('input', '.quantity', function() {
-				var qty = $(this).val();
-				console.log('input value =' + $(this).val());
-				updateTotals();
-			})
+			var qty = $(this).val();
+			updateTotals();
+		})
 
 
 		// When changing shipping cost, discount or tax...
@@ -787,9 +764,11 @@ function purchaseOrder(){
 				let td2 = unit_price
 				let td3 = quantity 
 				let td6 = 0
+				let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+item.unit_type+`" />`;
 
 				let elem = `<tr data-item-id="${item.item_id}">`
 					+ `<td>${td1}</td>`
+					+ `<td data-item-td="unit_price">${td7}</td>`
 					+ `<td data-item-td="unit_price">$ ${td2}</td>`
 					+ `<td data-item-td="quantity"><input name="quantity" type="number" step="1" min="0" class="form-control col-lg-2 quantity" value="${td3}"></td>`
 					+ `<td data-item-td="total">$ ${td6}</td>`
@@ -843,10 +822,12 @@ function updateTotals() {
 
 	itemsAdded.forEach((item, i) => {
 		console.log('Item has: ' + JSON.stringify(item));
-			let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val();
+			let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] .quantity`).val();
+			let unit = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemunit`).val();
 			
 			// Update quantity in the original array
 			itemsAdded[i].qty = qty;
+			itemsAdded[i].unit_type = unit;
 
 			let item_subtotal = qty * Number(item.price_per_unit);
 			
@@ -864,14 +845,14 @@ function updateTotals() {
 			total_qty += Number(item.qty);
 			
 		});
-
-		console.log(Object.values(purchase.items));
 	
 	Object.values(purchase.items).forEach((item, i) => {
 		
-		let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val();
+		let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] .quantity`).val();
+		let unit = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemunit`).val();
 
 		Object.values(purchase.items)[i].qty = qty;
+		Object.values(purchase.items)[i].unit_type = unit;
 
 		let quantity = item.qty;
 		let item_price = item.unit_price;
@@ -983,14 +964,16 @@ function updateTotals() {
 				+ '</div>'
 				+ '</div>'
 			let td2 = itemObj.price_per_unit;
-			let td3 = `<input type="number" class="form-control form-control-sm itemqty" name="itemqty" min="0" value="0" />`;
+			let td3 = `<input type="number" class="form-control form-control-sm quantity" name="quantity" min="0" value="0" />`;
 			let td4 = parseFloat(0).toFixed(2);
 			let td5 = itemObj.item_vendor_tax;
 			let td6 = parseFloat(0).toFixed(2);
+			let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+itemObj.unit_type+`" />`;
 
 			//table#items
 			let elem = `<tr data-item-id="${itemObj.item_id}">`
 				+ `<td>${td1}</td>`
+				+ `<td data-item-td="unit_price">${td7}</td>`
 				+ `<td data-item-td="unit_price">${currency} ${td2}</td>`
 				+ `<td data-item-td="quantity">${td3}</td>`
 				+ `<td data-item-td="total">${currency} ${td6}</td>`
@@ -1019,6 +1002,7 @@ function updateTotals() {
 			unit_measrement: $('input[name=unit_measrement]').val(),
 			shipping_point: $('input[name=shipping_point]').val(),
 			shipping_method_1: $('input[name=shipping_method_1]').val(),
+			fob: $('select[name=fob]').val(),
 			destination: $('input[name=destination]').val(),
 			place_of_origin: $('input[name=place_of_origin]').val(),
 			place_of_destination: $('input[name=place_of_destination]').val(),
@@ -1043,7 +1027,8 @@ function updateTotals() {
 				name: item.name,
 				received_qty: 0,
 				unit_price: item.unit_price,
-				quantity: item.qty
+				quantity: item.qty,
+				unit_type: item.unit_type,
 			})
 		})
 
@@ -1058,6 +1043,8 @@ function updateTotals() {
 				quantity: item.qty
 			})
 		})
+
+		console.log(data.items);
 		
 		var url = '<?= base_url('inventory/Backend/Purchases/updateDraft/') ?>'+purchase_order_id;
 		var formData = data;

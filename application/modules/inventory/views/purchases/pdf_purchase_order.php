@@ -344,7 +344,7 @@
                     ?>
                     <tr>
                         <td class="text-center" style="text-align: center; padding-right: 16px;"><?php echo $value['quantity'] ?></td>
-                        <td><?=$value['unit_type']?></td>
+                        <td><?php echo @$value['unit_type']?></td>
                         <td class="text-left"><?=$value['item_number']?></td>
                         <td class="text-left"><?=$value['name']?></td>
                         <td class="text-right" style="text-align: right; padding-right: 16px;">
