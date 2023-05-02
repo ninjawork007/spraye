@@ -2685,11 +2685,15 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             $payment_note = $data['payment_info'];
                         }
 
+                        $date = new DateTime(date("Y-m-d H:i:s", new DateTimeZone("Asia/Calcutta"));
+                        $time= $date->format('Y-m-d H:i:s');
+
                         $result = $this->PaymentLogModel->createLogRecord(array(
                             'invoice_id' => $invoice_details->invoice_id,
                             'user_id' => $this->session->userdata['id'],
                             'amount' => $over_all_due - $total_invoice_partial_logs,
-                            'action' => "Payment Added"
+                            'action' => "Payment Added",
+                            'created_at' => $time,
                         ));
 
                         $result = $this->PartialPaymentModel->createOnePartialPayment(array(
@@ -2731,11 +2735,15 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             $payment_note = $data['payment_info'];
                         }
 
+                        $date = new DateTime(date("Y-m-d H:i:s", new DateTimeZone("Asia/Calcutta"));
+                        $time= $date->format('Y-m-d H:i:s');
+
                         $result = $this->PaymentLogModel->createLogRecord(array(
                             'invoice_id' => $invoice_details->invoice_id,
                             'user_id' => $this->session->userdata['id'],
                             'amount' => $data['new_partial_payment'],
-                            'action' => "Payment Added"
+                            'action' => "Payment Added",
+                            'created_at' => $time,
                         ));
 
                         $result = $this->PartialPaymentModel->createOnePartialPayment(array(
@@ -5379,12 +5387,15 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 }
                 $param['payment_method'] = $data['payment_method'];
 
+                $date = new DateTime(date("Y-m-d H:i:s", new DateTimeZone("Asia/Calcutta"));
+                $time= $date->format('Y-m-d H:i:s');
 
                 $result = $this->PaymentLogModel->createLogRecord(array(
                     'invoice_id' => $tmp_invoice_id,
                     'user_id' => $this->session->userdata['id'],
                     "amount" => $over_all_due - $total_cost_all_partial_payment_logs,
-                    'action' => "Payment Added"
+                    'action' => "Payment Added",
+                    'created_at' => $time,
                 ));
 
 
@@ -5433,11 +5444,15 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         $other = $data['payment_info'];
                     }
 
+                    $date = new DateTime(date("Y-m-d H:i:s", new DateTimeZone("Asia/Calcutta"));
+                    $time= $date->format('Y-m-d H:i:s');
+
                     $result = $this->PaymentLogModel->createLogRecord(array(
                         'invoice_id' => $tmp_invoice_id,
                         'user_id' => $this->session->userdata['id'],
                         "amount" => $data['partial_payment'],
-                        'action' => "Payment Added"
+                        'action' => "Payment Added",
+                        'created_at' => $time,
                     ));
 
                     $result = $this->PartialPaymentModel->createOnePartialPayment(array(
@@ -5532,11 +5547,15 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             }
             $param['payment_method'] = $data['payment_method'];
 
+            $date = new DateTime(date("Y-m-d H:i:s", new DateTimeZone("Asia/Calcutta"));
+            $time= $date->format('Y-m-d H:i:s');
+
             $result = $this->PaymentLogModel->createLogRecord(array(
                 'invoice_id' => $tmp_invoice_id,
                 'user_id' => $this->session->userdata['id'],
                 "amount" => $due_balance,
-                'action' => "Payment Added"
+                'action' => "Payment Added",
+                'created_at' => $time,
             ));
     
             $result = $this->PartialPaymentModel->createOnePartialPayment(array(
