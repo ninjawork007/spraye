@@ -823,22 +823,15 @@ label.control-label.col-lg-3 {
                 <tbody>
                   <?php
                   foreach($AllInvoiceLogs as $Index => $LogInvs){
-                    //$date = date_create($LogInvs->created_at, timezone_open('Asia/Kolkata'));
-                    //$time = date_format($date, 'd F, Y H:i:s') . "\n";
-
-                    //$date = new DateTime($LogInvs->created_at, new DateTimeZone("America/Chicago"));
-                    //$date->setTimezone(new DateTimeZone("Asia/Calcutta"));
-                    //$time= $date->format('Y-m-d H:i:s');
                   ?>
 
                     <tr>
                       <td><?php echo ($Index + 1) ?></td>
                       <td><?php echo $LogInvs->action ?></td>
                       <td>$<?php echo $LogInvs->amount ?></td>
-                      <td><?php echo date("d F, Y H:i:s", strtotime($LogInvs->created_at))?></td>
+                      <td><?php echo date("d F, Y h:i A", strtotime($LogInvs->created_at))?></td>
                       <td><?php echo $LogInvs->user_first_name." ".$LogInvs->user_last_name ?></td>
                     </tr>
-
                     <?php
                   }
                   ?>
