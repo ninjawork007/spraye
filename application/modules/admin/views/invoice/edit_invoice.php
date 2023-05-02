@@ -823,12 +823,12 @@ label.control-label.col-lg-3 {
                 <tbody>
                   <?php
                   foreach($AllInvoiceLogs as $Index => $LogInvs){
-                    $date = date_create($LogInvs->created_at, timezone_open('Asia/Kolkata'));
-                    $time = date_format($date, 'd F, Y H:i:s') . "\n";
+                    //$date = date_create($LogInvs->created_at, timezone_open('Asia/Kolkata'));
+                    //$time = date_format($date, 'd F, Y H:i:s') . "\n";
 
-                    //$date = new DateTime($LogInvs->created_at, new DateTimeZone("America/Chicago"));
-                    //$date->setTimezone(new DateTimeZone("Asia/Calcutta"));
-                    //$time= $date->format('Y-m-d H:i:s');
+                    $date = new DateTime($LogInvs->created_at, new DateTimeZone("America/Chicago"));
+                    $date->setTimezone(new DateTimeZone("Asia/Calcutta"));
+                    $time= $date->format('Y-m-d H:i:s');
                   ?>
 
                     <tr>
