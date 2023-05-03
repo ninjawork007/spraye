@@ -71,10 +71,9 @@
                           </div>
 
                           <div class="col-md-4">
-                            <div class="form-group">
-                              <label>Assign Program</label>
-                              <select class="form-control" name="assignProgram" id="assignProgram">
-                                    <option value="">None selected</option>
+                            <div class="form-group multi-select-full">
+                              <label>Program/Service</label>
+                              <select id="assignProgram" name="assignProgram[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
                                     <?php foreach ($programlist as $value) : ?>
                                         <?php if(!strstr($value->program_name, '- Standalone')){?>
                                             <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>

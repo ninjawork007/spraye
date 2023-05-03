@@ -40,7 +40,7 @@ td:nth-child(2) {
                          <label>User Name</label>
 
                          <?php
-                          $TechIds = '';
+                          $TechIds = array();
                           if(isset($SavedFilter["id"])){
                             $TechIds = explode(",", $SavedFilter["techniciean_ids"]);
                           }

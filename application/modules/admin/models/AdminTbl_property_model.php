@@ -680,7 +680,22 @@ class AdminTbl_property_model extends CI_Model
         $this->db->select('*');
         $this->db->from('property_tbl');
         $this->db->join('property_program_assign','property_program_assign.property_id = property_tbl.property_id ','inner');
+
+        if(isset($where["assignProgram"]) && $where["assignProgram"] != "null"){
+            $SaleRpID = explode(",", $where["assignProgram"]);
+
+            $IdString = "property_program_assign.program_id IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+            $this->db->where($IdString);
+            unset($where["assignProgram"]);
+        }
+
         $this->db->where($where);
+
 		if($from != ''){            
            $this->db->where('property_tbl.property_created >=', $from);
         }     

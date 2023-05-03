@@ -7591,10 +7591,8 @@ class Reports extends MY_Controller {
         }
 
         if($this->input->post("assignProgram") != ""){
-            $PropertyConditionArray['property_program_assign.program_id'] = $this->input->post("assignProgram");
+            $PropertyConditionArray['assignProgram'] = $this->input->post("assignProgram");
         }
-        
-        
 
         if(!empty($start)){
             $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
