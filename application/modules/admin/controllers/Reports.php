@@ -4778,7 +4778,7 @@ class Reports extends MY_Controller {
         // die(print_r($data['jobs']));
 
         $data['program_details'] = $this->ProgramModel->get_all_program($where_arr);
-        $data['service_details'] = $this->JobModel->getJobList($where);
+        $data['service_details'] = $this->JobModel->getJobList($where_arr);
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
