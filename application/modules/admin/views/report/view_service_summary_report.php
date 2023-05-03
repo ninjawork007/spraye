@@ -29,7 +29,7 @@
 					<div class="row">
 						<div class="form-group">
 						<label>Service</label>
-						<input type="text" id="job_name" name="job_name" class="form-control" placeholder="Enter Service Name">
+						<input type="text" id="job_name" name="job_name" class="form-control" placeholder="Enter Service Name" value="<?php echo $SavedFilter["service_name"] ?>">
 						</div>
 					</div>
 					<div class="row">
@@ -56,14 +56,14 @@
 							<div class="col-md-6">
 								<div class="form-group">
 								<label>Date Range Start</label>
-								<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+								<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
 								</div>
 							</div>
 
 							<div class="col-md-6">
 								<div class="form-group">
 									<label>Date Range End</label>
-									<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+									<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
 								</div>
 							</div>
 						</div>
@@ -71,14 +71,14 @@
 							<div class="col-md-6">
 								<div class="form-group">
 									<label>Comparison Range Start</label>
-									<input type="date" id="comparision_range_date_to" name="comparision_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+									<input type="date" id="comparision_range_date_to" name="comparision_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["compare_start_date"] ?>">
 								</div>
 							</div>
 
 							<div class="col-md-6">
 								<div class="form-group">
 									<label>Comparison Range End</label>
-									<input type="date" id="comparision_range_date_from" name="comparision_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+									<input type="date" id="comparision_range_date_from" name="comparision_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["compare_end_date"] ?>">
 								</div>
 							</div>
 						</div>
@@ -92,6 +92,7 @@
 			<button type="button" class="btn btn-success" onClick="searchFilterNew()" ><i class="icon-search4 position-left"></i> Search</button>
 			<button type="button" class="btn btn-primary" onClick="resetFormNew()" ><i class="icon-reset position-left"></i> Reset</button>
 			<button type="submit" class="btn btn-info"  ><i class="icon-file-download position-left"></i> CSV Download</button>
+			<button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-search4 position-left"></i> Save Search</button>
 			</div>
 		</form>
 	</div>
@@ -491,4 +492,26 @@ function tableintalDeclined(argument){
     $('[data-popup=tooltip-custom]').tooltip({
         template: '<div class="tooltip"><div class="bg-teal"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div></div>'
     });
+
+
+
+
+function saveSearchFilter(){
+    var technician_id = $('#sales_rep_id').val();
+    var start_date = $('#date_range_date_to').val();
+    var end_date = $('#date_range_date_from').val();
+    var compare_start_date = $('#comparision_range_date_to').val();
+    var compare_end_date = $('#comparision_range_date_from').val();
+    var service_name = $('#job_name').val();
+
+    $.ajax({
+        type: 'POST',
+        url: '<?php echo base_url(); ?>admin/reports/saveServiceSummaryFilters',
+        data:'techniciean_ids='+technician_id+'&start_date='+start_date+'&end_date='+end_date+'&compare_start_date='+compare_start_date+'&compare_end_date='+compare_end_date+'&service_name='+service_name,
+
+        success: function (resp) {
+            swal('Save','Filter Saved Successfully ','success')
+        },
+  });
+}
 </script>

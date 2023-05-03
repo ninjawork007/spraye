@@ -66,6 +66,7 @@ class Reports extends MY_Controller {
         $this->load->model('Source_model', 'SourceModel');
         $this->load->model('Save_tech_eff_report_model', 'TechEffReportModel');
         $this->load->model('Save_sales_summary_filter_model', 'SalesSummarySaveModel');
+        $this->load->model('Save_service_summary_filter_model', 'ServiceSummarySaveModel');
         $this->load->model('Save_sales_pipeline_filter_model', 'SaveSalesPipelineFilterModel');
     }
 
@@ -4504,7 +4505,7 @@ class Reports extends MY_Controller {
          $comparision_range_date_from = $this->input->post('comparision_range_date_from');
  
          if(!empty($sales_rep_id)){
-             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
+             $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
          }
          if(!empty($date_range_date_to)){
              $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
@@ -4516,7 +4517,7 @@ class Reports extends MY_Controller {
          $conditions_2 = array();
 
          if(!empty($sales_rep_id)){
-            $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
+            $conditions_2['search']['sales_rep_id'] = implode(",", $sales_rep_id);
         }
          if(!empty($comparision_range_date_to)){
              $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
@@ -4692,11 +4693,32 @@ class Reports extends MY_Controller {
                 // $lineData = array($value['rep_name'],$value['total_estimates'], number_format((($value['accepted']/($value['accepted']+$value['declined']))) ,2) , number_format((($value['accepted_total']/($value['accepted_total']+$value['declined_total']))) ,2));
                 #####
 
-                $close_rate_percent_1 = number_format((($value['accepted_1']/($value['accepted_1']+$value['declined_1']))) ,2);
-                $close_rate_dollar_1 = number_format((($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1']))) ,2);
-                $compare_rate_percent_1 = number_format((($value['accepted_1']/($value['accepted_1']+$value['declined_1']))) ,2);
-                $compare_rate_dollar_1 = number_format((($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1']))) ,2);
+                if(($value['accepted_1']+$value['declined_1']) == 0){
+                    $close_rate_percent_1 = number_format($value['accepted_1'] ,2);
+                }else{
+                    $close_rate_percent_1 = number_format(($value['accepted_1']/($value['accepted_1']+$value['declined_1'])) ,2);
+                }
+
+                if(($value['accepted_total_1']+$value['declined_total_1']) == 0){
+                    $close_rate_dollar_1 = number_format($value['accepted_total_1'] ,2);
+                }else{
+                    $close_rate_dollar_1 = number_format(($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1'])) ,2);
+                }
+
+                if(($value['accepted_1']+$value['declined_1']) == 0){
+                    $compare_rate_percent_1 = number_format($value['accepted_1'] ,2);
+                }else{
+                    $compare_rate_percent_1 = number_format(($value['accepted_1']/($value['accepted_1']+$value['declined_1'])) ,2);
+                }
+
+                if(($value['accepted_total_1']+$value['declined_total_1']) == 0){
+                    $compare_rate_dollar_1 = number_format($value['accepted_total_1'] ,2);
+                }else{
+                    $compare_rate_dollar_1 = number_format(($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1'])) ,2);
+                }
+
                 $diff_rate_percent_1 = (number_format(((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1)))-(($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1)))) ,2)*100);
+
                 $diff_rate_dollar_1 = (number_format(((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1)))-(($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1)))) ,2)*100);
                 $close_rate_percent_2 = (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100);
                 $close_rate_dollar_2 = number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2);
@@ -4752,6 +4774,7 @@ class Reports extends MY_Controller {
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['jobs'] = $this->JobModel->getAllJob(array('jobs.company_id' =>$this->session->userdata['company_id']));
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
+        $data['SavedFilter'] = $this->ServiceSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
         // die(print_r($data['jobs']));
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
@@ -5544,7 +5567,7 @@ class Reports extends MY_Controller {
             $conditions_1['search']['job_name'] = $job_name;
         }
         if(!empty($sales_rep_id)){
-            $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
+            $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
         }
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
@@ -5562,7 +5585,7 @@ class Reports extends MY_Controller {
             $conditions_2['search']['job_name'] = $job_name;
         }
         if(!empty($sales_rep_id)){
-            $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
+            $conditions_2['search']['sales_rep_id'] = implode(",", $sales_rep_id);
         }
         if(!empty($comparision_range_date_to)){
             $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
@@ -5572,7 +5595,6 @@ class Reports extends MY_Controller {
         }
        
          //get posts data
-        
         $data['estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_1);
         $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
         
@@ -9540,6 +9562,19 @@ class Reports extends MY_Controller {
             $this->SalesSummarySaveModel->createSaveReport($data);
         }else{
             $this->SalesSummarySaveModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
+        }
+    }
+
+    public function saveServiceSummaryFilters(){
+        $data = $this->input->post();
+        $data["user_id"] = $this->session->userdata['id'];
+        
+        $CheckReport = $this->ServiceSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
+
+        if(!isset($CheckReport["id"])){
+            $this->ServiceSummarySaveModel->createSaveReport($data);
+        }else{
+            $this->ServiceSummarySaveModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
         }
     }
 
