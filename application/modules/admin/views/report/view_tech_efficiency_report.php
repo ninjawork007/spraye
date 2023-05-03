@@ -97,7 +97,7 @@ td:nth-child(2) {
                 <button type="submit" class="btn btn-info" id="export-btn"><i class="icon-file-download position-left"></i> CSV Download</button>
                 <input type="hidden" name="csvData" id="csvData" value="[]">
 
-                <button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-search4 position-left"></i> Save Search</button>
+                <button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-file-text2 position-left"></i> Save Search</button>
 
             </div>
             

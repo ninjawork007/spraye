@@ -4777,6 +4777,9 @@ class Reports extends MY_Controller {
         $data['SavedFilter'] = $this->ServiceSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
         // die(print_r($data['jobs']));
 
+        $data['program_details'] = $this->ProgramModel->get_all_program($where_arr);
+        $data['service_details'] = $this->JobModel->getJobList($where);
+
         $where = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
         $data['estimates'] = $this->EstimateModal->getAllEstimateDetails(array('t_estimate.company_id' =>$this->session->userdata['company_id']));
@@ -4857,18 +4860,25 @@ class Reports extends MY_Controller {
         
         //set conditions for search
         $job_name = $this->input->post('job_name');
+        $ProgramName = $this->input->post("program_ids");
         $sales_rep_id = $this->input->post('sales_rep_id');
 
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
        
 
-        if(!empty($job_name)){
+        if(!empty($job_name) && $job_name != "null"){
             $conditions_1['search']['job_name'] = $job_name;
         }
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_1['search']['program_name'] = $ProgramName;
+        }
+
         if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
+
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -4889,6 +4899,11 @@ class Reports extends MY_Controller {
         if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_2['search']['program_name'] = $ProgramName;
+        }
+
         if(!empty($comparision_range_date_to)){
             $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
         }
@@ -5090,14 +5105,20 @@ class Reports extends MY_Controller {
         $sales_rep_id = $this->input->post('sales_rep_id');
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
-       
+        $ProgramName = $this->input->post("program_ids");
 
-        if(!empty($job_name)){
+        if(!empty($job_name) && $job_name != "null"){
             $conditions_1['search']['job_name'] = $job_name;
         }
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_1['search']['program_name'] = $ProgramName;
+        }
+
         if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
+
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -5131,12 +5152,20 @@ class Reports extends MY_Controller {
         $conditions_1['search']['status'] = 2;
         
         $data['accepted_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        $data['accepted_estimates_1'] = count($data['accepted_estimates_1']);
+        if(is_array($data['accepted_estimates_1'])){
+            $data['accepted_estimates_1'] = count($data['accepted_estimates_1']);
+        }else{
+            $data['accepted_estimates_1'] = 0;
+        }
        
         $conditions_2['search']['status'] = 2;
         
         $data['accepted_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        $data['accepted_estimates_2'] = count($data['accepted_estimates_2']);
+        if(is_array($data['accepted_estimates_2'])){
+            $data['accepted_estimates_2'] = count($data['accepted_estimates_2']);
+        }else{
+            $data['accepted_estimates_2'] = 0;
+        }
         
            #### ACCEPTED SUMMARY CONDITION #1 ####
         $accepted_summary_1 = [];
@@ -5324,14 +5353,20 @@ class Reports extends MY_Controller {
         $sales_rep_id = $this->input->post('sales_rep_id');
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
-       
+        $ProgramName = $this->input->post("program_ids");
 
-        if(!empty($job_name)){
+        if(!empty($job_name) && $job_name != "null"){
             $conditions_1['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id)){
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_1['search']['program_name'] = $ProgramName;
+        }
+
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
+
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -5559,16 +5594,22 @@ class Reports extends MY_Controller {
        $date_range_date_from = $this->input->post('date_range_date_from');
        $comparision_range_date_to = $this->input->post('comparision_range_date_to');
        $comparision_range_date_from = $this->input->post('comparision_range_date_from');
+       $ProgramName = $this->input->post("program_ids");
 
         if(!empty($job_id)){
             $conditions_1['search']['job_id'] = $job_id;
         }
         if(!empty($job_name)){
-            $conditions_1['search']['job_name'] = $job_name;
+            $conditions_1['search']['job_name'] = implode(",", $job_name);
         }
         if(!empty($sales_rep_id)){
             $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
         }
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_1['search']['program_name'] = implode(",", $ProgramName);
+        }
+
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -5581,12 +5622,18 @@ class Reports extends MY_Controller {
         if(!empty($job_id)){
             $conditions_2['search']['job_id'] = $job_id;
         }
+        
         if(!empty($job_name)){
-            $conditions_2['search']['job_name'] = $job_name;
+            $conditions_1['search']['job_name'] = implode(",", $job_name);
         }
         if(!empty($sales_rep_id)){
-            $conditions_2['search']['sales_rep_id'] = implode(",", $sales_rep_id);
+            $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
         }
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_1['search']['program_name'] = implode(",", $ProgramName);
+        }
+
         if(!empty($comparision_range_date_to)){
             $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
         }
@@ -5897,7 +5944,7 @@ class Reports extends MY_Controller {
             $conditions['search']['customer_name'] = $customer_name;
         }
         if(!empty($sales_rep_id)){
-            $conditions['search']['sales_rep_id'] = $sales_rep_id;
+            $conditions['search']['sales_rep_id'] = implode(",", $sales_rep_id);
         }
 
         if(!empty($estimate_created_date_to)){
@@ -7884,14 +7931,28 @@ class Reports extends MY_Controller {
         #get existing properties
         $existing_properties = [];
         $existing_cancelled_properties = [];
+
+        $PropertyConditionArray['property_tbl.company_id'] = $company_id;
+        if($this->input->post("rescom") != ""){
+            $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
+        }
+        if($this->input->post("serviceArea") != ""){
+            $PropertyConditionArray['property_tbl.property_area'] = $this->input->post("serviceArea");
+        }
+
+        if($this->input->post("assignProgram") != ""){
+            $PropertyConditionArray['assignProgram'] = implode(",", $this->input->post("assignProgram"));
+        }
+
+
         if(!empty($start)){
-            $existing_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),'',$start);
-            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id,'property_tbl.property_status'=>0),'',$start);
+            $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
+            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array($PropertyConditionArray,'property_tbl.property_status'=>0),'',$start);
         }
         $report_data['total_starting_properties'] = count($existing_properties);
 
         #get new properties
-        $new_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
+        $new_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,$start,$end);
         $report_data['total_new_properties'] = count($new_properties);
         
         #handle chart labels

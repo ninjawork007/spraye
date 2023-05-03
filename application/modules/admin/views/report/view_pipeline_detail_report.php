@@ -93,7 +93,7 @@
             <button type="button" class="btn btn-success" onClick="searchFilter()" ><i class="icon-search4 position-left"></i> Search</button>
             <button type="button" class="btn btn-primary" onClick="resetform()" ><i class="icon-reset position-left"></i> Reset</button>
             <button type="submit" class="btn btn-info"  ><i class="icon-file-download position-left"></i> CSV Download</button>
-            <button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-search4 position-left"></i> Save Search</button>
+            <button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-file-text2 position-left"></i> Save Search</button>
           </div>
         </form>
       </div>
