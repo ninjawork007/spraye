@@ -899,7 +899,7 @@
                                                                                 <?php if ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 )  { 
                                                                                     $application_rate = '';
                                                                                     if (!empty($product_details_value->application_rate) && $product_details_value->application_rate !=0) {
-                                                                                        $application_rate = $product_details_value->application_rate.' '.$product_details_value->application_unit.' / '.$product_details_value->application_per;
+                                                                                        $application_rate = $product_details_value->application_rate.' '.@$product_details_value->application_unit.' / '.@$product_details_value->application_per;
                                                                                     } ?>
                                                                                     <?= $application_rate ?>
                                                                                 <?php } ?>
