@@ -536,6 +536,7 @@ class Reports extends MY_Controller {
         $TotalRevenueLost = 0;
         $TotlaNewRevenueLost = 0;
         $TotalExistingRevenueLost = 0;
+        $data['setting_details'] = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
 
         foreach($data['all_services'] as $all_services) {
             $cost = 0;
@@ -560,24 +561,32 @@ class Reports extends MY_Controller {
                     $job_price = $all_services->job_price;
 
                     //get property difficulty level
+                    $difficulty_multiplier = 0;
+
                     if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
                         $difficulty_multiplier = $data['setting_details']->dlmult_2;
                     } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
                         $difficulty_multiplier = $data['setting_details']->dlmult_3;
                     } else {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                        if(isset($data['setting_details']->dlmult_1)){
+                            $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                        }
                     }
 
                     //get base fee 
+                    $base_fee = 0;
                     if (isset($all_services->base_fee_override)) {
                         $base_fee = $all_services->base_fee_override;
                     } else {
-                        $base_fee = $data['setting_details']->base_service_fee;
+                        if(isset($data['setting_details']->base_service_fee)){
+                            $base_fee = $data['setting_details']->base_service_fee;
+                        }
                     }
 
                     $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
 
                     //get min. service fee
+                    $min_fee = 0;
                     if (isset($all_services->min_fee_override)) {
                         $min_fee = $all_services->min_fee_override;
                     } else {
