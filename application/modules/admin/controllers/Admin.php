@@ -42,6 +42,8 @@ class Admin extends MY_Controller
         $this->load->helper('form_validation_rule_helper');
         $this->load->helper('available_days_helper');
 
+        $this->load->model('Customer_model', 'customer');
+
 		if ( !$this->session->userdata('spraye_technician_login') && isset($_SERVER['REQUEST_URI'])) {
             $actual_link = $_SERVER['REQUEST_URI'];
             $_SESSION['iniurl'] = $actual_link;
@@ -5151,6 +5153,12 @@ class Admin extends MY_Controller
 		$data['servicelist'] = $this->JobModel->getJobList($where);
 		$data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id,'customers.customer_id' => $customerID));
 
+
+        //To Fetch Responsible Party for Add Credit Model
+        $where = array('company_id' => $this->session->userdata['company_id']);
+        $data['CompaniesUser'] = $this->Administrator->getAllAdmin($where);
+
+
         foreach($data['all_services'] as $all_services) {
             $cost = 0;
             if($all_services->job_cost == NULL) {
@@ -7723,7 +7731,7 @@ class Admin extends MY_Controller
 				$service_specific_id = $type->type_id;
 			}
 		}
-		$data['service_specific_note_type_id'] = $service_specific_id; 
+		$data['service_specific_note_type_id'] = $service_specific_id;
 
         $page["active_sidebar"] = "properties";
         $page["page_name"] = "Update Property";
@@ -13013,7 +13021,7 @@ class Admin extends MY_Controller
 	$email_data['cancel_reason'] = $cancel_reason;
 	$email_data['services'] = [];
 	#update property status
-	$handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('property_status'=>0,'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
+	$handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('cancelled_by' => $this->session->userdata['id'], 'property_status'=>0,'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
 
 	#outstanding services should be cancelled
 	$outstandingServices = $this->PropertyModel->getUnassignJobsByProperty($property_id);
@@ -13830,5 +13838,55 @@ class Admin extends MY_Controller
             $result = $this->PropertyModel->updatePropertyData(['property_area' => $v['property_area']], ['property_id' => $v['property_id']]);
         }
         print $result ? 1 : 0;
+    }
+
+
+
+    public function AddBatchCsv(){
+        $filename = $_FILES["csv_file"]["tmp_name"];
+
+        $Array = array();
+        if ($_FILES["csv_file"]["size"] > 0) {
+            $company_id = $this->session->userdata('company_id');
+            $user_id = $this->session->userdata('user_id');
+            $row = 1;
+            if (($handle = fopen($filename, "r")) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                    if ($row == 1) {
+                        $row++;
+                        continue;
+                    }
+
+                    $customer_id = $data[0];
+                    $CreditAmount = $data[1];
+                    $PaymentType = $data[2];
+                    $CheckNumber = $data[3];
+
+
+                    $items = $this->customer->getOneCustomerDetail($customer_id);
+                    if($items == ""){
+                        continue;
+                    }
+
+                    if($CreditAmount == "" && $CreditAmount == 0){
+                        continue;
+                    }
+
+                    $Array[] = array("Customer" => $customer_id, "Amount" => $CreditAmount, "PaymentType" => $PaymentType, "Reference" => $CheckNumber);
+                }
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> file</strong> can not read please check file.</div>');
+            }
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> Do</strong> not select black file.</div>');
+        }
+
+        $data['credits'] = $Array;
+        $page["active_sidebar"] = "invoice";
+        $page["page_name"] = "Batch Payments";
+        $page["page_content"] = $this->load->view("admin/batch_credit_verify", $data, TRUE);
+        $this->layout->superAdminTemplateTable($page);
+
+        //echo json_encode($Array);
     }
 }

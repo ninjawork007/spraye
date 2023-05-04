@@ -309,6 +309,99 @@ opacity: 1;
                                     </select>
                                 </div>
                             </div>
+                            <div class="row mt-15">
+                                <div class="col-md-3  multi-select-full">
+                                    <label>Front Yard Grass Type</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="front_yard_grass[]" id="front_yard_grass" multiple="multiple">
+                                        <option>Bent</option>
+                                        <option>Bermuda</option>
+                                        <option>Dichondra</option>
+                                        <option>Fine Fescue</option>
+                                        <option>Kentucky Bluegrass</option>
+                                        <option>Ryegrass</option>
+                                        <option>St. Augustine/Floratam</option>
+                                        <option>Tall Fescue</option>
+                                        <option>Zoysia</option>
+                                        <option>Centipede</option>
+                                        <option>Bluegrass/Rye/Fescue</option>
+                                        <option>Warm Season</option>
+                                        <option>Cool Season</option>
+                                        <option>Mixed Grass</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label>Back Yard Grass Type</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="back_yard_grass[]" id="back_yard_grass" multiple="multiple">
+                                        <option>Bent</option>
+                                        <option>Bermuda</option>
+                                        <option>Dichondra</option>
+                                        <option>Fine Fescue</option>
+                                        <option>Kentucky Bluegrass</option>
+                                        <option>Ryegrass</option>
+                                        <option>St. Augustine/Floratam</option>
+                                        <option>Tall Fescue</option>
+                                        <option>Zoysia</option>
+                                        <option>Centipede</option>
+                                        <option>Bluegrass/Rye/Fescue</option>
+                                        <option>Warm Season</option>
+                                        <option>Cool Season</option>
+                                        <option>Mixed Grass</option>
+                                    </select>
+                                </div>
+
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label>Total Yard Grass Type</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="total_yard_grass[]" id="total_yard_grass" multiple="multiple">
+                                        <option>Bent</option>
+                                        <option>Bermuda</option>
+                                        <option>Dichondra</option>
+                                        <option>Fine Fescue</option>
+                                        <option>Kentucky Bluegrass</option>
+                                        <option>Ryegrass</option>
+                                        <option>St. Augustine/Floratam</option>
+                                        <option>Tall Fescue</option>
+                                        <option>Zoysia</option>
+                                        <option>Centipede</option>
+                                        <option>Bluegrass/Rye/Fescue</option>
+                                        <option>Warm Season</option>
+                                        <option>Cool Season</option>
+                                        <option>Mixed Grass</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label>how many services have been completed</label>
+                                    <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                </div>
+                            </div>
+                            <div class="row mt-15">
+                                <div class="col-md-4 multi-select-full">
+                                    <label>Service Sold During Year Do not have now</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="serviceSoldNotNow[]" id="serviceSoldNotNow" multiple="multiple">
+                                        <?php $already_used_job_names = array(); ?>
+                                        <?php foreach ($outstanding_services as $outstanding): ?>
+                                            <?php  
+                                                // do some logic so we dont get any repeated names
+                                                if(!in_array($outstanding->job_name, $already_used_job_names)) {
+                                                    $already_used_job_names[] = $outstanding->job_name;
+                                            ?>
+                                            <option value="<?= $outstanding->job_id ?>"> <?= $outstanding->job_name ?> </option>
+                                            <?php } ?>
+                                        <?php endforeach ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Service Check Start Date</label>
+                                    <input type="date" id="ServiceSoldNotNowStart" name="ServiceSoldNotNowStart" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                </div>
+                                <div class="col-md-4">
+                                    <label>Service Check End Date</label>
+                                    <input type="date" id="ServiceSoldNotNowEnd" name="ServiceSoldNotNowEnd" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                </div>
+
+                            </div>
                         </div>
                     </div>
                     <br />
@@ -428,6 +521,15 @@ function searchFilter() {
     var zip_codes_multi = $('#zip_codes_multi').val();
     var cancel_reasons_multi = $('#cancel_reasons_multi').val();
     var outstanding_services_multi = $('#outstanding_services_multi').val();
+
+    var front_yard_grass = $("#front_yard_grass").val();
+    var back_yard_grass = $("#back_yard_grass").val();
+    var total_yard_grass = $("#total_yard_grass").val();
+    var serviceSoldNotNow = $("#serviceSoldNotNow").val();
+    var ServiceSoldNotNowStart = $("#ServiceSoldNotNowStart").val();
+    var ServiceSoldNotNowEnd = $("#ServiceSoldNotNowEnd").val();
+    var serviceCompleted = $("#serviceCompleted").val();
+
     var customer_status = $('#customer_status').val();
     var estimate_accpeted = $('#estimate_accpeted').val();
     var all_tags = false;
@@ -496,7 +598,14 @@ function searchFilter() {
             '&all_tags='+all_tags+
             '&all_programs='+all_programs+
             '&all_pre_service='+all_pre_service+
-            '&all_outstanding='+all_outstanding
+            '&all_outstanding='+all_outstanding+
+            '&front_yard_grass='+front_yard_grass+
+            '&back_yard_grass='+back_yard_grass+
+            '&total_yard_grass='+total_yard_grass+
+            '&serviceCompleted='+serviceCompleted+
+            '&serviceSoldNotNow='+serviceSoldNotNow+
+            '&ServiceSoldNotNowStart='+ServiceSoldNotNowStart+
+            '&ServiceSoldNotNowEnd='+ServiceSoldNotNowEnd
         ,
         success: function (html) {
             $(".loading").css("display", "none");

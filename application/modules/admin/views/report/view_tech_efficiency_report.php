@@ -35,17 +35,26 @@ td:nth-child(2) {
            <div class="panel panel-body" style="background-color:#ededed;" >
             <form id="serchform" action="<?= base_url('admin/reports/downloadEfficiencyReportCsv') ?>" method="post">
               <div class="row">
-                  <div class="col-md-2">
-                      <div class="form-group">
+                  <div class="col-md-12">
+                      <div class="form-group multi-select-full">
                          <label>User Name</label>
-                          <select id="technician_id" name="technician_id" class="form-control" placeholder="Select Technician">
+
+                         <?php
+                          $TechIds = array();
+                          if(isset($SavedFilter["id"])){
+                            $TechIds = explode(",", $SavedFilter["techniciean_ids"]);
+                          }
+                          ?>
+
+                          <select id="technician_id" name="technician_id[]" multiple class="multiselect-select-all-filtering" placeholder="Select Technician">
                            <?php 
                               if(!empty($tecnician_details)) 
                               {
-                                echo '<option value="0">Select All</option>';
                                 foreach ($tecnician_details as $value) 
                                 {
-                                  echo '<option value="'.$value->user_id.'" >'.$value->user_first_name.' '.$value->user_last_name.'</option>';  
+                                ?>
+                                  <option <?php if(in_array($value->user_id, $TechIds)) { echo 'selected'; }?> value="<?php echo $value->user_id ?>"><?php echo $value->user_first_name.' '.$value->user_last_name?></option>
+                                <?php
                                 }
                               }
                            ?>                            
@@ -53,17 +62,31 @@ td:nth-child(2) {
                       </div>
                   </div>
 
+                  <?php
+                  $FromDate = '';
+                  if(isset($SavedFilter["id"])){
+                    $FromDate = $SavedFilter["start_date"];
+                  }
+                  ?>
+
                   <div class="col-md-3">
                     <div class="form-group">
                       <label>Start Date</label>
-                      <input type="date" id="job_completed_date_from" name="job_completed_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                      <input type="date" id="job_completed_date_from" name="job_completed_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $FromDate ?>">
                     </div>
                   </div>
+
+                  <?php
+                  $ToDate = date('Y-m-d');
+                  if(isset($SavedFilter["id"])){
+                    $ToDate = $SavedFilter["end_date"];
+                  }
+                  ?>
 
                   <div class="col-md-3">
                     <div class="form-group">
                       <label>End Date</label>
-                      <input type="date" id="job_completed_date_to" name="job_completed_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d'); ?>">
+                      <input type="date" id="job_completed_date_to" name="job_completed_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= $ToDate ?>">
                     </div>
                   </div>
               </div>
@@ -73,6 +96,9 @@ td:nth-child(2) {
                 <button type="button" class="btn btn-primary" onClick="resetTable()" ><i class="icon-reset position-left"></i> Clear Report</button>
                 <button type="submit" class="btn btn-info" id="export-btn"><i class="icon-file-download position-left"></i> CSV Download</button>
                 <input type="hidden" name="csvData" id="csvData" value="[]">
+
+                <button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-file-text2 position-left"></i> Save Search</button>
+
             </div>
             
           </form>
@@ -208,6 +234,22 @@ function searchFilter() {
       //console.log('Query Finished');
       $('.loading').css("display", "none");
     }
+  });
+}
+
+function saveSearchFilter(){
+    var technician_id = $('#technician_id').val();
+    var job_completed_date_to = $('#job_completed_date_to').val();
+    var job_completed_date_from = $('#job_completed_date_from').val();
+
+    $.ajax({
+        type: 'POST',
+        url: '<?php echo base_url(); ?>admin/reports/saveTechnicianFilter',
+        data:'techniciean_ids='+technician_id+'&start_date='+job_completed_date_from+'&end_date='+job_completed_date_to,
+
+        success: function (resp) {
+            swal('Save','Filter Saved Successfully ','success')
+        },
   });
 }
 
@@ -418,6 +460,8 @@ $(document).ready(function() {
     dataContainer.push(footer);
     $('#csvData').val(JSON.stringify(dataContainer));
   });
-});
 
+
+  searchFilter();
+});
 </script>

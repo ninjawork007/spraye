@@ -400,9 +400,19 @@ class Estimate_model extends CI_Model{
            $this->db->where("(`user_first_name` LIKE '%".$params['search']['sales_rep']."%' OR `user_last_name` LIKE '%".$params['search']['sales_rep']."%')");
         }
         
-        if(!empty($params['search']['sales_rep_id'])){    
-           $this->db->where("(`sales_rep` LIKE '%".$params['search']['sales_rep_id']."%' )");
+        if(!empty($params['search']['sales_rep_id'])){
+            $SaleRpID = explode(",", $params['search']['sales_rep_id']);
+
+            $IdString = "sales_rep IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
         }
+
         if(!empty($params['search']['job_id'])){    
            $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
         }
@@ -468,7 +478,7 @@ class Estimate_model extends CI_Model{
 
         $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
         $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
-        
+
         $this->db->where($where_arr);
         $result = $this->db->get();
         $data = $result->result();
@@ -483,6 +493,7 @@ class Estimate_model extends CI_Model{
         $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
         $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
         $this->db->where('t_estimate.company_id',$this->session->userdata['company_id']);
+        
         if (array_key_exists("where_condition",$params)) {
             $this->db->where($params['where_condition']);
          }
@@ -529,14 +540,49 @@ class Estimate_model extends CI_Model{
         }
         
         if(!empty($params['search']['sales_rep_id'])){    
-           $this->db->where("(`sales_rep` LIKE '%".$params['search']['sales_rep_id']."%' )");
+           $SaleRpID = explode(",", $params['search']['sales_rep_id']);
+
+            $IdString = "sales_rep IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
         }
+
+        if(!empty($params['search']['job_name'])){
+           $SaleRpID = explode(",", $params['search']['job_name']);
+
+            $IdString = "jobs.job_id IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
+        }
+
+        if(!empty($params['search']['program_name'])){
+           $SaleRpID = explode(",", $params['search']['program_name']);
+
+            $IdString = "t_estimate.program_id IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
+            unset($params['search']['program_name']);
+        }
+
         if(!empty($params['search']['job_id'])){    
            $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
         }
-        if(!empty($params['search']['job_name'])){    
-           $this->db->where("(`jobs.job_name` LIKE '%".$params['search']['job_name']."%' )");
-        }
+        
         if(!empty($params['search']['customer_name'])){    
            $this->db->where("(`first_name` LIKE '%".$params['search']['customer_name']."%' OR `last_name` LIKE '%".$params['search']['customer_name']."%')");
         }
@@ -559,11 +605,7 @@ class Estimate_model extends CI_Model{
          //get records
            $query = $this->db->get();
 		// die($this->db->last_query());
-            //return fetched data
-         return ($query->num_rows() > 0)?$query->result():FALSE;        
-     
- 
-       
+         return ($query->num_rows() > 0)?$query->result() : FALSE;  
     }
 
     public function getAllEstimateGroupByID($where_arr = array()){
@@ -635,14 +677,47 @@ class Estimate_model extends CI_Model{
    }
    
    if(!empty($params['search']['sales_rep_id'])){    
-      $this->db->where("(`sales_rep` LIKE '%".$params['search']['sales_rep_id']."%' )");
+    $SaleRpID = explode(",", $params['search']['sales_rep_id']);
+    $IdString = "sales_rep IN (";
+    foreach($SaleRpID as $TcID){
+        $IdString .= "'".$TcID."',";
+    }
+    $IdString = substr($IdString, 0, -1);
+    $IdString .= ")";
+    $this->db->where($IdString);
    }
+
+   if(!empty($params['search']['job_name'])){
+       $SaleRpID = explode(",", $params['search']['job_name']);
+
+        $IdString = "jobs.job_id IN (";
+        foreach($SaleRpID as $TcID){
+            $IdString .= "'".$TcID."',";
+        }
+        $IdString = substr($IdString, 0, -1);
+        $IdString .= ")";
+
+        $this->db->where($IdString);
+    }
+
+    if(!empty($params['search']['program_name'])){
+       $SaleRpID = explode(",", $params['search']['program_name']);
+
+        $IdString = "t_estimate.program_id IN (";
+        foreach($SaleRpID as $TcID){
+            $IdString .= "'".$TcID."',";
+        }
+        $IdString = substr($IdString, 0, -1);
+        $IdString .= ")";
+
+        $this->db->where($IdString);
+        unset($params['search']['program_name']);
+    }
+
    if(!empty($params['search']['job_id'])){    
       $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
    }
-   if(!empty($params['search']['job_name'])){    
-      $this->db->where("(`jobs.job_name` LIKE '%".$params['search']['job_name']."%' )");
-   }
+   
    if(!empty($params['search']['customer_name'])){    
       $this->db->where("(`first_name` LIKE '%".$params['search']['customer_name']."%' OR `last_name` LIKE '%".$params['search']['customer_name']."%')");
    }

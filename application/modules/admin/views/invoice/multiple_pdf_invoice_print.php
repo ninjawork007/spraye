@@ -122,7 +122,7 @@
         <?php
 	//$setting_address_array = Get_Address_From_Google_Maps($setting_details->company_address);
 	$setting_address_array = explode(',',$setting_details->company_address,2);
-	foreach ($invoice_details as $index=>$invoice_detail) {  
+	foreach ($invoice_details as $index=> $invoice_detail) {  
         $property_address_array = explode(',', $invoice_detail->property_address);
         $property_address_first = array_shift($property_address_array);
         $property_address_last = implode(',',$property_address_array);
@@ -412,13 +412,28 @@
                                         <td></td>
                                         <td></td>
                                         <td></td>
-                                        <td class="border-bottom-blank-td text-left default-font-color">SUBTOTAL</td>
+                                        <td class="border-bottom-blank-td text-left default-font-color">SUB TOTAL</td>
                                         <td class="border-bottom-blank-td text-right"></td>
-                                        <td class="border-bottom-blank-td text-right">$
-                                            <?= number_format($total_inv_line_costs,2); ?>
-                                        </td>
-
+                                        <td class="border-bottom-blank-td text-right" style="width: 100px; text-align: right;">$<?= number_format($total_inv_line_costs,2); ?></td>
                                     </tr>
+
+                                    <?php
+                                    if(isset($invoice_detail->invoice_partials_payments)){
+                                        foreach($invoice_detail->invoice_partials_payments as $PayLogs){
+                                        ?>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td class="border-bottom-blank-td text-left default-font-color">Partial Payment</td>
+                                            <td class="border-bottom-blank-td" align="center"><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                            <td class="border-bottom-blank-td text-right" style="width: 100px; text-align: right;">$<?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                        }
+                                    }
+                                    ?>
 
                                     <?php 
 
@@ -502,7 +517,7 @@
 
                                     <?php  if ( $invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>
 
-                                        <tr>
+                                        <!--<tr>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -516,7 +531,7 @@
                                                 $invoice_total_cost = $invoice_total_cost-$invoice_detail->partial_payment;
                                                 ?>
                                             </td>
-                                        </tr>
+                                        </tr>-->
 
 
                                     <?php } ?>
@@ -530,9 +545,7 @@
                                             <td class="border-bottom-blank-last text-left default-font-color">REFUND ISSUED
                                             </td>
                                             <td class="border-bottom-blank-td"></td>
-                                            <td class="border-bottom-blank-last text-right">+ $
-                                                <?php echo number_format($invoice_detail->refund_amount_total,2); ?>
-                                            </td>
+                                            <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">+ $<?php echo number_format($invoice_detail->refund_amount_total,2); ?></td>
                                         </tr>
 
 
@@ -547,9 +560,7 @@
                                             <td class="border-bottom-blank-last text-left default-font-color">REFUND PAID
                                             </td>
                                             <td class="border-bottom-blank-td"></td>
-                                            <td class="border-bottom-blank-last text-right">- $
-                                                <?php echo number_format($invoice_detail->refund_amount_total,2); ?>
-                                            </td>
+                                            <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">$-<?php echo number_format($invoice_detail->refund_amount_total,2); ?></td>
                                         </tr>
 
 
@@ -564,9 +575,7 @@
                                             <td class="border-bottom-blank-last text-left default-font-color">LATE FEE
                                             </td>
                                             <td class="border-bottom-blank-td"></td>
-                                            <td class="border-bottom-blank-last text-right"> $
-                                                <?php echo number_format($invoice_detail->late_fee,2); ?>
-                                            </td>
+                                            <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">$<?php echo number_format($invoice_detail->late_fee,2); ?></td>
                                         </tr>
 
 
@@ -604,7 +613,7 @@
                                         </td>
 
                                         <td class="border-bottom-blank-last"></td>
-                                        <td class="border-bottom-blank-last text-right">$
+                                        <td class="border-bottom-blank-last text-right" style="width: 100px; text-align: right;">$
                                             <?php
                                             if($invoice_detail->payment_status == 2)  {
                                                 echo number_format(0,2);
@@ -674,6 +683,7 @@
             <!-- START APPLICATION & PRODUCTS SECTION -->
             <table width="100%" class="main table table-condensed">
                 <?php
+
                 $products = array();
                 $report_id = [];
 
@@ -709,8 +719,6 @@
 
 
                 } else {
-
-
                     $job = $invoice_detail;
 
                     if ($invoice_detail->report_id != 0) {
@@ -742,7 +750,6 @@
 				    if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
 
        				    if ($setting_details->is_wind_speed==1 || $setting_details->is_wind_direction==1 || ($setting_details->is_temperature==1) || ($setting_details->is_applicator_name==1) || ($setting_details->is_applicator_number==1 && $invoice_report_details->applicator_number!='' ) ||  ($setting_details->is_applicator_phone==1 && $invoice_report_details->applicator_phone_number!='' ) || ($setting_details->is_property_address==1) || ($setting_details->is_property_size==1) || ($setting_details->is_date==1) || ($setting_details->is_time==1)    ) { ?>
-                             <!-- START APPLICATIONS SECTION -->
                             <tr>
                                 <td width="100%">
                                     <table width="100%" class="table table-condensed mannual application_tbl">
@@ -871,7 +878,6 @@
                                                                         } 
                                                                     }
 
-//                                                                    $estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$invoice_detail->yard_square_feet);
                                                                    // die(print_r($product_details_value));
                                                                     $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
 
@@ -1036,8 +1042,6 @@
                                                                         $ingredientarr[] =  $value2->active_ingredient.' : '.$value2->percent_active_ingredient.' % ';
                                                                     } 
                                                                 }
-
-//                                                                $estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$invoice_detail->yard_square_feet);
                                                                  $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
                                                                 if  ($setting_details->is_product_name==1 || ($setting_details->is_epa==1 && $product_details_value->epa_reg_nunber )  || ($setting_details->is_active_ingredients==1 && $ingredientDatails ) || ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 ) ||  ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='') || ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) ||  ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) || ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') ||  ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 )   ) { ?>
                                                                     <tr>
@@ -1149,9 +1153,7 @@
                 <?php } ?>                                        
             </table>
             <!-- END APPLICATION PRODTUCTS SECTION -->
-
         </div>
-
         <?php } ?>
     </body>
 

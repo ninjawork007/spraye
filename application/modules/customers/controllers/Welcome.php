@@ -2025,7 +2025,6 @@ class Welcome extends MY_Controller
                 $result = $this->EstimateModal->updateEstimate($where, $param);
 
                 // SET RELATED INVOICES TO PAID HERE AS WELL... unless invoices aren't created yet?
-
                 $company_id = $estimate_details->company_id;
 
                 $where = array('company_id' => $company_id);

@@ -679,7 +679,23 @@ class AdminTbl_property_model extends CI_Model
     public function getPropertyByDateRange($where,$from='',$to=''){
         $this->db->select('*');
         $this->db->from('property_tbl');
+        $this->db->join('property_program_assign','property_program_assign.property_id = property_tbl.property_id ','inner');
+
+        if(isset($where["assignProgram"]) && $where["assignProgram"] != "null"){
+            $SaleRpID = explode(",", $where["assignProgram"]);
+
+            $IdString = "property_program_assign.program_id IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+            $this->db->where($IdString);
+            unset($where["assignProgram"]);
+        }
+
         $this->db->where($where);
+
 		if($from != ''){            
            $this->db->where('property_tbl.property_created >=', $from);
         }     
@@ -699,8 +715,11 @@ class AdminTbl_property_model extends CI_Model
         return $data;
     }
 	public function getCancelledPropertyByDateRange($where,$from='',$to=''){
-        $this->db->select('*');
+        $this->db->select('property_tbl.*, customers.customer_id, customers.first_name, customers.email, customers.last_name, customers.work_phone, users.user_first_name, users.user_last_name');
         $this->db->from('property_tbl');
+        $this->db->join('customer_property_assign','customer_property_assign.property_id = property_tbl.property_id ','inner');
+        $this->db->join('customers','customers.customer_id = customer_property_assign.customer_id ','inner');
+        $this->db->join('users','users.id = property_tbl.cancelled_by ','inner');
         $this->db->where($where);
 		$this->db->where('property_tbl.property_status', 0);
 		$this->db->where('property_tbl.property_cancelled IS NOT NULL');

@@ -97,7 +97,16 @@ class Reports_model extends CI_Model{
     {
         $this->db->select('job_completed_date');
         $this->db->from(self::TJATBL);
-        $this->db->where('technician_id',$where_arr['technician_id']);
+        
+        $IdString = "technician_id IN (";
+        foreach($where_arr['technician_id'] as $TcID){
+            $IdString .= "'".$TcID."',";
+        }
+        $IdString = substr($IdString, 0, -1);
+        $IdString .= ")";
+
+        $this->db->where($IdString);
+
         $this->db->where('is_complete', $where_arr['is_complete']);
 
          if ($where_arr['date_from'] != '') {
@@ -114,7 +123,7 @@ class Reports_model extends CI_Model{
         $result = $this->db->get();
         $data = $result->result();
         $data = count(array_unique(array_column($data, 'job_completed_date')));
-      //  die($this->db->last_query());
+        //die($this->db->last_query());
       //   return $this->db->last_query();
         return $data;
     }
@@ -421,7 +430,17 @@ class Reports_model extends CI_Model{
     {
         $this->db->select('job_completed_date');
         $this->db->from(self::TJATBL);
-        $this->db->where('technician_id',$where_arr['technician_id']);
+        
+
+        $IdString = "technician_id IN (";
+        foreach($where_arr['technician_id'] as $TcID){
+            $IdString .= "'".$TcID."',";
+        }
+        $IdString = substr($IdString, 0, -1);
+        $IdString .= ")";
+
+        $this->db->where($IdString);
+
         $this->db->where('is_complete', $where_arr['is_complete']);
          if ($where_arr['date_from'] != '') {
 
@@ -443,7 +462,17 @@ class Reports_model extends CI_Model{
     {
         // $this->db->select('technician_job_assign_id');
         $this->db->from(self::TJATBL);
-        $this->db->where('technician_id',$where_arr['technician_id']);
+        
+
+        $IdString = "technician_id IN (";
+        foreach($where_arr['technician_id'] as $TcID){
+            $IdString .= "'".$TcID."',";
+        }
+        $IdString = substr($IdString, 0, -1);
+        $IdString .= ")";
+
+        $this->db->where($IdString);
+
         $this->db->where('is_complete', $where_arr['is_complete']);
          if ($where_arr['date_from'] != '') {
 
@@ -489,7 +518,17 @@ class Reports_model extends CI_Model{
     {
         $this->db->select('job_start_time,job_completed_time');
         $this->db->from(self::TJATBL);
-        $this->db->where('technician_id',$where_arr['technician_id']);
+        
+
+        $IdString = "technician_id IN (";
+        foreach($where_arr['technician_id'] as $TcID){
+            $IdString .= "'".$TcID."',";
+        }
+        $IdString = substr($IdString, 0, -1);
+        $IdString .= ")";
+
+        $this->db->where($IdString);
+        
         $this->db->where('is_complete', $where_arr['is_complete']);
          if ($where_arr['date_from'] != '') {
 
@@ -882,6 +921,38 @@ class Reports_model extends CI_Model{
                 $this->db->join('cancelled_services_tbl','cancelled_services_tbl.property_id = property_tbl.property_id','inner');
                 $this->db->where_in('cancelled_services_tbl.cancel_reason', $filters_array['filters']['cancel_reasons_multi']);
             }
+
+            if($filters_array['filters']['total_yard_grass'] != 'null' && $filters_array['filters']['total_yard_grass'] != NULL) {
+                $Grass = explode(",", $filters_array['filters']['total_yard_grass']);
+                $like_stmt = "(";
+                foreach($Grass as $tm) {
+                    $like_stmt .= "FIND_IN_SET('".$tm."', property_tbl.total_yard_grass) OR ";
+                }
+                $like_stmt = substr($like_stmt, 0, -3);
+                $this->db->where($like_stmt.")");
+            }
+
+            if($filters_array['filters']['front_yard_grass'] != 'null' && $filters_array['filters']['front_yard_grass'] != NULL) {
+                $Grass = explode(",", $filters_array['filters']['front_yard_grass']);
+                $like_stmt = "(";
+                foreach($Grass as $tm) {
+                    $like_stmt .= "FIND_IN_SET('".$tm."', property_tbl.front_yard_grass) OR ";
+                }
+                $like_stmt = substr($like_stmt, 0, -3);
+                $this->db->where($like_stmt.")");
+            }
+
+            if($filters_array['filters']['back_yard_grass'] != 'null' && $filters_array['filters']['back_yard_grass'] != NULL) {
+                $Grass = explode(",", $filters_array['filters']['back_yard_grass']);
+                $like_stmt = "(";
+                foreach($Grass as $tm) {
+                    $like_stmt .= "FIND_IN_SET('".$tm."', property_tbl.back_yard_grass) OR ";
+                }
+                $like_stmt = substr($like_stmt, 0, -3);
+                $this->db->where($like_stmt.")");
+            }
+
+
             if($filters_array['filters']['last_date_program_start'] != "") {
                 // this means they set a start date, check for an end date and if not found default to today
                 if($filters_array['filters']['last_date_program_end'] != "") {

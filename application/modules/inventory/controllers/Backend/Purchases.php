@@ -478,14 +478,7 @@ class Purchases extends MY_Controller{
 	public function returnOrder($purchase_order_id) {
 		$data = $this->input->post();
         $data['purchase_order_id'] = $purchase_order_id;
-        $purchase_order = $this->PurchasesModel->checkPurchaseForReturnStatus(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
-
-		if($purchase_order->is_returned == 1){
-			$purchase_return = $this->ReturnsModel->getReturn(array('purchase_return_tbl.purchase_order_id' => $purchase_order_id));	
-		} else {
-			$purchase_return = $this->ReceivingsModel->getReceiving(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
-		}
-
+        $purchase_return = $this->ReturnsModel->getReturn(array('purchase_return_tbl.return_id' => $purchase_order_id));	
 		if ($purchase_return) {
 			$return_array =  array('status' => 200, 'msg' => 'Purchase Order found successfully.', 'data' => $purchase_return);
 		} else {
@@ -495,31 +488,29 @@ class Purchases extends MY_Controller{
 		echo json_encode($return_array);
 	}
 
-	public function returningItemsOrder($purchase_order_id) {
+	public function returningItemsOrder() {
 		$data = $this->input->post();
-		$purchase_order = $this->PurchasesModel->checkPurchaseForReturnStatus(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
-	
-		$where = array(
-			'purchase_order_tbl.purchase_order_id' => $purchase_order_id
-		);
-
 		$itemsArr = $data['items'];
 
-		if($purchase_order->is_returned == 1){
+		if($data["return_id"] != ""){
 
 			$where_return = array(
-				'purchase_return_tbl.return_id' => $purchase_order->return_id
+				'purchase_return_tbl.return_id' => $data["return_id"]
 			);
 
 			$returned = array(
 				'company_id' => $this->session->userdata['company_id'],
-				'purchase_order_number' => $purchase_order->purchase_order_number,
-				'purchase_order_id' => $purchase_order->purchase_order_id,
+				'purchase_order_number' => 0,
+				'purchase_order_id' => 0,
 				'vendor_id' => $data['vendor_id'],
 				'location_id' => $data['location_id'],
 				'sub_location_id' => $data['sub_location_id'],
+				'created_by' => $this->session->userdata['id'],
 				'items' => json_encode($data['items']),
 				'discount' => $data['discount'],
+				'notes' => $data['notes'],
+				'payment_term' => $data['payment_term'],
+				'tax' => $data['tax'],
 				'freight' => $data['freight'],
 				'updated_at' => date('Y-m-d H:i:s'),
 			);
@@ -583,19 +574,21 @@ class Purchases extends MY_Controller{
                     $this->db->update('items_tbl', array('average_cost_per_unit' => number_format($new_average, 2)));
 				}
 			}
-
 		} else {
-
 			$returned = array(
 				'company_id' => $this->session->userdata['company_id'],
-				'purchase_order_number' => $purchase_order->purchase_order_number,
-				'purchase_order_id' => $purchase_order->purchase_order_id,
+				'purchase_order_number' => 0,
+				'purchase_order_id' => 0,
 				'vendor_id' => $data['vendor_id'],
 				'location_id' => $data['location_id'],
 				'sub_location_id' => $data['sub_location_id'],
+				'created_by' => $this->session->userdata['id'],
 				'items' => json_encode($data['items']),
+				'payment_term' => $data['payment_term'],
 				'discount' => $data['discount'],
 				'freight' => $data['freight'],
+				'notes' => $data['notes'],
+				'tax' => $data['tax'],
 				'created_at' => date('Y-m-d H:i:s'),
 			);
 			
@@ -609,7 +602,7 @@ class Purchases extends MY_Controller{
 				'updated_at' => date("Y-m-d H:i:s")
 			);
 	
-			$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
+			//$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
 
 			#### UPDATES ITEMS COLUMN WITH RETURN QTY
 			$where_receiving = array(
@@ -746,7 +739,98 @@ class Purchases extends MY_Controller{
 
 	public function updatePO($purchase_order_id) {
 		$data = $this->input->post();
+
+		$NewItemArray = array();
+		foreach($data["items"] as $DT){
+			$NewItemArray[$DT['item_id']] = $DT["unit_price"];
+		}
+
 		$purchase_order = $this->PurchasesModel->getPurchase(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id));
+
+		$POPriceUpdated = 0;
+		$GetOldItems = json_decode($purchase_order[0]->items);
+		foreach($GetOldItems as $GOI){
+			if($GOI->unit_price != $NewItemArray[$GOI->item_id]){
+				$POPriceUpdated = 1;
+			}
+		}
+
+		// Remove all received item and update quantity and average price
+		if($POPriceUpdated == 1){
+
+			foreach($GetOldItems as $itemArr){
+
+				$quantityArr = array(
+					'quantity_item_id' => $itemArr->item_id, 
+					'quantity_location_id' => $data['location_id'], 
+					'quantity_sublocation_id' => $data['sub_location_id'],
+					'company_id' => $this->session->userdata['company_id']
+				);
+
+	            $quantArr = array(
+	                'quantity_item_id' => $itemArr->item_id, 
+	                'company_id' => $this->session->userdata['company_id']
+	            );
+
+				$unit_amount = $this->ReceivingsModel->getUnitAmount($itemArr->item_id);
+				
+				$alreadyExists = $this->ReceivingsModel->getAlreadyExistingQuantities($quantityArr);
+
+	            $quant = $this->ReceivingsModel->getAlreadyExistingQuantity($quantArr);
+
+			
+				if(!empty($alreadyExists)){
+					
+					$this->db->where('quantity_id', $alreadyExists->quantity_id);
+					$this->db->update('quantities', array('quantity' => ($alreadyExists->quantity - ($itemArr->receiving_qty))));
+
+					$item_info = $this->ReceivingsModel->getCurrentAverageCostPerUnit($itemArr->item_id);
+
+					if($itemArr->receiving_qty != 0){
+						$new_average = $this->calculateAverageCostPerUnit(
+	                        $item_info->average_cost_per_unit, 
+	                        $quant, 
+	                        $itemArr->unit_price, 
+	                        0
+	                    );
+					}
+
+					$this->db->where('item_id', $itemArr->item_id);
+					$this->db->update('items_tbl', array('average_cost_per_unit' => number_format($new_average, 2)));
+				}
+			}
+		}
+
+		$where = array(
+			'purchase_order_id' => $purchase_order_id
+		);
+
+		if($POPriceUpdated == 1){
+			foreach($data["items"] as $Index => $DT){
+				$data["items"][$Index]["received_qty"] = 0;
+			}
+
+			$received = array(
+				'company_id' => $this->session->userdata['company_id'],
+				'purchase_order_number' => $purchase_order[0]->purchase_order_number,
+				'purchase_order_id' => $purchase_order[0]->purchase_order_id,
+				'total_units' => $data['total_units'],
+				'freight' => $data['freight'],
+				'discount' => $data['discount'],
+				'total_purchase_order_amount' => $purchase_order[0]->grand_total,
+				'received_by' => "",
+				'receiving_date' => "0000-00-00",
+				'location_id' => $data['location_id'],
+				'sub_location_id' => $data['sub_location_id'],
+				'items' => json_encode($data['items']),
+				'subtotal_received' => 0,
+				'total_received_amount' => 0,
+				'total_received' => 0,
+				'updated_at' => date('Y-m-d H:i:s'),
+			);
+
+			$receiving_update = $this->ReceivingsModel->updateReceivingOrder($where, $received);
+		}
 		
 		$where = array(
 			'purchase_order_tbl.purchase_order_id' => $purchase_order_id
@@ -755,7 +839,20 @@ class Purchases extends MY_Controller{
 		$param = array(
 			'location_id' => (isset($data['location_id']) && $data['location_id'] != '') ? $data['location_id'] : $purchase_order[0]->location_id,
 			'sub_location_id' => (isset($data['sub_location_id']) && $data['sub_location_id'] != '') ? $data['sub_location_id'] : $purchase_order[0]->sub_location_id,
-			'updated_at' => date("Y-m-d H:i:s")
+			'updated_at' => date("Y-m-d H:i:s"),
+			'created_date' => $data["created_date"],
+			'ordered_date' => $data["ordered_date"],
+			'expected_date' => $data["expected_date"],
+			'unit_measrement' => $data["unit_measrement"],
+			'shipping_point' => $data["shipping_point"],
+			'shipping_method_1' => $data["shipping_method_1"],
+			'fob' => $data["fob"],
+			'destination' => $data["destination"],
+			'place_of_origin' => $data["place_of_origin"],
+			'place_of_destination' => $data["place_of_destination"],
+			'payment_terms' => $data["payment_terms"],
+			'items' => json_encode($data['items']),
+			'is_receiving' => ($POPriceUpdated == 1) ? 0 : $purchase_order[0]->is_receiving,
 		);
 
 		$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
@@ -838,8 +935,13 @@ class Purchases extends MY_Controller{
 			'sub_location_id' => (isset($data['sub_location_id']) && $data['sub_location_id'] != '') ? $data['sub_location_id'] : $purchase_order[0]->sub_location_id,
 			'updated_at' => date("Y-m-d H:i:s"),
             'items' => json_encode($data['items']),
-            'grand_total' => $data['grand_total']
-            
+            'grand_total' => $data['grand_total'],
+			'ordered_date' => $data["ordered_date"],
+			'shipping_point' => $data["shipping_point"],
+			'destination' => $data["destination"],
+			'shipping_method_1' => $data["shipping_method_1"],
+			'fob' => $data["fob"],
+			'payment_terms' => $data["payment_terms"],
 		);
 
 		$result = $this->PurchasesModel->updatePurchaseOrder($where, $param);
@@ -913,17 +1015,17 @@ class Purchases extends MY_Controller{
     
 
 	public function calculateAverageCostPerUnit($current_average, $current_quantity, $po_cost, $po_units){
-		$average_cost = ((number_format($current_average, 2) * number_format($current_quantity, 2)) 
-            + (number_format($po_cost, 2) * number_format($po_units, 2))) 
-            / (number_format($current_quantity, 2) + number_format($po_units, 2));
-		    return number_format($average_cost, 2);
+		$average_cost = ((number_format($current_average, 4) * number_format($current_quantity, 4)) 
+            + (number_format($po_cost, 4) * number_format($po_units, 4))) 
+            / (number_format($current_quantity, 4) + number_format($po_units, 4));
+		    return number_format($average_cost, 4);
 	}
 
     public function calculateAverageCostPerUnitAfterReturn($current_average, $current_quantity, $po_cost, $po_units){
-		$average_cost = ((number_format($current_average, 2) * number_format($current_quantity, 2)) 
-            - (number_format($po_cost, 2) * number_format($po_units, 2))) 
-            / (number_format($current_quantity, 2) - number_format($po_units, 2));
-		    return number_format($average_cost, 2);
+		$average_cost = ((number_format($current_average, 4) * number_format($current_quantity, 4)) 
+            - (number_format($po_cost, 4) * number_format($po_units, 4))) 
+            / (number_format($current_quantity, 4) - number_format($po_units, 4));
+		    return number_format($average_cost, 4);
 	}
 
 }

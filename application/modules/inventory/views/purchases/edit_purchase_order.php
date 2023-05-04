@@ -315,15 +315,48 @@
 									</div>
 								</div>
 
-								<!-- Separator -->
-								<div class="columns-separator"></div>
-
-								<!-- Right -->
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="estimated_delivery_date" class="d-block">Estimated Delivery Date</label>
 											<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" value="<?= $new_purchase[0]->estimated_delivery_date ?>"  />
 										<div class="invalid-feedback"></div>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="ordered_date" class="d-block">Ordered Date</label>
+										<input type="date" id="ordered_date" name="ordered_date" class="form-control" value="<?= $new_purchase[0]->ordered_date ?>" />
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_point" class="d-block">Shipping Point</label>
+										<input type="text" id="shipping_point" name="shipping_point" class="form-control" value="<?= $new_purchase[0]->shipping_point ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="shipping_method_1" class="d-block">Shipping Method</label>
+										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" value="<?= $new_purchase[0]->shipping_method_1 ?>"/>
+									</div>
+								</div>
+
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="destination" class="d-block">Destination</label>
+										<input type="text" id="destination" name="destination" class="form-control" value="<?= $new_purchase[0]->destination ?>"/>
+									</div>
+								</div>
+								<div class="column text-break pl-2 pr-2">
+									<div class="form-group">
+										<label for="fob" class="d-block">FOB - Freight on Board</label>
+										<select id="fob" name="fob" class="form-control">
+											<option <?php if($new_purchase[0]->fob == "Place of Origin") { echo 'selected'; } ?>>Place of Origin</option>
+											<option <?php if($new_purchase[0]->fob == "Place of Destination") { echo 'selected'; } ?>>Place of Destination</option>
+										</select>
 									</div>
 								</div>
 							</div>
@@ -365,6 +398,7 @@
 											<thead style="background: #36c9c9;border-color: #36c9c9;">
 												<tr>
 													<th>Item name</th>
+													<th>Unit</th>
 													<th>Unit price</th>
 													<th>Quantity</th>
 													<th>Total</th>
@@ -442,6 +476,13 @@
 											</tr>
 										</tbody>
 									</table>
+								</div>
+							</div>
+
+							<div>
+								<div class="form-group">
+									<label for="payment_terms" class="d-block">Payment Terms</label>
+									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"><?= $new_purchase[0]->payment_terms ?></textarea>
 								</div>
 							</div>
 
@@ -593,12 +634,15 @@
 			updateTotals();
 		})
 
+		$(document).on('input', '.itemunit', function() {
+			updateTotals();
+		})
+
 		// When changing quantity of an item
 		$(document).on('input', '.quantity', function() {
-				var qty = $(this).val();
-				console.log('input value =' + $(this).val());
-				updateTotals();
-			})
+			var qty = $(this).val();
+			updateTotals();
+		})
 
 
 		// When changing shipping cost, discount or tax...
@@ -720,9 +764,11 @@ function purchaseOrder(){
 				let td2 = unit_price
 				let td3 = quantity 
 				let td6 = 0
+				let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+item.unit_type+`" />`;
 
 				let elem = `<tr data-item-id="${item.item_id}">`
 					+ `<td>${td1}</td>`
+					+ `<td data-item-td="unit_price">${td7}</td>`
 					+ `<td data-item-td="unit_price">$ ${td2}</td>`
 					+ `<td data-item-td="quantity"><input name="quantity" type="number" step="1" min="0" class="form-control col-lg-2 quantity" value="${td3}"></td>`
 					+ `<td data-item-td="total">$ ${td6}</td>`
@@ -776,10 +822,12 @@ function updateTotals() {
 
 	itemsAdded.forEach((item, i) => {
 		console.log('Item has: ' + JSON.stringify(item));
-			let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val();
+			let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] .quantity`).val();
+			let unit = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemunit`).val();
 			
 			// Update quantity in the original array
 			itemsAdded[i].qty = qty;
+			itemsAdded[i].unit_type = unit;
 
 			let item_subtotal = qty * Number(item.price_per_unit);
 			
@@ -797,14 +845,14 @@ function updateTotals() {
 			total_qty += Number(item.qty);
 			
 		});
-
-		console.log(Object.values(purchase.items));
 	
 	Object.values(purchase.items).forEach((item, i) => {
 		
-		let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val();
+		let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] .quantity`).val();
+		let unit = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemunit`).val();
 
 		Object.values(purchase.items)[i].qty = qty;
+		Object.values(purchase.items)[i].unit_type = unit;
 
 		let quantity = item.qty;
 		let item_price = item.unit_price;
@@ -916,14 +964,16 @@ function updateTotals() {
 				+ '</div>'
 				+ '</div>'
 			let td2 = itemObj.price_per_unit;
-			let td3 = `<input type="number" class="form-control form-control-sm itemqty" name="itemqty" min="0" value="0" />`;
+			let td3 = `<input type="number" class="form-control form-control-sm quantity" name="quantity" min="0" value="0" />`;
 			let td4 = parseFloat(0).toFixed(2);
 			let td5 = itemObj.item_vendor_tax;
 			let td6 = parseFloat(0).toFixed(2);
+			let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+itemObj.unit_type+`" />`;
 
 			//table#items
 			let elem = `<tr data-item-id="${itemObj.item_id}">`
 				+ `<td>${td1}</td>`
+				+ `<td data-item-td="unit_price">${td7}</td>`
 				+ `<td data-item-td="unit_price">${currency} ${td2}</td>`
 				+ `<td data-item-td="quantity">${td3}</td>`
 				+ `<td data-item-td="total">${currency} ${td6}</td>`
@@ -946,6 +996,16 @@ function updateTotals() {
 		let data = {
 			purchase_order_id: purchase_order_id,
 			purchase_order_number: $('span[name=title]').html(),
+			created_date: $('input[name=created_date]').val(),
+			ordered_date: $('input[name=ordered_date]').val(),
+			expected_date: $('input[name=expected_date]').val(),
+			unit_measrement: $('input[name=unit_measrement]').val(),
+			shipping_point: $('input[name=shipping_point]').val(),
+			shipping_method_1: $('input[name=shipping_method_1]').val(),
+			fob: $('select[name=fob]').val(),
+			destination: $('input[name=destination]').val(),
+			place_of_origin: $('input[name=place_of_origin]').val(),
+			place_of_destination: $('input[name=place_of_destination]').val(),
 			location_id: $('select[name=location]').val(),
 			vendor_id: $('select[name=vendor]').val(),
 			freight: $('input[name=freight]').val(),
@@ -953,6 +1013,7 @@ function updateTotals() {
 			discount_type: 'amount',
 			tax: $('input[name=tax]').val(),
 			notes: $('textarea[name=purchase_order_order_notes]').val(),
+			payment_terms: $('textarea[name=payment_terms]').val(),
 			status: purchase.purchase_order_status,
 			purchase_sent_status: $('#purchase_sent_status').val(),
 			total_units: purchase.total_units,
@@ -966,7 +1027,8 @@ function updateTotals() {
 				name: item.name,
 				received_qty: 0,
 				unit_price: item.unit_price,
-				quantity: item.qty
+				quantity: item.qty,
+				unit_type: item.unit_type,
 			})
 		})
 
@@ -977,9 +1039,12 @@ function updateTotals() {
 				name: item.item_name,
 				received_qty: 0,
 				unit_price: item.price_per_unit,
+				unit_type: item.unit_type,
 				quantity: item.qty
 			})
 		})
+
+		console.log(data.items);
 		
 		var url = '<?= base_url('inventory/Backend/Purchases/updateDraft/') ?>'+purchase_order_id;
 		var formData = data;
@@ -1004,5 +1069,3 @@ function updateTotals() {
 
 
 </script>
-
-
