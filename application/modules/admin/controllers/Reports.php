@@ -7128,11 +7128,14 @@ class Reports extends MY_Controller {
         $company_id = $this->session->userdata['company_id'];
 
         $data["AllCancelledProperty"] = $cancelled_properties;
+        $data["setting_details"] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
 
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
             $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
             $cost = 0;
             foreach($AllServicesOfCustomer as $all_services) {
+                $propertyDetails = $this->PropertyModel->getOnePropertyDetail($all_services->property_id);
+
                 // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
                 $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
                     
@@ -7140,13 +7143,13 @@ class Reports extends MY_Controller {
                         $cost +=  $priceOverrideData->price_override;
                     } else {
                         //else no price overrides, then calculate job cost
-                        $lawn_sqf = $all_services->yard_square_feet;
-                        $job_price = $all_services->job_price;
+                        $lawn_sqf = $propertyDetails->yard_square_feet;
+                        $job_price = $propertyDetails->job_price;
 
                         //get property difficulty level
-                        if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                        if (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 2) {
                             $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                        } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                        } elseif (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 3) {
                             $difficulty_multiplier = $data['setting_details']->dlmult_3;
                         } else {
                             $difficulty_multiplier = $data['setting_details']->dlmult_1;
