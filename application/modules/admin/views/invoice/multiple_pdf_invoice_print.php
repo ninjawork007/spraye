@@ -720,24 +720,33 @@
 
                 } else {
                     $job = $invoice_detail;
+
                     if ($invoice_detail->report_id != 0) {
-                        array_push($report_id, $invoice_detail->report_id);
+
+                        array_push($report_id, $job->report_id);
                         $products[]= array(
-                            'job_id'=>$invoice_detail->job_id,
-                            'report'=> isset($invoice_detail->report_details) ? $invoice_detail->report_details : (isset($invoice_detail->report) ? $invoice_detail->report : ''),
+                            'job_id'=>($job->job_id == '')?$job->jobs[0]['job_id']:$job->job_id,
+                            'report'=> (isset($job->report))?$job->report: $job->report_details,
                         );
                     } else {
                         array_push($report_id, $job->jobs[0]['job_report']->report_id);
                         $products[] = array(
-                            'job_id' => $invoice_detail->job_id,
+                            'job_id' => $job->job_id,
                             'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
                         );
                     }
                 }
             foreach($products as $k=>$v){
 
-                    $product_details =  getProductByReport(array('report_id'=> $v['report']->report_id));
+                    //die(print_r($v['report']));
+                    if ($v['report'] !== ''){
+                        $rid = $v['report']->report_id;
+                    } else {
+                        $rid = $v['report'];
+                    }
+                    $product_details =  getProductByReport(array('report_id'=> $rid));
 				    $invoice_report_details =  $v['report'];
+
 				    if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
 
        				    if ($setting_details->is_wind_speed==1 || $setting_details->is_wind_direction==1 || ($setting_details->is_temperature==1) || ($setting_details->is_applicator_name==1) || ($setting_details->is_applicator_number==1 && $invoice_report_details->applicator_number!='' ) ||  ($setting_details->is_applicator_phone==1 && $invoice_report_details->applicator_phone_number!='' ) || ($setting_details->is_property_address==1) || ($setting_details->is_property_size==1) || ($setting_details->is_date==1) || ($setting_details->is_time==1)    ) { ?>
@@ -790,12 +799,14 @@
                                                                 <?php } ?>
                                                             </td>
                                                             <td align="center">
-                                                                <?php if ($setting_details->is_applicator_name==1) { ?>
+                                                                <?php
+                                                                if ($setting_details->is_applicator_name==1) { ?>
                                                                 <?= $invoice_report_details->user_first_name.' '.$invoice_report_details->user_last_name ?>
                                                                 <?php } ?>
                                                             </td>
                                                             <td align="center">
-                                                                <?php if ($setting_details->is_applicator_number==1) { ?>
+                                                                <?php
+                                                                if ($setting_details->is_applicator_number==1) { ?>
                                                                 <?= $invoice_report_details->applicator_number ?>
                                                                 <?php } ?>
                                                             </td>
@@ -899,20 +910,29 @@
                                                                                 <?php } ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
-                                                                                    $application_type ='';
+                                                                                <?php
+                                                                                echo $product_details_value->application_type;
+                                                                               /* $application_type = '';
+                                                                                if ($setting_details->is_application_type==1 && $product_details_value->application_type!='' ) {
+
+
                                                                                     if ($product_details_value->application_type==1) {
                                                                                         $application_type = 'Broadcast';
                                                                                     } else if($product_details_value->application_type==2) {
                                                                                         $application_type = 'Spot Spray';
-                                                                                    } elseif ($product_details_value->application_type==3) {
-                                                                                        $application_type = 'Granular';          
-                                                                                    } ?>
-                                                                                    <?= $application_type ?>
-                                                                                <?php } ?>
+                                                                                    } else if ($product_details_value->application_type==3) {
+                                                                                        $application_type = 'Granular';
+                                                                                    } else {
+                                                                                        $application_type = $product_details_value->application_type;
+                                                                                    }
+                                                                                    echo $application_type;
+                                                                                 }*/
+
+                                                                                ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php if ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) { 
+                                                                                <?php echo $product_details_value->chemical_type;
+                                                                               /* if ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) {
                                                                                     $chemical_type = '';                    
                                                                                     if($product_details_value->chemical_type==1) {
                                                                                         $chemical_type = 'Herbicide';
@@ -939,9 +959,10 @@
                                                                                         $chemical_type = 'Growth Regulator';
                                                                                     }  else if($product_details_value->chemical_type==9) {
                                                                                         $chemical_type = 'Biostimulants';
-                                                                                    } ?>
-                                                                                    <?= $chemical_type ?>
-                                                                                <?php } ?>
+                                                                                    }
+                                                                                    echo $chemical_type;
+                                                                                 } */?>
+
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
                                                                                 <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {	?>
@@ -1050,7 +1071,8 @@
                                                                             <?php } ?>
                                                                         </td>
                                                                         <td class="border-bottom-blank-td" align="center">
-                                                                            <?php if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
+                                                                            <?php echo print_r($setting_details);
+                                                                            if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
                                                                                 $application_type ='';
                                                                                 if ($product_details_value->application_type==1) {
                                                                                     $application_type = 'Broadcast';
@@ -1058,7 +1080,9 @@
                                                                                     $application_type = 'Spot Spray';
                                                                                 } elseif ($product_details_value->application_type==3) {
                                                                                     $application_type = 'Granular';          
-                                                                                } ?>
+                                                                                } else {
+                                                                                    $application_type = $product_details_value->application_type;
+                                                                                }?>
                                                                                 <?= $application_type ?>
                                                                             <?php } ?>
                                                                         </td>

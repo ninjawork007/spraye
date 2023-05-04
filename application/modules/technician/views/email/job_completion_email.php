@@ -168,7 +168,8 @@
 
                  }
 
-                  $estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$email_data_details->yard_square_feet);
+//                  $estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$email_data_details->yard_square_feet);
+                  $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
 
                  if ($company_email_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {
                     $additional_info.=   'Estimated Chemical Used: '.$estimated_chemical_used.'<br>';

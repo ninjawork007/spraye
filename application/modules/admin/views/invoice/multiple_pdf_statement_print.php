@@ -483,7 +483,7 @@
 					$products[]= array(
 						'job_id'=>$statement_detail->job_id,
                         'job_name'=>$statement_detail->job_name,
-						'report'=>isset($statement_detail->report_id) ? $statement_detail->report_id : '',
+						'report'=>isset($statement_detail->report_details) ? $statement_detail->report_details : $statement_detail->report_details,
 					);
 				}
                     //die(print_r($report_id));

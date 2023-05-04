@@ -849,7 +849,9 @@
                                                         }
                                                     }
 
-                                                    $estimated_chemical_used = estimateOfPesticideUsed($product_details_value, $invoice_detail->yard_square_feet);
+                                                        //$estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$invoice_detail->yard_square_feet);
+                                                        // die(print_r($product_details_value));
+                                                        $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
 
 
                                                     if ($setting_details->is_product_name == 1 || ($setting_details->is_epa == 1 && $product_details_value->epa_reg_nunber)  || ($setting_details->is_active_ingredients == 1 && $ingredientDatails) || ($setting_details->is_application_rate == 1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate != 0) ||  ($setting_details->is_estimated_chemical_used == 1 && $estimated_chemical_used != '') || ($setting_details->is_chemical_type == 1 && $product_details_value->chemical_type != 0) ||  ($setting_details->is_re_entry_time == 1 && $product_details_value->re_entry_time != '') || ($setting_details->is_weed_pest_prevented == 1 && $product_details_value->weed_pest_prevented != '') ||  ($setting_details->is_application_type == 1 && $product_details_value->application_type != 0)) { ?>
@@ -885,44 +887,43 @@
                                     </td>
                                     <td class="border-bottom-blank-td" align="center"
                                         style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_application_type == 1 && $product_details_value->application_type != 0) {
-                                                                    $application_type = '';
-                                                                    if ($product_details_value->application_type == 1) {
-                                                                        $application_type = 'Broadcast';
-                                                                    } else if ($product_details_value->application_type == 2) {
-                                                                        $application_type = 'Spot Spray';
-                                                                    } elseif ($product_details_value->application_type == 3) {
-                                                                        $application_type = 'Granular';
-                                                                    } ?>
-                                        <?= $application_type ?>
-                                        <?php } ?>
+                                        <?php if ($setting_details->is_application_type == 1 && $product_details_value->application_type != '') {
+                                        /*    $application_type = '';
+                                            if ($product_details_value->application_type == 1) {
+                                                $application_type = 'Broadcast';
+                                            } else if ($product_details_value->application_type == 2) {
+                                                $application_type = 'Spot Spray';
+                                            } elseif ($product_details_value->application_type == 3) {
+                                                $application_type = 'Granular';
+                                            } */
+                                         echo  $product_details_value->application_type;
+                                         } ?>
                                     </td>
                                     <td class="border-bottom-blank-td" align="center"
                                         style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_chemical_type == 1 && $product_details_value->chemical_type != 0) {
-                                                                    $chemical_type = '';
-                                                                    if ($product_details_value->chemical_type == 1) {
-                                                                        $chemical_type = 'Herbicide';
-                                                                    } else if ($product_details_value->chemical_type == 2) {
-                                                                        $chemical_type = 'Fungicide';
-                                                                    } else if ($product_details_value->chemical_type == 3) {
-                                                                        $chemical_type = 'Insecticide';
-                                                                    } else if ($product_details_value->chemical_type == 4) {
-                                                                        $chemical_type = 'Fertilizer';
-                                                                    } else if ($product_details_value->chemical_type == 5) {
-                                                                        $chemical_type = 'Wetting Agent';
-                                                                    } else if ($product_details_value->chemical_type == 6) {
-                                                                        $chemical_type = 'Surfactant/Tank Additive';
-                                                                    } else if ($product_details_value->chemical_type == 7) {
-                                                                        $chemical_type = 'Aquatics';
-                                                                    } else if ($product_details_value->chemical_type == 8) {
-                                                                        $chemical_type = 'Growth Regulator';
-                                                                    } else if ($product_details_value->chemical_type == 9) {
-                                                                        $chemical_type = 'Biostimulants';
-                                                                    }
-                                                                ?>
-                                        <?= $chemical_type ?>
-                                        <?php } ?>
+                                        <?php if ($setting_details->is_chemical_type == 1 && $product_details_value->chemical_type != '') {
+                                       /* $chemical_type = '';
+                                        if ($product_details_value->chemical_type == 1) {
+                                            $chemical_type = 'Herbicide';
+                                        } else if ($product_details_value->chemical_type == 2) {
+                                            $chemical_type = 'Fungicide';
+                                        } else if ($product_details_value->chemical_type == 3) {
+                                            $chemical_type = 'Insecticide';
+                                        } else if ($product_details_value->chemical_type == 4) {
+                                            $chemical_type = 'Fertilizer';
+                                        } else if ($product_details_value->chemical_type == 5) {
+                                            $chemical_type = 'Wetting Agent';
+                                        } else if ($product_details_value->chemical_type == 6) {
+                                            $chemical_type = 'Surfactant/Tank Additive';
+                                        } else if ($product_details_value->chemical_type == 7) {
+                                            $chemical_type = 'Aquatics';
+                                        } else if ($product_details_value->chemical_type == 8) {
+                                            $chemical_type = 'Growth Regulator';
+                                        } else if ($product_details_value->chemical_type == 9) {
+                                            $chemical_type = 'Biostimulants';
+                                        }*/
+                                            echo $product_details_value->chemical_type;
+                                        } ?>
                                     </td>
                                     <td class="border-bottom-blank-td" align="center"
                                         style="padding-top: 8px !important; padding-bottom: 8px !important;">
