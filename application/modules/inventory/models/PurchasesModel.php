@@ -98,23 +98,14 @@ class PurchasesModel extends CI_Model {
 		$this->db->join('locations_tbl','locations_tbl.location_id = purchase_order_tbl.location_id ','inner');
 		$this->db->join('sub_locations_tbl','sub_locations_tbl.sub_location_id = purchase_order_tbl.sub_location_id','left');
 		$this->db->join('vendors_tbl','vendors_tbl.vendor_id = purchase_order_tbl.vendor_id ','inner');
-
-		// $this->db->limit($limit, $start);
-
 		if (is_array($where_arr)) {
-
 			$this->db->where($where_arr);
-
 		}
-
-		// $this->db->order_by($col,$dir);
 		$this->db->order_by('purchase_order_tbl.purchase_order_id','asc');
         $result = $this->db->get();
         $data = $result->result();
-		// die(print_r($this->db->last_query()));
-
+		//die(print_r($this->db->last_query()));
 		return $data;
-
 	}
 
 	// To get a detailed list of all purchases
@@ -185,7 +176,7 @@ class PurchasesModel extends CI_Model {
 	// To get a single purchase by ID
 	public function getPurchase($where) {
 		// $this->db->select("purchase_order_tbl.*, locations_tbl.location_name, vendors_tbl.vendor_name ");
-        $this->db->select("purchase_order_tbl.purchase_order_id,purchase_order_tbl.purchase_order_number, purchase_order_tbl.items, purchase_order_tbl.sent_date, purchase_order_tbl.open_date, purchase_order_tbl.estimated_delivery_date, purchase_order_tbl.freight, purchase_order_tbl.discount, discount_type, purchase_order_tbl.tax, purchase_order_tbl.subtotal, purchase_order_tbl.grand_total, purchase_order_tbl.created_at, purchase_order_tbl.updated_at, purchase_order_status, purchase_order_tbl.notes, purchase_order_tbl.created_by AS created_by_id, is_receiving, is_returned, is_complete, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, company_name, vendor_email_address, vendor_phone_number, locations_tbl.location_id, locations_tbl.location_name, locations_tbl.location_street, locations_tbl.location_city, locations_tbl.location_state, locations_tbl.location_zip, locations_tbl.location_country, locations_tbl.location_phone, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name, return_id, purchase_order_tbl.purchase_sent_status, purchase_order_tbl.created_date, purchase_order_tbl.ordered_date, purchase_order_tbl.expected_date, purchase_order_tbl.unit_measrement, purchase_order_tbl.shipping_point, purchase_order_tbl.payment_terms, purchase_order_tbl.shipping_method_1, fob, purchase_order_tbl.destination, purchase_order_tbl.place_of_origin, purchase_order_tbl.place_of_destination, purchase_order_tbl.paid_attachment");
+        $this->db->select("purchase_order_tbl.purchase_order_id,purchase_order_tbl.purchase_order_number, purchase_order_tbl.items, purchase_order_tbl.sent_date, purchase_order_tbl.open_date, purchase_order_tbl.estimated_delivery_date, purchase_order_tbl.freight, purchase_order_tbl.discount, discount_type, purchase_order_tbl.tax, purchase_order_tbl.subtotal, purchase_order_tbl.grand_total, purchase_order_tbl.created_at, purchase_order_tbl.updated_at, purchase_order_status, purchase_order_tbl.notes, purchase_order_tbl.created_by AS created_by_id, is_receiving, is_returned, is_complete, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, company_name, vendor_email_address, vendor_phone_number, locations_tbl.location_id, locations_tbl.location_name, locations_tbl.location_street, locations_tbl.location_city, locations_tbl.location_state, locations_tbl.location_zip, locations_tbl.location_country, locations_tbl.location_phone, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name, return_id, purchase_order_tbl.purchase_sent_status, purchase_order_tbl.created_date, purchase_order_tbl.ordered_date, purchase_order_tbl.expected_date, purchase_order_tbl.unit_measrement, purchase_order_tbl.shipping_point, purchase_order_tbl.payment_terms, purchase_order_tbl.shipping_method_1, fob, purchase_order_tbl.destination, purchase_order_tbl.place_of_origin, purchase_order_tbl.place_of_destination, purchase_order_tbl.paid_attachment, purchase_order_tbl.purchase_paid_status");
 
         $this->db->from('purchase_order_tbl');
         $this->db->join('users', 'users.id = purchase_order_tbl.created_by', 'left');
@@ -425,7 +416,7 @@ class PurchasesModel extends CI_Model {
 	}
 
 	public function getOnePurchase($where) {
-        $this->db->select("purchase_order_tbl.purchase_order_id, purchase_order_tbl.ordered_date, purchase_order_tbl.company_id, purchase_order_tbl.purchase_order_number, purchase_order_tbl.purchase_order_date, purchase_order_tbl.items, purchase_order_tbl.freight, purchase_order_tbl.discount, discount_type, tax, subtotal, grand_total, purchase_order_tbl.created_at, purchase_order_tbl.updated_at, purchase_order_tbl.purchase_sent_status, purchase_order_tbl.purchase_order_status, purchase_order_tbl.purchase_paid_status, purchase_order_tbl.estimated_delivery_date, purchase_order_tbl.payment_terms, purchase_order_tbl.shipping_method, purchase_order_tbl.notes, purchase_order_tbl.created_by AS created_by_id, purchase_order_tbl.is_archived, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, company_name, vendor_email_address, vendor_phone_number, locations_tbl.location_id, locations_tbl.location_name, locations_tbl.location_street, locations_tbl.location_city, locations_tbl.location_state, locations_tbl.location_zip, locations_tbl.location_country, locations_tbl.location_phone, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name, purchase_order_tbl.place_of_origin, purchase_order_tbl.place_of_destination");
+        $this->db->select("purchase_order_tbl.purchase_order_id, purchase_order_tbl.ordered_date, purchase_order_tbl.company_id, purchase_order_tbl.purchase_order_number, purchase_order_tbl.purchase_order_date, purchase_order_tbl.items, purchase_order_tbl.freight, purchase_order_tbl.discount, discount_type, tax, subtotal, grand_total, purchase_order_tbl.created_at, purchase_order_tbl.updated_at, purchase_order_tbl.purchase_sent_status, purchase_order_tbl.purchase_order_status, purchase_order_tbl.purchase_paid_status, purchase_order_tbl.estimated_delivery_date, purchase_order_tbl.payment_terms, purchase_order_tbl.shipping_method, purchase_order_tbl.notes, purchase_order_tbl.created_by AS created_by_id, purchase_order_tbl.is_archived, CONCAT(user_first_name,' ', user_last_name) AS name, vendors_tbl.vendor_id, vendors_tbl.vendor_name, vendor_street_address, vendor_city, vendor_state, vendor_zip_code, vendor_country, company_name, vendor_email_address, vendor_phone_number, locations_tbl.location_id, locations_tbl.location_name, locations_tbl.location_street, locations_tbl.location_city, locations_tbl.location_state, locations_tbl.location_zip, locations_tbl.location_country, locations_tbl.location_phone, sub_locations_tbl.sub_location_id, sub_locations_tbl.sub_location_name, purchase_order_tbl.place_of_origin, purchase_order_tbl.place_of_destination, purchase_order_tbl.fob, purchase_order_tbl.shipping_method_1");
 
         $this->db->from('purchase_order_tbl');
         $this->db->join('users', 'users.id = purchase_order_tbl.created_by', 'left');

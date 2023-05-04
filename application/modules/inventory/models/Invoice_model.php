@@ -688,30 +688,23 @@ class Invoice_model extends CI_Model{
         return $data;
     }
 
-    public function getUnpaidInvoices($customer_id=0){
+    public function getUnpaidInvoices($customer_id){
         $this->db->select('invoice_id as unpaid_invoice, cost, partial_payment as paid_already');
-
         $this->db->from('invoice_tbl');
-
         $this->db->where(array('customer_id' => $customer_id, 'status !=' => 0, 'payment_status !=' => 2, 'is_archived' => 0));
-
         $data = $this->db->get();
-        
-        $result = $data->result();        
-
-        if(!empty($result)){            
-            
+        $result = $data->result();
+        if(!empty($result)){
             foreach($result as $res){
-
                 $this->db->select('coupon_amount_calculation, coupon_amount');
                 $this->db->from('coupon_invoice');
-                $this->db->where('invoice_id', $res->unpaid_invoice);
+                $this->db->where(array('invoice_id' => $res->unpaid_invoice));
                 $coup_data = $this->db->get();
                 $coupons = $coup_data->result();
 
                 $this->db->select('tax_value');
                 $this->db->from('invoice_sales_tax');
-                $this->db->where('invoice_id', $res->unpaid_invoice);
+                $this->db->where(array('invoice_id' => $res->unpaid_invoice));
                 $tax_data = $this->db->get();
                 $taxes = $tax_data->result();
 
@@ -724,23 +717,25 @@ class Invoice_model extends CI_Model{
                         if($coupon->coupon_amount){
                             if($coupon->coupon_amount_calculation){
                                 $coupon_value = $res->unpaid_amount * ($coupon->coupon_amount * .01);
-                                $res->unpaid_amount -= $coupon_value;
+                                $res->unpaid_amount -= $coupon_value; 
                             } else {
                                 $coupon_value = $coupon->coupon_amount;
-                                $res->unpaid_amount -= $coupon_value;
+                                $res->unpaid_amount -= $coupon_value; 
                             }
                         }
                     }
-
-                     
                 }
 
                 if(!empty($taxes)){
                     foreach($taxes as $tax){
                         $tax_value += $res->unpaid_amount * ($tax->tax_value * .01);
                     }
-
                     $res->unpaid_amount += $tax_value;
+                }
+
+                $res->unpaid_amount -= $res->paid_already;
+                if ($res->unpaid_amount <= 0){
+                    $res->unpaid_amount = 0;
                 }
 
                 $res->unpaid_amount = number_format($res->unpaid_amount, 2, '.', '');

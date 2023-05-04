@@ -316,8 +316,8 @@
             <table width="100%" class="table table-condensed main_table" cellspacing="0">
                 <tr><td><b>DELIVERY DATE : </b> <?=Date("m/d/Y", strtotime($purchase_order->estimated_delivery_date))?></td></tr>
                 <tr><td><b>PAYMENT TERM : </b> <?= $purchase_order->payment_terms ?></td></tr>
-                <tr><td><b>PLACE OF ORIGIN : </b> <?= $purchase_order->place_of_origin ?></td></tr>
-                <tr><td><b>PLACE OF DESTINATION : </b> <?= $purchase_order->place_of_destination ?></td></tr>
+                <tr><td><b>FOB : </b> <?= $purchase_order->fob ?></td></tr>
+                <tr><td><b>Shipping Method : </b> <?= $purchase_order->shipping_method_1 ?></td></tr>
             </table>
 
             <!-- END TOP FOLD -->

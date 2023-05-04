@@ -262,19 +262,6 @@ opacity: 1;
                                         <option value="4">Text when En route</option>
                                     </select>
                                 </div>
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Program(s) or Service(s)</label>
-                                    <span style='float:right'>
-                                        <label class="checkbox-inline checkbox-left float-right">
-                                            <input type="checkbox" name="all_programs" id="all_programs" class="" >Require All?
-                                        </label>
-                                    </span>
-                                    <select class="multiselect-select-all-filtering form-control" name="programs_multi[]" id="programs_multi" multiple="multiple" style='white-space: break-spaces;'>
-                                        <?php foreach ($program_details as $value): ?>
-                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
                                 <div class="col-md-3 multi-select-full">	
                                     <label>Tag(s)</label>
                                     <span style='float:right'>
@@ -308,6 +295,16 @@ opacity: 1;
                                         <?php endforeach ?>
                                     </select>
                                 </div>
+
+                                <div class="col-md-3 multi-select-full">
+                                    <label>Exclude Customers by Program</label>
+                                    <select class="multiselect-select-all-filtering form-control" name="customerExclude[]" id="customerExclude" multiple="multiple" style='white-space: break-spaces;'>
+                                        <?php foreach ($program_details as $value): ?>
+                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                        <?php endforeach ?>
+                                    </select>
+                                </div>
+
                             </div>
                             <div class="row mt-15">
                                 <div class="col-md-3  multi-select-full">
@@ -370,11 +367,32 @@ opacity: 1;
                                         <option>Mixed Grass</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div class="row mt-15">
+                                <div class="col-md-3 multi-select-full">
+                                    <label>Program(s) or Service(s)</label>
+                                    <span style='float:right'>
+                                        <label class="checkbox-inline checkbox-left float-right">
+                                            <input type="checkbox" name="all_programs" id="all_programs" class="" >Require All?
+                                        </label>
+                                    </span>
+                                    <select class="multiselect-select-all-filtering form-control" name="programs_multi[]" id="programs_multi" multiple="multiple" style='white-space: break-spaces;'>
+                                        <?php foreach ($program_details as $value): ?>
+                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                        <?php endforeach ?>
+                                    </select>
+                                </div>
 
                                 <div class="col-md-3  multi-select-full">
-                                    <label>how many services have been completed</label>
+                                    <label># Completed Services in selected programs start</label>
                                     <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
                                 </div>
+
+                                <div class="col-md-3  multi-select-full">
+                                    <label># Completed Services in selected programs end</label>
+                                    <input type="number" id="serviceCompletedEnd" name="serviceCompletedEnd" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                </div>
+
                             </div>
                             <div class="row mt-15">
                                 <div class="col-md-4 multi-select-full">
@@ -523,12 +541,14 @@ function searchFilter() {
     var outstanding_services_multi = $('#outstanding_services_multi').val();
 
     var front_yard_grass = $("#front_yard_grass").val();
+    var customerExclude = $("#customerExclude").val();
     var back_yard_grass = $("#back_yard_grass").val();
     var total_yard_grass = $("#total_yard_grass").val();
     var serviceSoldNotNow = $("#serviceSoldNotNow").val();
     var ServiceSoldNotNowStart = $("#ServiceSoldNotNowStart").val();
     var ServiceSoldNotNowEnd = $("#ServiceSoldNotNowEnd").val();
     var serviceCompleted = $("#serviceCompleted").val();
+    var serviceCompletedEnd = $("#serviceCompletedEnd").val();
 
     var customer_status = $('#customer_status').val();
     var estimate_accpeted = $('#estimate_accpeted').val();
@@ -600,9 +620,11 @@ function searchFilter() {
             '&all_pre_service='+all_pre_service+
             '&all_outstanding='+all_outstanding+
             '&front_yard_grass='+front_yard_grass+
+            '&customerExclude='+customerExclude+
             '&back_yard_grass='+back_yard_grass+
             '&total_yard_grass='+total_yard_grass+
             '&serviceCompleted='+serviceCompleted+
+            '&serviceCompletedEnd='+serviceCompletedEnd+
             '&serviceSoldNotNow='+serviceSoldNotNow+
             '&ServiceSoldNotNowStart='+ServiceSoldNotNowStart+
             '&ServiceSoldNotNowEnd='+ServiceSoldNotNowEnd

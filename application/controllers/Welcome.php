@@ -584,11 +584,11 @@ class Welcome extends MY_Controller
             $invoice_details->late_fee = $late_fee;
 
             $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
+            $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoiceID));
             $data['invoice_details'][] = $invoice_details;
             //die(print_r($data["invoice_details"]));
             // INVOICE WIDE COUPONS
             // $data['coupon_invoice'][] = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
-
         }
         $this->load->view('admin/invoice/multiple_pdf_invoice_print', $data);
         $html = $this->output->get_output();

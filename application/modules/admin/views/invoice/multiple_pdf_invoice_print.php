@@ -433,13 +433,8 @@
                                         <?php
                                         }
                                     }
-                                    ?>
-
-                                    <?php 
-
-									// $invoice_total_cost = (float) $invoice_details->cost;
+                                    
 									$invoice_total_cost = (float) $total_inv_line_costs;
-							
 									// COUPON_INVOICE
                                     $coupon_invoice = $invoice_detail->coupon_details;
 									foreach ( $coupon_invoice as $coupon_details ) { ?>

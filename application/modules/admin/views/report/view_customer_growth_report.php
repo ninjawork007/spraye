@@ -59,13 +59,12 @@
                           </div>
 
                           <div class="col-md-4">
-                            <div class="form-group">
+                            <div class="form-group multi-select-full">
                               <label>Service Area</label>
-                              <select class="form-control" name="serviceArea" id="serviceArea">
-                                    <option value="">None selected</option>
-                                    <?php foreach ($service_areas as $area): ?>
-                                            <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
-                                        <?php endforeach ?>
+                              <select id="serviceArea" name="serviceArea[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
+                                <?php foreach ($service_areas as $area): ?>
+                                    <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
+                                <?php endforeach ?>
                                 </select>
                             </div>
                           </div>

@@ -7119,53 +7119,50 @@ class Reports extends MY_Controller {
         $company_id = $this->session->userdata['company_id'];
 
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
-            $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByCustomer($CanPropers->customer_id);
-
+            $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
             $cost = 0;
             foreach($AllServicesOfCustomer as $all_services) {
-                if(isset($all_services->job_cost) && $all_services->job_cost == NULL) {
-                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-                    $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
-                        
-                        if ($priceOverrideData->is_price_override_set == 1) {
-                            $cost +=  $priceOverrideData->price_override;
+                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
+                    
+                    if ($priceOverrideData->is_price_override_set == 1) {
+                        $cost +=  $priceOverrideData->price_override;
+                    } else {
+                        //else no price overrides, then calculate job cost
+                        $lawn_sqf = $all_services->yard_square_feet;
+                        $job_price = $all_services->job_price;
+
+                        //get property difficulty level
+                        if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                        } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_3;
                         } else {
-                            //else no price overrides, then calculate job cost
-                            $lawn_sqf = $all_services->yard_square_feet;
-                            $job_price = $all_services->job_price;
+                            $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                        }
 
-                            //get property difficulty level
-                            if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
-                                $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                            } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
-                                $difficulty_multiplier = $data['setting_details']->dlmult_3;
-                            } else {
-                                $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                            }
+                        //get base fee 
+                        if (isset($all_services->base_fee_override)) {
+                            $base_fee = $all_services->base_fee_override;
+                        } else {
+                            $base_fee = $data['setting_details']->base_service_fee;
+                        }
 
-                            //get base fee 
-                            if (isset($all_services->base_fee_override)) {
-                                $base_fee = $all_services->base_fee_override;
-                            } else {
-                                $base_fee = $data['setting_details']->base_service_fee;
-                            }
+                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
 
-                            $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+                        //get min. service fee
+                        if (isset($all_services->min_fee_override)) {
+                            $min_fee = $all_services->min_fee_override;
+                        } else {
+                            $min_fee = $data['setting_details']->minimum_service_fee;
+                        }
 
-                            //get min. service fee
-                            if (isset($all_services->min_fee_override)) {
-                                $min_fee = $all_services->min_fee_override;
-                            } else {
-                                $min_fee = $data['setting_details']->minimum_service_fee;
-                            }
-
-                            // Compare cost per sf with min service fee
-                            if ($cost_per_sqf > $min_fee) {
-                                $cost += $cost_per_sqf;
-                            } else {
-                                $cost += $min_fee;
-                            }
-                    }
+                        // Compare cost per sf with min service fee
+                        if ($cost_per_sqf > $min_fee) {
+                            $cost += $cost_per_sqf;
+                        } else {
+                            $cost += $min_fee;
+                        }
                 }
             }
 
@@ -7176,18 +7173,20 @@ class Reports extends MY_Controller {
             
             $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
             $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
+
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
-            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = $SaleRepObj[0]->user_first_name." ".$SaleRepObj[0]->user_last_name;
+            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
         }
 
-		if(!empty($all_cancelled)){
+
+		if(!empty($cancelled_properties)){
             $properties = [];
 			$total_cancelled_revenue = 0;
 			$lost_total_new_cancelled_props = [];
             $lost_total_new_cancelled_servs = [];
 			$total_new_revenue_lost = 0;
 			$one_year_ago = date('Y-m-d', strtotime('-1 year'));
-			foreach($all_cancelled as $key=>$value){
+			foreach($cancelled_properties as $key=>$value){
 				
 				#get job cost
 				$job_cost = $this->getJobCost($value->job_id,$value->customer_id,$value->property_id,$value->program_id);
@@ -7215,12 +7214,8 @@ class Reports extends MY_Controller {
 				}
             }
 
-            
-					
-				
-
 			$report_data['total_cancelled_properties'] = count($cancelled_properties);
-			$report_data['total_cancelled_services'] = count($all_cancelled);
+			$report_data['total_cancelled_services'] = count($cancelled_properties);
 			$report_data['total_cancelled_revenue'] = number_format($total_cancelled_revenue,2);
 			$report_data['lost_total_new_cancelled_props'] = count($lost_total_new_cancelled_props);
             $report_data['lost_total_new_cancelled_servs'] = count($lost_total_new_cancelled_servs);
@@ -7259,7 +7254,8 @@ class Reports extends MY_Controller {
 		$page["page_content"] = $this->load->view("admin/report/view_cancel_report", $data, TRUE);
 		$this->layout->superAdminReportTemplateTable($page);
   	}
-	public function ajaxDataForCancelReport(){
+	
+    public function ajaxDataForCancelReport(){
 		$company_id = $this->session->userdata['company_id'];
         $user = $this->input->post('user');
 		$start = !empty($this->input->post('date_from')) ? date('y-m-d H:i:s',strtotime($this->input->post('date_from'))) : '';
@@ -7282,6 +7278,7 @@ class Reports extends MY_Controller {
 		if($user != 'all'){
 			$query['cancelled_services_tbl.user_id'] = $user;
 		}
+
 		#get cancelled properties
         $ConditionProperty = array();
         $ConditionProperty['property_tbl.company_id'] = $company_id;
@@ -7305,6 +7302,66 @@ class Reports extends MY_Controller {
         $cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange($ConditionProperty, $start, $end);
 
         $data["AllCancelledProperty"] = $cancelled_properties;
+
+        foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
+            $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
+            $cost = 0;
+            foreach($AllServicesOfCustomer as $all_services) {
+                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
+                    
+                    if ($priceOverrideData->is_price_override_set == 1) {
+                        $cost +=  $priceOverrideData->price_override;
+                    } else {
+                        //else no price overrides, then calculate job cost
+                        $lawn_sqf = $all_services->yard_square_feet;
+                        $job_price = $all_services->job_price;
+
+                        //get property difficulty level
+                        if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                        } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                        } else {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                        }
+
+                        //get base fee 
+                        if (isset($all_services->base_fee_override)) {
+                            $base_fee = $all_services->base_fee_override;
+                        } else {
+                            $base_fee = $data['setting_details']->base_service_fee;
+                        }
+
+                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+
+                        //get min. service fee
+                        if (isset($all_services->min_fee_override)) {
+                            $min_fee = $all_services->min_fee_override;
+                        } else {
+                            $min_fee = $data['setting_details']->minimum_service_fee;
+                        }
+
+                        // Compare cost per sf with min service fee
+                        if ($cost_per_sqf > $min_fee) {
+                            $cost += $cost_per_sqf;
+                        } else {
+                            $cost += $min_fee;
+                        }
+                }
+            }
+
+            $where_estimate = array(
+                'customers.customer_id' => $CanPropers->customer_id,
+                'property_tbl.property_id' => $CanPropers->property_id,
+            );
+            
+            $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
+            $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
+
+            $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
+            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
+        }
 
 		#get cancelled services
 		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetailsBetween($query,$start,$end);
@@ -7381,8 +7438,8 @@ class Reports extends MY_Controller {
         $report_data['total_sales_revenue'] = number_format($total_sales_revenue,2);
 		$data['report_details'] = $report_data;
 		$body =  $this->load->view('admin/report/ajax_cancel_report', $data, false);
-
 	}
+
 	public function downloadCancelReport(){
 		$company_id = $this->session->userdata['company_id'];
         $user = $this->input->post('user');
@@ -7612,6 +7669,7 @@ class Reports extends MY_Controller {
 		$page["page_content"] = $this->load->view("admin/report/view_customer_growth_report", $data, TRUE);
 		$this->layout->superAdminReportTemplateTable($page);
   	}
+    
     public function ajaxDataForCustomerGrowthReport(){
         $company_id = $this->session->userdata['company_id'];
 		
@@ -7655,11 +7713,11 @@ class Reports extends MY_Controller {
         if($this->input->post("rescom") != ""){
             $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
         }
-        if($this->input->post("serviceArea") != ""){
-            $PropertyConditionArray['property_tbl.property_area'] = $this->input->post("serviceArea");
+        if($this->input->post("serviceArea") != "" && $this->input->post("serviceArea") != "null"){
+            $PropertyConditionArray['property_area'] = $this->input->post("serviceArea");
         }
 
-        if($this->input->post("assignProgram") != ""){
+        if($this->input->post("assignProgram") != "" && $this->input->post("assignProgram") != "null"){
             $PropertyConditionArray['assignProgram'] = $this->input->post("assignProgram");
         }
 
@@ -7937,13 +7995,12 @@ class Reports extends MY_Controller {
             $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
         }
         if($this->input->post("serviceArea") != ""){
-            $PropertyConditionArray['property_tbl.property_area'] = $this->input->post("serviceArea");
+            $PropertyConditionArray['property_area'] = implode(",", $this->input->post("serviceArea"));
         }
 
         if($this->input->post("assignProgram") != ""){
             $PropertyConditionArray['assignProgram'] = implode(",", $this->input->post("assignProgram"));
         }
-
 
         if(!empty($start)){
             $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
@@ -9072,7 +9129,7 @@ class Reports extends MY_Controller {
             $date_company_created_at = $this->RP->get_company_created_at_date($this->session->userdata['company_id']);
             $filters_array["sale_start_date_start"] = $date_company_created_at->created_at;
         }
-        $filters_array["programs_multi"] = explode(',', $this->input->post('programs_multi'));
+        
         $filters_array["cancelation_date_start"] = $this->input->post('cancelation_date_start');
         $filters_array["cancelation_date_end"] = $this->input->post('cancelation_date_end');
         $filters_array["tags_multi"] = explode(',', $this->input->post('tags_multi'));
@@ -9096,6 +9153,10 @@ class Reports extends MY_Controller {
         $filters_array["total_yard_grass"] = $this->input->post('total_yard_grass');
 
         $HowManyServiceCompleted = $this->input->post('serviceCompleted');
+        $HowManyServiceCompletedEnd = $this->input->post('serviceCompletedEnd');
+        $MultiplePrograms = explode(',', $this->input->post('programs_multi'));
+
+        $ExcludedPrograms = explode(",", $this->input->post("customerExclude"));
 
         
 		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
@@ -9113,8 +9174,16 @@ class Reports extends MY_Controller {
 		#not seeing specific role for sales rep so getting all users 
 		$report_data = array();
         foreach($data['customers'] as $customer) {
+            $IsContine = true;
             if($HowManyServiceCompleted != ""){
-                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
+                $IdString = "property_program_assign.program_id IN (";
+                foreach($MultiplePrograms as $TcID){
+                    $IdString .= "'".$TcID."',";
+                }
+                $IdString = substr($IdString, 0, -1);
+                $IdString .= ")";
+
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
 
                 $TotalServiceCompleted = 0;
 
@@ -9124,10 +9193,35 @@ class Reports extends MY_Controller {
                     }
                 }
 
-                if($HowManyServiceCompleted > $TotalServiceCompleted){
-                    continue;
+                if($TotalServiceCompleted >= $HowManyServiceCompleted && $TotalServiceCompleted <= $HowManyServiceCompletedEnd){
+                    $IsContine = false;
                 }
             }
+
+            if($HowManyServiceCompleted != "" && $IsContine){
+                continue;
+            }
+
+            $IsContine = true;
+            if(count($ExcludedPrograms) > 0){
+                $IdString = "property_program_assign.program_id IN (";
+                foreach($ExcludedPrograms as $TcID){
+                    $IdString .= "'".$TcID."',";
+                }
+                $IdString = substr($IdString, 0, -1);
+                $IdString .= ")";
+
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
+
+                if(count($ServicesByCustomer) > 0){
+                    $IsContine = false;
+                }
+            }
+
+            if(count($ExcludedPrograms) > 0 && !$IsContine){
+                continue;
+            }
+
 
             if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
                 $ExploseSoldService = explode(",", $this->input->post('serviceSoldNotNow'));

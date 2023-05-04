@@ -261,13 +261,13 @@ class Customers extends MY_Controller {
 			$invoice_data['payment_method'] = $PaymentMethodNumber;
 			$invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
 			$invoice_data['is_created'] =  1;
+			$invoice_data['credit_amount'] =  $CreditAmount;
 			$invoice_data['credit_given_user'] =  $this->session->userdata['id'];
 			$invoice_data['notes'] = $invoice_data['description'] = "Adding {$CreditAmount} Credit to customer's account";
 
 			$invoice_id = $this->INV->createOneInvoice($invoice_data);
 			$credit_amount  = $CreditAmount;
 			$all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice_id));
-
 			$unpaid = $this->INV->getUnpaidInvoices($customer_id);
 
 			if(!empty($unpaid)){
@@ -655,7 +655,7 @@ class Customers extends MY_Controller {
 		     $total_invoice_amount = array_sum($total_cost_arr);
 		 }
 		 $total_balance_due = $total_invoice_amount - $total_partial + $total_late_fee;
-		 echo number_format($total_balance_due, 2);
+		 echo round($total_balance_due, 2)."";
 	}
 
 	/**

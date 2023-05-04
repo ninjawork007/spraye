@@ -681,7 +681,7 @@ class AdminTbl_property_model extends CI_Model
         $this->db->from('property_tbl');
         $this->db->join('property_program_assign','property_program_assign.property_id = property_tbl.property_id ','inner');
 
-        if(isset($where["assignProgram"]) && $where["assignProgram"] != "null"){
+        if(isset($where["assignProgram"]) && $where["assignProgram"] != "null" && $where["assignProgram"] != null){
             $SaleRpID = explode(",", $where["assignProgram"]);
 
             $IdString = "property_program_assign.program_id IN (";
@@ -692,6 +692,19 @@ class AdminTbl_property_model extends CI_Model
             $IdString .= ")";
             $this->db->where($IdString);
             unset($where["assignProgram"]);
+        }
+
+        if(isset($where["property_area"]) && $where["property_area"] != "null"){
+            $SaleRpID = explode(",", $where["property_area"]);
+
+            $IdString = "property_tbl.property_area IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+            $this->db->where($IdString);
+            unset($where["property_area"]);
         }
 
         $this->db->where($where);
@@ -714,6 +727,7 @@ class AdminTbl_property_model extends CI_Model
 		//die(print_r($this->db->last_query()));
         return $data;
     }
+
 	public function getCancelledPropertyByDateRange($where,$from='',$to=''){
         $this->db->select('property_tbl.*, customers.customer_id, customers.first_name, customers.email, customers.last_name, customers.work_phone, users.user_first_name, users.user_last_name');
         $this->db->from('property_tbl');

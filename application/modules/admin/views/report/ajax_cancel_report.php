@@ -56,6 +56,7 @@
                             <th>Customer Name</th>
                             <th>Customer Start Date</th>
                             <th>Property name</th>
+                            <th>Address</th>
                             <th>Email</th>
                             <th>Phone</th>
                             <th>Lost Revenue</th>
@@ -74,10 +75,11 @@
                             <td><?= $CanclPrprty->first_name ?> <?= $CanclPrprty->last_name ?></td>
                             <td><?= date("d F, Y", strtotime($CanclPrprty->property_created))?></td>
                             <td><?= $CanclPrprty->property_title ?></td>
+                            <td><?= $CanclPrprty->property_address ?></td>
                             <td><?= $CanclPrprty->email ?></td>
                             <td><?= $CanclPrprty->work_phone ?></td>
-                            <td></td>
-                            <td></td>
+                            <td>$<?= $CanclPrprty->job_cost ?></td>
+                            <td><?= $CanclPrprty->SalesRep ?></td>
                             <td><?= $CanclPrprty->tags == 1 ? "New" : "Existing" ?></td>
                             <td><?= $CanclPrprty->cancel_reason ?></td>
                         </tr>

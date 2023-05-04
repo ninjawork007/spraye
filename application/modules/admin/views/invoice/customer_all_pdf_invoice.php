@@ -366,15 +366,14 @@
             </td>      
           </tr>
           <tr>
-            <td style="border-top:1px solid #b2b2b2 ; " >Payment Due Date</td>   
-            <td style="border-top:1px solid #b2b2b2; " ></td>   
-            <td class="text-right"  style="border:1px solid #b2b2b2; text-align: center;" ><?= Date("m-d-Y")  ?></td>   
+            <td style="border-top:1px solid #b2b2b2;">Payment Due Date</td>   
+            <td style="border-top:1px solid #b2b2b2;"></td>   
+            <td class="text-right" style="border:1px solid #b2b2b2; text-align: center;"><?= Date("m-d-Y")?></td>   
           </tr>
           <?php if($customer_details && $customer_details['billing_type'] != 1){ ?>
             <?php if(!empty($setting_details->slug)){?>
               <tr>
-
-                <td class="text-left" colspan="4"><p class="button_tr"><a href="<?=base_url("/welcome/").$setting_details->slug; ?>" target="_blank"><strong><?php echo 'Access Your Account' ?></strong></a></p></td>
+                <td class="text-left" colspan="4"><p class="button_tr"><a href="<?=base_url("/welcome/").$setting_details->slug;?>" target="_blank"><?php echo 'Access Your Account' ?></a></p></td>
                 <td></td>
                 <td class="text-right"></td>
               </tr>
@@ -416,7 +415,8 @@
       <!-- invoice balance -->
       <tr>
         <td class="text-left" style="width: 70px; padding-left: 8px;"><?php echo date('m-d-Y',strtotime($value->invoice_date)) ?></td>
-        <td class="text-center" style="text-align: center;"><p><a href="<?=base_url("welcome/printInvoice/").$setting_details->company_id."/".$value->invoice_id;?>" target="_blank"><?php echo $value->invoice_id ?></a></p></td>
+        <td class="text-center" style="text-align: center;"><a href="<?=base_url("welcome/printInvoice/").$setting_details->company_id."/".$value->invoice_id;?>" target="_blank"><?php echo $value->invoice_id ?></a></td>
+
         <td class="text-center" style="width: 260px;"><?= isset($value->description) && $value->description != '' ? $value->property_address ." " . $value->property_city . ", " . $value-> property_state . " " . $value->property_zip . " - " . $value->description : $value->property_address ." " . $value->property_city . ", " . $value-> property_state . " " . $value->property_zip;  ?></td>
         <td class="text-center" style="text-align: center;"><?= number_format($value->final_cost + $value->late_fee,2);  ?></td>
         <td class="text-center" style="text-align: center;"></td>
@@ -544,61 +544,42 @@
 <table width="100%" class="main_table none_border" >
   <tr style="background-color:<?= $setting_details->invoice_color  ?>!important;color: #fff;" class="th-head" >
     <td class="text-right"width="80%" ><b>Account Current Balance</b></td>
-      <td class="text-right" width="10%" style="text-align: right;"><b>$</b></td>
-        <td class="text-center" width="10%" ><b>
-          <?php
-                // $total_balance_due = number_format($total_invoice_amount-$total_partial+$past_invoice_total,2);
-          if( $total_balance_due > 0){
-            ?>
-            <?= $total_balance_due; ?>
-            <?php
-          } else {
-            ?>
-            <?= number_format(0,2)?>
-            <?php
-          }
-          ?>
-          </b>
-          </td>
+    <td class="text-right" width="10%" style="text-align: right;"><b>$</b></td>
+    <td class="text-center" width="10%" ><b>
+      <?php
+      // $total_balance_due = number_format($total_invoice_amount-$total_partial+$past_invoice_total,2);
+      if( $total_balance_due > 0){
+        echo $total_balance_due;
+      }else{
+        echo number_format(0,2);
+      }
+      ?>
+      </b>
+    </td>
+  </tr>
+</table>
 
-        </tr>
-      </table>
-
-
-
-
-      <table width="100%" class="main_table" >
-        <tr>
-         <td class="text-center"><b>Your account balance is
-          <?php
-                // $total_balance_due = number_format($total_invoice_amount-$total_partial+$past_invoice_total,2);
-          if( $total_balance_due > 0){
-            ?>
-            <?= $total_balance_due; ?> 
-            <?php
-          } else {
-            ?>
-            <?= number_format(0,2)?>
-            <?php
-          }
-          ?>
-        dollars. Please make your payment to cover the balance by the due date.</b></td>
-      </tr>
-      <?php foreach ($credit_details as $value){
-        // die(print_r($invoice_details));
-
-
-
-        print "<tr><td class='text-center'><b>Credit amount of \${$value->payment_amount} was added on ".date('m-d-Y',strtotime($value->payment_datetime))."</b></td></tr>";
-        
-      } ?>
-    </table>
-
-    <table width="100%" class="main_table" >
-      <tr>
-       <td class="text-center">Make all checks payable to <?= $setting_details->company_name  ?></td>
-     </tr>
-   </table>
+<table width="100%" class="main_table">
+  <tr>
+    <td class="text-center"><b>Your account balance is
+      <?php
+      if($total_balance_due > 0){
+        echo $total_balance_due;
+      }else{
+        echo number_format(0,2);
+      }
+      ?>
+    dollars. Please make your payment to cover the balance by the due date.</b></td>
+  </tr>
+  <?php foreach ($credit_details as $value){
+    print "<tr><td class='text-center'><b>Credit amount of \${$value->payment_amount} was added on ".date('m-d-Y',strtotime($value->payment_datetime))."</b></td></tr>";
+  } ?>
+</table>
+<table width="100%" class="main_table" >
+  <tr>
+   <td class="text-center">Make all checks payable to <?= $setting_details->company_name  ?></td>
+ </tr>
+</table>
 
 <table width="100%" class="main_table" >
     <tr>

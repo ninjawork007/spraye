@@ -310,20 +310,6 @@
 
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
-										<label for="shipping_point" class="d-block">Shipping Point</label>
-										<input type="text" id="shipping_point" name="shipping_point" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="destination" class="d-block">Destination</label>
-										<input type="text" id="destination" name="destination" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
 										<label for="shipping_method_1" class="d-block">Shipping Method</label>
 										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" />
 									</div>
@@ -727,6 +713,7 @@
 				itemObj.item_number = maker.item_number;
 				itemObj.price_per_unit = maker.price_per_unit;
 				itemObj.unit_type = maker.unit_type;
+				itemObj.unit_amount = maker.unit_amount;
 			})
 			
 			itemObj.qty = 0 
@@ -750,7 +737,7 @@
 			let td4 = parseFloat(0).toFixed(2);
 			let td5 = itemObj.item_vendor_tax;
 			let td6 = parseFloat(0).toFixed(2);
-			let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+itemObj.unit_type+`" />`;
+			let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+itemObj.unit_amount+` `+itemObj.unit_type+`" />`;
 
 			//table#items
 			let elem = `<tr data-item-id="${itemObj.item_id}">`

@@ -240,9 +240,9 @@
 											} ?>
 											<ul class="dropdown-menu dropdown-menu-right" >
 												<li class="changestatusPaid"  purchase_order_id="<?= $purchase->purchase_order_id ?>" value="0" ><a href="#"><span class="status-mark bg-warning position-left"></span> Open</a></li>
-												
+												<li class="changestatusPaid" purchase_order_id="<?= $purchase->purchase_order_id ?>" value="1" ><a href="#"><span class="status-mark bg-till position-left"></span> Ready For Payment</a></li>
+												<li data-toggle="modal" data-target="#po_paid_status" class="changestatusPaid" purchase_order_id="<?= $purchase->purchase_order_id ?>" value="2" ><a href="#"><span class="status-mark bg-success position-left"></span> Paid</a></li>
 												<li class="changestatusPaid" purchase_order_id="<?= $purchase->purchase_order_id ?>" value="3" ><a href="#"><span class="status-mark bg-danger position-left"></span> Unmatched</a></li>
-					
 											</ul>
 										</div>
 										</td>
@@ -417,6 +417,52 @@
 	</div>
 <!-- End of purchse order modal -->
 
+
+
+
+
+
+<!-- Start of Invoice Paid Status modal -->
+<div class="modal fade" id="po_paid_status">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title">Paid Purchase Order</h6>
+            </div>
+            
+            <div class="modal-body">
+                <form method="post" enctype="multipart/form-data" action="<?= base_url('inventory/Frontend/Purchases/save_paid_po')?>">
+                    <input type="hidden" id="PaidPOId" name="po_id" value="">
+
+                    <div class="form-group">
+                        <label>Payment Method</label>
+                        <select class="form-control" required name="paid_payment_method">
+                            <option value="">Select</option>
+                            <option>Check</option>
+                            <option>Charge</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea class="form-control" required name="paid_notes"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>File</label>
+                        <input type="file" class="form-control" name="paid_attachment" required />
+                    </div>
+
+                    <button class="btn btn-success">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Invoice Paid Status modal -->
+
 <script type="text/javascript">
 
 function  filterSearch(status) {
@@ -563,17 +609,21 @@ function buildDataTable(argument) {
 
 		var purchase_order_id = $(this).attr('purchase_order_id');
 		var status = $(this).val();
-		$("#loading").css("display","block");  
-		$.ajax({
-			type: 'POST',
-			url: '<?php echo base_url(); ?>inventory/Frontend/Purchases/changeStatusPaid',
-			data: {purchase_order_id: purchase_order_id, status: status},
-			success: function (data) {
-			$("#loading").css("display","none");
-			location.reload();      
-			}
-		});
+		$("#loading").css("display","block");
 
+		if(status != 2){
+			$.ajax({
+				type: 'POST',
+				url: '<?php echo base_url(); ?>inventory/Frontend/Purchases/changeStatusPaid',
+				data: {purchase_order_id: purchase_order_id, status: status},
+				success: function (data) {
+				$("#loading").css("display","none");
+				location.reload();      
+				}
+			});
+		}else{
+			$("#PaidPOId").val(purchase_order_id);
+		}
 	});
 
 	$(document).on("click",".email", function () {

@@ -68,7 +68,7 @@ class Purchases extends MY_Controller{
 
 
     public function index($purchaseId = false) {
-        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id'], "purchase_order_status" => "!=3");
+        $where = array('purchase_order_tbl.company_id' =>$this->session->userdata['company_id'], "purchase_paid_status !=" => "2");
         $data['all_purchases'] = $this->PurchasesModel->getAllPurchases($where);
         $page["active_sidebar"] = "purchases";
         $page["page_name"] = 'Purchases';

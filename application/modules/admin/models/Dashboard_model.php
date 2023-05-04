@@ -2462,9 +2462,11 @@ class Dashboard_model extends CI_Model{
 
 
 
-    public function getCustomerAllServicesForReport($where_arr = '') {
+    public function getCustomerAllServicesForReport($where_arr = '', $String = "") {
         $this->db->select("
             jobs.job_id,
+            programs.program_id,
+            programs.program_name,
             is_job_mode
         ", FALSE);
         $this->db->from('jobs');
@@ -2479,8 +2481,14 @@ class Dashboard_model extends CI_Model{
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
+
+        if($String != ""){
+            $this->db->where($String);
+        }
+
         $result = $this->db->get();
         $data = $result->result();
+        //die(print_r($this->db->last_query()));
         return $data;
     }
 

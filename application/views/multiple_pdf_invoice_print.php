@@ -412,7 +412,7 @@ foreach ($invoice_details as $index=>$invoice_detail) {
                             <td></td>
                             <td></td>
                             <td></td>
-                            <td class="border-bottom-blank-td text-left default-font-color">SUBTOTAL</td>
+                            <td class="border-bottom-blank-td text-left default-font-color">SUB TOTAL</td>
                             <td class="border-bottom-blank-td text-right"></td>
                             <td class="border-bottom-blank-td text-right">$
                                 <?= number_format($total_inv_line_costs,2); ?>

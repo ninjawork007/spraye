@@ -356,8 +356,8 @@
             <table width="100%" class="table table-condensed main_table" cellspacing="0">
                 <tr><td><b>DELIVERY DATE : </b> <?=Date("m/d/Y", strtotime($value->estimated_delivery_date))?></td></tr>
                 <tr><td><b>PAYMENT TERM : </b> <?= $value->payment_terms ?></td></tr>
-                <tr><td><b>PLACE OF ORIGIN : </b> <?= $value->place_of_origin ?></td></tr>
-                <tr><td><b>PLACE OF DESTINATION : </b> <?= $value->place_of_destination ?></td></tr>
+                <tr><td><b>FOB : </b> <?= $value->fob ?></td></tr>
+                <tr><td><b>Shipping Method : </b> <?= $value->shipping_method_1 ?></td></tr>
             </table>
 
             <!-- END TOP FOLD -->

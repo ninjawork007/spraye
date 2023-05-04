@@ -111,6 +111,14 @@ class Cancelled_services_model extends CI_Model{
         return $data = $result->result();
     }
 
+    public function getCancelledServicesByProperty($user_id){
+        $this->db->select('*');
+        $this->db->from('cancelled_services_tbl');
+        $this->db->where('property_id', $user_id);
+        $result = $this->db->get();
+        return $data = $result->result();
+    }
+
     public function getCancelledServiceInfoDetails($where){
         $this->db->select('cancelled_services_tbl.*, property_tbl.property_created');
         $this->db->from('cancelled_services_tbl');
