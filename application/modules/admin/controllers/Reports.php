@@ -7135,6 +7135,7 @@ class Reports extends MY_Controller {
             $cost = 0;
             foreach($AllServicesOfCustomer as $all_services) {
                 $propertyDetails = $this->PropertyModel->getOnePropertyDetail($all_services->property_id);
+                $jobDetails = $this->JobModel->getOneJob(array('job_id' => $all_services->job_id));
 
                 // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
                 $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
@@ -7144,7 +7145,7 @@ class Reports extends MY_Controller {
                     } else {
                         //else no price overrides, then calculate job cost
                         $lawn_sqf = $propertyDetails->yard_square_feet;
-                        $job_price = $propertyDetails->job_price;
+                        $job_price = $jobDetails->job_price;
 
                         //get property difficulty level
                         if (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 2) {
@@ -7192,17 +7193,16 @@ class Reports extends MY_Controller {
             $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
         }
 
-		if(!empty($cancelled_properties)){
+		if(!empty($data["AllCancelledProperty"])){
             $properties = [];
 			$total_cancelled_revenue = 0;
 			$lost_total_new_cancelled_props = [];
             $lost_total_new_cancelled_servs = [];
 			$total_new_revenue_lost = 0;
 			$one_year_ago = date('Y-m-d', strtotime('-1 year'));
-			foreach($cancelled_properties as $key=>$value){
-				
+			foreach($data["AllCancelledProperty"] as $key => $value){
 				#get job cost
-				$job_cost = $this->getJobCost($value->job_id,$value->customer_id,$value->property_id,$value->program_id);
+				$job_cost = $value->job_cost;
 				$total_cancelled_revenue += $job_cost;
 				
 				if(strtotime($value->property_created) > strtotime($one_year_ago)){
