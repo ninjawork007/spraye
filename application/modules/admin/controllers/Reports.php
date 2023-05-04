@@ -7127,6 +7127,8 @@ class Reports extends MY_Controller {
 
         $company_id = $this->session->userdata['company_id'];
 
+        $data["AllCancelledProperty"] = $cancelled_properties;
+
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
             $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
             $cost = 0;
@@ -7186,7 +7188,6 @@ class Reports extends MY_Controller {
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
             $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
         }
-
 
 		if(!empty($cancelled_properties)){
             $properties = [];
