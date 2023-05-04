@@ -4677,9 +4677,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $invoiceID));
 
             $invoice_details->report= $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
-            //die(print_r($invoice_details));
-            //var_dump($this->db->last_query());
-            //var_dump($invoice_details->report);
+
             //get job details
             $jobs = array();
             $job_details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram(array('property_program_job_invoice.invoice_id' => $invoiceID));

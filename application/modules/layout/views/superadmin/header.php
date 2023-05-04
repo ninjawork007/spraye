@@ -242,7 +242,7 @@
        <li class="dropdown dropdown-user user-head">
           <a class="dropdown-toggle" data-toggle="dropdown">
             <img src="<?php echo CLOUDFRONT_URL.'uploads/profile_image/'.$admindata->user_pic ?>" alt="">
-            <span class="usertext"  style="color: #01669a;"><?= $this->session->userdata['user_first_name'].' '.$this->session->userdata['user_last_name'] ?></span>
+            <span class="usertext"  style="color: #01669a;"><?= ((isset($this->session->userdata['user_first_name']))?$this->session->userdata['user_first_name']:'' ).' '.((isset($this->session->userdata['user_last_name']))?$this->session->userdata['user_last_name']:'') ?></span>
             <i class="caret"></i>
           </a>
 

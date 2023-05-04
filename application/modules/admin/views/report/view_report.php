@@ -185,7 +185,7 @@
 									
                                 }
 								else
-										echo 'no report data';
+										echo 'No report data';
                              ?>                            
                           </td>
                           <td><?= $value->job_name ?></td>
@@ -196,15 +196,18 @@
                                     $epa_reg_nunber =   array_column($product_details, 'epa_reg_nunber');
                                     $numItems = count($epa_reg_nunber);
                                     $i = 0;
+
                                     foreach ($epa_reg_nunber as $key2 => $value2) {
                                        if(++$i === $numItems) {
-                                         echo  '<span>'.$value2.'</span><br>';
-                                       } else {  
-                                          echo  '<span>'.$value2.',</span><br>';
+                                           echo  '<span>'.(isset($value2) && $value2 !== '')?$value2:'None'.'</span><br>';
+                                       } else {
+                                           echo  '<span>'.(isset($value2) && $value2 !== '')?$value2:'None'.',</span><br>';
                                        }
 
                                     }
                                 }
+                                else
+                                    echo 'No report data';
                              ?>
                           </td>
                           
@@ -224,7 +227,8 @@
 
                                          } 
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>                      
                           </td>
 
@@ -244,7 +248,8 @@
                                       } 
 
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>
                             
                           </td> 
@@ -258,15 +263,24 @@
                                     $numItems = count($amount_of_mixture_applied);
                                     $i = 0;
                                     foreach ($amount_of_mixture_applied as $key2 => $value2) {
-                                         if(++$i === $numItems) { 
-                                           echo  '<span>'.$value2.'</span><br>';
+                                        if ((strlen($value2) !== 0)) {
+                                            if (++$i === $numItems) {
+                                                echo '<span>' . $value2 . '</span><br>';
 
-                                         } else {
-                                            echo  '<span>'.$value2.',</span><br>';
+                                            } else {
+                                                echo '<span>' . $value2 . ',</span><br>';
 
-                                         } 
+                                            }
+                                        } else {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>None</span><br>';
+                                            } else {
+                                                echo  '<span>None, </span><br>';
+                                            }
+                                        }
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>                      
                           </td>
 
@@ -277,15 +291,24 @@
                                     $weed_pest_prevented =   array_column($product_details, 'weed_pest_prevented');
                                     $numItems = count($weed_pest_prevented);
                                     $i = 0;
-                                    foreach ($weed_pest_prevented as $key2 => $value2) {
-                                      if(++$i === $numItems) { 
-                                        echo  '<span>'.$value2.'</span><br>';
-                                      } else {
-                                        echo  '<span>'.$value2.',</span><br>';
-                                      } 
 
+                                    foreach ($weed_pest_prevented as $key2 => $value2) {
+                                       if ((strlen($value2) !== 0)){
+                                           if(++$i === $numItems) {
+                                               echo  '<span>'.$value2.'</span><br>';
+                                           } else {
+                                               echo  '<span>'.$value2.', </span><br>';
+                                           }
+                                       } else {
+                                           if(++$i === $numItems) {
+                                               echo  '<span>None</span><br>';
+                                           } else {
+                                               echo  '<span>None, </span><br>';
+                                           }
+                                       }
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>
                           </td>
 
@@ -298,14 +321,23 @@
                                     $numItems = count($active_ingredients);
                                     $i = 0;
                                     foreach ($active_ingredients as $key2 => $value2) {
-                                      if(++$i === $numItems) { 
-                                        echo  '<span>'.$value2.'</span><br>';
-                                      } else {
-                                        echo  '<span>'.$value2.',</span><br>';
-                                      } 
+                                        if ((strlen($value2) !== 0)) {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>'.$value2.'</span><br>';
+                                            } else {
+                                                echo  '<span>'.$value2.',</span><br>';
+                                            }
+                                        } else {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>None</span><br>';
+                                            } else {
+                                                echo  '<span>None,</span><br>';
+                                            }
+                                        }
 
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>
                           </td>
 
@@ -317,14 +349,28 @@
                                     $numItems = count($application_type);
                                     $i = 0;
                                     foreach ($application_type as $key2 => $value2) {
-                                      if(++$i === $numItems) { 
-                                        echo  '<span>'.$value2.'</span><br>';
+
+                                        if ($value2==1) {
+                                              $app_type = 'Broadcast';
+                                          } else if($value2==2) {
+                                              $app_type = 'Spot Spray';
+                                          } else if ($value2==3) {
+                                              $app_type = 'Granular';
+                                          } else if (strlen($value2) == 0) {
+                                            $app_type = 'None';
+                                        } else{
+                                                  $app_type = $value2;
+                                        }
+
+                                      if(++$i === $numItems) {
+                                        echo  '<span>'.$app_type.'</span><br>';
                                       } else {
-                                        echo  '<span>'.$value2.',</span><br>';
-                                      } 
+                                        echo  '<span>'.$app_type.',</span><br>';
+                                      }
 
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>
                           </td>
 
@@ -336,14 +382,24 @@
                                     $numItems = count($re_entry_time);
                                     $i = 0;
                                     foreach ($re_entry_time as $key2 => $value2) {
-                                      if(++$i === $numItems) { 
-                                        echo  '<span>'.$value2.'</span><br>';
-                                      } else {
-                                        echo  '<span>'.$value2.',</span><br>';
-                                      } 
+                                        if ((strlen($value2) !== 0)) {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>'.$value2.'</span><br>';
+                                            } else {
+                                                echo  '<span>'.$value2.',</span><br>';
+                                            }
+                                        } else {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>None</span><br>';
+                                            } else {
+                                                echo  '<span>None,</span><br>';
+                                            }
+                                        }
+
 
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>
                           </td>
 
@@ -355,14 +411,24 @@
                                     $numItems = count($chemical_type);
                                     $i = 0;
                                     foreach ($chemical_type as $key2 => $value2) {
-                                      if(++$i === $numItems) { 
-                                        echo  '<span>'.$value2.'</span><br>';
-                                      } else {
-                                        echo  '<span>'.$value2.',</span><br>';
-                                      } 
+                                        if ((strlen($value2) !== 0)) {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>'.$value2.'</span><br>';
+                                            } else {
+                                                echo  '<span>'.$value2.',</span><br>';
+                                            }
+                                        } else {
+                                            if(++$i === $numItems) {
+                                                echo  '<span>None</span><br>';
+                                            } else {
+                                                echo  '<span>None,</span><br>';
+                                            }
+                                        }
+
 
                                     }
-                                }
+                                }else
+                                    echo 'No report data';
                              ?>
                           </td>
 
@@ -373,13 +439,22 @@
                                         $numItems = count($restricted_product);
                                         $i = 0;
                                         foreach ($restricted_product as $key2 => $value2) {
-                                            if (++$i === $numItems) {
-                                                echo  '<span>' . $value2 . '</span><br>';
+                                            if ((strlen($value2) !== 0)) {
+                                                if(++$i === $numItems) {
+                                                    echo  '<span>'.$value2.'</span><br>';
+                                                } else {
+                                                    echo  '<span>'.$value2.',</span><br>';
+                                                }
                                             } else {
-                                                echo  '<span>' . $value2 . ',</span><br>';
+                                                if(++$i === $numItems) {
+                                                    echo  '<span>None</span><br>';
+                                                } else {
+                                                    echo  '<span>None,</span><br>';
+                                                }
                                             }
                                         }
-                                    }
+                                    }else
+                                        echo 'No report data';
                                 ?>
                             </td>
 
@@ -390,13 +465,28 @@
                                         $numItems = count($application_method);
                                         $i = 0;
                                         foreach ($application_method as $key2 => $value2) {
+                                             if ($value2==1) {
+                                               $application_method_name = 'Ride On';
+                                             } else if($value2==2) {
+                                               $application_method_name = 'Skid Spray';
+                                             } else if ($value2==3) {
+                                               $application_method_name = 'Backback';
+                                             } else if ($value2==4) {
+                                               $application_method_name = 'Walk Behind Spreader';
+                                             } else if (strlen($value2) == 0) {
+                                                    $application_method_name = 'None';
+                                             } else {
+                                                 $application_method_name = $value2;
+                                             }
+
                                             if (++$i === $numItems) {
-                                                echo  '<span>' . $value2 . '</span><br>';
+                                                echo  '<span>' . $application_method_name . '</span><br>';
                                             } else {
-                                                echo  '<span>' . $value2 . ',</span><br>';
+                                                echo  '<span>' . $application_method_name . ',</span><br>';
                                             }
                                         }
-                                    }
+                                    }else
+                                        echo 'No report data';
                                 ?>
                             </td>
 
@@ -407,13 +497,22 @@
                                         $numItems = count($area_of_property_treated);
                                         $i = 0;
                                         foreach ($area_of_property_treated as $key2 => $value2) {
-                                            if (++$i === $numItems) {
-                                                echo  '<span>' . $value2 . '</span><br>';
+                                            if ((strlen($value2) !== 0)) {
+                                                if(++$i === $numItems) {
+                                                    echo  '<span>'.$value2.'</span><br>';
+                                                } else {
+                                                    echo  '<span>'.$value2.',</span><br>';
+                                                }
                                             } else {
-                                                echo  '<span>' . $value2 . ',</span><br>';
+                                                if(++$i === $numItems) {
+                                                    echo  '<span>None</span><br>';
+                                                } else {
+                                                    echo  '<span>None,</span><br>';
+                                                }
                                             }
                                         }
-                                    }
+                                    }else
+                                        echo 'No report data';
                                 ?>
                             </td>
 

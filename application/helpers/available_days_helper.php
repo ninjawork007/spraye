@@ -80,7 +80,7 @@ function formatAvailableDays($available_days)
     $returnArray=array();
 
     foreach($daysOfWeek as $day) {
-            if($available_days[$day]=='true'){
+            if(isset($available_days[$day]) && $available_days[$day]=='true'){
                 array_push($returnArray,$day);
             }
     }

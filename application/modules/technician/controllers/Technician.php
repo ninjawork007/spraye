@@ -2231,12 +2231,21 @@ class Technician extends MY_Controller {
                       'restricted_product' => $value->restricted_product
                     );
                     if ($value->application_method==1) {
-                      $param['application_method'] = 'Broadcast';
+                      $param['application_method'] = 'Ride On';
                     } else if($value->application_method==2) {
-                      $param['application_method'] = 'Spot Spray';
-                    } elseif ($value->application_method==3) {
-                      $param['application_method'] = 'Granular';
+                      $param['application_method'] = 'Skid Spray';
+                    } else if ($value->application_method==3) {
+                      $param['application_method'] = 'Backback';
+                    } else if ($value->application_method==4) {
+                      $param['application_method'] = 'Walk Behind Spreader';
                     }
+                  if ($value->application_type==1) {
+                      $param['application_type'] = 'Broadcast';
+                  } else if($value->application_type==2) {
+                      $param['application_type'] = 'Spot Spray';
+                  } elseif ($value->application_type==3) {
+                      $param['application_type'] = 'Granular';
+                  }
                     if($value->chemical_type==1) {
                       $param['chemical_type'] = 'Herbicide';
                     } else if($value->chemical_type==2) {
