@@ -593,7 +593,7 @@ class Purchases extends MY_Controller{
                 $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
             }
 
-            $res = Send_Mail_dynamic($company_email_details, explode(",", $data['ready_for_payment_po_email']), array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
+            $res = Send_Mail_dynamic($company_email_details, explode(",", $data['setting_details']->ready_for_payment_po_email), array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
         }
 
         if ($result) {
