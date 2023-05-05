@@ -528,6 +528,7 @@ class Reports extends MY_Controller {
         $data['customers'] = $this->CustomerModel->getCustomerList(array('company_id' => $this->session->userdata['company_id']));
 
         $company_id = $this->session->userdata['company_id'];
+        $data['jobs'] = $this->JobModel->getAllJob(array('jobs.company_id' =>$this->session->userdata['company_id']));
 
         $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id));
 
@@ -620,7 +621,7 @@ class Reports extends MY_Controller {
         $data['TotalRevenueLost'] = $TotalRevenueLost;
         $data['TotalExistingRevenueLost'] = $TotalExistingRevenueLost;
         $data['TotlaNewRevenueLost'] = $TotlaNewRevenueLost;
-
+        $data['cancel_reasons'] = $this->CustomerModel->getCancelReasons($this->session->userdata['company_id']);
         
         $page["active_sidebar"] = "cancelService";
         $page["page_name"] = 'Cancelled Service';
@@ -1466,17 +1467,41 @@ class Reports extends MY_Controller {
                 'customers.customer_id' => $customer,
             );
         }
+
+        if($this->input->post("serviceArea") != ""){
+            $whereArr['jobs.job_id'] = $this->input->post("serviceArea");
+        }
+
+        if($this->input->post("newExisting") == "1"){
+            $whereArr['customers.created_at >='] = date("Y-m-d 00:00:00", strtotime("-1 year"));
+        }
+
+        if($this->input->post("newExisting") == "0"){
+            $whereArr['customers.created_at <='] = date("Y-m-d 00:00:00", strtotime("-1 year"));
+        }
+
+        if($this->input->post("reason") != ""){
+            $whereArr['property_tbl.cancel_reason like '] = "%".$this->input->post("reason")."%";
+        }
         
         $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
         $NewServiceArray = array();
         foreach($data['all_services'] as $all_services) {
             $cost = 0;
-
             $canc_arr = array(
                 'job_id' => $all_services->job_id,
                 'customer_id' => $all_services->customer_id,
                 'property_id' => $all_services->property_id
             );
+
+            if($this->input->post("date_from") != ""){
+                $canc_arr['created_at >='] = date("Y-m-d 00:00:00", strtotime($this->input->post("date_from")));
+            }
+
+            if($this->input->post("date_to") != ""){
+                $canc_arr['created_at <='] = date("Y-m-d 23:59:59", strtotime($this->input->post("date_to")));
+            }
+
             $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
 
             if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {

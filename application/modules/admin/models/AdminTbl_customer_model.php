@@ -72,6 +72,28 @@ class AdminTbl_customer_model extends CI_Model{
 				return $result->num_rows();
 		}
 	}
+
+	public function getCustomerEmails($where_arr = '') {           
+		$this->db->select('email');
+		$this->db->from(self::PMTBL);
+		$this->db->where(array("email !=" => ""));
+		$this->db->group_by('email');
+		$result = $this->db->get();
+		$data = $result->result();
+		return $data;
+	}
+
+	public function getVendorEmails($where_arr = '') {           
+		$this->db->select('vendor_email_address');
+		$this->db->from("vendors_tbl");
+		$this->db->where(array("vendor_email_address !=" => ""));
+		$this->db->group_by('vendor_email_address');
+		$result = $this->db->get();
+		$data = $result->result();
+		return $data;
+	}
+
+
 	public function get_all_customer_ID_customerList($where_arr = '') {           
 		$this->db->select('customer_id, first_name, last_name, phone, home_phone, work_phone, email, billing_street, customer_status');
 			$this->db->from(self::PMTBL);

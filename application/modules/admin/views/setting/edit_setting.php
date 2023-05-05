@@ -6,6 +6,9 @@ if (isset($this->session->userdata['is_text_message']) && $this->session->userda
 }
 ?>
 
+<link rel="stylesheet" href="<?= base_url('assets') ?>/SelectBox/mobiscroll.jquery.min.css">
+<script src="<?= base_url('assets') ?>/SelectBox/mobiscroll.jquery.min.js"></script>
+
 <style type="text/css">
     #loading {
         width: 100%;
@@ -364,21 +367,40 @@ line-height: normal;
                             </div>
                         </div>
 
-                        <div class="col-md-12 mt-15">
-                            <div class="form-group">
-                                <label class="control-label">Email to send PO (when changes to ready for payment)</label>
-                                <div>
-                                    <input class="form-control" name="ready_for_payment_po_email" value="<?php echo $setting_details->ready_for_payment_po_email ?>">
-                                </div>
-                            </div>
-                        </div>
+                        <div class="clearfix">&nbsp;</div>
+                        <?php
+                        $FetchEmails = explode(",", $setting_details->ready_for_payment_po_email);
+                        $FetchEmails = array_map('trim', $FetchEmails);
+                        ?>
 
+                        <label>
+                            Email to send PO (when changes to ready for payment)
+                            <input mbsc-input id="demo-multiple-select-input" placeholder="Please select..." data-dropdown="true" data-input-style="outline" data-label-style="stacked" data-tags="true" name="ready_for_payment_po_email"/>
+                        </label>
+                        <select id="demo-multiple-select" multiple>
+                            <?php
+                            foreach($customers as $Cusom){
+                            ?>
+                            <option <?php if(in_array($Cusom->email, $FetchEmails)){ echo 'selected'; }?>><?php echo $Cusom->email ?></option>
+                            <?php
+                            }
+                            ?>
+
+                            <?php
+                            foreach($vendors as $Cusom){
+                            ?>
+                            <option <?php if(in_array($Cusom->vendor_email_address, $FetchEmails)){ echo 'selected'; }?>><?php echo $Cusom->vendor_email_address ?></option>
+                            <?php
+                            }
+                            ?>
+                        </select>
                     </div>
                 </fieldset>
                 <div class="text-right">
                     <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
                 </div>
             </form>
+
             <?php
             $block_class = '';
             if ($subscription_details) {
@@ -4496,4 +4518,21 @@ function deleteRescheduleReason(rescheduleId,rescheduleName){
     $('input#delete_reschedule_id').val(rescheduleId);
     $('#modal_delete_reschedulereason').modal('show');
 }
+</script>
+
+<script>
+        
+        mobiscroll.setOptions({
+    locale: mobiscroll.localeEn,                                             // Specify language like: locale: mobiscroll.localePl or omit setting to use default
+    theme: 'ios',                                                            // Specify theme like: theme: 'ios' or omit setting to use default
+        themeVariant: 'light'                                                // More info about themeVariant: https://docs.mobiscroll.com/5-24-0/select#opt-themeVariant
+});
+
+$(function () {
+    // Mobiscroll Select initialization
+    $('#demo-multiple-select').mobiscroll().select({
+        filter: true,
+        inputElement: document.getElementById('demo-multiple-select-input')  // More info about inputElement: https://docs.mobiscroll.com/5-24-0/select#opt-inputElement
+    });
+});
 </script>

@@ -34,6 +34,7 @@ class Cancelled_services_model extends CI_Model{
         $this->db->where($where);
         $result = $this->db->get();
         $data = $result->result();
+        //die(print_r($this->db->last_query()));
         return $data;
     }
 

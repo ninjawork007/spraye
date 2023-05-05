@@ -17,10 +17,10 @@
 			<div class="panel panel-body" style="background-color:#ededed;" >
 				<form id="serchform" action="<?= base_url('admin/reports/downloadCancelServiceReportCsv') ?>" method="post">
 					<div class="row">
-						<div class="col-md-3">
+						<div class="col-md-4">
 							<div class="form-group">
 								<label>Customers</label>
-								<select class="bootstrap-select form-control" name="customer"  id="customer" data-live-search="true">
+								<select class="bootstrap-select form-control" name="customer" id="customer" data-live-search="true">
 									<option value="" >Select a Customer</option>
 									<?php if ($customers) {
 										foreach ($customers as $customer) { ?>
@@ -29,6 +29,65 @@
 								</select>
 							</div>
 						</div>
+
+						<div class="col-md-4">
+                            <div class="form-group">
+                                <label>Service Area</label>
+                                <select class="bootstrap-select form-control" name="service_area" id="service_area" data-live-search="true">
+                                    <option value="" selected>All</option>
+                                    <?php if(!empty($jobs)) {
+                                        foreach ($jobs as $area) { ?>
+                                            <option value=<?= $area->job_id ?>> <?= $area->job_name ?> </option>
+                                    <?php } } ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>
+                                    New/Existing
+                                </label>
+                                <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title="'New' means that the customer was added within the past 12 months. 'Existing' means that the customer was added prior to the past 12 months.">  <i class=" icon-info22 tooltip-icon"></i> </span>
+                                <select class="bootstrap-select form-control" name="newExisting" id="newExisting">
+                                    <option value="" selected>All</option>
+                                    <option value="1">New</option>
+                                    <option value="0">Existing</option>
+                                </select>
+                            </div>
+                        </div>
+
+						 <div class="col-md-4">
+							<div class="form-group">
+							  <label>Start Date</label>
+							  <input type="date" id="date_from" name="date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+							</div>
+						  </div>
+
+						  <div class="col-md-4">
+							<div class="form-group">
+							  <label>End Date</label>
+							  <input type="date" id="date_to" name="date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
+							</div>
+						  </div>
+
+                          <div class="col-md-4">
+                            <div class="form-group">
+                              <label>Cancel Reason</label>
+                              <select id="reason" name="reason" class="form-control" placeholder="Enter reason for cancel">
+                                <option value="">All</option>
+                                <?php
+                                foreach($cancel_reasons as $reason){
+                                ?>
+                                    <option><?php echo $reason->cancel_name ?></option>
+                                <?php
+                                }
+                                ?>
+                                <option>Other</option>
+                              </select>
+                            </div>
+                           </div>
+
 						<input type="hidden" name="interval" id="interval" value="30">
 					</div>
 					<div class="text-center">
@@ -147,9 +206,14 @@ function filterInterval(interval){
 function searchFilter() {
 	var customer = $('#customer').val();
 	var service_area = $('#service_area').val();
-    var tax_name = $('#tax_name').val();
-    var property_type = $('#property_type').val();
+	var tax_name = $('#tax_name').val();
+	var property_type = $('#property_type').val();
 	var interval = $('#interval').val();
+	var date_from = $('#date_from').val();
+	var date_to = $('#date_to').val();
+	var serviceArea = $("#service_area").val();
+	var newExisting = $("#newExisting").val();
+	var reason = $("#reason").val();
 
     $('.loading').css("display", "block");
 	
@@ -158,7 +222,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCancelService',
-        data:'customer='+customer,
+        data:'customer='+customer+'&date_from='+date_from+'&date_to='+date_to+"&serviceArea="+serviceArea+"&newExisting="+newExisting+"&reason="+reason,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#invoice-age-list').html(html);

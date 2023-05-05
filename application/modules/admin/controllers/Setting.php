@@ -111,6 +111,9 @@ class Setting extends MY_Controller
 		log_message('info', 'settings index');
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
+        $data['customers'] = $this->CustomerModel->getCustomerEmails();
+        $data['vendors'] = $this->CustomerModel->getVendorEmails();
+
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
         $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo) ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
         $data['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail($where);
