@@ -231,7 +231,6 @@
             <table width="100%" class="table table-condensed" cellspacing="0" cellpadding="10">
                 <tr class="first_tr">
                     <td align="center"><strong>PURCHASE ORDER NO: #<br><?=$purchase_order->purchase_order_number?></strong></td>
-                    <td align="center"> <strong>ORDER DATE <br><?=Date("m/d/Y", strtotime($purchase_order->created_at))?></strong></td>
                     <td align="center"><strong>ORDERED BY <br><?= $purchase_order->name ?></strong></td>
                     <td align="center"> <strong>ORDER DATE <br>
                         <?php

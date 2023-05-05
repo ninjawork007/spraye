@@ -1,11 +1,5 @@
 <?php
-
-
-
 defined('BASEPATH') or exit('No direct script access allowed');
-
-
-
 require_once APPPATH . '/third_party/smtp/Send_Mail.php';
 
 
@@ -341,27 +335,13 @@ class Setting extends MY_Controller
         $this->form_validation->set_rules('invoice_color', 'invoice_color', '');
 
         if ($this->form_validation->run() == FALSE) {
-
             echo validation_errors();
-
             $this->index();
         } elseif ($check = $this->CompanyModel->getOneCompany(array('company_id !=' => $this->session->userdata['company_id'], 'company_email' => $data['company_email']))) {
-
-
-
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Email </strong> already exists </div>');
-
             redirect("admin/setting");
         } else {
-
-
-
-
-
             $company_geo = $this->getLatLongByAddress($data['company_address']);
-
-
-
             if (!$company_geo) {
 
                 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Invalid</strong> company address. Please try again</div>');
@@ -395,6 +375,7 @@ class Setting extends MY_Controller
                         'invoice_color' => $data['invoice_color'],
                         'default_display_length' => $data['default_display_length'],
                         'time_zone' => $data['time_zone'],
+                        'ready_for_payment_po_email' => $data['ready_for_payment_po_email'],
                         'updated_at' => date("Y-m-d H:i:s"),
                         'slug' => $slug,   
                     );
@@ -414,6 +395,7 @@ class Setting extends MY_Controller
                         'default_display_length' => $data['default_display_length'],
                         'time_zone' => $data['time_zone'],
                         'updated_at' => date("Y-m-d H:i:s"),
+                        'ready_for_payment_po_email' => $data['ready_for_payment_po_email'],
                         'slug' => $slug,   
                     );
                     // die(print_r($param));

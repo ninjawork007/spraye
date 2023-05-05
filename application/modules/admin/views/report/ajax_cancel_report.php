@@ -62,31 +62,50 @@
                             <th>Lost Revenue</th>
                             <th>Sales Rep.</th>
                             <th>New Existing Customer</th>
+                            <th>Service/Program</th>
                             <th>Cancel Reason</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
+                        $TotalRevnueLost = 0;
                         foreach($AllCancelledProperty as $CanclPrprty){
+                            $TotalRevnueLost += $CanclPrprty->job_cost;
                         ?>
                         <tr>
                             <td><?= date("d F, Y", strtotime($CanclPrprty->property_cancelled))?></td>
                             <td><?= $CanclPrprty->user_first_name ?> <?= $CanclPrprty->user_last_name ?></td>
-                            <td><?= $CanclPrprty->first_name ?> <?= $CanclPrprty->last_name ?></td>
-                            <td><?= date("d F, Y", strtotime($CanclPrprty->property_created))?></td>
+                            <td><a href="<?php echo base_url() ?>/admin/editCustomer/<?= $CanclPrprty->customer_id ?>" target="_blank"><?= $CanclPrprty->first_name ?> <?= $CanclPrprty->last_name ?></a></td>
+                                <td><?= date("d F, Y", strtotime($CanclPrprty->start_date))?></td>
                             <td><?= $CanclPrprty->property_title ?></td>
                             <td><?= $CanclPrprty->property_address ?></td>
                             <td><?= $CanclPrprty->email ?></td>
                             <td><?= $CanclPrprty->work_phone ?></td>
                             <td>$<?= $CanclPrprty->job_cost ?></td>
                             <td><?= $CanclPrprty->SalesRep ?></td>
-                            <td><?= $CanclPrprty->tags == 1 ? "New" : "Existing" ?></td>
+                            <td>
+                                <?php
+                                if($CanclPrprty->start_date >= date("Y-m-d 00:00:00", strtotime("-1 year"))){
+                                    echo "New";
+                                }else{
+                                    echo "Existing";
+                                }
+                                ?>
+                            </td>
+                            <td><?= $CanclPrprty->service_cancelled ?></td>
                             <td><?= $CanclPrprty->cancel_reason ?></td>
                         </tr>
                         <?php
                         }
                         ?>
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="8" align="right"><b>Total</b></td>
+                            <td>$ <?php echo $TotalRevnueLost ?></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>

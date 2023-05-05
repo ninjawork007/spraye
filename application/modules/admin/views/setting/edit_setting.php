@@ -363,6 +363,16 @@ line-height: normal;
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-12 mt-15">
+                            <div class="form-group">
+                                <label class="control-label">Email to send PO (when changes to ready for paymnet)</label>
+                                <div>
+                                    <input class="form-control" name="ready_for_payment_po_email" value="<?php echo $setting_details->ready_for_payment_po_email ?>">
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </fieldset>
                 <div class="text-right">

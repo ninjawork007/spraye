@@ -496,7 +496,7 @@
                                     <?php 
                                     if ($invoice_detail->all_sales_tax && $invoice_detail->payment_status==2 ) {
                                     ?>
-                                        <tr>
+                                        <!--<tr>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -507,7 +507,7 @@
                                             <td class="border-bottom-blank-last text-right">$
                                                 <?= number_format($invoice_total_cost,2);  ?>
                                             </td>
-                                        </tr>
+                                        </tr>-->
                                     <?php } ?>
 
                                     <?php  if ( $invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>

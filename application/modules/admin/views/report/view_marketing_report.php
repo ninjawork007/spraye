@@ -58,371 +58,342 @@ opacity: 1;
 		<div class="panel-body">
 			<b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
 			<div class="panel panel-body" style="background-color:#ededed;" >
+                <h1>Filter customers by:</h1>
 				<form id="serchform" action="<?= base_url('admin/reports/downloadMarketingCustomerDataReport') ?>" method="post">
-                    <div class="row">
-                        <div class="col-md-6 fix_panel_spacing">
-                            <div class="panel">
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label>Lead Created Date Range Start</label>
-                                            <input type="date" id="lead_start_date_start" name="lead_start_date_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                    <div class="panel-group" id="panels">
+                        <div class="panel panel-default p-5">
+                            <div class="collapsed" data-toggle="collapse" data-parent="#panels" data-target="#firstPanel" style="cursor: pointer">
+                                <h4>Sales Details</h4>    
+                            </div>
+                            <div id="firstPanel" class="panel-collapse collapse">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label>Lead Created Date Range Start</label>
+                                        <input type="date" id="lead_start_date_start" name="lead_start_date_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Lead Created Date Range End</label>
+                                        <input type="date" id="lead_start_date_end" name="lead_start_date_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Program Assigned Date Range Start</label>
+                                        <input type="date" id="sale_start_date_start" name="sale_start_date_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Program Assigned Date Range End</label>
+                                        <input type="date" id="sale_start_date_end" name="sale_start_date_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+
+                                    <div class="col-md-3 mt-15">
+                                        <label>Canceled Program Date Range Start</label>
+                                        <input type="date" id="cancelation_date_start" name="cancelation_date_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Canceled Program Date Range End</label>
+                                        <input type="date" id="cancelation_date_end" name="cancelation_date_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Last Purchase Date Range Start</label>
+                                        <input type="date" id="last_date_program_start" name="last_date_program_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Last Purchase Date Range End</label>
+                                        <input type="date" id="last_date_program_end" name="last_date_program_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-4 mt-15">
+                                        <label>Estimate Accepted?</label>
+                                        <select class="form-control" name="estimate_accpeted" id="estimate_accpeted">
+                                            <option value="">None selected</option>
+                                            <option value="2"> Accepted </option>
+                                            <option value="5"> Declined </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mt-15 multi-select-full">
+                                        <label for="service_ids_filter">Source(s)</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="sources_multi[]" id="sources_multi" multiple="multiple">
+                                            <?php foreach ($source_list as $value) : ?>
+                                                <option value="<?= $value->source_id ?>"><?= $value->source_name ?></option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 multi-select-full mt-15">
+                                        <label>Cancel Reason(s)</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="cancel_reasons_multi[]" id="cancel_reasons_multi" multiple="multiple">
+                                            <?php foreach ($cancel_reasons as $cancel_reason): ?>
+                                                <option value="<?= $cancel_reason->cancel_name ?>"> <?= $cancel_reason->cancel_name ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>YTD Revenue</label>
+                                        <div class='row'>
+                                            <div class="col-md-6">
+                                                <input type="text" id="ytd_revenue_start" name="ytd_revenue_start" class="form-control" placeholder="Start">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" id="ytd_revenue_end" name="ytd_revenue_end" class="form-control" placeholder="End">
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label>Lead Created Date Range End</label>
-                                            <input type="date" id="lead_start_date_end" name="lead_start_date_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Revenue Total</label>
+                                        <div class='row'>
+                                            <div class="col-md-6">
+                                                <input type="text" id="revenue_total_start" name="revenue_total_start" class="form-control" placeholder="Start">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" id="revenue_total_end" name="revenue_total_end" class="form-control" placeholder="End">
+                                            </div>
+                                        </div>    
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Projected Annual Revenue</label>
+                                        <div class='row'>
+                                            <div class="col-md-6">
+                                                <input type="text" id="projected_annual_revenue_start" name="projected_annual_revenue_start" class="form-control" placeholder="Start">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" id="projected_annual_revenue_end" name="projected_annual_revenue_end" class="form-control" placeholder="End">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Annual revenue per 1000 sq/ft</label>
+                                        <div class='row'>
+                                            <div class="col-md-6">
+                                                <input type="text" id="annual_revenue_per_1000_start" name="annual_revenue_per_1000_start" class="form-control" placeholder="Start">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" id="annual_revenue_per_1000_end" name="annual_revenue_per_1000_end" class="form-control" placeholder="End">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 fix_panel_spacing">
-                            <div class="panel">
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label>Canceled Program Date Range Start</label>
-                                            <input type="date" id="cancelation_date_start" name="cancelation_date_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                        <div class="panel panel-default p-5">
+                            <div class="collapsed" data-toggle="collapse" data-parent="#panels" data-target="#secondPanel" style="cursor: pointer">
+                                <h4>Customer & Property Attributes</h4>
+                            </div>
+                            <div id="secondPanel" class="panel-collapse collapse">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <label>Customer Status</label>
+                                        <select class="form-control" name="customer_status" id="customer_status">
+                                            <option value="">None selected</option>
+                                            <option value="1"> Active </option>
+                                            <option value="2"> Hold </option>
+                                            <option value="0"> Non-Active </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 multi-select-full">
+                                        <label>Zip Code(s)</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="zip_codes_multi[]" id="zip_codes_multi" multiple="multiple">
+                                            <?php foreach ($zip_codes as $zip): ?>
+                                                <option value="<?= $zip->property_zip ?>"> <?= $zip->property_zip ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 multi-select-full">
+                                        <label>Service Area(s)</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="service_areas_multi[]" id="service_areas_multi" multiple="multiple">
+                                            <?php foreach ($service_areas as $area): ?>
+                                                <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Residential or Commercial</label>
+                                        <select class="form-control" name="res_or_com" id="res_or_com">
+                                            <option value="">None selected</option>
+                                            <option value="Residential"> Residential </option>
+                                            <option value="Commercial"> Commercial </option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mt-15">
+                                        <label>Lot Size</label>
+                                        <div class='row'>
+                                            <div class="col-md-6">
+                                                <input type="text" id="lot_size_start" name="lot_size_start" class="form-control" placeholder="Start">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="text" id="lot_size_end" name="lot_size_end" class="form-control" placeholder="End">
+                                            </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label>Canceled Program Date Range End</label>
-                                            <input type="date" id="cancelation_date_end" name="cancelation_date_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mt-15 multi-select-full">
+                                        <label>Pre-Service Notification(s)</label>
+                                        <span style='float:right'>
+                                            <label class="checkbox-inline checkbox-left float-right">
+                                                <input type="checkbox" name="all_pre_service" id="all_pre_service" class="" >Require All?
+                                            </label>
+                                        </span>
+                                        <select class="multiselect-select-all-filtering form-control" name="preservice_notifications_multi[]" id="preservice_notifications_multi" multiple="multiple">
+                                            <option value="1">Phone Call</option>
+                                            <option value="2">Automated Email(s)</option>
+                                            <option value="3">Automated Text message(s)</option>
+                                            <option value="4">Text when En route</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mt-15 multi-select-full">    
+                                        <label>Tag(s)</label>
+                                        <span style='float:right'>
+                                            <label class="checkbox-inline checkbox-left float-right">
+                                                <input type="checkbox" name="all_tags" id="all_tags" class="" >Require All?
+                                            </label>
+                                        </span>
+                                        <select class="multiselect-select-all-filtering form-control" name="tags_multi[]" id="tags_multi" multiple="multiple">
+                                            <?php foreach ($taglist as $value): ?>
+                                                <option value="<?= $value->id ?>"> <?= $value->tags_title ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mt-15 multi-select-full">
+                                        <label>Front Yard Grass Type</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="front_yard_grass[]" id="front_yard_grass" multiple="multiple">
+                                            <option>Bent</option>
+                                            <option>Bermuda</option>
+                                            <option>Dichondra</option>
+                                            <option>Fine Fescue</option>
+                                            <option>Kentucky Bluegrass</option>
+                                            <option>Ryegrass</option>
+                                            <option>St. Augustine/Floratam</option>
+                                            <option>Tall Fescue</option>
+                                            <option>Zoysia</option>
+                                            <option>Centipede</option>
+                                            <option>Bluegrass/Rye/Fescue</option>
+                                            <option>Warm Season</option>
+                                            <option>Cool Season</option>
+                                            <option>Mixed Grass</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mt-15 multi-select-full">
+                                        <label>Back Yard Grass Type</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="back_yard_grass[]" id="back_yard_grass" multiple="multiple">
+                                            <option>Bent</option>
+                                            <option>Bermuda</option>
+                                            <option>Dichondra</option>
+                                            <option>Fine Fescue</option>
+                                            <option>Kentucky Bluegrass</option>
+                                            <option>Ryegrass</option>
+                                            <option>St. Augustine/Floratam</option>
+                                            <option>Tall Fescue</option>
+                                            <option>Zoysia</option>
+                                            <option>Centipede</option>
+                                            <option>Bluegrass/Rye/Fescue</option>
+                                            <option>Warm Season</option>
+                                            <option>Cool Season</option>
+                                            <option>Mixed Grass</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mt-15 multi-select-full">
+                                        <label>Total Yard Grass Type</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="total_yard_grass[]" id="total_yard_grass" multiple="multiple">
+                                            <option>Bent</option>
+                                            <option>Bermuda</option>
+                                            <option>Dichondra</option>
+                                            <option>Fine Fescue</option>
+                                            <option>Kentucky Bluegrass</option>
+                                            <option>Ryegrass</option>
+                                            <option>St. Augustine/Floratam</option>
+                                            <option>Tall Fescue</option>
+                                            <option>Zoysia</option>
+                                            <option>Centipede</option>
+                                            <option>Bluegrass/Rye/Fescue</option>
+                                            <option>Warm Season</option>
+                                            <option>Cool Season</option>
+                                            <option>Mixed Grass</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="row  mt-15">
-                        <div class="col-md-6 fix_panel_spacing">
-                            <div class="panel">
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label>Program Assigned Date Range Start</label>
-                                            <input type="date" id="sale_start_date_start" name="sale_start_date_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label>Program Assigned Date Range End</label>
-                                            <input type="date" id="sale_start_date_end" name="sale_start_date_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                        </div>
+                        <div class="panel panel-default p-5">
+                            <div class="collapsed" data-toggle="collapse" data-parent="#panels" data-target="#thirdPanel" style="cursor: pointer">
+                                <h4>Programs & Services</h4>
+                            </div>
+                            <div id="thirdPanel" class="panel-collapse collapse">
+                                <div class="row">
+                                    <div class="col-md-3 multi-select-full">
+                                        <label>Outstanding Service(s)</label>
+                                        <span style='float:right'>
+                                            <label class="checkbox-inline checkbox-left ">
+                                                <input type="checkbox" name="all_outstanding" id="all_outstanding" class="" >Require All?
+                                            </label>
+                                        </span>
+                                        <select class="multiselect-select-all-filtering form-control" name="outstanding_services_multi[]" id="outstanding_services_multi" multiple="multiple">
+                                            <?php $already_used_job_names = array(); ?>
+                                            <?php foreach ($outstanding_services as $outstanding): ?>
+                                                <?php  
+                                                    // do some logic so we dont get any repeated names
+                                                    if(!in_array($outstanding->job_name, $already_used_job_names)) {
+                                                        $already_used_job_names[] = $outstanding->job_name;
+                                                ?>
+                                                <option value="<?= $outstanding->job_id ?>"> <?= $outstanding->job_name ?> </option>
+                                                <?php } ?>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 multi-select-full">
+                                        <label>Program(s) or Service(s)</label>
+                                        <span style='float:right'>
+                                            <label class="checkbox-inline checkbox-left float-right">
+                                                <input type="checkbox" name="all_programs" id="all_programs" class="" >Require All?
+                                            </label>
+                                        </span>
+                                        <select class="multiselect-select-all-filtering form-control" name="programs_multi[]" id="programs_multi" multiple="multiple" style='white-space: break-spaces;'>
+                                            <?php foreach ($program_details as $value): ?>
+                                                <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-3 multi-select-full">
+                                        <label># Completed Services in selected programs start</label>
+                                        <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                    </div>
+
+                                    <div class="col-md-3 multi-select-full">
+                                        <label># Completed Services in selected programs end</label>
+                                        <input type="number" id="serviceCompletedEnd" name="serviceCompletedEnd" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                    </div>
+                                    <div class="clearfix"></div>
+
+                                    <div class="col-md-3 mt-15 multi-select-full">
+                                        <label>Exclude Customers by Program</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="customerExclude[]" id="customerExclude" multiple="multiple" style='white-space: break-spaces;'>
+                                            <?php foreach ($program_details as $value): ?>
+                                                <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mt-15 multi-select-full">
+                                        <label>Service Sold During Year Do not have now</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="serviceSoldNotNow[]" id="serviceSoldNotNow" multiple="multiple">
+                                            <?php $already_used_job_names = array(); ?>
+                                            <?php foreach ($outstanding_services as $outstanding): ?>
+                                                <?php  
+                                                    // do some logic so we dont get any repeated names
+                                                    if(!in_array($outstanding->job_name, $already_used_job_names)) {
+                                                        $already_used_job_names[] = $outstanding->job_name;
+                                                ?>
+                                                <option value="<?= $outstanding->job_id ?>"> <?= $outstanding->job_name ?> </option>
+                                                <?php } ?>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Service Check Start Date</label>
+                                        <input type="date" id="ServiceSoldNotNowStart" name="ServiceSoldNotNowStart" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+                                    </div>
+                                    <div class="col-md-3 mt-15">
+                                        <label>Service Check End Date</label>
+                                        <input type="date" id="ServiceSoldNotNowEnd" name="ServiceSoldNotNowEnd" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 fix_panel_spacing">
-                            <div class="panel">
-                                <div class="panel-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <label>Last Purchase Date Range Start</label>
-                                            <input type="date" id="last_date_program_start" name="last_date_program_start" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label>Last Purchase Date Range End</label>
-                                            <input type="date" id="last_date_program_end" name="last_date_program_end" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="panel mt-15">
-                        <div class="panel-body">
-                            <div class="row mt-15">
-                                <div class="col-md-3">
-                                    <label>Customer Status</label>
-                                    <select class="form-control" name="customer_status" id="customer_status">
-                                        <option value="">None selected</option>
-                                        <option value="1"> Active </option>
-                                        <option value="2"> Hold </option>
-                                        <option value="0"> Non-Active </option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Zip Code(s)</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="zip_codes_multi[]" id="zip_codes_multi" multiple="multiple">
-                                        <?php foreach ($zip_codes as $zip): ?>
-                                            <option value="<?= $zip->property_zip ?>"> <?= $zip->property_zip ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Service Area(s)</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="service_areas_multi[]" id="service_areas_multi" multiple="multiple">
-                                        <?php foreach ($service_areas as $area): ?>
-                                            <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3" id='estimate_accepted_block'>
-                                    <label>Estimate Accepted?</label>
-                                    <select class="form-control" name="estimate_accpeted" id="estimate_accpeted">
-                                        <option value="">None selected</option>
-                                        <option value="2"> Accepted </option>
-                                        <option value="5"> Declined </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row mt-15">
-                                <div class="col-md-3">
-                                    <label>YTD Revenue</label>
-                                    <div class='row'>
-                                        <div class="col-md-6">
-                                            <input type="text" id="ytd_revenue_start" name="ytd_revenue_start" class="form-control" placeholder="Start">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" id="ytd_revenue_end" name="ytd_revenue_end" class="form-control" placeholder="End">
-                                        </div>
-                                    </div>
-                                </div>    
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Cancel Reason(s)</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="cancel_reasons_multi[]" id="cancel_reasons_multi" multiple="multiple">
-                                        <?php foreach ($cancel_reasons as $cancel_reason): ?>
-                                            <option value="<?= $cancel_reason->cancel_name ?>"> <?= $cancel_reason->cancel_name ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 multi-select-full">
-                                    <label for="service_ids_filter">Source(s)</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="sources_multi[]" id="sources_multi" multiple="multiple">
-                                        <?php foreach ($source_list as $value) : ?>
-                                            <option value="<?= $value->source_id ?>"><?= $value->source_name ?></option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Residential or Commercial</label>
-                                    <select class="form-control" name="res_or_com" id="res_or_com">
-                                        <option value="">None selected</option>
-                                        <option value="Residential"> Residential </option>
-                                        <option value="Commercial"> Commercial </option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row mt-15">
-                                <div class="col-md-3">
-                                    <label>Revenue Total</label>
-                                    <div class='row'>
-                                        <div class="col-md-6">
-                                            <input type="text" id="revenue_total_start" name="revenue_total_start" class="form-control" placeholder="Start">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" id="revenue_total_end" name="revenue_total_end" class="form-control" placeholder="End">
-                                        </div>
-                                    </div>    
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Projected Annual Revenue</label>
-                                    <div class='row'>
-                                        <div class="col-md-6">
-                                            <input type="text" id="projected_annual_revenue_start" name="projected_annual_revenue_start" class="form-control" placeholder="Start">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" id="projected_annual_revenue_end" name="projected_annual_revenue_end" class="form-control" placeholder="End">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Lot Size</label>
-                                    <div class='row'>
-                                        <div class="col-md-6">
-                                            <input type="text" id="lot_size_start" name="lot_size_start" class="form-control" placeholder="Start">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" id="lot_size_end" name="lot_size_end" class="form-control" placeholder="End">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Annual revenue per 1000 sq/ft</label>
-                                    <div class='row'>
-                                        <div class="col-md-6">
-                                            <input type="text" id="annual_revenue_per_1000_start" name="annual_revenue_per_1000_start" class="form-control" placeholder="Start">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <input type="text" id="annual_revenue_per_1000_end" name="annual_revenue_per_1000_end" class="form-control" placeholder="End">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row mt-15">
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Pre-Service Notification(s)</label>
-                                    <span style='float:right'>
-                                        <label class="checkbox-inline checkbox-left float-right">
-                                            <input type="checkbox" name="all_pre_service" id="all_pre_service" class="" >Require All?
-                                        </label>
-                                    </span>
-                                    <select class="multiselect-select-all-filtering form-control" name="preservice_notifications_multi[]" id="preservice_notifications_multi" multiple="multiple">
-                                        <option value="1">Phone Call</option>
-                                        <option value="2">Automated Email(s)</option>
-                                        <option value="3">Automated Text message(s)</option>
-                                        <option value="4">Text when En route</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 multi-select-full">	
-                                    <label>Tag(s)</label>
-                                    <span style='float:right'>
-                                        <label class="checkbox-inline checkbox-left float-right">
-                                            <input type="checkbox" name="all_tags" id="all_tags" class="" >Require All?
-                                        </label>
-                                    </span>
-                                    <select class="multiselect-select-all-filtering form-control" name="tags_multi[]" id="tags_multi" multiple="multiple">
-                                        <?php foreach ($taglist as $value): ?>
-                                            <option value="<?= $value->id ?>"> <?= $value->tags_title ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Outstanding Service(s)</label>
-                                    <span style='float:right'>
-                                        <label class="checkbox-inline checkbox-left ">
-                                            <input type="checkbox" name="all_outstanding" id="all_outstanding" class="" >Require All?
-                                        </label>
-                                    </span>
-                                    <select class="multiselect-select-all-filtering form-control" name="outstanding_services_multi[]" id="outstanding_services_multi" multiple="multiple">
-                                        <?php $already_used_job_names = array(); ?>
-                                        <?php foreach ($outstanding_services as $outstanding): ?>
-                                            <?php  
-                                                // do some logic so we dont get any repeated names
-                                                if(!in_array($outstanding->job_name, $already_used_job_names)) {
-                                                    $already_used_job_names[] = $outstanding->job_name;
-                                            ?>
-                                            <option value="<?= $outstanding->job_id ?>"> <?= $outstanding->job_name ?> </option>
-                                            <?php } ?>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Exclude Customers by Program</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="customerExclude[]" id="customerExclude" multiple="multiple" style='white-space: break-spaces;'>
-                                        <?php foreach ($program_details as $value): ?>
-                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-
-                            </div>
-                            <div class="row mt-15">
-                                <div class="col-md-3  multi-select-full">
-                                    <label>Front Yard Grass Type</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="front_yard_grass[]" id="front_yard_grass" multiple="multiple">
-                                        <option>Bent</option>
-                                        <option>Bermuda</option>
-                                        <option>Dichondra</option>
-                                        <option>Fine Fescue</option>
-                                        <option>Kentucky Bluegrass</option>
-                                        <option>Ryegrass</option>
-                                        <option>St. Augustine/Floratam</option>
-                                        <option>Tall Fescue</option>
-                                        <option>Zoysia</option>
-                                        <option>Centipede</option>
-                                        <option>Bluegrass/Rye/Fescue</option>
-                                        <option>Warm Season</option>
-                                        <option>Cool Season</option>
-                                        <option>Mixed Grass</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-3  multi-select-full">
-                                    <label>Back Yard Grass Type</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="back_yard_grass[]" id="back_yard_grass" multiple="multiple">
-                                        <option>Bent</option>
-                                        <option>Bermuda</option>
-                                        <option>Dichondra</option>
-                                        <option>Fine Fescue</option>
-                                        <option>Kentucky Bluegrass</option>
-                                        <option>Ryegrass</option>
-                                        <option>St. Augustine/Floratam</option>
-                                        <option>Tall Fescue</option>
-                                        <option>Zoysia</option>
-                                        <option>Centipede</option>
-                                        <option>Bluegrass/Rye/Fescue</option>
-                                        <option>Warm Season</option>
-                                        <option>Cool Season</option>
-                                        <option>Mixed Grass</option>
-                                    </select>
-                                </div>
-
-
-                                <div class="col-md-3  multi-select-full">
-                                    <label>Total Yard Grass Type</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="total_yard_grass[]" id="total_yard_grass" multiple="multiple">
-                                        <option>Bent</option>
-                                        <option>Bermuda</option>
-                                        <option>Dichondra</option>
-                                        <option>Fine Fescue</option>
-                                        <option>Kentucky Bluegrass</option>
-                                        <option>Ryegrass</option>
-                                        <option>St. Augustine/Floratam</option>
-                                        <option>Tall Fescue</option>
-                                        <option>Zoysia</option>
-                                        <option>Centipede</option>
-                                        <option>Bluegrass/Rye/Fescue</option>
-                                        <option>Warm Season</option>
-                                        <option>Cool Season</option>
-                                        <option>Mixed Grass</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row mt-15">
-                                <div class="col-md-3 multi-select-full">
-                                    <label>Program(s) or Service(s)</label>
-                                    <span style='float:right'>
-                                        <label class="checkbox-inline checkbox-left float-right">
-                                            <input type="checkbox" name="all_programs" id="all_programs" class="" >Require All?
-                                        </label>
-                                    </span>
-                                    <select class="multiselect-select-all-filtering form-control" name="programs_multi[]" id="programs_multi" multiple="multiple" style='white-space: break-spaces;'>
-                                        <?php foreach ($program_details as $value): ?>
-                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-3  multi-select-full">
-                                    <label># Completed Services in selected programs start</label>
-                                    <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
-                                </div>
-
-                                <div class="col-md-3  multi-select-full">
-                                    <label># Completed Services in selected programs end</label>
-                                    <input type="number" id="serviceCompletedEnd" name="serviceCompletedEnd" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
-                                </div>
-
-                            </div>
-                            <div class="row mt-15">
-                                <div class="col-md-4 multi-select-full">
-                                    <label>Service Sold During Year Do not have now</label>
-                                    <select class="multiselect-select-all-filtering form-control" name="serviceSoldNotNow[]" id="serviceSoldNotNow" multiple="multiple">
-                                        <?php $already_used_job_names = array(); ?>
-                                        <?php foreach ($outstanding_services as $outstanding): ?>
-                                            <?php  
-                                                // do some logic so we dont get any repeated names
-                                                if(!in_array($outstanding->job_name, $already_used_job_names)) {
-                                                    $already_used_job_names[] = $outstanding->job_name;
-                                            ?>
-                                            <option value="<?= $outstanding->job_id ?>"> <?= $outstanding->job_name ?> </option>
-                                            <?php } ?>
-                                        <?php endforeach ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label>Service Check Start Date</label>
-                                    <input type="date" id="ServiceSoldNotNowStart" name="ServiceSoldNotNowStart" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                </div>
-                                <div class="col-md-4">
-                                    <label>Service Check End Date</label>
-                                    <input type="date" id="ServiceSoldNotNowEnd" name="ServiceSoldNotNowEnd" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-                                </div>
-
                             </div>
                         </div>
                     </div>
-                    <br />
 					<div class="row">
 						<div class="text-center">
 							<button type="button" class="btn btn-success" onClick="searchFilter()" ><i class="icon-search4 position-left"></i> Search</button>

@@ -270,7 +270,6 @@
             <table width="100%" class="table table-condensed">
                 <tr class="first_tr">
                      <td align="center"><strong>PURCHASE ORDER NO: #<br><?=$value->purchase_order_number?></strong></td>
-                    <td align="center"> <strong>ORDER DATE <br><?=Date("m/d/Y", strtotime($value->created_at))?></strong></td>
                     <td align="center"><strong>ORDERED BY <br><?= $value->name ?></strong></td>
                     <td align="center"> <strong>ORDER DATE <br>
                         <?php

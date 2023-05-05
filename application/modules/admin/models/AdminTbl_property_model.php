@@ -729,7 +729,7 @@ class AdminTbl_property_model extends CI_Model
     }
 
 	public function getCancelledPropertyByDateRange($where,$from='',$to=''){
-        $this->db->select('property_tbl.*, customers.customer_id, customers.first_name, customers.email, customers.last_name, customers.work_phone, users.user_first_name, users.user_last_name');
+        $this->db->select('property_tbl.*, customers.customer_id, customers.created_at as start_date, customers.first_name, customers.email, customers.last_name, customers.work_phone, users.user_first_name, users.user_last_name');
         $this->db->from('property_tbl');
         $this->db->join('customer_property_assign','customer_property_assign.property_id = property_tbl.property_id ','inner');
         $this->db->join('customers','customers.customer_id = customer_property_assign.customer_id ','inner');
