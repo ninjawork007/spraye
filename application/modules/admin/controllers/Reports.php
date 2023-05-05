@@ -7328,6 +7328,7 @@ class Reports extends MY_Controller {
         $cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange($ConditionProperty, $start, $end);
 
         $data["AllCancelledProperty"] = $cancelled_properties;
+        $data["setting_details"] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
 
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
             $ServiceProgCancelled = array();
