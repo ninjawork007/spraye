@@ -23,7 +23,7 @@ class AdminTbl_company_model extends CI_Model{
     public function updateCompany($where,$post_data) {
       $this->db->where($where);
       $this->db->update(self::ST,$post_data);
-	//die(print_r($this->db->last_query())); 
+      //die(print_r($this->db->last_query())); 
 	  return $this->db->affected_rows();
     }
 

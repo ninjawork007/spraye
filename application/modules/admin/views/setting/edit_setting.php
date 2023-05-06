@@ -6,9 +6,6 @@ if (isset($this->session->userdata['is_text_message']) && $this->session->userda
 }
 ?>
 
-<link rel="stylesheet" href="<?= base_url('assets') ?>/SelectBox/mobiscroll.jquery.min.css">
-<script src="<?= base_url('assets') ?>/SelectBox/mobiscroll.jquery.min.js"></script>
-
 <style type="text/css">
     #loading {
         width: 100%;
@@ -368,32 +365,49 @@ line-height: normal;
                         </div>
 
                         <div class="clearfix">&nbsp;</div>
+
+                        <div class="row">
+                            <div class="col-lg-8">Email to send PO (when changes to ready for payment)</div>
+                            <div class="col-lg-3">
+                                <select class="bootstrap-select form-control" data-live-search="true" id="POEmailIDs">
+                                    <option value="">Select Email</option>
+                                    <?php
+                                    foreach($customers as $Cusom){
+                                    ?>
+                                    <option><?php echo $Cusom->email ?></option>
+                                    <?php
+                                    }
+                                    ?>
+
+                                    <?php
+                                    foreach($vendors as $Cusom){
+                                    ?>
+                                    <option><?php echo $Cusom->vendor_email_address ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="col-lg-1"><button type="button" onclick="SaveEmailPOs()" class="btn btn-primary">Add</button></div>
+                        </div>
+                        <div class="clearfix">&nbsp;</div>
                         <?php
                         $FetchEmails = explode(",", $setting_details->ready_for_payment_po_email);
                         $FetchEmails = array_map('trim', $FetchEmails);
                         ?>
 
-                        <label>
-                            Email to send PO (when changes to ready for payment)
-                            <input mbsc-input id="demo-multiple-select-input" placeholder="Please select..." data-dropdown="true" data-input-style="outline" data-label-style="stacked" data-tags="true" name="ready_for_payment_po_email"/>
-                        </label>
-                        <select id="demo-multiple-select" multiple>
+                        <div id="PoEmailDivs">
                             <?php
-                            foreach($customers as $Cusom){
+                            foreach($FetchEmails as $FMe){
                             ?>
-                            <option <?php if(in_array($Cusom->email, $FetchEmails)){ echo 'selected'; }?>><?php echo $Cusom->email ?></option>
-                            <?php
-                            }
-                            ?>
-
-                            <?php
-                            foreach($vendors as $Cusom){
-                            ?>
-                            <option <?php if(in_array($Cusom->vendor_email_address, $FetchEmails)){ echo 'selected'; }?>><?php echo $Cusom->vendor_email_address ?></option>
+                            <button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '<?php echo $FMe ?>')">
+                                <?php echo $FMe ?>
+                                <span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>
+                            </button>
                             <?php
                             }
                             ?>
-                        </select>
+                        </div>
                     </div>
                 </fieldset>
                 <div class="text-right">
@@ -4518,21 +4532,62 @@ function deleteRescheduleReason(rescheduleId,rescheduleName){
     $('input#delete_reschedule_id').val(rescheduleId);
     $('#modal_delete_reschedulereason').modal('show');
 }
-</script>
 
-<script>
-        
-        mobiscroll.setOptions({
-    locale: mobiscroll.localeEn,                                             // Specify language like: locale: mobiscroll.localePl or omit setting to use default
-    theme: 'ios',                                                            // Specify theme like: theme: 'ios' or omit setting to use default
-        themeVariant: 'light'                                                // More info about themeVariant: https://docs.mobiscroll.com/5-24-0/select#opt-themeVariant
-});
 
-$(function () {
-    // Mobiscroll Select initialization
-    $('#demo-multiple-select').mobiscroll().select({
-        filter: true,
-        inputElement: document.getElementById('demo-multiple-select-input')  // More info about inputElement: https://docs.mobiscroll.com/5-24-0/select#opt-inputElement
+function SaveEmailPOs(){
+    var email = $("#POEmailIDs").val();
+    if(email != ""){
+        let data = {'email': email};
+        $.ajax({
+            type: 'POST',
+            url: '<?= base_url('admin/setting/SavePOEmails'); ?>',
+            data: data,
+            success: function(data) {
+                emailArray = JSON.parse(data);
+                console.log(emailArray.length);
+                $("#PoEmailDivs").html("");
+
+                for(i = 0; i < emailArray.length; i++){
+                    var html = "";
+                    html += '<button type="button" class="btn btn-primary mb-5" onclick=RemoveEmails(this, "emailArray[i]")>';
+                    html += emailArray[i];
+                    html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
+                    html += '</button>';
+                    $("#PoEmailDivs").append(html);
+                }
+            },
+            error: function(e) {
+                console.log("ERROR : ", e);
+            }
+        });
+    }
+}
+
+function RemoveEmails(obj, email){
+    $(obj).remove();
+
+    let data = {'email': email};
+    $.ajax({
+        type: 'POST',
+        url: '<?= base_url('admin/setting/RemovePOEmails'); ?>',
+        data: data,
+        success: function(data) {
+            emailArray = JSON.parse(data);
+            console.log(emailArray.length);
+            $("#PoEmailDivs").html("");
+
+            for(i = 0; i < emailArray.length; i++){
+                var html = "";
+                html += '<button type="button" class="btn btn-primary mb-5" onclick=RemoveEmails(this, "emailArray[i]")>';
+                html += emailArray[i];
+                html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
+                html += '</button>';
+                $("#PoEmailDivs").append(html);
+            }
+        },
+        error: function(e) {
+            console.log("ERROR : ", e);
+        }
     });
-});
+}
 </script>

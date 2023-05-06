@@ -531,9 +531,41 @@ class Setting extends MY_Controller
 
             redirect("admin/setting");
         }
+    }
 
+    public function SavePOEmails(){
+        $data = $this->input->post();
+        $where = array('company_id' => $this->session->userdata['company_id']);
+        $SettingData = $this->CompanyModel->getOneCompany($where);
+        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
+        $POEmails[] = $data["email"];
 
+        $Emails = array_unique($POEmails);
+        $param = array("ready_for_payment_po_email" => implode(",", $Emails));
+        $result = $this->CompanyModel->updateCompany($where, $param);
 
+        $SettingData = $this->CompanyModel->getOneCompany($where);
+        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
+        echo json_encode($POEmails);
+    }
+
+    public function RemovePOEmails(){
+        $data = $this->input->post();
+        $where = array('company_id' => $this->session->userdata['company_id']);
+        $SettingData = $this->CompanyModel->getOneCompany($where);
+        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
+        $POEmails = array_map('trim', $POEmails);
+
+        $EmIndex = array_search($data["email"], $POEmails);
+        unset($POEmails[$EmIndex]);
+
+        $Emails = array_unique($POEmails);
+        $param = array("ready_for_payment_po_email" => implode(",", $Emails));
+        $result = $this->CompanyModel->updateCompany($where, $param);
+
+        $SettingData = $this->CompanyModel->getOneCompany($where);
+        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
+        echo json_encode($POEmails);
     }
 
     public function updateSettingData()
