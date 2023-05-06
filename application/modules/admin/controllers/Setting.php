@@ -104,6 +104,24 @@ class Setting extends MY_Controller
         $this->load->model('Sales_tax_model', 'SalesTax');
     }
 
+    public function SearchUser(){
+        $Customers = $this->CustomerModel->getCustomerEmails();
+        $Vendors = $this->CustomerModel->getVendorEmails();
+
+        $Array = array();
+        foreach($Customers as $Cust){
+            if(str_contains($Cust->email, $_POST['searchTerm'])) {
+                $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
+            }
+        }
+        foreach($Vendors as $Cust){
+            if(str_contains($Cust->vendor_email_address, $_POST['searchTerm'])) {
+                $Array[] = array("text" => $Cust->vendor_email_address, "id" => $Cust->vendor_email_address);
+            }
+        }
+        echo json_encode($Array);
+    }
+
     public function index()
     {
 
@@ -3400,5 +3418,7 @@ class Setting extends MY_Controller
             redirect("admin/setting");
         }
     }
+
+
 
 }

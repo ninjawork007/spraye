@@ -369,23 +369,7 @@ line-height: normal;
                         <div class="row">
                             <div class="col-lg-8">Email to send PO (when changes to ready for payment)</div>
                             <div class="col-lg-3">
-                                <select class="bootstrap-select form-control" data-live-search="true" id="POEmailIDs">
-                                    <option value="">Select Email</option>
-                                    <?php
-                                    foreach($customers as $Cusom){
-                                    ?>
-                                    <option><?php echo $Cusom->email ?></option>
-                                    <?php
-                                    }
-                                    ?>
-
-                                    <?php
-                                    foreach($vendors as $Cusom){
-                                    ?>
-                                    <option><?php echo $Cusom->vendor_email_address ?></option>
-                                    <?php
-                                    }
-                                    ?>
+                                <select class="form-control" id="POEmailIDs">
                                 </select>
                             </div>
                             <div class="col-lg-1"><button type="button" onclick="SaveEmailPOs()" class="btn btn-primary">Add</button></div>
@@ -4590,4 +4574,23 @@ function RemoveEmails(obj, email){
         }
     });
 }
+
+$('#POEmailIDs').select2({
+    placeholder: "Select client",
+    ajax: {
+        url: "<?= base_url('admin/setting/SearchUser'); ?>",
+        type: "post",
+        dataType: 'json',
+        data: function (params) {
+            if(params.term != ""){
+                return {
+                    method: 'searchClient',
+                    searchTerm: params.term
+                };
+            }
+        }, processResults: function (response) {
+            return {results: response};
+        }, cache: true
+    }
+});
 </script>
