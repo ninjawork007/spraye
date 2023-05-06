@@ -398,9 +398,9 @@ line-height: normal;
 
                         <div id="PoEmailDivs">
                             <?php
-                            foreach($FetchEmails as $FMe){
+                            foreach($FetchEmails as $Index => $FMe){
                             ?>
-                            <button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '<?php echo $FMe ?>')">
+                            <button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '<?php echo $Index ?>')">
                                 <?php echo $FMe ?>
                                 <span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>
                             </button>
@@ -4549,7 +4549,7 @@ function SaveEmailPOs(){
 
                 for(i = 0; i < emailArray.length; i++){
                     var html = "";
-                    html += '<button type="button" class="btn btn-primary mb-5" onclick=RemoveEmails(this, "emailArray[i]")>';
+                    html += '<button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '+i+')"">';
                     html += emailArray[i];
                     html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
                     html += '</button>';
@@ -4578,7 +4578,7 @@ function RemoveEmails(obj, email){
 
             for(i = 0; i < emailArray.length; i++){
                 var html = "";
-                html += '<button type="button" class="btn btn-primary mb-5" onclick=RemoveEmails(this, "emailArray[i]")>';
+                html += '<button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '+i+')">';
                 html += emailArray[i];
                 html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
                 html += '</button>';
