@@ -110,12 +110,12 @@ class Setting extends MY_Controller
 
         $Array = array();
         foreach($Customers as $Cust){
-            if(str_contains($Cust->email, $_POST['searchTerm'])) {
+            if (strpos($Cust->email,$_POST['searchTerm']) !== false) {
                 $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
             }
         }
         foreach($Vendors as $Cust){
-            if(str_contains($Cust->vendor_email_address, $_POST['searchTerm'])) {
+            if (strpos($Cust->vendor_email_address,$_POST['searchTerm']) !== false) {
                 $Array[] = array("text" => $Cust->vendor_email_address, "id" => $Cust->vendor_email_address);
             }
         }
