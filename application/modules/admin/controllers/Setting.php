@@ -105,7 +105,7 @@ class Setting extends MY_Controller
     }
 
     public function SearchUser(){
-        if($_POST['searchTerm'] != ""){
+        if(isset($_POST['searchTerm']) && $_POST['searchTerm'] != ""){
             $Customers = $this->CustomerModel->getCustomerEmails();
             $Vendors = $this->CustomerModel->getVendorEmails();
 
