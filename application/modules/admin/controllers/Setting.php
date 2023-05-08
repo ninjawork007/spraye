@@ -406,7 +406,6 @@ class Setting extends MY_Controller
                         'invoice_color' => $data['invoice_color'],
                         'default_display_length' => $data['default_display_length'],
                         'time_zone' => $data['time_zone'],
-                        'ready_for_payment_po_email' => $data['ready_for_payment_po_email'],
                         'updated_at' => date("Y-m-d H:i:s"),
                         'slug' => $slug,   
                     );
@@ -426,7 +425,6 @@ class Setting extends MY_Controller
                         'default_display_length' => $data['default_display_length'],
                         'time_zone' => $data['time_zone'],
                         'updated_at' => date("Y-m-d H:i:s"),
-                        'ready_for_payment_po_email' => $data['ready_for_payment_po_email'],
                         'slug' => $slug,   
                     );
                     // die(print_r($param));
