@@ -12,6 +12,15 @@ if (isset($this->session->userdata['is_text_message']) && $this->session->userda
         border-radius: 3px;
         color: #333;
     }
+    .select2-selection--single{
+        height: auto !important;
+        padding: 0px !important;
+    }
+    .select2-selection--single .select2-selection__rendered{
+        font-size: 16px;
+        padding: 5px 10px;
+        color: #333;
+    }
 
     #loading {
         width: 100%;
