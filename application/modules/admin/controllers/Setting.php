@@ -564,7 +564,10 @@ class Setting extends MY_Controller
         $where = array('company_id' => $this->session->userdata['company_id']);
         $SettingData = $this->CompanyModel->getOneCompany($where);
         $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
-        $POEmails[] = $data["email"];
+        $data["email"] = trim($data["email"]);
+        if($data["email"] != ""){
+            $POEmails[] = $data["email"];
+        }
 
         $Emails = array_unique($POEmails);
         $param = array("ready_for_payment_po_email" => implode(",", $Emails));

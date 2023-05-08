@@ -16,6 +16,9 @@ if (isset($this->session->userdata['is_text_message']) && $this->session->userda
         height: auto !important;
         padding: 0px !important;
     }
+    li.select2-results__option{
+        font-size: 16px;
+    }
     .select2-selection--single .select2-selection__rendered{
         font-size: 16px;
         padding: 5px 10px;
