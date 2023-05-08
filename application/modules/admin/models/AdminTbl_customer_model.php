@@ -77,6 +77,7 @@ class AdminTbl_customer_model extends CI_Model{
 		$this->db->select('email');
 		$this->db->from(self::PMTBL);
 		$this->db->where(array("email !=" => ""));
+		$this->db->order_by('customer_id','DESC');
 		$this->db->group_by('email');
 		$result = $this->db->get();
 		$data = $result->result();

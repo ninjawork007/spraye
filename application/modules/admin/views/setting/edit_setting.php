@@ -7,6 +7,12 @@ if (isset($this->session->userdata['is_text_message']) && $this->session->userda
 ?>
 
 <style type="text/css">
+    .select2-selection--single:not([class*=bg-]):not([class*=border-]){
+        border-color: #12689b;
+        border-radius: 3px;
+        color: #333;
+    }
+
     #loading {
         width: 100%;
         height: 100%;
@@ -372,7 +378,7 @@ line-height: normal;
                                 <select class="form-control" id="POEmailIDs">
                                 </select>
                             </div>
-                            <div class="col-lg-1"><button type="button" onclick="SaveEmailPOs()" class="btn btn-primary">Add</button></div>
+                            <div class="col-lg-1"><button type="button" onclick="SaveEmailPOs()" class="btn btn-success">Add <i class="icon-add position-right"></i></button></div>
                         </div>
                         <div class="clearfix">&nbsp;</div>
                         <?php
@@ -4576,18 +4582,17 @@ function RemoveEmails(obj, email){
 }
 
 $('#POEmailIDs').select2({
+    language: 'en',
     placeholder: "Select client",
     ajax: {
         url: "<?= base_url('admin/setting/SearchUser'); ?>",
         type: "post",
         dataType: 'json',
         data: function (params) {
-            if(params.term != ""){
-                return {
-                    method: 'searchClient',
-                    searchTerm: params.term
-                };
-            }
+            return {
+                method: 'searchClient',
+                searchTerm: params.term
+            };
         }, processResults: function (response) {
             return {results: response};
         }, cache: true

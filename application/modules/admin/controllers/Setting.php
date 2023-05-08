@@ -105,21 +105,31 @@ class Setting extends MY_Controller
     }
 
     public function SearchUser(){
-        $Customers = $this->CustomerModel->getCustomerEmails();
-        $Vendors = $this->CustomerModel->getVendorEmails();
+        if($_POST['searchTerm'] != ""){
+            $Customers = $this->CustomerModel->getCustomerEmails();
+            $Vendors = $this->CustomerModel->getVendorEmails();
 
-        $Array = array();
-        foreach($Customers as $Cust){
-            if (strpos($Cust->email,$_POST['searchTerm']) !== false) {
+            $Array = array();
+            foreach($Customers as $Cust){
+                if (strpos($Cust->email, $_POST['searchTerm']) !== false) {
+                    $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
+                }
+            }
+            foreach($Vendors as $Cust){
+                if (strpos($Cust->vendor_email_address,$_POST['searchTerm']) !== false) {
+                    $Array[] = array("text" => $Cust->vendor_email_address, "id" => $Cust->vendor_email_address);
+                }
+            }
+            echo json_encode($Array);
+        }else{
+            $Customers = $this->CustomerModel->getCustomerEmails();
+            $Array = array();
+            foreach($Customers as $Cust){
                 $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
             }
+            array_splice($Array, 50);
+            echo json_encode($Array);
         }
-        foreach($Vendors as $Cust){
-            if (strpos($Cust->vendor_email_address,$_POST['searchTerm']) !== false) {
-                $Array[] = array("text" => $Cust->vendor_email_address, "id" => $Cust->vendor_email_address);
-            }
-        }
-        echo json_encode($Array);
     }
 
     public function index()
