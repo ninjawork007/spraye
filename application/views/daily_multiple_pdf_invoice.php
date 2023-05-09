@@ -4,6 +4,10 @@
     <head>
         <meta charset="UTF-8">
         <title>SPRAYE</title>
+        <link href="<?= base_url('assets/admin/assets/css/bootstrap.min.pdf.css') ?>" rel="stylesheet"
+            id="bootstrap-css">
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
         <style type="text/css">
         * {
             font-family: Helvetica, Verdana, Arial, sans-serif;
@@ -431,7 +435,7 @@
                                 <tr>
                                     <td></td>
                                     <td></td>
-                                    <td class="border-bottom-blank-td text-left default-font-color">SUB TOTAL</td>
+                                    <td class="border-bottom-blank-td text-left default-font-color">SUBTOTAL</td>
                                     <td class="border-bottom-blank-td text-right" style="text-align: right;">$
                                         <?= number_format($total_inv_line_costs, 2); ?></td>
 
@@ -510,26 +514,9 @@
 
                                 <?php } ?>
 
-                                <?php
-                                if(isset($invoice_detail->invoice_partials_payments)){
-                                    foreach($invoice_detail->invoice_partials_payments as $PayLogs){
-                                    ?>
-                                    <tr>
-                                        <td></td>
-                                        <td></td>
-                                        <td class="border-bottom-blank-td text-left default-font-color">Partial Payment<br><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
-                                        <td class="border-bottom-blank-td text-right">$
-                                            <?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
-                                        </td>
-                                    </tr>
-                                    <?php
-                                    }
-                                }
-                                ?>
-
                                 <?php if ($invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>
 
-                                <!--<tr>
+                                <tr>
                                     <td></td>
                                     <td></td>
                                     <td class="border-bottom-blank-last text-left default-font-color">PARTIAL PAYMENT
@@ -539,7 +526,9 @@
                                         <?php echo number_format($invoice_detail->partial_payment, 2);
                                             $invoice_total_cost = $invoice_total_cost - $invoice_detail->partial_payment; ?>
                                     </td>
-                                </tr>-->
+                                </tr>
+
+
                                 <?php  } ?>
 
                                 <tr>

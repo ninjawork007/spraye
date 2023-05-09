@@ -64,10 +64,6 @@ class Reports extends MY_Controller {
         $this->load->model('Job_product_model', 'JobAssignProduct');
 		$this->load->model('Cancelled_services_model','CancelledModel');
         $this->load->model('Source_model', 'SourceModel');
-        $this->load->model('Save_tech_eff_report_model', 'TechEffReportModel');
-        $this->load->model('Save_sales_summary_filter_model', 'SalesSummarySaveModel');
-        $this->load->model('Save_service_summary_filter_model', 'ServiceSummarySaveModel');
-        $this->load->model('Save_sales_pipeline_filter_model', 'SaveSalesPipelineFilterModel');
     }
 
 
@@ -499,128 +495,6 @@ class Reports extends MY_Controller {
         $page["page_content"] = $this->load->view("admin/report/view_invoice_age_report", $data, TRUE);
         $this->layout->superAdminInvoiceTemplateTable($page);
 	}
-
-
-    ## Customer Credit Report
-    public function creditReport(){
-        $company_id = $this->session->userdata['company_id'];
-        #populate filter dropdowns
-        $data['customers'] = $this->CustomerModel->getCustomerList(array('company_id' => $this->session->userdata['company_id']));
-
-        $whereArr = array(
-            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-            'is_credit' => 1
-        );
-        
-        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
-
-        $page["active_sidebar"] = "creditReport";
-        $page["page_name"] = 'Customer Credit Report';
-        $page["page_content"] = $this->load->view("admin/report/view_credit_report", $data, TRUE);
-        $this->layout->superAdminInvoiceTemplateTable($page);
-    }
-
-
-    #List all cancelled serive
-    public function cancelService(){
-        $company_id = $this->session->userdata['company_id'];
-        #populate filter dropdowns
-        $data['customers'] = $this->CustomerModel->getCustomerList(array('company_id' => $this->session->userdata['company_id']));
-
-        $company_id = $this->session->userdata['company_id'];
-
-        $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id));
-
-        $NewServiceArray = array();
-
-        $TotalRevenueLost = 0;
-        $TotlaNewRevenueLost = 0;
-        $TotalExistingRevenueLost = 0;
-
-        foreach($data['all_services'] as $all_services) {
-            $cost = 0;
-
-            $canc_arr = array(
-                'job_id' => $all_services->job_id,
-                'customer_id' => $all_services->customer_id,
-                'property_id' => $all_services->property_id
-            );
-            $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
-
-            if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {
-                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
-
-                if ($priceOverrideData->is_price_override_set == 1) {
-                    // $price = $priceOverrideData->price_override;
-                    $cost =  $priceOverrideData->price_override;
-                } else {
-                    //else no price overrides, then calculate job cost
-                    $lawn_sqf = $all_services->yard_square_feet;
-                    $job_price = $all_services->job_price;
-
-                    //get property difficulty level
-                    if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                    } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
-                    } else {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                    }
-
-                    //get base fee 
-                    if (isset($all_services->base_fee_override)) {
-                        $base_fee = $all_services->base_fee_override;
-                    } else {
-                        $base_fee = $data['setting_details']->base_service_fee;
-                    }
-
-                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                    //get min. service fee
-                    if (isset($all_services->min_fee_override)) {
-                        $min_fee = $all_services->min_fee_override;
-                    } else {
-                        $min_fee = $data['setting_details']->minimum_service_fee;
-                    }
-
-                    // Compare cost per sf with min service fee
-                    if ($cost_per_sqf > $min_fee) {
-                        $cost = $cost_per_sqf;
-                    } else {
-                        $cost = $min_fee;
-                    }
-                }
-
-                $TotalRevenueLost += $cost;
-                if($CenInfo[0]->created_at < date("Y-m-d", strtotime("-30 days"))){
-                    $TotalExistingRevenueLost += $cost;
-                }else{
-                    $TotlaNewRevenueLost += $cost;
-                }
-
-                $all_services->job_cost = $cost;
-                $all_services->cancel_reason = $CenInfo[0]->cancel_reason;
-                $all_services->created_at = $CenInfo[0]->created_at;
-                $NewServiceArray[] = $all_services;
-            }
-        }
-
-        $data['Services'] = $NewServiceArray;
-
-        $data['TotalRevenueLost'] = $TotalRevenueLost;
-        $data['TotalExistingRevenueLost'] = $TotalExistingRevenueLost;
-        $data['TotlaNewRevenueLost'] = $TotlaNewRevenueLost;
-
-        
-        $page["active_sidebar"] = "cancelService";
-        $page["page_name"] = 'Cancelled Service';
-        $page["page_content"] = $this->load->view("admin/report/view_cancel_service_report", $data, TRUE);
-        $this->layout->superAdminInvoiceTemplateTable($page);
-    }
-
-
-
 ## Ajax Data for Invoice Age Report
 	public function ajaxDataForInvoiceAgeReport(){
 		$company_id = $this->session->userdata['company_id'];
@@ -999,7 +873,6 @@ class Reports extends MY_Controller {
             $body =  $this->load->view('admin/report/ajax_invoice_age_report', $data, false);
         }
 	}
-
 ## Download Invoice Age CSV
 	public function downloadInvoiceAgeCsv(){
 		$company_id = $this->session->userdata['company_id'];
@@ -1411,347 +1284,6 @@ class Reports extends MY_Controller {
         }    
 
     }
-
-
-
-    ## Ajax Data for Customer Credit Report
-    public function ajaxDataForCustomerCreditReport(){
-        $company_id = $this->session->userdata['company_id'];
-        $customer = $this->input->post('customer');
-
-        $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
-        
-        if(empty($customer)){
-            $whereArr = array(
-                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-                'is_credit' => 1
-            );
-        }else{
-            $whereArr = array(
-                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-                'invoice_tbl.customer_id' => $customer,
-                'is_credit' => 1
-            );
-        }
-        
-        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
-        $body =  $this->load->view('admin/report/ajax_customer_credit_report', $data, false);
-    }
-
-    ## Ajax Data for Cancel Service
-    public function ajaxDataForCancelService(){
-        $company_id = $this->session->userdata['company_id'];
-        $customer = $this->input->post('customer');
-
-        $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
-        
-        if(empty($customer)){
-            $whereArr = array(
-                'jobs.company_id' => $company_id,
-                'property_tbl.company_id' => $company_id
-            );
-        }else{
-            $whereArr = array(
-                'jobs.company_id' => $company_id,
-                'property_tbl.company_id' => $company_id,
-                'customers.customer_id' => $customer,
-            );
-        }
-        
-        $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
-        $NewServiceArray = array();
-        foreach($data['all_services'] as $all_services) {
-            $cost = 0;
-
-            $canc_arr = array(
-                'job_id' => $all_services->job_id,
-                'customer_id' => $all_services->customer_id,
-                'property_id' => $all_services->property_id
-            );
-            $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
-
-            if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {
-                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
-
-                if ($priceOverrideData->is_price_override_set == 1) {
-                    // $price = $priceOverrideData->price_override;
-                    $cost =  $priceOverrideData->price_override;
-                } else {
-                    //else no price overrides, then calculate job cost
-                    $lawn_sqf = $all_services->yard_square_feet;
-                    $job_price = $all_services->job_price;
-
-                    //get property difficulty level
-                    if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                    } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
-                    } else {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                    }
-
-                    //get base fee 
-                    if (isset($all_services->base_fee_override)) {
-                        $base_fee = $all_services->base_fee_override;
-                    } else {
-                        $base_fee = $data['setting_details']->base_service_fee;
-                    }
-
-                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                    //get min. service fee
-                    if (isset($all_services->min_fee_override)) {
-                        $min_fee = $all_services->min_fee_override;
-                    } else {
-                        $min_fee = $data['setting_details']->minimum_service_fee;
-                    }
-
-                    // Compare cost per sf with min service fee
-                    if ($cost_per_sqf > $min_fee) {
-                        $cost = $cost_per_sqf;
-                    } else {
-                        $cost = $min_fee;
-                    }
-                }
-                $all_services->job_cost = $cost;
-                $all_services->cancel_reason = $CenInfo[0]->cancel_reason;
-                $all_services->created_at = $CenInfo[0]->created_at;
-                $NewServiceArray[] = $all_services;
-            }
-        }
-
-        $data['Services'] = $NewServiceArray;
-        $body =  $this->load->view('admin/report/ajax_cancel_service_report', $data, false);
-    }
-    
-
-    ## Download Customer Credit CSV
-    public function downloadCreditReportCsv(){
-        $company_id = $this->session->userdata['company_id'];
-        $customer = $this->input->post('customer');
-        
-        if(!empty($interval)){
-            $data['interval'] = $interval;
-        }else{
-            $data['interval'] = "30";
-        }
-        
-        if(!empty($customer)){
-            $customers = $this->CustomerModel->getCustomerList(array('customer_id'=> $customer));
-        }else{
-            $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
-        }
-
-        if($customer == ""){
-            $whereArr = array(
-                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-                'is_credit' => 1
-            );
-        }else{
-            $whereArr = array(
-                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-                'invoice_tbl.customer_id' => $customer,
-                'is_credit' => 1
-            );
-        }
-        
-        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
-        
-        if(count($data['invoices']) > 0){
-            $delimiter = ",";
-            $filename = "customer_credit_report_" . date('Y-m-d') . ".csv";
-
-            #create a file pointer
-            $f = fopen('php://memory', 'w');
-
-            #set column headers
-            $fields = array('Customer','Date','Amount','Payment Type','Note','Responsible Party');
-            fputcsv($f, $fields, $delimiter);
-
-            #output each row of the data, format line as csv and write to file pointer
-            foreach($data['invoices'] as $row => $Invs){
-
-                $CustomerData = $this->db->select('*')->from("customers")->where(array("customer_id" => $Invs->customer_id))->get()->row();
-                $ResponsibleParty = "";
-                $Part = explode(",", $Invs->responsible_party);
-
-                foreach($Part as $PP){
-                    $PartData = $this->db->select('*')->from("users")->where(array("id" => $PP))->get()->row();
-                    $ResponsibleParty .= $PartData->user_first_name." ".$PartData->user_last_name.", ";
-                }
-
-                $paymentMothods = "";
-
-                if($Invs->payment_method == 0){
-                    $paymentMothods = "Cash";
-                }
-                if($Invs->payment_method == 1){
-                    $paymentMothods = "Check";
-                }
-                if($Invs->payment_method == 3){
-                    $paymentMothods = "Other";
-                }
-
-                $lineData = array(
-                                    $CustomerData->first_name. " " . $CustomerData->last_name,
-                                    date("d F, Y", strtotime($Invs->invoice_created)),
-                                    $Invs->credit_amount,
-                                    $paymentMothods,
-                                    $Invs->credit_notes,
-                                    $ResponsibleParty
-                                );
-                fputcsv($f, $lineData, $delimiter);
-            }
-
-            #move back to beginning of file
-            fseek($f, 0);
-
-            #set headers to download file rather than displayed
-            header('Content-Type: text/csv'); 
-            header('Content-Disposition: attachment; filename="' .$filename. '";');
-
-            #output all remaining data on a file pointer
-            fpassthru($f);
-
-        } else {
-             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
-             redirect("admin/reports/creditReport");
-        }    
-
-    }
-
-
-
-    ## Download Cancelled Service CSV
-    public function downloadCancelServiceReportCsv(){
-        $company_id = $this->session->userdata['company_id'];
-        $customer = $this->input->post('customer');
-        
-        $company_id = $this->session->userdata['company_id'];
-        $customer = $this->input->post('customer');
-
-        $customers = $this->CustomerModel->getCustomerList(array('company_id'=>$this->session->userdata['company_id']));
-        
-        if(empty($customer)){
-            $whereArr = array(
-                'jobs.company_id' => $company_id,
-                'property_tbl.company_id' => $company_id
-            );
-        }else{
-            $whereArr = array(
-                'jobs.company_id' => $company_id,
-                'property_tbl.company_id' => $company_id,
-                'customers.customer_id' => $customer,
-            );
-        }
-        
-        $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
-        $NewServiceArray = array();
-        foreach($data['all_services'] as $all_services) {
-            $cost = 0;
-
-            $canc_arr = array(
-                'job_id' => $all_services->job_id,
-                'customer_id' => $all_services->customer_id,
-                'property_id' => $all_services->property_id
-            );
-            $CenInfo = $this->CancelledModel->getCancelledServiceInfo($canc_arr);
-
-            if($all_services->job_cost == NULL && isset($CenInfo[0]->is_cancelled)) {
-                // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-                $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
-
-                if ($priceOverrideData->is_price_override_set == 1) {
-                    // $price = $priceOverrideData->price_override;
-                    $cost =  $priceOverrideData->price_override;
-                } else {
-                    //else no price overrides, then calculate job cost
-                    $lawn_sqf = $all_services->yard_square_feet;
-                    $job_price = $all_services->job_price;
-
-                    //get property difficulty level
-                    if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                    } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
-                    } else {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                    }
-
-                    //get base fee 
-                    if (isset($all_services->base_fee_override)) {
-                        $base_fee = $all_services->base_fee_override;
-                    } else {
-                        $base_fee = $data['setting_details']->base_service_fee;
-                    }
-
-                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                    //get min. service fee
-                    if (isset($all_services->min_fee_override)) {
-                        $min_fee = $all_services->min_fee_override;
-                    } else {
-                        $min_fee = $data['setting_details']->minimum_service_fee;
-                    }
-
-                    // Compare cost per sf with min service fee
-                    if ($cost_per_sqf > $min_fee) {
-                        $cost = $cost_per_sqf;
-                    } else {
-                        $cost = $min_fee;
-                    }
-                }
-                $all_services->job_cost = $cost;
-                $all_services->cancel_reason = $CenInfo[0]->cancel_reason;
-                $all_services->created_at = $CenInfo[0]->created_at;
-                $NewServiceArray[] = $all_services;
-            }
-        }
-        
-        if(count($NewServiceArray) > 0){
-            $delimiter = ",";
-            $filename = "cancel_service_report_" . date('Y-m-d') . ".csv";
-
-            #create a file pointer
-            $f = fopen('php://memory', 'w');
-
-            #set column headers
-            $fields = array('Customer','Service Name','Cost','Reason','Cancel Date');
-            fputcsv($f, $fields, $delimiter);
-
-            #output each row of the data, format line as csv and write to file pointer
-            foreach($NewServiceArray as $row => $Invs){
-                $CustomerData = $this->db->select('*')->from("customers")->where(array("customer_id" => $Invs->customer_id))->get()->row();
-                $lineData = array(
-                                    $CustomerData->first_name. " " . $CustomerData->last_name,
-                                    $Invs->job_name,
-                                    $Invs->job_cost,
-                                    $Invs->cancel_reason,
-                                    date("d F, Y", strtotime($Invs->created_at))
-                                );
-                fputcsv($f, $lineData, $delimiter);
-            }
-
-            #move back to beginning of file
-            fseek($f, 0);
-
-            #set headers to download file rather than displayed
-            header('Content-Type: text/csv'); 
-            header('Content-Disposition: attachment; filename="' .$filename. '";');
-
-            #output all remaining data on a file pointer
-            fpassthru($f);
-
-        } else {
-             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
-             redirect("admin/reports/creditReport");
-        }    
-
-    }
-    
-
-
 ## Sales Tax Report
     public function salesTaxReport(){
 
@@ -2707,7 +2239,6 @@ class Reports extends MY_Controller {
   public function techEfficiencyReport() 
   {
 	$data['tecnician_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
-    $data['SavedFilter'] = $this->TechEffReportModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
 	$data['initial_data'] = $this->initialLoadTechEfficiencyReport();
 	// $data['report_details'] = $this->RP->getAllRepots();
 	$page["active_sidebar"] = "techEfficiencyReport";
@@ -2716,15 +2247,9 @@ class Reports extends MY_Controller {
 	$this->layout->superAdminReportTemplateTable($page);
   }
 
-  public function initialLoadTechEfficiencyReport($from_date = null, $to_date = null, $TcechIDs = []) {
+  public function initialLoadTechEfficiencyReport($from_date = null, $to_date = null) {
 
-    $ConditionArray = array('company_id' => $this->session->userdata['company_id']);
-
-    if(count($TcechIDs) > 0){
-        $ConditionArray = array('company_id' => $this->session->userdata['company_id'], "user_id" => $TcechIDs);
-    }
-
-    $users = $this->Administrator->getAllAdmin($ConditionArray);
+		$users = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
 
 		$results = array();
 		foreach($users as $user)
@@ -2734,7 +2259,7 @@ class Reports extends MY_Controller {
 			$job_completed_date_to = $to_date ?? date('Y-m-d');
 
 			$conditions = array(
-				'technician_id' => explode(",", $technician_id),
+				'technician_id' => $technician_id,
 				'is_complete' => 1,
 				'date_from' => $job_completed_date_from,
 				'date_to' => $job_completed_date_to
@@ -2862,8 +2387,168 @@ class Reports extends MY_Controller {
 		$job_completed_date_from = $this->input->post('job_completed_date_from');
 		$job_completed_date_to = $this->input->post('job_completed_date_to');
 
-		$resp_data = $this->initialLoadTechEfficiencyReport($job_completed_date_from, $job_completed_date_to, explode(",", $technician_id));
-		echo json_encode($resp_data);
+		if($technician_id == '0')
+		{
+			$resp_data = $this->initialLoadTechEfficiencyReport($job_completed_date_from, $job_completed_date_to);
+			echo json_encode($resp_data);
+		} else {
+
+			$conditions = array(
+				'technician_id' => $technician_id,
+				'is_complete' => 1,
+				'date_from' => $job_completed_date_from,
+				'date_to' => $job_completed_date_to
+			);
+			$days_worked = $this->RP->getTecnicianhDaysWorkedBetweenDates($conditions);
+			$jobs_completed = $this->RP->getTecnicianhJobsCompletedBetweenDates($conditions);
+			// die(print_r(json_encode($jobs_completed),true)); // 0
+			// die(print_r(json_encode($invoiceIds),true)); // []
+			$jobAssignIds = $this->RP->getTecnicianJobAssignIdsBetweenDates($conditions);
+			// die(print_r(json_encode($jobAssignIds),true)); // []
+			if($jobs_completed > 0 && count($jobAssignIds) > 0)
+			{
+				$reports = $this->RP->getTechJobReports($jobAssignIds);
+				$completed_sqft = 0;
+				$revenue = 0;
+				foreach($reports as $report)
+				{
+                    $rev_total = $report->cost;
+                    $tech_info = $this->RP->getReportTech($report->technician_job_assign_id);
+                    // print_r($tech_info);
+
+                    if(!empty($tech_info)){
+                            $job_discounts = $this->RP->getJobDiscounts($tech_info->job_id);
+                            if(!empty($job_discounts)){
+                                // print_r($job_discounts);
+                                foreach($job_discounts as $j_d){
+                                    if ($j_d->amount_calculation == 0){
+                                        $rev_total -= $j_d->amount;
+                                    } else if ($j_d->amount_calculation == 1){
+                                        $rev_total -= ($report->cost * ($j_d->amount / 100));
+                                    }
+                                }
+                            }
+                            $invoice_discounts = $this->RP->getInvoiceDiscounts($tech_info->invoice_id);
+                            if(!empty($invoice_discounts)){
+                                // print_r($invoice_discounts);
+                                foreach($invoice_discounts as $j_d){
+                                    if ($j_d->amount_calculation == 0){
+                                        $rev_total -= $j_d->amount;
+                                    } else if ($j_d->amount_calculation == 1){
+                                        $rev_total -= ($report->cost * ($j_d->amount / 100));
+                                    }
+                                }
+                            }
+
+
+
+
+                    }
+
+                    // if(!empty($discounts)){
+                    //     foreach($discounts as $discount){
+                    //         if(!empty($discount->job_coupon_id)){
+                    //             print_r('<p>Job Coupon Total is: ' . $rev_total . '</p><br/>');
+                    //             if($discount->job_calculation == 0){
+                    //                 $rev_total -= $discount->job_amount;
+                    //             } else if($discount->job_calculation == 1){
+                    //                 $rev_total -= ($report->cost * ($discount->job_amount / 100));
+                    //             }
+                    //         }
+                    //         if(!empty($discount->customer_coupon_id) && $discount->type == 1){
+                    //             // die(print_r($rev_total));
+                    //             print_r('<p>Customer Coupon Total is: ' . $rev_total . '</p><br/>');
+                    //             if($discount->customer_calculation == 0){
+                    //                 $rev_total -= $discount->customer_amount;
+                    //             } else if ($discount->customer_calculation == 1){
+                    //                 $rev_total -= ($report->cost * ($discount->customer_amount / 100));
+                    //             }
+                    //         } if(!empty($discount->invoice_coupon_id)){
+                    //             // die(print_r($rev_total));
+                    //             print_r('<p>Invoice Coupon Total is: ' . $rev_total . '</p<br/>');
+                    //             if($discount->invoice_calculation == 0){
+                    //                 $rev_total -= $discount->invoice_amount;
+                    //             } else if ($discount->invoice_calculation == 1){
+                    //                 $rev_total -= ($report->cost * ($discount->invoice_amount / 100));
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                    // print_r($discounts[0]->invoice_id);
+
+
+                    // print_r('<h2>' . $rev_total . '</h2><br/>');
+					$completed_sqft += $report->yard_square_feet;
+					$revenue += floatval($rev_total);
+				}
+				$service_per_day = $jobs_completed / $days_worked;
+				$revenue_per_day = $revenue / $days_worked;
+				$sqft_per_day = $completed_sqft / $days_worked;
+				$job_times = $this->RP->getTecnicianhJobTimesBetweenDates($conditions);
+				$total_job_time = 0;
+				// $difference = 0;
+				foreach($job_times as $job_time)
+				{
+					$difference = 0;
+					$difference = round( abs( strtotime( $job_time->job_completed_time) - strtotime( $job_time->job_start_time )) / 60,2);
+					$total_job_time = $total_job_time + $difference;
+				}
+				$avg_revenue_per_hour = $revenue / $total_job_time * 60 ;
+
+                
+
+				$test = array(
+					'rev' => $revenue,
+					't' => $total_job_time,
+					'tr' => round( $total_job_time ),
+					'tmult' => $total_job_time * 60,
+					'tmultr' => round( $total_job_time * 60 ),
+					'avg' => $avg_revenue_per_hour
+				);
+				// die(print_r(json_encode( $test ),true));
+				$total_job_time = $this->convertToHoursMins($total_job_time);
+
+                if ($total_job_time < 60){
+                    $avg_revenue_per_hour = $revenue;
+                }
+				
+				if( $job_completed_date_from == '')
+				{
+					$job_completed_date_from = '∞';
+				}
+				$resp_data = array(
+					'date_range' => $job_completed_date_from.' - '.$job_completed_date_to,
+					't_days_worked' => $days_worked,
+					't_services' => $jobs_completed,
+					't_sqft' => $completed_sqft,
+					't_revenue' => $revenue,
+					'avg_services' => round($service_per_day, 2),
+					'avg_sqft' => round($sqft_per_day, 2),
+					'avg_revenue' => round($revenue_per_day, 2),
+					't_servce_time' => $total_job_time,
+					'avg_revenue_hr' => round( $avg_revenue_per_hour, 2)
+				);
+				echo json_encode($resp_data);
+			} else {
+				if( $job_completed_date_from == '')
+				{
+					$job_completed_date_from = '∞';
+				}				
+				$resp_data = array(
+					'date_range' => $job_completed_date_from.' - '.$job_completed_date_to,
+					't_days_worked' => 0,
+					't_services' => 0,
+					't_sqft' => 0,
+					't_revenue' => 0,
+					'avg_services' => 0,
+					'avg_sqft' => 0,
+					'avg_revenue' => 0,
+					't_servce_time' => "00:00",
+					'avg_revenue_hr' => 0
+				);
+				echo json_encode($resp_data);
+			}
+		}
   }
 
 	function convertToHoursMins($time, $format = '%02d:%02d') {
@@ -3673,7 +3358,6 @@ class Reports extends MY_Controller {
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
-        $data['SavedFilter'] = $this->SalesSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
@@ -3863,7 +3547,7 @@ class Reports extends MY_Controller {
         $date_range_date_from = $this->input->post('date_range_date_from');
         
 
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
 
@@ -3879,7 +3563,7 @@ class Reports extends MY_Controller {
         $comparision_range_date_to = $this->input->post('comparision_range_date_to');
         $comparision_range_date_from = $this->input->post('comparision_range_date_from');
         
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
         
@@ -4505,7 +4189,7 @@ class Reports extends MY_Controller {
          $comparision_range_date_from = $this->input->post('comparision_range_date_from');
  
          if(!empty($sales_rep_id)){
-             $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
+             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
          }
          if(!empty($date_range_date_to)){
              $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
@@ -4517,7 +4201,7 @@ class Reports extends MY_Controller {
          $conditions_2 = array();
 
          if(!empty($sales_rep_id)){
-            $conditions_2['search']['sales_rep_id'] = implode(",", $sales_rep_id);
+            $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
          if(!empty($comparision_range_date_to)){
              $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
@@ -4693,32 +4377,11 @@ class Reports extends MY_Controller {
                 // $lineData = array($value['rep_name'],$value['total_estimates'], number_format((($value['accepted']/($value['accepted']+$value['declined']))) ,2) , number_format((($value['accepted_total']/($value['accepted_total']+$value['declined_total']))) ,2));
                 #####
 
-                if(($value['accepted_1']+$value['declined_1']) == 0){
-                    $close_rate_percent_1 = number_format($value['accepted_1'] ,2);
-                }else{
-                    $close_rate_percent_1 = number_format(($value['accepted_1']/($value['accepted_1']+$value['declined_1'])) ,2);
-                }
-
-                if(($value['accepted_total_1']+$value['declined_total_1']) == 0){
-                    $close_rate_dollar_1 = number_format($value['accepted_total_1'] ,2);
-                }else{
-                    $close_rate_dollar_1 = number_format(($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1'])) ,2);
-                }
-
-                if(($value['accepted_1']+$value['declined_1']) == 0){
-                    $compare_rate_percent_1 = number_format($value['accepted_1'] ,2);
-                }else{
-                    $compare_rate_percent_1 = number_format(($value['accepted_1']/($value['accepted_1']+$value['declined_1'])) ,2);
-                }
-
-                if(($value['accepted_total_1']+$value['declined_total_1']) == 0){
-                    $compare_rate_dollar_1 = number_format($value['accepted_total_1'] ,2);
-                }else{
-                    $compare_rate_dollar_1 = number_format(($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1'])) ,2);
-                }
-
+                $close_rate_percent_1 = number_format((($value['accepted_1']/($value['accepted_1']+$value['declined_1']))) ,2);
+                $close_rate_dollar_1 = number_format((($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1']))) ,2);
+                $compare_rate_percent_1 = number_format((($value['accepted_1']/($value['accepted_1']+$value['declined_1']))) ,2);
+                $compare_rate_dollar_1 = number_format((($value['accepted_total_1']/($value['accepted_total_1']+$value['declined_total_1']))) ,2);
                 $diff_rate_percent_1 = (number_format(((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1)))-(($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1)))) ,2)*100);
-
                 $diff_rate_dollar_1 = (number_format(((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1)))-(($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1)))) ,2)*100);
                 $close_rate_percent_2 = (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100);
                 $close_rate_dollar_2 = number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2);
@@ -4774,11 +4437,7 @@ class Reports extends MY_Controller {
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['jobs'] = $this->JobModel->getAllJob(array('jobs.company_id' =>$this->session->userdata['company_id']));
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
-        $data['SavedFilter'] = $this->ServiceSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
         // die(print_r($data['jobs']));
-
-        $data['program_details'] = $this->ProgramModel->get_all_program($where_arr);
-        $data['service_details'] = $this->JobModel->getJobList($where_arr);
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
@@ -4860,25 +4519,17 @@ class Reports extends MY_Controller {
         
         //set conditions for search
         $job_name = $this->input->post('job_name');
-        $ProgramName = $this->input->post("program_ids");
         $sales_rep_id = $this->input->post('sales_rep_id');
-
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
        
 
-        if(!empty($job_name) && $job_name != "null"){
+        if(!empty($job_name)){
             $conditions_1['search']['job_name'] = $job_name;
         }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_1['search']['program_name'] = $ProgramName;
-        }
-
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
-
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -4896,14 +4547,9 @@ class Reports extends MY_Controller {
         if(!empty($job_name)){
             $conditions_2['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_2['search']['program_name'] = $ProgramName;
-        }
-
         if(!empty($comparision_range_date_to)){
             $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
         }
@@ -4917,12 +4563,12 @@ class Reports extends MY_Controller {
         $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
         #### Adding status to conditions1
         $data['total_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        $data['total_estimates_1'] = is_array($data['total_estimates_1']) ? count($data['total_estimates_1']) : 0;
+        $data['total_estimates_1'] = count($data['total_estimates_1']);
         
         
         ####  Adding status to conditions1
         $data['total_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        $data['total_estimates_2'] = is_array($data['total_estimates_2']) ? count($data['total_estimates_2']) : 0;
+        $data['total_estimates_2'] = count($data['total_estimates_2']);
         // die(print_r($data['total_estimates_2']));
        
         $service_summary_1 = [];
@@ -5105,20 +4751,14 @@ class Reports extends MY_Controller {
         $sales_rep_id = $this->input->post('sales_rep_id');
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
-        $ProgramName = $this->input->post("program_ids");
+       
 
-        if(!empty($job_name) && $job_name != "null"){
+        if(!empty($job_name)){
             $conditions_1['search']['job_name'] = $job_name;
         }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_1['search']['program_name'] = $ProgramName;
-        }
-
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
-
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -5135,7 +4775,7 @@ class Reports extends MY_Controller {
         if(!empty($job_name)){
             $conditions_2['search']['job_name'] = $job_name;
         }
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
         if(!empty($comparision_range_date_to)){
@@ -5152,20 +4792,12 @@ class Reports extends MY_Controller {
         $conditions_1['search']['status'] = 2;
         
         $data['accepted_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        if(is_array($data['accepted_estimates_1'])){
-            $data['accepted_estimates_1'] = count($data['accepted_estimates_1']);
-        }else{
-            $data['accepted_estimates_1'] = 0;
-        }
+        $data['accepted_estimates_1'] = count($data['accepted_estimates_1']);
        
         $conditions_2['search']['status'] = 2;
         
         $data['accepted_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        if(is_array($data['accepted_estimates_2'])){
-            $data['accepted_estimates_2'] = count($data['accepted_estimates_2']);
-        }else{
-            $data['accepted_estimates_2'] = 0;
-        }
+        $data['accepted_estimates_2'] = count($data['accepted_estimates_2']);
         
            #### ACCEPTED SUMMARY CONDITION #1 ####
         $accepted_summary_1 = [];
@@ -5353,20 +4985,14 @@ class Reports extends MY_Controller {
         $sales_rep_id = $this->input->post('sales_rep_id');
         $date_range_date_to = $this->input->post('date_range_date_to');
         $date_range_date_from = $this->input->post('date_range_date_from');
-        $ProgramName = $this->input->post("program_ids");
+       
 
-        if(!empty($job_name) && $job_name != "null"){
+        if(!empty($job_name)){
             $conditions_1['search']['job_name'] = $job_name;
         }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_1['search']['program_name'] = $ProgramName;
-        }
-
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
-
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -5400,12 +5026,12 @@ class Reports extends MY_Controller {
         $conditions_1['search']['status'] = 5;
         
         $data['declined_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        $data['declined_estimates_1'] = (is_array($data['declined_estimates_1'])) ? count($data['declined_estimates_1']) : 0;
+        $data['declined_estimates_1'] = count($data['declined_estimates_1']);
         
         $conditions_2['search']['status'] = 5;
         
         $data['declined_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        $data['declined_estimates_2'] = (is_array($data['declined_estimates_2'])) ? count($data['declined_estimates_2']) : 0;
+        $data['declined_estimates_2'] = count($data['declined_estimates_2']);
         
         ##### DECLINED ESTIMATES CONDITION #1
            $declined_summary_1 = [];
@@ -5594,22 +5220,16 @@ class Reports extends MY_Controller {
        $date_range_date_from = $this->input->post('date_range_date_from');
        $comparision_range_date_to = $this->input->post('comparision_range_date_to');
        $comparision_range_date_from = $this->input->post('comparision_range_date_from');
-       $ProgramName = $this->input->post("program_ids");
 
         if(!empty($job_id)){
             $conditions_1['search']['job_id'] = $job_id;
         }
         if(!empty($job_name)){
-            $conditions_1['search']['job_name'] = implode(",", $job_name);
+            $conditions_1['search']['job_name'] = $job_name;
         }
         if(!empty($sales_rep_id)){
-            $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
+            $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
         }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_1['search']['program_name'] = implode(",", $ProgramName);
-        }
-
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
@@ -5622,18 +5242,12 @@ class Reports extends MY_Controller {
         if(!empty($job_id)){
             $conditions_2['search']['job_id'] = $job_id;
         }
-        
         if(!empty($job_name)){
-            $conditions_1['search']['job_name'] = implode(",", $job_name);
+            $conditions_2['search']['job_name'] = $job_name;
         }
         if(!empty($sales_rep_id)){
-            $conditions_1['search']['sales_rep_id'] = implode(",", $sales_rep_id);
+            $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
         }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_1['search']['program_name'] = implode(",", $ProgramName);
-        }
-
         if(!empty($comparision_range_date_to)){
             $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
         }
@@ -5642,6 +5256,7 @@ class Reports extends MY_Controller {
         }
        
          //get posts data
+        
         $data['estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_1);
         $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
         
@@ -5869,7 +5484,6 @@ class Reports extends MY_Controller {
         //get the posts data
         // $data['pipeline_details'] = $this->EstimateModal->getAllEstimate();
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
-        $data['SavedFilter'] = $this->SaveSalesPipelineFilterModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
         $where = array('t_estimate.company_id' =>$this->session->userdata['company_id']);
@@ -5898,7 +5512,7 @@ class Reports extends MY_Controller {
         if(!empty($customer_name)){
             $conditions['search']['customer_name'] = $customer_name;
         }
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+        if(!empty($sales_rep_id)){
             $conditions['search']['sales_rep_id'] = $sales_rep_id;
         }
 
@@ -5944,7 +5558,7 @@ class Reports extends MY_Controller {
             $conditions['search']['customer_name'] = $customer_name;
         }
         if(!empty($sales_rep_id)){
-            $conditions['search']['sales_rep_id'] = implode(",", $sales_rep_id);
+            $conditions['search']['sales_rep_id'] = $sales_rep_id;
         }
 
         if(!empty($estimate_created_date_to)){
@@ -7112,74 +6726,9 @@ class Reports extends MY_Controller {
 		
 		#get cancelled properties
 		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=> $this->session->userdata['company_id']));
-
-        $data["AllCancelledProperty"] = $cancelled_properties;
-        $data['ServiceArea'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
-
-        $company_id = $this->session->userdata['company_id'];
-
-        foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
-            $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByCustomer($CanPropers->customer_id);
-
-            $cost = 0;
-            foreach($AllServicesOfCustomer as $all_services) {
-                if(isset($all_services->job_cost) && $all_services->job_cost == NULL) {
-                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-                    $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
-                        
-                        if ($priceOverrideData->is_price_override_set == 1) {
-                            $cost +=  $priceOverrideData->price_override;
-                        } else {
-                            //else no price overrides, then calculate job cost
-                            $lawn_sqf = $all_services->yard_square_feet;
-                            $job_price = $all_services->job_price;
-
-                            //get property difficulty level
-                            if (isset($all_services->difficulty_level) && $all_services->difficulty_level == 2) {
-                                $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                            } elseif (isset($all_services->difficulty_level) && $all_services->difficulty_level == 3) {
-                                $difficulty_multiplier = $data['setting_details']->dlmult_3;
-                            } else {
-                                $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                            }
-
-                            //get base fee 
-                            if (isset($all_services->base_fee_override)) {
-                                $base_fee = $all_services->base_fee_override;
-                            } else {
-                                $base_fee = $data['setting_details']->base_service_fee;
-                            }
-
-                            $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                            //get min. service fee
-                            if (isset($all_services->min_fee_override)) {
-                                $min_fee = $all_services->min_fee_override;
-                            } else {
-                                $min_fee = $data['setting_details']->minimum_service_fee;
-                            }
-
-                            // Compare cost per sf with min service fee
-                            if ($cost_per_sqf > $min_fee) {
-                                $cost += $cost_per_sqf;
-                            } else {
-                                $cost += $min_fee;
-                            }
-                    }
-                }
-            }
-
-            $where_estimate = array(
-                'customers.customer_id' => $CanPropers->customer_id,
-                'property_tbl.property_id' => $CanPropers->property_id,
-            );
-            
-            $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
-            $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
-            $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
-            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = $SaleRepObj[0]->user_first_name." ".$SaleRepObj[0]->user_last_name;
-        }
-
+		
+		#get cancelled services
+		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetails(array('cancelled_services_tbl.company_id' => $this->session->userdata['company_id']));
 		if(!empty($all_cancelled)){
             $properties = [];
 			$total_cancelled_revenue = 0;
@@ -7283,28 +6832,7 @@ class Reports extends MY_Controller {
 			$query['cancelled_services_tbl.user_id'] = $user;
 		}
 		#get cancelled properties
-        $ConditionProperty = array();
-        $ConditionProperty['property_tbl.company_id'] = $company_id;
-		
-        if($this->input->post("serviceArea") != ""){
-            $ConditionProperty['property_tbl.property_area'] = $this->input->post("serviceArea");
-        }
-
-        if($this->input->post("newExisting") == "1"){
-            $ConditionProperty['property_tbl.tags'] = 1;
-        }
-
-        if($this->input->post("newExisting") == "0"){
-            $ConditionProperty['property_tbl.tags'] = "!=1";
-        }
-
-        if($this->input->post("reason") != ""){
-            $ConditionProperty['property_tbl.cancel_reason like '] = "%".$this->input->post("reason")."%";
-        }
-
-        $cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange($ConditionProperty, $start, $end);
-
-        $data["AllCancelledProperty"] = $cancelled_properties;
+		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
 
 		#get cancelled services
 		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetailsBetween($query,$start,$end);
@@ -7599,9 +7127,6 @@ class Reports extends MY_Controller {
         $ending_properties = $existing_properties + count($properties);
         $total_ending_property_growth = 100; // default growth for all time = 100% 
         $report_data['total_ending_property_growth'] = number_format($total_ending_property_growth,1); 
-
-        $data['service_areas'] = $this->ServiceArea->getAllServiceAreaMarketing(array('company_id'=>$this->session->userdata['company_id']));
-        $data['programlist'] = $this->PropertyModel->getProgramList(array('company_id' => $this->session->userdata['company_id']));
         
 		$data['report_details'] = $report_data;
         $data['labels'] = $labels;
@@ -7648,29 +7173,14 @@ class Reports extends MY_Controller {
         #get existing properties
         $existing_properties = [];
         $existing_cancelled_properties = [];
-
-        $PropertyConditionArray = array();
-
-        $PropertyConditionArray['property_tbl.company_id'] = $company_id;
-        if($this->input->post("rescom") != ""){
-            $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
-        }
-        if($this->input->post("serviceArea") != ""){
-            $PropertyConditionArray['property_tbl.property_area'] = $this->input->post("serviceArea");
-        }
-
-        if($this->input->post("assignProgram") != ""){
-            $PropertyConditionArray['assignProgram'] = $this->input->post("assignProgram");
-        }
-
         if(!empty($start)){
-            $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
-            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array($PropertyConditionArray,'property_tbl.property_status'=>0),'',$start);
+            $existing_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),'',$start);
+            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id,'property_tbl.property_status'=>0),'',$start);
         }
         $report_data['total_starting_properties'] = count($existing_properties);
 
         #get new properties
-        $new_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,$start,$end);
+        $new_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
         $report_data['total_new_properties'] = count($new_properties);
         
         #handle chart labels
@@ -7787,8 +7297,8 @@ class Reports extends MY_Controller {
             if(empty($comparison_end)){
                 $comparison_end = date('Y-m-d H:i:s',strtotime('now'));
             }
-            $comparison_existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$comparison_start);
-            $comparison_existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array($PropertyConditionArray,'property_tbl.property_status'=>0),'',$comparison_start);
+            $comparison_existing_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),'',$comparison_start);
+            $comparison_existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id,'property_tbl.property_status'=>0),'',$comparison_start);
         }
         $comparison_data['total_starting_properties'] = count($comparison_existing_properties);
 
@@ -7796,7 +7306,7 @@ class Reports extends MY_Controller {
         $comparison_new_properties = new stdClass();
         #get new properties
         if(!empty($comparison_start && $comparison_end)){
-        $comparison_new_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,$comparison_start,$comparison_end);
+        $comparison_new_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$comparison_start,$comparison_end);
         $comparison_data['total_new_properties'] = count($comparison_new_properties);
         }
         
@@ -7874,21 +7384,8 @@ class Reports extends MY_Controller {
             }
 //			$overall_cancel_percent = count($existing_cancelled_properties) + count($new_cancelled) / count($new_cancelled);
             $comparison_data['total_cancels'] = count($comparison_new_cancelled);
-
-            $comparison_new_properties = json_encode($comparison_new_properties);
-            $comparison_new_properties = json_decode($comparison_new_properties, true);
-
-            if(count($comparison_new_properties) > 0){
-                $comparison_cancel_percent = count($comparison_new_cancelled)/count($comparison_new_properties) * 100;
-            }else{
-                $comparison_cancel_percent = 0;
-            }
-
-            if(count($comparison_new_properties) > 0){
-    			$comparison_cancel_v_sales = count($comparison_new_cancelled)/count($comparison_new_properties);
-            }else{
-                $comparison_cancel_v_sales = 0;
-            }
+            $comparison_cancel_percent = count($comparison_new_cancelled)/count($comparison_new_properties) * 100;
+			$comparison_cancel_v_sales = count($comparison_new_cancelled)/count($comparison_new_properties);
             $comparison_data['total_cancelled_percent'] = number_format($comparison_cancel_percent,1);
             $comparison_data['total_cancels_vs_sales'] = number_format($comparison_cancel_v_sales,1);
         }
@@ -7931,28 +7428,14 @@ class Reports extends MY_Controller {
         #get existing properties
         $existing_properties = [];
         $existing_cancelled_properties = [];
-
-        $PropertyConditionArray['property_tbl.company_id'] = $company_id;
-        if($this->input->post("rescom") != ""){
-            $PropertyConditionArray['property_tbl.property_type'] = $this->input->post("rescom");
-        }
-        if($this->input->post("serviceArea") != ""){
-            $PropertyConditionArray['property_tbl.property_area'] = $this->input->post("serviceArea");
-        }
-
-        if($this->input->post("assignProgram") != ""){
-            $PropertyConditionArray['assignProgram'] = implode(",", $this->input->post("assignProgram"));
-        }
-
-
         if(!empty($start)){
-            $existing_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,'',$start);
-            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array($PropertyConditionArray,'property_tbl.property_status'=>0),'',$start);
+            $existing_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),'',$start);
+            $existing_cancelled_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id,'property_tbl.property_status'=>0),'',$start);
         }
         $report_data['total_starting_properties'] = count($existing_properties);
 
         #get new properties
-        $new_properties = $this->PropertyModel->getPropertyByDateRange($PropertyConditionArray,$start,$end);
+        $new_properties = $this->PropertyModel->getPropertyByDateRange(array('property_tbl.company_id'=>$company_id),$start,$end);
         $report_data['total_new_properties'] = count($new_properties);
         
         #handle chart labels
@@ -9091,12 +8574,6 @@ class Reports extends MY_Controller {
         $filters_array["all_pre_service"] = $this->input->post('all_pre_service');
         $filters_array["all_outstanding"] = $this->input->post('all_outstanding');
 
-        $filters_array["front_yard_grass"] = $this->input->post('front_yard_grass');
-        $filters_array["back_yard_grass"] = $this->input->post('back_yard_grass');
-        $filters_array["total_yard_grass"] = $this->input->post('total_yard_grass');
-
-        $HowManyServiceCompleted = $this->input->post('serviceCompleted');
-
         
 		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
@@ -9113,38 +8590,6 @@ class Reports extends MY_Controller {
 		#not seeing specific role for sales rep so getting all users 
 		$report_data = array();
         foreach($data['customers'] as $customer) {
-            if($HowManyServiceCompleted != ""){
-                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id));
-
-                $TotalServiceCompleted = 0;
-
-                foreach($ServicesByCustomer as $SBC){
-                    if($SBC->is_job_mode == 1){
-                        $TotalServiceCompleted++;
-                    }
-                }
-
-                if($HowManyServiceCompleted > $TotalServiceCompleted){
-                    continue;
-                }
-            }
-
-            if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
-                $ExploseSoldService = explode(",", $this->input->post('serviceSoldNotNow'));
-                $ServiceSoldShowCustomer = 0;
-
-                foreach($ExploseSoldService as $ESS){
-                    $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id, 'jobs.job_id' => $ESS, "job_assign_date >=" => $this->input->post('ServiceSoldNotNowStart'), "job_assign_date <=" => $this->input->post('ServiceSoldNotNowEnd')));
-                    if(count($ServicesByCustomer) == 0){
-                        $ServiceSoldShowCustomer = 1;
-                    }
-                }
-
-                if($ServiceSoldShowCustomer == 0){
-                    continue;
-                }
-            }
-
             //var_dump(memory_get_usage());
             $data['customer_properties_data'] = $this->PropertyModel->getAllCustomerPropertiesMarketing($customer->customer_id);
             // this needs to be set to blank at the top of every customer loop
@@ -9152,17 +8597,14 @@ class Reports extends MY_Controller {
             foreach($data['customer_properties_data'] as $props) {                   
                 $properties_still_going[] = $this->RP->find_property_from_filter(array('filters'=>$filters_array, 'prop_id'=>$props->property_id));
             }
-
             unset($data['customer_properties_data']);
             // the above line is sometimes adding a blank array to the array of properties, we need to get rid of those to see if the customer still needs to be shown
             $properties_still_going = array_filter($properties_still_going);
-
             $invocies_for_this_customer = array();
             $lot_size = $revenue = $revenue_ytd = $annual_per_1000 = $lot_size_for_1000_calc = $projected_annual_total = 0;
             $invoices_to_be_checked = $ids_already_checked = array();
             $got_rid_of_all_properties = true;
             $filters_set = false;
-
             foreach($filters_array as $fa) {
                 if(is_array($fa)) {
                     if($fa[0] != "null" && $fa[0] != "" && $fa[0] != null && $fa[0] != "false" && $fa[0] != false ) {
@@ -9175,7 +8617,7 @@ class Reports extends MY_Controller {
                 }
             }
             
-            if(count($properties_still_going) > 0 || $filters_set == false) {
+            if(!empty($properties_still_going) || $filters_set == false) {
                 foreach($properties_still_going as $psg) {
                     $use_this_property = true;
                     if($filters_array["outstanding_services_multi"][0] != 'null') {
@@ -9310,7 +8752,7 @@ class Reports extends MY_Controller {
                     'lot_size' => $lot_size,
                     'annual_revenue_per_1000' => $annual_per_1000
                 );
-            }
+            } 
             unset($properties_still_going);
             unset($invocies_for_this_customer);
             unset($lot_size);
@@ -9332,6 +8774,7 @@ class Reports extends MY_Controller {
             unset($customer_work_phone);
             unset($customer_number_link);
         }
+		
         
 		$data['report_details'] = $report_data;
 		$body =  $this->load->view('admin/report/ajax_marketing_customer_data_report', $data, false);
@@ -9392,7 +8835,6 @@ class Reports extends MY_Controller {
             foreach($data['customer_properties_data'] as $props) {                   
                 $properties_still_going[] = $this->RP->find_property_from_filter(array('filters'=>$filters_array, 'prop_id'=>$props->property_id));
             }
-
             // the above line is sometimes adding a blank array to the array of properties, we need to get rid of those to see if the customer still needs to be shown
             $properties_still_going = array_filter($properties_still_going);
             $invocies_for_this_customer = array();
@@ -9600,55 +9042,5 @@ class Reports extends MY_Controller {
         unset($customer_number_link);
 	}
 
-    public function saveTechnicianFilter(){
-        $data = $this->input->post();
-        $data["user_id"] = $this->session->userdata['id'];
-        
-        $CheckReport = $this->TechEffReportModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
 
-        if(!isset($CheckReport["id"])){
-            $this->TechEffReportModel->createSaveReport($data);
-        }else{
-            $this->TechEffReportModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
-        }
-    }
-
-    public function saveSalesSummaryFilters(){
-        $data = $this->input->post();
-        $data["user_id"] = $this->session->userdata['id'];
-        
-        $CheckReport = $this->SalesSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
-
-        if(!isset($CheckReport["id"])){
-            $this->SalesSummarySaveModel->createSaveReport($data);
-        }else{
-            $this->SalesSummarySaveModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
-        }
-    }
-
-    public function saveServiceSummaryFilters(){
-        $data = $this->input->post();
-        $data["user_id"] = $this->session->userdata['id'];
-        
-        $CheckReport = $this->ServiceSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
-
-        if(!isset($CheckReport["id"])){
-            $this->ServiceSummarySaveModel->createSaveReport($data);
-        }else{
-            $this->ServiceSummarySaveModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
-        }
-    }
-
-    public function saveSalesPipelineFilters(){
-        $data = $this->input->post();
-        $data["user_id"] = $this->session->userdata['id'];
-        
-        $CheckReport = $this->SaveSalesPipelineFilterModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
-
-        if(!isset($CheckReport["id"])){
-            $this->SaveSalesPipelineFilterModel->createSaveReport($data);
-        }else{
-            $this->SaveSalesPipelineFilterModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
-        }
-    }
 }

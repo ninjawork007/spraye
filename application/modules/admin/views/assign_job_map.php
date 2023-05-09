@@ -1937,7 +1937,7 @@
                             //var filter_input_val = this.querySelector('select').value;
                             var filter_input_val = $('#tag_filter option:selected').val();
                             // sessionStorage.setItem("tags_filter_input", filter_input_val);
-                            table.columns( 16 ).search( filter_input_val ).draw();
+                            table.columns( 17 ).search( filter_input_val ).draw();
                             $("#update-map-note").remove();
                             if (!$('input[name=changeview]').is(':checked')) {
                                 if (!$("#update-map-note").length > 0) {

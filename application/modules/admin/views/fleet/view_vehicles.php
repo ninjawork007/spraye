@@ -98,11 +98,6 @@ button#addVehicleBtn {
                <p class=" ser-num text-success"><?= count($vehicles) ?></p>
             </div>
          </div>
-         <?php
-         echo '<pre>';
-         print_r($mnt_count);
-         die;
-         ?>
          <div class="col-md-3 col-sm-3 col-12">
             <div class="service-bols">
                <h3 class="ser-head">Open Maintenance Tickets</h3>

@@ -1248,7 +1248,17 @@ line-height: normal;
                     <div class="form-group">
                         <label class="control-label col-lg-3">Terms & Conditions of Service</label>
                         <div class="col-lg-9">
-                            <textarea class="form-control" name="tearm_condition"><?= $setting_details->tearm_condition  ?></textarea>
+                            <textarea rows="10" class="form-control " name="tearm_condition"><?= $setting_details->tearm_condition  ?></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label col-lg-5 my_label">Hide/Show Estimate Totals</label>
+                        <div class="col-lg-7">
+                            <label class="togglebutton">
+                                Hide&nbsp;<input name="show_estimate_totals" type="checkbox" class="switchery-estimate-totals" <?php echo $setting_details->show_estimate_totals == 1 ? 'checked' : '';  ?>>&nbsp;Show
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -1714,7 +1724,7 @@ line-height: normal;
                                     </label>
                                 </label>
                                 <div class="col-lg-9" style="border: 1px solid #12689b;">
-                                    <textarea class="summernote" name="late_fee_email"><?php echo $company_email_details->late_fee_email ?></textarea>
+                                    <textarea  class="summernote " name="late_fee_email"><?php echo $company_email_details->late_fee_email ?></textarea>
                                 </div>
                             </div>
                         </div>
@@ -1813,9 +1823,7 @@ line-height: normal;
 
 
     <!-- ///////////////////////////////////////// sales tax area //////////////////////////////// -->
-
     <div class="row sales_container form2"  >
-
         <div class="col-md-12">
             <fieldset class="content-group">
                 <legend class="text-bold">Sales Tax Areas</legend>
@@ -4237,8 +4245,12 @@ tags_input.onpaste = e => e.preventDefault();
 			secondaryColor: "#dfdfdf",
 		});
 
+    var estimate_totals = document.querySelector('.switchery-estimate-totals');
+    var switchery = new Switchery(estimate_totals, {
+        color: '#36c9c9',
+        secondaryColor: "#dfdfdf",
+    });
    /* $('input[name=is_sales_tax]').click(function() {
-
         if ($(this).prop("checked") == true) {
             $('.sales_container').css('display', 'block')
         } else if ($(this).prop("checked") == false) {

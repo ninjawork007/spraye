@@ -1348,7 +1348,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 			 		<input type="hidden" name="customer_email" id="customer_email" value="0">
 			 <?php }?>
             <div class="modal-body">
-				<h5 class="text-semibold">How many gallons of mixture did you use?</h5>
+				<h5 class="text-semibold">How much mixture was used?</h5>
 
 				<?php foreach($services as $service){
                     ?>

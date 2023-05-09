@@ -1657,15 +1657,23 @@ class Setting extends MY_Controller
 
         $data = $this->input->post();
 
-
-
         $param = array(
 
             'tearm_condition' => $data['tearm_condition'],
 
         );
 
+        if (array_key_exists('show_estimate_totals', $data)) {
 
+            $param['show_estimate_totals'] = 1;
+        } else {
+
+            $param['show_estimate_totals'] = 0;
+        }
+
+
+
+    //die(print_r($param));
 
         $where = array('company_id' => $this->session->userdata['company_id']);
 

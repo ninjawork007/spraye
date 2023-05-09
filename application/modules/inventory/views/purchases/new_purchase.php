@@ -293,49 +293,16 @@
 										<input type="text" id="purchase_order_number" name="purchase_order_number" class="form-control" value="<?= ($last_purchase_order_id != '' ? $last_purchase_order_id : 001) ?>" />
 									</div>
 								</div>
+
+								<!-- Separator -->
+								<div class="columns-separator"></div>
+
+								<!-- Right -->
 								
 								<div class="column text-break pl-2 pr-2">
 									<div class="form-group">
 										<label for="estimated_delivery_date" class="d-block">Estimated Delivery Date</label>
 										<input type="date" id="estimated_delivery_date" name="estimated_delivery_date" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="ordered_date" class="d-block">Ordered Date</label>
-										<input type="date" id="ordered_date" name="ordered_date" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="shipping_point" class="d-block">Shipping Point</label>
-										<input type="text" id="shipping_point" name="shipping_point" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="destination" class="d-block">Destination</label>
-										<input type="text" id="destination" name="destination" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="shipping_method_1" class="d-block">Shipping Method</label>
-										<input type="text" id="shipping_method_1" name="shipping_method_1" class="form-control" />
-									</div>
-								</div>
-
-								<div class="column text-break pl-2 pr-2">
-									<div class="form-group">
-										<label for="fob" class="d-block">FOB - Freight on Board</label>
-										<select id="fob" name="fob" class="form-control">
-											<option>Place of Origin</option>
-											<option>Place of Destination</option>
-										</select>
 									</div>
 								</div>
 							</div>
@@ -404,7 +371,6 @@
 											<thead style="background: #36c9c9;border-color: #36c9c9;">
 												<tr>
 													<th>Item name</th>
-													<th>Unit</th>
 													<th>Unit price</th>
 													<th>Quantity</th>
 													<th>Total</th>
@@ -482,13 +448,6 @@
 								</div>
 							</div>
 
-							<div>
-								<div class="form-group">
-									<label for="new_purchase_order_notes" class="d-block">Payment Terms</label>
-									<textarea name="payment_terms" id="payment_terms" class="form-control" rows="6"></textarea>
-								</div>
-							</div>
-
 							<hr class="mt-4" />
 
 							<div class="row">
@@ -533,7 +492,6 @@
 			// Once a location and vendor are selected, enable items section
 			$('select[name=location], select[name=sub_location], select[name=vendor]').on('change', e => {
                 subLocation();
-                getVendorDetails();
 				let location = $('select[name=location]').val()
 				let sublocation = $('select[name=sub_location]').val()
 				let vendor = $('select[name=vendor]').val()
@@ -598,10 +556,7 @@
 			// When changing quantity of an item
 			$(document).on('input', '.itemqty', function() {
 				var qty = $(this).val();
-				updateTotals();
-			})
-
-			$(document).on('input', '.itemunit', function() {
+				console.log('input value =' + $(this).val());
 				updateTotals();
 			})
 
@@ -673,24 +628,6 @@
 		});
 	}
 
-	function getVendorDetails(){
-		var vendor = $('select[name=vendor]').val()
-		var url = '<?= base_url('inventory/Backend/Vendors/Details') ?>';
-		var request_method = "GET";
-		
-		$.ajax({
-			type: request_method,
-			url: url,
-			data: {vendor: vendor},
-			dataType:'JSON', 
-			success: function(response){
-				console.log(response);
-				$("#payment_terms").val(response.terms);
-				$("#discount").val(response.po_discount);
-			}
-		});
-	}
-
 	function addItem(itemId) {
 		// Item added already? Let the user know
 		if($(`table#items tr[data-item-id="${itemId}"]`).length) {
@@ -727,6 +664,7 @@
 				itemObj.item_number = maker.item_number;
 				itemObj.price_per_unit = maker.price_per_unit;
 				itemObj.unit_type = maker.unit_type;
+
 			})
 			
 			itemObj.qty = 0 
@@ -750,12 +688,10 @@
 			let td4 = parseFloat(0).toFixed(2);
 			let td5 = itemObj.item_vendor_tax;
 			let td6 = parseFloat(0).toFixed(2);
-			let td7 = `<input type="text" class="form-control form-control-sm itemunit" name="itemunit" value="`+itemObj.unit_type+`" />`;
 
 			//table#items
 			let elem = `<tr data-item-id="${itemObj.item_id}">`
 				+ `<td>${td1}</td>`
-				+ `<td data-item-td="unit_price">${td7}</td>`
 				+ `<td data-item-td="unit_price">${currency} ${td2}</td>`
 				+ `<td data-item-td="quantity">${td3}</td>`
 				+ `<td data-item-td="total">${currency} ${td6}</td>`
@@ -770,12 +706,10 @@
 		let subtotal = 0;
 
 		itemsAdded.forEach((item, i) => {
-			let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemqty`).val();
-			let unit = $(`table#items tbody tr[data-item-id=${item.item_id}] .itemunit`).val();
+			let qty = $(`table#items tbody tr[data-item-id=${item.item_id}] input`).val();
 			
 			// Update quantity in the original array
 			itemsAdded[i].qty = qty;
-			itemsAdded[i].unit_type = unit;
 
 			let item_subtotal = qty * Number(item.price_per_unit);
 			
@@ -826,15 +760,6 @@
 			purchase_order_number: $('input[name=purchase_order_number]').val(),
 			estimated_delivery_date: $('input[name=estimated_delivery_date]').val(),
 			vendor_id: $('select[name=vendor]').val(),
-			created_date: $('input[name=created_date]').val(),
-			ordered_date: $('input[name=ordered_date]').val(),
-			expected_date: $('input[name=expected_date]').val(),
-			unit_measrement: $('input[name=unit_measrement]').val(),
-			shipping_point: $('input[name=shipping_point]').val(),
-			shipping_method_1: $('input[name=shipping_method_1]').val(),			
-			destination: $('input[name=destination]').val(),
-			fob: $('select[name=fob]').val(),
-			place_of_destination: $('input[name=place_of_destination]').val(),
 			location_id: $('select[name=location]').val(),
 			sub_location_id: $('select[name=sub_location]').val(),
 			freight: $('input[name=freight]').val(),
@@ -842,7 +767,6 @@
 			discount_type: 'amount',
 			tax: $('input[name=tax]').val(),
 			notes: $('textarea[name=new_purchase_order_notes]').val(),
-			payment_terms: $('textarea[name=payment_terms]').val(),
 			items: [],
 			purchase_sent_status: $('input[name=purchase_sent_status]').val()
 		}
@@ -854,7 +778,6 @@
 				name: item.item_name,
 				received_qty: 0,
 				unit_price: item.price_per_unit,
-				unit_type: item.unit_type,
 				quantity: item.qty
 			})
 		})
