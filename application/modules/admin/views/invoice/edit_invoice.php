@@ -764,7 +764,7 @@ label.control-label.col-lg-3 {
 
                 <div class="col-md-6">
                     <div class="prioritydivcontainer">
-                     <div  class="table-responsive  pre-scrollable">
+                     <div  class="table-responsive  pre-scrollable" style="min-height: 0px !important">
                        <table  class="table table-bordered" id="couponListTable" >
                         <thead>
                           <tr>
@@ -841,7 +841,7 @@ label.control-label.col-lg-3 {
 
              </fieldset>
 
-                <div class="text-right">
+                <div class="text-right mt-15">
                   <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
                 </div>
               </form>

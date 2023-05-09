@@ -106,28 +106,23 @@ class Setting extends MY_Controller
 
     public function SearchUser(){
         if(isset($_POST['searchTerm']) && $_POST['searchTerm'] != ""){
-            $Customers = $this->CustomerModel->getCustomerEmails();
-            $Vendors = $this->CustomerModel->getVendorEmails();
+            $where = array('role_id !=' => 1,'company_id' => $this->session->userdata['company_id']);
+            $data = $this->Administrator->getAllAdmin($where);
 
             $Array = array();
-            foreach($Customers as $Cust){
+            foreach($data as $Cust){
                 if (strpos($Cust->email, $_POST['searchTerm']) !== false) {
                     $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
                 }
             }
-            foreach($Vendors as $Cust){
-                if (strpos($Cust->vendor_email_address,$_POST['searchTerm']) !== false) {
-                    $Array[] = array("text" => $Cust->vendor_email_address, "id" => $Cust->vendor_email_address);
-                }
-            }
             echo json_encode($Array);
         }else{
-            $Customers = $this->CustomerModel->getCustomerEmails();
+            $where = array('role_id !=' => 1,'company_id' => $this->session->userdata['company_id']);
+            $data = $this->Administrator->getAllAdmin($where);
             $Array = array();
-            foreach($Customers as $Cust){
+            foreach($data as $Cust){
                 $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
             }
-            array_splice($Array, 50);
             echo json_encode($Array);
         }
     }
@@ -592,6 +587,7 @@ class Setting extends MY_Controller
 
         $SettingData = $this->CompanyModel->getOneCompany($where);
         $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
+        $POEmails = array_map('trim', $POEmails);
         echo json_encode($POEmails);
     }
 

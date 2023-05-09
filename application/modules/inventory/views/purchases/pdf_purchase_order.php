@@ -312,11 +312,19 @@
                 </tr>
             </table>
 
-            <table width="100%" class="table table-condensed main_table" cellspacing="0">
-                <tr><td><b>DELIVERY DATE : </b> <?=Date("m/d/Y", strtotime($purchase_order->estimated_delivery_date))?></td></tr>
-                <tr><td><b>PAYMENT TERM : </b> <?= $purchase_order->payment_terms ?></td></tr>
-                <tr><td><b>FOB : </b> <?= $purchase_order->fob ?></td></tr>
-                <tr><td><b>Shipping Method : </b> <?= $purchase_order->shipping_method_1 ?></td></tr>
+            <table width="100%" class="table table-condensed main_table" cellspacing="0" border="">
+                <tr class="first_tr" style="background-color:<?= $setting_details->invoice_color  ?>!important;color: #fff;">
+                    <td class="text-left"><strong>DELIVERY DATE</strong></td>
+                    <td class="text-left"><strong>FOB</strong></td>
+                    <td class="text-left"><strong>Shipping Method</strong></td>
+                    <td class="text-center"><strong>PAYMENT TERM</strong></td>                
+                </tr>
+                <tr>
+                    <td><?=Date("m/d/Y", strtotime($purchase_order->estimated_delivery_date))?></td>
+                    <td><?= $purchase_order->fob ?></td>
+                    <td><?= $purchase_order->shipping_method_1 ?></td>
+                    <td><?= $purchase_order->payment_terms ?></td>
+                </tr>
             </table>
 
             <!-- END TOP FOLD -->

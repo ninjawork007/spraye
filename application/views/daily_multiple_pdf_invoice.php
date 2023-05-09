@@ -656,10 +656,12 @@
                         );
                     } else {
                         array_push($report_id, $job['job_report']->report_id);
-                        $products[] = array(
-                            'job_id' => $job['job_report']->job_id,
-                            'report' => isset($job['job_report']) ? $job['job_report'] : '',
-                        );
+                        if(isset($job['job_report']->job_id)){
+                            $products[] = array(
+                                'job_id' => $job['job_report']->job_id,
+                                'report' => isset($job['job_report']) ? $job['job_report'] : '',
+                            );
+                        }
                     }
                 }
                 foreach ($products as $k => $v) {

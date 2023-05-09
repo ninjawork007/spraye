@@ -381,35 +381,6 @@ line-height: normal;
                                 </div>
                             </div>
                         </div>
-
-                        <div class="clearfix">&nbsp;</div>
-
-                        <div class="row">
-                            <div class="col-lg-8">Email to send PO (when changes to ready for payment)</div>
-                            <div class="col-lg-3">
-                                <select class="form-control" id="POEmailIDs">
-                                </select>
-                            </div>
-                            <div class="col-lg-1"><button type="button" onclick="SaveEmailPOs()" class="btn btn-success">Add <i class="icon-add position-right"></i></button></div>
-                        </div>
-                        <div class="clearfix">&nbsp;</div>
-                        <?php
-                        $FetchEmails = explode(",", $setting_details->ready_for_payment_po_email);
-                        $FetchEmails = array_map('trim', $FetchEmails);
-                        ?>
-
-                        <div id="PoEmailDivs">
-                            <?php
-                            foreach($FetchEmails as $Index => $FMe){
-                            ?>
-                            <button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '<?php echo $Index ?>')">
-                                <?php echo $FMe ?>
-                                <span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>
-                            </button>
-                            <?php
-                            }
-                            ?>
-                        </div>
                     </div>
                 </fieldset>
                 <div class="text-right">
@@ -2344,6 +2315,38 @@ line-height: normal;
             <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
         </div>
     </form>
+
+    <div class="form1">
+        <legend class="text-bold">Purchase Order Settings</legend>
+        <div class="row">
+            <div class="col-lg-8">Email to send PO (when changes to ready for payment)</div>
+            <div class="col-lg-3">
+                <select class="form-control" id="POEmailIDs">
+                </select>
+            </div>
+            <div class="col-lg-1"><button type="button" onclick="SaveEmailPOs()" class="btn btn-success">Add <i class="icon-add position-right"></i></button></div>
+        </div>
+        <div class="clearfix">&nbsp;</div>
+        <?php
+        $FetchEmails = explode(",", $setting_details->ready_for_payment_po_email);
+        $FetchEmails = array_map('trim', $FetchEmails);
+        ?>
+
+        <div id="PoEmailDivs">
+            <?php
+            foreach($FetchEmails as $Index => $FMe){
+                if(trim($FMe) != ""){
+                    ?>
+                    <button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '<?php echo $Index ?>')">
+                        <?php echo $FMe ?>
+                        <span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>
+                    </button>
+                    <?php
+                }
+            }
+            ?>
+        </div>
+    </div>
 </div>
 <!-- /form horizontal -->
 </div>
@@ -4550,12 +4553,14 @@ function SaveEmailPOs(){
                 $("#PoEmailDivs").html("");
 
                 for(i = 0; i < emailArray.length; i++){
-                    var html = "";
-                    html += '<button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '+i+')"">';
-                    html += emailArray[i];
-                    html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
-                    html += '</button>';
-                    $("#PoEmailDivs").append(html);
+                    if(emailArray[i] != ""){
+                        var html = "";
+                        html += '<button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '+i+')"">';
+                        html += emailArray[i];
+                        html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
+                        html += '</button>';
+                        $("#PoEmailDivs").append(html);
+                    }
                 }
             },
             error: function(e) {
@@ -4579,12 +4584,14 @@ function RemoveEmails(obj, email){
             $("#PoEmailDivs").html("");
 
             for(i = 0; i < emailArray.length; i++){
-                var html = "";
-                html += '<button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '+i+')">';
-                html += emailArray[i];
-                html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
-                html += '</button>';
-                $("#PoEmailDivs").append(html);
+                if(emailArray[i] != ""){
+                    var html = "";
+                    html += '<button type="button" class="btn btn-primary mb-5" onclick="RemoveEmails(this, '+i+')">';
+                    html += emailArray[i];
+                    html += '<span class="badge badge-light"><i class="icon-cross3 position-center" style="color: #9a9797;"></i></span>';
+                    html += '</button>';
+                    $("#PoEmailDivs").append(html);
+                }
             }
         },
         error: function(e) {
