@@ -9361,14 +9361,6 @@ class Technician extends MY_Controller {
         {
             $data = $this->input->post();
 
-            $InvPayMethod = "1";
-            if($data["payment_type"] == "cash"){
-                $InvPayMethod = "0";
-            }
-            if($data["payment_type"] == "other"){
-                $InvPayMethod = "3";
-            }
-
             $invoice_data['customer_id'] = $customer_id;
             $invoice_data['cost'] = 0;//$data['credit_amount'];
             $invoice_data['user_id'] = $this->session->userdata['user_id'];
@@ -9378,17 +9370,9 @@ class Technician extends MY_Controller {
             $invoice_data['job_id'] = -5;
             $invoice_data['status'] = 0;
             $invoice_data['is_credit'] = 1;
-            $invoice_data['payment_method'] = $InvPayMethod;
             $invoice_data['is_archived'] = 1;
             $invoice_data['invoice_date'] = $invoice_data['invoice_created'] =  date("Y-m-d H:i:s");
             $invoice_data['is_created'] =  1;
-            $invoice_data['credit_given_user'] =  $this->session->userdata['id'];
-
-            $invoice_data['responsible_party'] =  implode(",", $data["responsible_party"]);
-            $invoice_data['credit_notes'] = $data["credit_notes"];
-            $invoice_data['credit_amount'] = $data['credit_amount'];
-            $invoice_data['is_created'] =  1;
-
             $invoice_data['notes'] = $invoice_data['description'] = "Adding {$data['credit_amount']} Credit to customer's account";
 
             //create invoice

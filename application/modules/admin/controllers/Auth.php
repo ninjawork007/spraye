@@ -36,6 +36,7 @@ class Auth extends MY_Controller {
     }
 
      public function index() {
+
         $this->form_validation->set_rules('email', 'Email', 'valid_email|required');
         $this->form_validation->set_rules('password', 'Password', 'required');
         if($this->form_validation->run() == false)
@@ -61,7 +62,7 @@ class Auth extends MY_Controller {
                     $this->session->set_userdata((array) $user);
 
                     $compny_details = $this->CompanyModel->getOneCompany(array('company_id'=>$user->company_id));
-					$this->session->set_userdata('assign_job_view', $compny_details->assign_job_view ?? "");
+					$this->session->set_userdata('assign_job_view', $compny_details->assign_job_view);
 					
 
                     $this->CompanyModel->setLastLogin(date("Y-m-d"), $user->user_id);

@@ -259,8 +259,6 @@ class Vendors extends MY_Controller{
         $this->load->model('Refund_invoice_logs_model', 'RefundPaymentModel');
 
         $this->load->model('ItemVendorsModel', 'ItemVendors');
-
-        $this->load->model('VendorsModel', 'VendorModel');
     }
 
 	
@@ -475,11 +473,5 @@ class Vendors extends MY_Controller{
 		helper('csv');
 
 		die(offer_csv_download($suppliers, $filename));
-	}
-
-	public function Details(){
-		$data = $this->input->get();
-		$duplicateSupplier = $this->VendorModel->getOneVendor($data["vendor"]);
-		echo json_encode($duplicateSupplier);
 	}
 }

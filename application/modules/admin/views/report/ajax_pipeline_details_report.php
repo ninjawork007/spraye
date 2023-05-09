@@ -1,13 +1,13 @@
       <div  class="table-responsive table-spraye">
-             <table  class="table datatable-colvis-state">    
-            <thead>  
-              <tr>
+             <table  class="table datatable-colvis-state" style="border: 1px solid #6eb0fe;
+    border-radius: 12px;">    
+                  <thead>  
+                        <tr>
                 <th>Customer</th>
                 <th>Property</th>
                 <th>Estimate Program/Service</th>
-                <th>Estimate #</th>
-                <th>Estimate $</th>
-                <th>Estimate Date</th>  
+                <th>Estimate $</th>	
+                <th>Estimate Date</th>	
                 <th>Property Status</th>
               </tr>  
             </thead>
@@ -16,12 +16,9 @@
               if (!empty($pipeline_details)) { 
                 foreach ($pipeline_details as $value) { ?>
               <tr>         
-                <td style="text-transform: capitalize;">
-                  <a target="_blank" href="<?php echo base_url(); ?>/admin/editCustomer/<?= $value->customer_id ?>"><?= $value->first_name.' '.$value->last_name ?></a>
-                </td>
+                <td style="text-transform: capitalize;"><?= $value->first_name.' '.$value->last_name ?></td>
                 <td><?= $value->property_address ?></td>
                 <td><?= $value->program_name ?></td>
-                <td><a target="_blank" href="<?php echo base_url(); ?>/admin/Estimates/editEstimate/<?= $value->estimate_id ?>"><?= $value->estimate_id ?></a></td>
                 <td>
                   <?php 
                     $line_total = 0; 
@@ -130,7 +127,7 @@
                 <td width="13%">
                   <?php switch ($value->property_status) {
                     case 0:
-                      echo '<span  class="label label-warning myspan">Non-Active</span>';
+                      echo '<span  class="label label-danger myspan">Non-Active</span>';
                       $bg= 'bg-warning';
                       break;
                     case 1:
@@ -150,8 +147,9 @@
                   }
                 }
               ?>
-            </tbody>
-          </table>
+
+                  </tbody>
+              </table>
            </div>
 
           

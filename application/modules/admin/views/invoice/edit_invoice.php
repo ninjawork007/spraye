@@ -50,20 +50,20 @@ label.control-label.col-lg-3 {
                     <div class="form-group">
                       <label class="control-label col-lg-3">Select Customer</label>
                       <div class="col-lg-9" style="padding-left: 5px;">
-             
-               <input type ="hidden" class="form-control" name="customer_id" id="customer_id" value="<?=$invoice_details->customer_id?>">
+						 
+						   <input type ="hidden" class="form-control" name="customer_id" id="customer_id" value="<?=$invoice_details->customer_id?>">
 
                           <?php if (!empty($customer_details)) {
                              foreach ($customer_details as $key => $value) {
 
                               if ($invoice_details->customer_id==$value->customer_id) {
 
-                  ?>
-                  <input type ="text" class="form-control" name="customer" id="customer" value="<?php echo $value->first_name.$value->last_name; ?>" readonly>
-                <?php
+								  ?>
+								  <input type ="text" class="form-control" name="customer" id="customer" value="<?php echo $value->first_name.$value->last_name; ?>" readonly>
+								<?php
                               } else {
  
-                
+								
                               }
 
 
@@ -78,8 +78,8 @@ label.control-label.col-lg-3 {
                     <div class="form-group">
                       <label class="control-label col-lg-3">Select Property Address</label>
                       <div class="col-lg-9" style="padding-left: 5px;">
-            <input type="hidden" name="property_id" id="property_id" value="<?= $invoice_details->property_id ?>"> 
-            
+						<input type="hidden" name="property_id" id="property_id" value="<?= $invoice_details->property_id ?>"> 
+						
 
 
                        <?php 
@@ -90,7 +90,7 @@ label.control-label.col-lg-3 {
 
                               if ($invoice_details->property_id==$value->property_id) {
 
-                ?>  <input type="text" class="form-control" name="property" id="property" value="<?= $value->property_address ?>" readonly> <?php
+								?>  <input type="text" class="form-control" name="property" id="property" value="<?= $value->property_address ?>" readonly> <?php
                               } else {
 
                               }                            
@@ -155,7 +155,7 @@ label.control-label.col-lg-3 {
                      ?>
 
                      </select>
-            <input type="hidden" name="job_ids" id="job_id_order_array" value="">
+						<input type="hidden" name="job_ids" id="job_id_order_array" value="">
                    </div>
                   </div>
                 </div>
@@ -164,7 +164,7 @@ label.control-label.col-lg-3 {
                   <div class="form-group"  style="margin-bottom: 35px;">
                     <label class="control-label col-lg-3">Program Name</label>
                     <div class="col-lg-9"  style="padding-left: 9px; padding-right: 4px;">
-          <input type="hidden" name="program_id" id="program_id" value="<?=$invoice_details->program_id?>">
+					<input type="hidden" name="program_id" id="program_id" value="<?=$invoice_details->program_id?>">
 
                     <?php 
                     if (!empty($program_details)) {
@@ -174,15 +174,15 @@ label.control-label.col-lg-3 {
 
                         if ($value->program_id==$invoice_details->program_id) {
 
-            ?>  <input type="text" class="form-control" name="program" id="program" value="<?=$value->program_name?>" readonly> <?php
+						?>	<input type="text" class="form-control" name="program" id="program" value="<?=$value->program_name?>" readonly> <?php
                         }else{
 
                         }
                         
                       }
                     }else{
-            ?> <input type="text" class="form-control" name="program" id="program" value="No Program Assigned" readonly> <?php
-          }
+						?> <input type="text" class="form-control" name="program" id="program" value="No Program Assigned" readonly> <?php
+					}
 
                      ?>
 
@@ -809,35 +809,6 @@ label.control-label.col-lg-3 {
 
               </div>
 
-              <h1>Payment Logs</h1>
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Sr. No.</th>
-                    <th>Log</th>
-                    <th>Amount</th>
-                    <th>Date</th>
-                    <th>Created By</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php
-                  foreach($AllInvoiceLogs as $Index => $LogInvs){
-                  ?>
-
-                    <tr>
-                      <td><?php echo ($Index + 1) ?></td>
-                      <td><?php echo $LogInvs->action ?></td>
-                      <td>$<?php echo $LogInvs->amount ?></td>
-                      <td><?php echo date("d F, Y h:i A", strtotime($LogInvs->created_at))?></td>
-                      <td><?php echo $LogInvs->user_first_name." ".$LogInvs->user_last_name ?></td>
-                    </tr>
-                    <?php
-                  }
-                  ?>
-                </tbody>
-              </table>
-
 
              </fieldset>
 
@@ -1255,13 +1226,13 @@ foreach ($all_invoice_partials as $key=>$invoice_partial_payment) {
   </script>
 <!-- Paid Modal -->
 <div id="modal_theme_primary_paid_payment" class="modal fade">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header bg-primary">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h6 class="modal-title">Pay Total Amount Due</h6>
-      </div>
-        <form id="add_paid_payment_form" action="<?= base_url('admin/Invoices/changePaymentStatus'); ?>" method="post" style="padding: 10px;" >
+			</div>
+				<form id="add_paid_payment_form" action="<?= base_url('admin/Invoices/changePaymentStatus'); ?>" method="post" style="padding: 10px;" >
           
           <?php
           if (isset($all_invoice_partials) && !empty($all_invoice_partials)) {
@@ -1311,13 +1282,13 @@ foreach ($all_invoice_partials as $key=>$invoice_partial_payment) {
 </div>
 <!-- Partial Modal -->
 <div id="modal_theme_primary_partial_payment" class="modal fade">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header bg-primary">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
         <h6 class="modal-title">Pay Partial Payment</h6>
-      </div>
-        <form id="add_partial_payment_form" action="<?= base_url('admin/Invoices/changePaymentStatus'); ?>" method="post" style="padding: 10px;" >
+			</div>
+				<form id="add_partial_payment_form" action="<?= base_url('admin/Invoices/changePaymentStatus'); ?>" method="post" style="padding: 10px;" >
          
           <?php
           if (isset($all_invoice_partials) && !empty($all_invoice_partials)) {
@@ -1547,7 +1518,7 @@ $('.refund_button').click(function() {
   </div>
 <!-- /content area -->
 <script type="text/javascript">
-// SERVICE LIST TABLE 
+// SERVICE LIST TABLE	
    var selectedSortingValues = [];
    var selectedSortingTexts = [];
    var selectedValues = [];
@@ -1563,17 +1534,17 @@ $('.refund_button').click(function() {
    var couponAllData = {};
    $n = 1;
 //on load
-  $(document).ready(function(){
-    $('td.removeclass').each(function(){
-       var id = $(this).attr('id');
-       var optionValue = $(this).attr('optionValueRemove');
-       var optionText = $(this).attr('optionTextRemove');
-      
-       selectedValues.push(optionValue);
-       selectedTexts.push(optionText);
-      $n = $n+1;
-      $('#job_id_order_array').val(selectedValues);
-    });
+	$(document).ready(function(){
+		$('td.removeclass').each(function(){
+			 var id = $(this).attr('id');
+			 var optionValue = $(this).attr('optionValueRemove');
+			 var optionText = $(this).attr('optionTextRemove');
+			
+			 selectedValues.push(optionValue);
+			 selectedTexts.push(optionText);
+			$n = $n+1;
+			$('#job_id_order_array').val(selectedValues);
+		});
     $('td.removeclass2').each(function(){
        couponSelectedValues.push( $(this).attr('optionValueRemove') );
        couponRedrawName.push( $(this).attr('couponRedrawName') );
@@ -1587,9 +1558,9 @@ $('.refund_button').click(function() {
        };
       $('#coupon_id_order_array').val(JSON.stringify( couponSelectedValues ));
     });
-  });
-  
-  
+	});
+	
+	
 // ADD COUPON TO LIST
 $(document).on("change","#coupon_list",function() { 
     optionValue = $(this).val();
@@ -1696,7 +1667,7 @@ function rearrangetable2() {
     return calcSubtotal();
 
 }
-  
+	
 // ADD SELECTED SERVICE TO TABLE
    $(document).on("change","#job_list",function() { 
          
@@ -1704,55 +1675,55 @@ function rearrangetable2() {
 
     if (optionValue!='') {
 
-     if ($.inArray(optionValue, selectedValues)!='-1') {
+		 if ($.inArray(optionValue, selectedValues)!='-1') {
 
-      } else {
+		  } else {
 
-      $('.prioritydivcontainer').css("display","block");
+			$('.prioritydivcontainer').css("display","block");
 
-      optionText = $("#job_list option:selected").text();
-       // alert(optionValue);
-     //   alert(optionText);
-       
+			optionText = $("#job_list option:selected").text();
+		   // alert(optionValue);
+		 //   alert(optionText);
+			 
 
-      selectedValues.push(optionValue);
+			selectedValues.push(optionValue);
 
-      selectedTexts.push(optionText);  
-        
-        
-        
+			selectedTexts.push(optionText);  
+			  
+			  
+			  
 
-      var $row = $('<tr id="trid'+$n+'">'+
-        '<td class="index" >'+$n+'</td>'+
-        '<td>'+optionText+'</td>'+
-        '<td><input type="text" class="form-control job-cost" name="jobcost['+optionValue+']" placeholder="Enter Cost" value="" ></td>'+       
-        '<td class="removeclass" id="'+$n+'" optionValueRemove="'+optionValue+'" optionTextRemove="'+optionText+'" ><ul class="icons-list"><li><a href="#"><i class="icon-trash"><li></i></a></li></ul></td>'+
-        '</tr>');    
+			var $row = $('<tr id="trid'+$n+'">'+
+			  '<td class="index" >'+$n+'</td>'+
+			  '<td>'+optionText+'</td>'+
+			  '<td><input type="text" class="form-control job-cost" name="jobcost['+optionValue+']" placeholder="Enter Cost" value="" ></td>'+			 
+			  '<td class="removeclass" id="'+$n+'" optionValueRemove="'+optionValue+'" optionTextRemove="'+optionText+'" ><ul class="icons-list"><li><a href="#"><i class="icon-trash"><li></i></a></li></ul></td>'+
+			  '</tr>');    
 
 
-      $('.prioritytbody:last').append($row);
-      $n = $n+1;        
-      $('#job_id_order_array').val(selectedValues);
-      }
+			$('.prioritytbody:last').append($row);
+			$n = $n+1;        
+			$('#job_id_order_array').val(selectedValues);
+		  }
    } 
 });
 //CALC SUB TOTAL 
-  $(document).on('keyup', '.job-cost', function (){
-      return calcSubtotal();   
-  });
+	$(document).on('keyup', '.job-cost', function (){
+    	return calcSubtotal();   
+ 	});
 function calcSubtotal(){
-  var subtotal = 0;
-  
-   $('input.job-cost').each(function() {
-    var jobcost = Number($(this).val());
-    subtotal = subtotal + jobcost; 
-   });
-    subtotal = subtotal.toFixed(2);
-  $('#cost').val(subtotal);
-  
-   manageBalance();  
-} 
-  
+	var subtotal = 0;
+	
+	 $('input.job-cost').each(function() {
+		var jobcost = Number($(this).val());
+		subtotal = subtotal + jobcost; 
+	 });
+		subtotal = subtotal.toFixed(2);
+	$('#cost').val(subtotal);
+	
+	 manageBalance();  
+}	
+	
 // REMOVE SELECTED SERVICE FROM LIST
   $(document).on("click",".removeclass",function() {
     // alert(selectedValues);
@@ -1775,18 +1746,18 @@ function calcSubtotal(){
   });
 
   function rearrangetable() {
-    var costs = [];
-   $.each(selectedValues, function(c, cost) {
-     var optionCost = $('input[name="jobcost['+selectedValues[c]+']"]').val();
-     costs[c] = optionCost;
-   });
+	  var costs = [];
+	 $.each(selectedValues, function(c, cost) {
+		 var optionCost = $('input[name="jobcost['+selectedValues[c]+']"]').val();
+		 costs[c] = optionCost;
+	 });
     $('.prioritytbody').empty();
      $n = 1;
      $.each(selectedValues, function(i, item) {
           var $row = $('<tr id="trid'+$n+'">'+
           '<td class="index" >'+$n+'</td>'+
           '<td>'+selectedTexts[i]+'</td>'+
-      '<td><input type="text" class="form-control job-cost" name="jobcost['+selectedValues[i]+']" placeholder="Enter Cost" value="'+costs[i]+'"></td>'+
+		  '<td><input type="text" class="form-control job-cost" name="jobcost['+selectedValues[i]+']" placeholder="Enter Cost" value="'+costs[i]+'"></td>'+
           '<td class="removeclass" id="'+$n+'" optionValueRemove="'+selectedValues[i]+'" optionTextRemove="'+selectedTexts[i]+'" ><ul class="icons-list"><li><a href="#"><i class="icon-trash"></i></a></li></ul></td>'+
           '</tr>');    
 
@@ -1795,7 +1766,7 @@ function calcSubtotal(){
     $n = $n+1;        
 
     });
-    return calcSubtotal();
+	  return calcSubtotal();
 
   }
 
@@ -1946,3 +1917,5 @@ $(document).on("change","#invoice_payment_status",function (argument) {
 
 </script>
 
+
+		

@@ -481,26 +481,6 @@ function  filterSearch(status) {
 	});
 
 }
-
-
-function  filterLocation(status) {
-     
-	// alert(status);
-	$.ajax({
-	type: "GET",
-	url: "<?= base_url('inventory/Frontend/Purchases/getAllPurchaseOrdersByLocartion/')?>"+status,
-	}).done(function(data){
-	$('#purchaseordertablediv').html(data);
-	
-	$('#allPurchase').prop('disabled', true);
-	$('#allPrint').prop('disabled', true);
-
-	buildDataTable();    
-	});
-
-}
-
-
 function  filterPO(status) {
      
 	// alert(status);
@@ -538,21 +518,6 @@ function  filterPayment(status) {
 buildDataTable();
 
 function buildDataTable(argument) {
-	var LocationFilterHTML = "";
-
-	LocationFilterHTML += '<div class="btn-group">';
-	LocationFilterHTML += '<button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="true">Filter Location<span class="caret"></span></button>';
-	LocationFilterHTML += '<ul class="dropdown-menu dropdown-menu-right">';
-	<?php
-	foreach($list_locations as $LL){
-	?>
-	LocationFilterHTML += '<li class="filter-status" onclick="filterLocation(<?php echo $LL->location_id ?>)"><a href="#"><span class="status-mark bg-primary position-left"></span> <?php echo $LL->location_name ?></a></li>';
-	<?php
-	}
-	?>
-	LocationFilterHTML += '</ul></div> &nbsp;&nbsp;';
-
-
 	$('.datatable-filter-custom').DataTable({
 		 
 
@@ -566,7 +531,7 @@ function buildDataTable(argument) {
 		 initComplete: function(){
   
 		$("div.toolbar")
-		   .html(LocationFilterHTML + '<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Sent <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li class="filter-status" onclick="filterSearch(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li class="filter-status" onclick="filterSearch(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Draft </a></li><li class="filter-status" onclick="filterSearch(1)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li class="filter-status" onclick="filterSearch(2)" ><a href="#"><span class="status-mark bg-success position-left"></span> Opened</a></li></ul></div>&nbsp;&nbsp;<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter PO Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li class="filter-payment" onclick="filterPO(5)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li class="filter-payment" onclick="filterPO(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Pending Vendor Approval </a></li><li class="filter-payment" onclick="filterPO(1)"  ><a href="#"><span class="status-mark bg-till position-left"></span> Approved By Vendor </a></li>  <li class="filter-payment" onclick="filterPO(2)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Partial Status</a></li> <li class="filter-payment" onclick="filterPO(3)"  ><a href="#"><span class="status-mark bg-success position-left"></span> Received </a></li> <li class="filter-payment" onclick="filterPO(4)"  ><a href="#"><span class="status-mark bg-return position-left"></span> Returned </a></li> </li> </ul></div>&nbsp;&nbsp;<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Paid Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li class="filter-payment" onclick="filterPayment(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li class="filter-payment" onclick="filterPayment(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Open </a></li><li class="filter-payment" onclick="filterPayment(1)"  ><a href="#"><span class="status-mark bg-till position-left"></span> Ready For Payment </a></li><li class="filter-payment" onclick="filterPayment(2)" ><a href="#"><span class="status-mark bg-success position-left"></span> Paid </a></li>  <li class="filter-payment" onclick="filterPayment(3)" ><a href="#"><span class="status-mark bg-danger position-left"></span> Unmatched </a></li>  </ul></div><button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allPurchase">Send By Email</button>&nbsp;&nbsp;<button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');      
+		   .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Sent <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li class="filter-status" onclick="filterSearch(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li class="filter-status" onclick="filterSearch(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Draft </a></li><li class="filter-status" onclick="filterSearch(1)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li class="filter-status" onclick="filterSearch(2)" ><a href="#"><span class="status-mark bg-success position-left"></span> Opened</a></li></ul></div>&nbsp;&nbsp;<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter PO Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li class="filter-payment" onclick="filterPO(5)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li class="filter-payment" onclick="filterPO(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Pending Vendor Approval </a></li><li class="filter-payment" onclick="filterPO(1)"  ><a href="#"><span class="status-mark bg-till position-left"></span> Approved By Vendor </a></li>  <li class="filter-payment" onclick="filterPO(2)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Partial Status</a></li> <li class="filter-payment" onclick="filterPO(3)"  ><a href="#"><span class="status-mark bg-success position-left"></span> Received </a></li> <li class="filter-payment" onclick="filterPO(4)"  ><a href="#"><span class="status-mark bg-return position-left"></span> Returned </a></li> </li> </ul></div>&nbsp;&nbsp;<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Paid Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li class="filter-payment" onclick="filterPayment(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li class="filter-payment" onclick="filterPayment(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Open </a></li><li class="filter-payment" onclick="filterPayment(1)"  ><a href="#"><span class="status-mark bg-till position-left"></span> Ready For Payment </a></li><li class="filter-payment" onclick="filterPayment(2)" ><a href="#"><span class="status-mark bg-success position-left"></span> Paid </a></li>  <li class="filter-payment" onclick="filterPayment(3)" ><a href="#"><span class="status-mark bg-danger position-left"></span> Unmatched </a></li>  </ul></div><button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allPurchase">Send By Email</button>&nbsp;&nbsp;<button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');      
 	 }       
   });
 

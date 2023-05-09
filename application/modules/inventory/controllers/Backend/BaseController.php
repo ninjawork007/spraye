@@ -1,5 +1,4 @@
-<?php
-namespace App\Controllers\Backend;
+<?php namespace App\Controllers\Backend;
 
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\Controller;

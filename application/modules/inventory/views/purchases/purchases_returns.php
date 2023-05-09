@@ -116,7 +116,8 @@
 								<thead>
 									<tr>
 										<th><input type="checkbox" id="select_all" <?php if (empty($all_returns)) { echo 'disabled'; }  ?> /></th>
-										<th>Return Order ID #</th>
+										<th>Purchase Order #</th>
+										<th>Purchase Order ID</th>
 										<th>Return Items</th>
 										<th>Created At</th>
 										<th>Updated At</th>
@@ -128,12 +129,13 @@
 										if($all_returns){
 											foreach($all_returns as $return){
 									?>
-									<tr><td><input  name="group_id" type="checkbox"  value="<?=$return->return_id ?>" return_id="<?=$return->return_id ?>" class="myCheckBox" /></td>
-
-										<td><a href="<?= base_url('inventory/Frontend/purchases/viewReturn/').$return->return_id ?>"><?= $return->return_id ?></a></td>
-
+									<tr><td><input  name="group_id" type="checkbox"  value="<?=$return->purchase_order_id.':'.$return->purchase_order_number ?>" return_id="<?=$return->return_id ?>" class="myCheckBox" /></td>
+										<td><a href="<?= base_url('inventory/Frontend/purchases/viewReturn/').$return->return_id ?>"><?= $return->purchase_order_number ?></a></td>
+										<td><?= $return->purchase_order_id ?></td>
+										<!-- <td><?= $return->items ?></td> -->
 											<?php 
 												$items = json_decode($return->items, true);
+												// die(print_r($items));
 												if (sizeof($items) > 1) {
 											?>
 										<td>Multiple</td>

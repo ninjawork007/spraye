@@ -43,34 +43,6 @@ class Aws_sdk{
 		}
 		return true;
 	}
-
-
-	/**
-    * Wrapper of putObject with duplicate check. Fucntion to use for file url
-    * If the file exists in bucket, it appends a unix timestamp to filename.
-    * 
-    * @param  array  $params same as putObject
-    * @return result
-    */
-   public function saveFile($key,$tempfilename)
-   {
-		$params = array(
-			'Bucket'      => S3_BUCKET_NAME,
-			'Key'         =>  $key,
-			'ACL'		  		=> 'public-read',
-			'Body'  			=> fopen($tempfilename,'r'),
-		);		
-		try {
-			$result = $this->putObject($params);
-		}catch (Exception $e){
-			$error = "Something went wrong saving your file.\n".$e;
-			echo $error; exit;
-		}
-
-		return $result;
-	}
-
-
    /**
     * Wrapper for best practices in putting an object.
     * @param  array  $params: Bucket, Prefix, SourceFile, Key (filename)

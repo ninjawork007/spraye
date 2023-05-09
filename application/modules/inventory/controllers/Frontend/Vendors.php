@@ -216,7 +216,7 @@ class Vendors extends MY_Controller
                 $data[$i]['vendor_email_address'] = $value->vendor_email_address;
                 $data[$i]['vendor_phone_number'] = preg_replace("/^1?(\d{3})(\d{3})(\d{4})$/", "($1) $2-$3", str_replace(' ','', str_replace('-','', $value->vendor_phone_number)));
                 $data[$i]['vendor_number'] = $value->vendor_number;
-                $data[$i]['actions'] = '<span class="pr-5"><a href="#" data-toggle="modal" data-target="#modal_edit_vendor" data-v_name="' . $value->vendor_name . '" data-int_name="' . $value->internal_name . '" data-id="'. $value->vendor_id .'" data-company="'. $value->company_name .'" data-email="'. $value->vendor_email_address .'" data-phone="'. formatPhoneNum($value->vendor_phone_number) .'" data-num="'. $value->vendor_number .'" data-street="'. $value->vendor_street_address .'" data-city="'. $value->vendor_city .'" data-state="'. $value->vendor_state .'" data-zip="'. $value->vendor_zip_code .'" data-country="'. $value->vendor_country .'" data-cust1="'. $value->custom_field1 .'" data-cust2="'. $value->custom_field2 .'" data-cust3="'. $value->custom_field3 .'" data-notes="'. $value->notes .'" data-terms="'. $value->terms .'" data-po_discount="'. $value->po_discount .'"
+                $data[$i]['actions'] = '<span class="pr-5"><a href="#" data-toggle="modal" data-target="#modal_edit_vendor" data-v_name="' . $value->vendor_name . '" data-int_name="' . $value->internal_name . '" data-id="'. $value->vendor_id .'" data-company="'. $value->company_name .'" data-email="'. $value->vendor_email_address .'" data-phone="'. formatPhoneNum($value->vendor_phone_number) .'" data-num="'. $value->vendor_number .'" data-street="'. $value->vendor_street_address .'" data-city="'. $value->vendor_city .'" data-state="'. $value->vendor_state .'" data-zip="'. $value->vendor_zip_code .'" data-country="'. $value->vendor_country .'" data-cust1="'. $value->custom_field1 .'" data-cust2="'. $value->custom_field2 .'" data-cust3="'. $value->custom_field3 .'" data-notes="'. $value->notes .'"
                  class="button-next modal_trigger"><i class="icon-pencil position-center" style="color: #9a9797;"></i></a></span><span class="pr-5"><a href="' .  base_url('inventory/Frontend/Vendors/vendorDelete/') . $value->vendor_id . '" data-url="' . $value->vendor_id . '"class="confirm_item_delete button-next"><i class="icon-trash   position-center" style="color: #9a9797;"></i></a></span>';
                 $i++;
             }
@@ -275,9 +275,7 @@ class Vendors extends MY_Controller
             'custom_field1' => $data['edit_custom_field1'],
             'custom_field2' => $data['edit_custom_field2'],
             'custom_field3' => $data['edit_custom_field3'],
-            'notes' => $data['edit_notes'],
-            'terms' => $data['terms'],
-            'po_discount' => $data['po_discount'],
+            'notes' => $data['edit_notes']
         );
 
         // die(print_r($data_arr));
@@ -329,7 +327,6 @@ class Vendors extends MY_Controller
             'custom_field2' => $data['custom_field2'],
             'custom_field3' => $data['custom_field3'],
             'notes' => $data['notes'],
-            'terms' => $data['terms'],
             'company_id' => $company_id,
             'created_by' => $user_id
         );

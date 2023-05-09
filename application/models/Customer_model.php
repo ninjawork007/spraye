@@ -71,10 +71,6 @@ class Customer_model extends CI_Model{
         }
     }
 
-    public function searchCustomerWithNumberName($search){
-        $query = $this->db->query("select customer_id, first_name, last_name from customers where customer_id like '%".$search."%' or concat_ws(' ',first_name,last_name) like '%".$search."%'");
-        return $query->result_array();
-    }
 
 }
  

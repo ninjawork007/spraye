@@ -1973,7 +1973,7 @@ public function addEstimateData($data = null, $bulk_call = false) {
         $this->load->view('admin/estimate/bulk_pdf_estimate_print.php',$data);
 
         $html = $this->output->get_output();
-
+       // die(print_r($html));
         //  // Load pdf library
         $this->load->library('pdf');
 
@@ -2141,10 +2141,22 @@ public function changeStatus() {
                 }
             }
 
-            // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
-        }
-        $total_estimate_cost += $job_cost;
-      }
+                            // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
+                        }
+
+                        $coup_job_param = array(
+                            'cost' => $job_cost,
+                            'job_id' => $es_job->job_id,
+                            'customer_id' => $customer_id,
+                            'property_id' => $property_id,
+                            'program_id' => $program_id
+                        );
+
+                        $job_cost_w_coupon = $this->calculateServiceCouponCost($coup_job_param);
+
+                        $total_estimate_cost += $job_cost_w_coupon;
+                    }
+
 
       // $total_sales_tax = 0;
       // if ($setting_details->is_sales_tax==1) {
@@ -2202,18 +2214,17 @@ public function changeStatus() {
 
          $jobs = $this->ProgramModel->getSelectedJobs($program_id);
 
-				foreach ($jobs as $key3 => $value3) {
-                    $job_id = $value3->job_id;
+         foreach ($jobs as $key3 => $value3) {
+            $job_id = $value3->job_id;
 
-                    $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
+            $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
 
-                    $description = $job_details->job_name . " ";
+            $description = $job_details->job_name . " ";
 
-                    $QBO_description[] = $job_details->job_name;
-                    $actual_description_for_QBO[] = $job_details->job_description;
+            $QBO_description[] = $job_details->job_name;
+            $actual_description_for_QBO[] = $job_details->job_description;
 
-
-                  }
+         }
 
 
          $inv_param['customer_email'] = $cust_details['email'];
@@ -2246,8 +2257,6 @@ public function changeStatus() {
              $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
          }
 
-        //  die(print_r($quickbook_invoice_id));
-
           $assign_program_param = array(
               'property_id'           => $property_id,
               'program_id'            => $program_id,
@@ -2258,7 +2267,6 @@ public function changeStatus() {
 
           // where estimate jobs are stored
           $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
-          // print_r($estimate_price_overide_data);
 
           foreach ($estimate_price_overide_data as $es_job) {
 
