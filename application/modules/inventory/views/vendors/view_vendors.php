@@ -259,6 +259,16 @@
 								</div>
 							</div>
 						</div>
+
+						<div>
+								<label>Terms</label>
+								<textarea class="form-control" name="terms" placeholder="Terms"></textarea>
+							</div>
+
+							<div>
+							<label>PO Discount</label>
+							<input type="number" class="form-control" name="po_discount" placeholder="PO Discount Amount">
+						</div>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
@@ -396,7 +406,21 @@
 								</div>
 							</div>
 						</div>
+
+						<div>
+								<label>Terms</label>
+								<textarea class="form-control" name="terms" id="terms" placeholder="Terms"></textarea>
+							</div>
+
+							<div>
+							<label>PO Discount</label>
+							<input type="number" class="form-control" name="po_discount" id="po_discount" placeholder="PO Discount Amount">
+						</div>
+
 					</div>
+
+					
+
 					<div class="modal-footer">
 						<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
 						<button type="submit" id="saveEditVendor" class="btn btn-success">Save</button>
@@ -480,6 +504,9 @@ var table = {};
     var field2 = $(this).data('cust2');
     var field3 = $(this).data('cust3');
     var notes = $(this).data('notes');
+    var Terms = $(this).data('terms');
+    var Discount = $(this).data('po_discount');
+
     $('#edit_vendor_id').val(id);
     $('#edit_vendor_name').val(vname);
     $('#edit_vendor_number').val(vnum);
@@ -496,7 +523,8 @@ var table = {};
     $('#edit_custom_field2').val(field2);
     $('#edit_custom_field3').val(field3);
     $('#edit_notes').val(notes);
-
+    $('#terms').val(Terms);
+    $('#po_discount').val(Discount);
 	});
 
 

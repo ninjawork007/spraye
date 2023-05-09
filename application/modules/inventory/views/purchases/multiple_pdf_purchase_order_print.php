@@ -353,10 +353,18 @@
             </table>
 
             <table width="100%" class="table table-condensed main_table" cellspacing="0">
-                <tr><td><b>DELIVERY DATE : </b> <?=Date("m/d/Y", strtotime($value->estimated_delivery_date))?></td></tr>
-                <tr><td><b>PAYMENT TERM : </b> <?= $value->payment_terms ?></td></tr>
-                <tr><td><b>FOB : </b> <?= $value->fob ?></td></tr>
-                <tr><td><b>Shipping Method : </b> <?= $value->shipping_method_1 ?></td></tr>
+                <tr class="first_tr" style="background-color:<?= $setting_details->invoice_color  ?>!important;color: #fff;">
+                    <td class="text-left"><strong>DELIVERY DATE</strong></td>
+                    <td class="text-left"><strong>FOB</strong></td>
+                    <td class="text-left"><strong>Shipping Method</strong></td>
+                    <td class="text-center"><strong>PAYMENT TERM</strong></td>                
+                </tr>
+                <tr>
+                    <td><?=Date("m/d/Y", strtotime($value->estimated_delivery_date))?></td>
+                    <td><?= $value->fob ?></td>
+                    <td><?= $value->shipping_method_1 ?></td>
+                    <td><?= $value->payment_terms ?></td>
+                </tr>
             </table>
 
             <!-- END TOP FOLD -->

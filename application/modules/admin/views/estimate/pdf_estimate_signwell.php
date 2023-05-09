@@ -76,9 +76,6 @@
             margin-bottom: 10px !important;
             border-top: 1px solid <?=$setting_details->invoice_color?> !important;
         }
-        hr.hr-terms {
-            border-top: 1px solid <?=$setting_details->invoice_color?> !important;
-        }
 
         .account-head,
         .account-dt {
@@ -130,22 +127,6 @@
         .border-bottom-blank-last>td,
         .border-bottom-blank-last {
             border-bottom: 1px solid #999 !important;
-        }
-
-        .border-top>td {
-            border-top: 1px solid <?=$setting_details->invoice_color;
-            ?>;
-        }
-
-        .border-top-blank-td>td,
-        .border-bottom-blank-td {
-            border-top: 1px solid #ccc !important;
-
-        }
-
-        .border-top-blank-last>td,
-        .border-bottom-blank-last {
-            border-top: 1px solid #999 !important;
         }
 
         .blank_tr td {
@@ -437,7 +418,7 @@
             </table>
 
 
-            <table width="100%" class="main_table none_border" style="border: 1px solid #ddd;<?php if ($setting_details->show_estimate_totals == 0) echo 'display: none';?>">
+            <table width="100%" class="main_table none_border" style="border: 1px solid #ddd;">
 
                 <!-- COUPON SECITON -->
                 <?php if (isset($coupon_estimate) && !empty($coupon_estimate)) {
@@ -581,16 +562,11 @@
 
             <?php
                 if ($setting_details->tearm_condition != '') {?>
-                    <br>
-                    <hr>
-                    <table width="100%" class="main_table" style="margin-top: -5px!important;" >
-                        <tr class="main_table"">
-                        <td class="text-center" style="color: black; text-align: center; "><b>Terms & Conditions</b></td>
-                        </tr>
-                    </table>
-                    <hr>
-                    <table width="100%" class="main_table">
 
+                    <table width="100%" class="main_table">
+                        <tr>
+                            <td class="text-center"><b>Terms & Conditions</b></td>
+                        </tr>
                         <?php
                         $term_conditions_array = explode("\r\n",$setting_details->tearm_condition);
                         //echo print_r($term_conditions_array);

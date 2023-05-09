@@ -3205,30 +3205,15 @@ border-color : #fd7e14;
                                              ?>
 
                                             <tr class="<?=$asapClass?>">
-
-                                                <td><input name='group_id' type='checkbox'
-
-                                                        value="<?php echo $value->customer_id .",". $value->job_id .",". $value->program_id .",". $value->property_id ?>"
-
-                                                        class='myCheckBox' /></td>
-
+                                                <td><input name='group_id' type='checkbox' value="<?php echo $value->customer_id .",". $value->job_id .",". $value->program_id .",". $value->property_id ?>" class='myCheckBox' /></td>
                                                 <td><?= $value->user_first_name.' '.$value->user_last_name; ?></td>
-
                                                 <td><?=$value->job_name; ?></td>
-
-                                                <td><?php if(isset($value->job_assign_date)){ echo date('m-d-Y', strtotime($value->job_assign_date));} ?>
-
-                                                </td>
-
+                                                <td><?php if(isset($value->job_assign_date)){ echo date('m-d-Y', strtotime($value->job_assign_date));} ?></td>
                                                 <td><?= $value->property_address ?></td>
-
                                                 <td><?php if(isset($value->category_area_name)){ echo $value->category_area_name; } else { echo 'None'; } ?></td>
-
                                                 <td><?=$value->program_name ?></td>
                                                 <td><?=$value->job_cost ?></td>
-
                                                 <td>
-
                                                     <?php
                                                           switch ($value->is_job_mode) {
                                                             case 0:
@@ -3247,7 +3232,6 @@ border-color : #fd7e14;
                                                      ?>
                                                 </td>
                                                 <td><?php if(isset($value->sales_rep_name)){ echo $value->sales_rep_name; } ?></td>
-
                                                 <td><?= $value->coupon_code_csv ?></td>
                                                 <td class="table-action">
                                                     <ul style="list-style-type: none; padding-left: 0px;">
@@ -5032,6 +5016,24 @@ border-color : #fd7e14;
                <option <?=$customerData//['payment_type'] == "card" ? "selected" : ""?> value="card" > Card </option>
              <?php //endif; ?> -->
             </select>
+
+
+
+            <label for="responsible_party">Responsible Party</label>
+            <select class="form-control" id="responsible_party" name="responsible_party[]" multiple required>
+                <?php
+                foreach($CompaniesUser as $UserListCompany){
+                ?>
+                <option value="<?php echo $UserListCompany->id ?>"><?php echo $UserListCompany->user_first_name ?> <?php echo $UserListCompany->user_last_name ?></option>
+                <?php
+                }
+                ?>
+            </select>
+
+
+            <label for="credit_notes">Reason for Entering Credit</label>
+            <input class="form-control" required type="text" id="credit_notes" name="credit_notes" spellcheck="true">
+
           </div>
           <div class="col">
             <div class="modal-footer">

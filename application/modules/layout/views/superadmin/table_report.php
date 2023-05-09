@@ -5,8 +5,6 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>SPRAYE</title>
-    <!-- superadmin table report -->
-
     <link rel="icon" href="<?=base_url()?>/favicon.ico" type="image/icon">
 
 	<!-- Global stylesheets -->

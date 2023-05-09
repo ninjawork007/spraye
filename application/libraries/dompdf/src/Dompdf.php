@@ -271,7 +271,7 @@ class Dompdf
      */
     public function __construct($options = null)
     {
-        mb_internal_encoding('UTF-8');
+        \mb_internal_encoding('UTF-8');
 
         if (isset($options) && $options instanceof Options) {
             $this->setOptions($options);
