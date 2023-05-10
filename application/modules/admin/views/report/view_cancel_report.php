@@ -163,7 +163,8 @@
                                 <th>Lost Revenue</th>
                                 <th>Sales Rep.</th>
                                 <th>New Existing Customer</th>
-                                <th>Service/Program</th>
+                                <th>Service</th>
+                                <th>Program</th>
                                 <th>Cancel Reason</th>
                             </tr>
                         </thead>
@@ -194,6 +195,7 @@
                                     ?>
                                 </td>
                                 <td><?= $CanclPrprty->service_cancelled ?></td>
+                                <td><?= $CanclPrprty->program_cancelled ?></td>
                                 <td><?= $CanclPrprty->cancel_reason ?></td>
                             </tr>
                             <?php

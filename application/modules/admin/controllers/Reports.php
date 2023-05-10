@@ -7157,9 +7157,14 @@ class Reports extends MY_Controller {
 
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
             $ServiceProgCancelled = array();
+            $ProgramCancelledArray = array();
             $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
             $cost = 0;
+
             foreach($AllServicesOfCustomer as $all_services) {
+                $PrmName = $this->CancelledModel->getCancelledProgramName($all_services->program_id);
+                $ProgramCancelledArray[] = @$PrmName->program_name;
+
                 $propertyDetails = $this->PropertyModel->getOnePropertyDetail($all_services->property_id);
                 $jobDetails = $this->JobModel->getOneJob(array('job_id' => $all_services->job_id));
                 // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
@@ -7216,7 +7221,14 @@ class Reports extends MY_Controller {
             $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
             $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
 
+            $ProgramCancelledArray = array_values($ProgramCancelledArray);
+            $ProgramCancelledArray = array_unique($ProgramCancelledArray);
+
+            $ServiceProgCancelled = array_values($ServiceProgCancelled);
+            $ServiceProgCancelled = array_unique($ServiceProgCancelled);
+
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
+            $data["AllCancelledProperty"][$CanProIndex]->program_cancelled = implode(", ", $ProgramCancelledArray);
             $data["AllCancelledProperty"][$CanProIndex]->service_cancelled = implode(", ", $ServiceProgCancelled);
             $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
         }
@@ -7357,9 +7369,13 @@ class Reports extends MY_Controller {
 
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
             $ServiceProgCancelled = array();
+            $ProgramCancelledArray = array();
             $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
             $cost = 0;
             foreach($AllServicesOfCustomer as $all_services) {
+                $PrmName = $this->CancelledModel->getCancelledProgramName($all_services->program_id);
+                $ProgramCancelledArray[] = @$PrmName->program_name;
+
                 $propertyDetails = $this->PropertyModel->getOnePropertyDetail($all_services->property_id);
                 $jobDetails = $this->JobModel->getOneJob(array('job_id' => $all_services->job_id));
                 // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
@@ -7415,7 +7431,14 @@ class Reports extends MY_Controller {
             $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
             $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
 
+            $ProgramCancelledArray = array_values($ProgramCancelledArray);
+            $ProgramCancelledArray = array_unique($ProgramCancelledArray);
+
+            $ServiceProgCancelled = array_values($ServiceProgCancelled);
+            $ServiceProgCancelled = array_unique($ServiceProgCancelled);
+
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
+            $data["AllCancelledProperty"][$CanProIndex]->program_cancelled = implode(", ", $ProgramCancelledArray);
             $data["AllCancelledProperty"][$CanProIndex]->service_cancelled = implode(", ", $ServiceProgCancelled);
             $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
         }
