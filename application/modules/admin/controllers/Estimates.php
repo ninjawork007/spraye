@@ -2019,6 +2019,60 @@ public function addEstimateData($data = null, $bulk_call = false) {
 
 
    }
+    public function calculateServiceCouponCost($param){
+
+        $total_cost = $param['cost'];
+        $coupon_jobs = $this->CouponModel->getAllCouponJob(array(
+            'job_id' => $param['job_id'],
+            'program_id' => $param['program_id'],
+            'property_id' => $param['property_id'],
+            'customer_id' => $param['customer_id']
+        ));
+
+        if (!empty($coupon_jobs)) {
+            foreach ($coupon_jobs as $coupon_job) {
+
+                $coupon_id = $coupon_job->coupon_id;
+                $coupon_details = $this->CouponModel->getOneCoupon(array('coupon_id' => $coupon_id));
+
+                // CHECK THAT EXPIRATION DATE IS IN FUTURE OR 000000
+                $expiration_pass = true;
+                if ($coupon_details->expiration_date != "0000-00-00 00:00:00") {
+                    $coupon_expiration_date = strtotime($coupon_details->expiration_date);
+
+                    $now = time();
+                    if ($coupon_expiration_date < $now) {
+                        $expiration_pass = false;
+                    }
+                }
+
+                if ($expiration_pass == true) {
+                    if ($coupon_details->amount_calculation == 0) {
+                        $discount_amm = (float) $coupon_details->amount;
+
+                        if (($total_cost - $discount_amm) < 0 ) {
+                            $total_cost = 0;
+                        } else {
+                            $total_cost -= $discount_amm;
+                        }
+
+                    } else {
+                        $percentage = (float) $coupon_details->amount;
+                        $discount_amm = (float) $total_cost * ($percentage / 100);
+
+                        if (($total_cost - $discount_amm) < 0 ) {
+                            $total_cost = 0;
+                        } else {
+                            $total_cost -= $discount_amm;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return number_format($total_cost, 2, '.', ',');
+    }
 
 public function changeStatus() {
 	$data =  $this->input->post();

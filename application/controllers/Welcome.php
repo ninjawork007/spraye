@@ -69,21 +69,23 @@ class Welcome extends MY_Controller
         $this->load->model('Reports_model', 'ReportsModel');
 
 
+
         // $this->load->model('Customer_statement_model', 'CustomerStatement');
 
     }
 
-    public function index(){
+    public function index()
+    {
         $company_name = $this->uri->segment(2);
         $company_details = $this->CompanyModel->getOneCompany(array('slug' => $company_name));
         //die(print_r($company_details));
-        if(!empty($company_details)){
-            $this->session->set_userdata('company_logo',$company_details->company_resized_logo);
-            $this->session->set_userdata('invoice_color',$company_details->invoice_color);
-            $this->session->set_userdata('slug',$company_name);
-            $this->session->set_userdata('company_email',$company_details->company_email);
+        if (!empty($company_details)) {
+            $this->session->set_userdata('company_logo', $company_details->company_resized_logo);
+            $this->session->set_userdata('invoice_color', $company_details->invoice_color);
+            $this->session->set_userdata('slug', $company_name);
+            $this->session->set_userdata('company_email', $company_details->company_email);
             $this->load->view('customers/customers_login');
-        }else{
+        } else {
             #put back in 404
             show_error("The page you are looking for does not exists in this domain.", 404, "Invalid link");
         }
@@ -317,7 +319,7 @@ class Welcome extends MY_Controller
         $data['cardconnect_details'] = $this->CardConnectModel->getOneCardConnect($where_arr);
 
 
-        $invoiceID =  $invoice_id;
+        $invoiceID = $invoice_id;
         $where = array(
             'invoice_tbl.company_id' => $company_id,
             'invoice_tbl.invoice_id' => $invoiceID,
@@ -330,7 +332,7 @@ class Welcome extends MY_Controller
 
         $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $invoiceID));
 
-        $invoice_details->report= $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
+        $invoice_details->report = $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
         //die(print_r($invoice_details));
         //var_dump($this->db->last_query());
         //var_dump($invoice_details->report);
@@ -491,7 +493,7 @@ class Welcome extends MY_Controller
 
             $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $invoiceID));
 
-            $invoice_details->report= $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
+            $invoice_details->report = $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
             //die(print_r($invoice_details));
             //var_dump($this->db->last_query());
             //var_dump($invoice_details->report);
@@ -584,11 +586,11 @@ class Welcome extends MY_Controller
             $invoice_details->late_fee = $late_fee;
 
             $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
-            $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoiceID));
             $data['invoice_details'][] = $invoice_details;
             //die(print_r($data["invoice_details"]));
             // INVOICE WIDE COUPONS
             // $data['coupon_invoice'][] = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
+
         }
         $this->load->view('admin/invoice/multiple_pdf_invoice_print', $data);
         $html = $this->output->get_output();
@@ -620,14 +622,11 @@ class Welcome extends MY_Controller
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('AdminTbl_company_model', 'CompanyModel');
         $this->load->model('Job_model', 'JobModel');
-        $this->load->model('Payment_logs_model', 'PaymentLogModel');
-
 
         if ($hashstring && $hashstring != "") {
 
             $where_arr = array("hashstring" => $hashstring);
             $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
-
             $invoice_ids = $invoice_mini_list["invoice_ids"];
             $all_invoice_paid = true;
 
@@ -756,7 +755,7 @@ class Welcome extends MY_Controller
                     }
 
                     // Code to take into account an instance where report_id is not set
-                    else if (!$job_details && $invoice_details->json){
+                    else if (!$job_details && $invoice_details->json) {
                         $json = json_decode($invoice_details->json, true);
 
                         if (isset($json['manual_invoice']) && $json['manual_invoice'] == 1) {
@@ -809,13 +808,8 @@ class Welcome extends MY_Controller
                             }
                         }
                     }
-
                     $invoice_details->jobs = $jobs;
                     $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $value));
-
-                    $invoice_details->logs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $value));
-                    $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $value));
-                    
                     $data['invoice_details'][] = $invoice_details;
                 }
 
@@ -1049,9 +1043,8 @@ class Welcome extends MY_Controller
 
         $this->load->view('admin/invoice/pdf_invoice', $data);
         /* $html = $this->output->get_output();
-
-       echo $html;
-       exit;  */
+        echo $html;
+        exit;  */
 
 
         /* // Load pdf library
@@ -1062,10 +1055,8 @@ class Welcome extends MY_Controller
         $this->dompdf->setPaper('A4', 'portrate');
         // Render the HTML as PDF
         $this->dompdf->render();
-
         $companyName = str_replace(" ", "", $data['setting_details']->company_name);
         // $companyName = str_replace(" ","",$this->session->userdata['compny_details']->company_name);
-
         $customerName = $data['invoice_details']->first_name . $data['invoice_details']->last_name;
         $fileName = $companyName . "_invoice_" . $customerName . "_" . date("Y") . "_" . date("m") . "_" . date("d") . "_" . date("h") . "_" . date("i") . "_" . date("s");
         // Output the generated PDF (1 = download and 0 = preview)
@@ -1164,7 +1155,8 @@ class Welcome extends MY_Controller
         $this->dompdf->stream("welcome.pdf", array("Attachment" => 0));
     }
 
-    public function estimateAccept($estimate_id){
+    public function estimateAccept($estimate_id)
+    {
         $this->load->model('Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel');
         $this->load->model('Invoice_sales_tax_model', 'InvoiceSalesTax');
         $this->load->model('Technician_model', 'Tech');
@@ -1179,7 +1171,7 @@ class Welcome extends MY_Controller
         $estimate_details = $this->EstimateModal->getOneEstimate($where);
         // die(print_r($this->db->last_query()));
         // die(print_r($estimate_details));
-        $company_id  = $estimate_details->company_id;
+        $company_id = $estimate_details->company_id;
 
         if ($estimate_details && $estimate_details->status != 2) {
 
@@ -1187,32 +1179,197 @@ class Welcome extends MY_Controller
 
             $result = $this->EstimateModal->updateEstimate($where, $param);
             if ($result) {
-                ##### ADDED 3/1/22 #####
+                ##### ADDED 3/10/22 #####
                 $property_status = $this->PropertyModel->updateAdminTbl($estimate_details->property_id, array('property_status' => '1'));
-                // die(print_r($this->db->last_query()));
                 ####
-                // if one time program invoiceing
-                if ($estimate_details->program_price == 1) {
+            }
 
-                    $user_id = $estimate_details->user_id;
-                    $company_id = $estimate_details->company_id;
-                    $customer_id = $estimate_details->customer_id;
-                    $property_id = $estimate_details->property_id;
-                    $program_id = $estimate_details->program_id;
-                    $estimate_id = $estimate_id;
-                    $date = date('Y-m-d', time());
-                    $date_time = date('Y-m-d H:m:s', time());
+            // if one time program invoiceing
+            if ($estimate_details->program_price == 1) {
 
-                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-                    $property_details = $this->PropertyModel->getOneProperty(array('property_id' => $property_id));
+                $user_id = $estimate_details->user_id;
+                $company_id = $estimate_details->company_id;
+                $customer_id = $estimate_details->customer_id;
+                $property_id = $estimate_details->property_id;
+                $program_id = $estimate_details->program_id;
+                $date = date('Y-m-d', time());
+                $date_time = date('Y-m-d H:m:s', time());
 
-                    // get estimate total cost
-                    $total_estimate_cost = 0;
+                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+                $property_details = $this->PropertyModel->getOneProperty(array('property_id' => $property_id));
+
+                // get estimate total cost
+                $total_estimate_cost = 0;
+                $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
+                // echo "<pre>";
+                // print_r($estimate_price_overide_data);
+                // die();
+
+                foreach ($estimate_price_overide_data as $es_job) {
+
+                    if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
+                        $job_cost = $es_job->price_override;
+                    } else {
+
+                        $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
+
+                        if (isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1) {
+                            $job_cost = $priceOverrideData->price_override;
+                        } else {
+
+                            //else no price overrides, then calculate job cost
+                            $lawn_sqf = $property_details->yard_square_feet;
+                            $job_price = $es_job->job_price;
+
+                            //get property difficulty level
+                            $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+
+                            if (isset($property_details->difficulty_level) && $property_details->difficulty_level == 2) {
+                                $difficulty_multiplier = $setting_details->dlmult_2;
+                            } elseif (isset($property_details->difficulty_level) && $property_details->difficulty_level == 3) {
+                                $difficulty_multiplier = $setting_details->dlmult_3;
+                            } else {
+                                $difficulty_multiplier = $setting_details->dlmult_1;
+                            }
+
+                            //get base fee
+                            if (isset($es_job->base_fee_override)) {
+                                $base_fee = $es_job->base_fee_override;
+                            } else {
+                                $base_fee = $setting_details->base_service_fee;
+                            }
+
+                            $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+
+                            //get min. service fee
+                            if (isset($es_job->min_fee_override)) {
+                                $min_fee = $es_job->min_fee_override;
+                            } else {
+                                $min_fee = $setting_details->minimum_service_fee;
+                            }
+
+                            // Compare cost per sf with min service fee
+                            if ($cost_per_sqf > $min_fee) {
+                                $job_cost = $cost_per_sqf;
+                            } else {
+                                $job_cost = $min_fee;
+                            }
+                        }
+
+                        // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
+                    }
+
+                    $coup_job_param = array(
+                        'cost' => $job_cost,
+                        'job_id' => $es_job->job_id,
+                        'customer_id' => $customer_id,
+                        'property_id' => $property_id,
+                        'program_id' => $program_id
+                    );
+
+                    $job_cost_w_coupon = $this->calculateServiceCouponCost($coup_job_param);
+
+                    $total_estimate_cost += $job_cost_w_coupon;
+                }
+
+                $total = $total_estimate_cost;
+
+                // create invoice for estimate
+                $inv_param = array(
+                    'user_id' => $user_id,
+                    'company_id' => $company_id,
+                    'customer_id' => $customer_id,
+                    'property_id' => $property_id,
+                    'invoice_date' => $date,
+                    'description' => 'Invoice From Estimate',
+                    'cost' => $total,
+                    'program_id' => $program_id,
+                    'is_created' => 1,
+                    'invoice_created' => date("Y-m-d H:i:s"),
+                );
+                $invoice_id = $this->INV->createOneInvoice($inv_param);
+
+                if ($invoice_id) {
+
+                    //figure sales tax
+                    $total_tax_amount = 0;
+                    if ($setting_details->is_sales_tax == 1) {
+                        $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $property_id));
+                        if ($property_assign_tax) {
+                            foreach ($property_assign_tax as $tax_details) {
+                                $invoice_tax_details = array(
+                                    'invoice_id' => $invoice_id,
+                                    'tax_name' => $tax_details['tax_name'],
+                                    'tax_value' => $tax_details['tax_value'],
+                                    'tax_amount' => $total * $tax_details['tax_value'] / 100
+                                );
+                                $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
+                                $total_tax_amount += $invoice_tax_details['tax_amount'];
+                            }
+                        }
+                    }
+
+                    //Quickbooks Invoice **
+
+                    $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
+                    $property_street = explode(',', $property_deets->property_address)[0];
+
+                    $cust_details = getOneCustomerInfo(array('customer_id' => $customer_id));
+
+                    $jobs = $this->ProgramModel->getSelectedJobs($program_id);
+
+                    foreach ($jobs as $key3 => $value3) {
+                        $job_id = $value3->job_id;
+
+                        $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
+
+                        $description = $job_details->job_name . " ";
+
+                        $QBO_description[] = $job_details->job_name;
+                        $actual_description_for_QBO[] = $job_details->job_description;
+
+                    }
+
+
+                    $inv_param['customer_email'] = $cust_details['email'];
+                    $inv_param['job_name'] = $description;
+
+                    $QBO_description = implode(', ', $QBO_description);
+                    $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
+                    $QBO_param = $inv_param;
+                    $QBO_param['property_street'] = $property_street;
+                    $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
+                    $QBO_param['job_name'] = $QBO_description;
+
+                    // Subtract global customer coupon value from QBO total before it's passed to QBO
+                    $coup_cust_param = array(
+                        'cost' => $QBO_param['cost'],
+                        'customer_id' => $customer_id
+                    );
+
+                    $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
+
+                    $QBO_param['cost'] = $cost_with_cust_coupon;
+
+
+                    $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
+
+
+                    //if quickbooks invoice then update invoice table with id
+                    if ($quickbook_invoice_id) {
+                        $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
+                    }
+
+                    $assign_program_param = array(
+                        'property_id' => $property_id,
+                        'program_id' => $program_id,
+                        'price_override' => 0,
+                        'is_price_override_set' => 0,
+                    );
+                    $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
+
+                    // where estimate jobs are stored
                     $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
-                    // die(print_r($estimate_price_overide_data));
-                    // echo "<pre>";
-                    // print_r($estimate_price_overide_data);
-                    // die();
 
                     foreach ($estimate_price_overide_data as $es_job) {
 
@@ -1222,7 +1379,7 @@ class Welcome extends MY_Controller
 
                             $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
 
-                            if (isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1) {
+                            if ($priceOverrideData->is_price_override_set == 1) {
                                 $job_cost = $priceOverrideData->price_override;
                             } else {
 
@@ -1267,234 +1424,39 @@ class Welcome extends MY_Controller
 
                             // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
                         }
+                        // $total_estimate_cost += $job_cost;
 
-                        $coup_job_param = array(
-                            'cost' => $job_cost,
-                            'job_id' => $es_job->job_id,
+                        $job_id = $es_job->job_id;
+                        $where = array(
+                            'property_program_id' => $property_program_id,
                             'customer_id' => $customer_id,
                             'property_id' => $property_id,
-                            'program_id' => $program_id
-                        );
-
-                        $job_cost_w_coupon = $this->calculateServiceCouponCost($coup_job_param);
-
-                        $total_estimate_cost += $job_cost_w_coupon;
-                    }
-
-                    // $total_sales_tax = 0;
-                    // if ($setting_details->is_sales_tax==1) {
-                    //   $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id'=>$property_id));
-                    //   if ($property_assign_tax) {
-                    //     foreach ($property_assign_tax as  $tax_details) {
-                    //       $total_sales_tax += ($tax_details['tax_value'] * $total_estimate_cost);
-                    //     }
-                    //   }
-                    // }
-
-                    $coup_est_param = array(
-                        'cost' => $total_estimate_cost,
-                        'estimate_id' => $estimate_id
-                    );
-
-                    $cost_w_est_coup = $this->calculateEstimateCouponCost($coup_est_param);
-
-                    // Subtract global customer coupon value from QBO total before it's passed to QBO
-                    $coup_cust_param = array(
-                        'cost' => $cost_w_est_coup,
-                        'customer_id' => $customer_id
-                    );
-
-                    $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
-
-
-
-
-                    $jobs = $this->ProgramModel->getSelectedJobs($program_id);
-
-                    $description = "";
-
-                    $estimate_cost_w_coupons = $cost_with_cust_coupon;
-
-                    foreach ($jobs as $key3 => $value3) {
-                        $job_id = $value3->job_id;
-
-
-
-                        $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
-
-                        $description = $job_details->job_name . " ";
-
-                        $QBO_description[] = $job_details->job_name;
-                        $actual_description_for_QBO[] = $job_details->job_description;
-
-                    }
-
-                    //get customer info
-                    $cust_details = getOneCustomerInfo(array('customer_id' => $customer_id));
-
-                    $total = $total_estimate_cost;
-
-                    // create invoice for estimate
-                    $inv_param = array(
-                        'user_id' => $user_id,
-                        'company_id' => $company_id,
-                        'customer_id' => $customer_id,
-                        'property_id' => $property_id,
-                        'invoice_date' => $date,
-                        'description' => 'Invoice From Estimate',
-                        'cost' => $total,
-                        'program_id' => $program_id,
-                        'is_created' => 1,
-                        'invoice_created' => date("Y-m-d H:i:s"),
-                    );
-                    $invoice_id = $this->INV->createOneInvoice($inv_param);
-
-                    if ($invoice_id) {
-
-                        //figure sales tax
-                        $total_tax_amount = 0;
-                        if ($setting_details->is_sales_tax == 1) {
-                            $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $property_id));
-                            if ($property_assign_tax) {
-                                foreach ($property_assign_tax as $tax_details) {
-                                    $invoice_tax_details = array(
-                                        'invoice_id' => $invoice_id,
-                                        'tax_name' => $tax_details['tax_name'],
-                                        'tax_value' => $tax_details['tax_value'],
-                                        'tax_amount' => $cost_with_cust_coupon * $tax_details['tax_value'] / 100,
-                                    );
-                                    $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
-                                    $total_tax_amount += $invoice_tax_details['tax_amount'];
-                                }
-                            }
-                        }
-
-                        //Quickbooks Invoice ** 
-
-                        $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
-                        $property_street = explode(',', $property_deets->property_address)[0];
-
-
-                        $inv_param['customer_email'] = $cust_details['email'];
-                        $inv_param['job_name'] = $description;
-
-                        $QBO_description = implode(', ', $QBO_description);
-                        $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
-                        $QBO_param = $inv_param;
-                        $QBO_param['property_street'] = $property_street;
-                        $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
-                        $QBO_param['job_name'] = $QBO_description;
-                        $QBO_param['cost'] = $cost_with_cust_coupon;
-                        $QBO_param['invoice_id'] = $invoice_id;
-
-
-                        $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
-
-                        // die(print_r($quickbook_invoice_id));
-                        //if quickbooks invoice then update invoice table with id
-                        if ($quickbook_invoice_id) {
-                            $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
-                        }
-
-                        $assign_program_param = array(
-                            'property_id' => $property_id,
                             'program_id' => $program_id,
-                            'price_override' => 0,
-                            'is_price_override_set' => 0,
+                            'job_id' => $job_id,
+                            'invoice_id' => $invoice_id,
+                            'job_cost' => $job_cost,
+                            'created_at' => $date_time,
+                            'updated_at' => $date_time,
                         );
-                        $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
+                        $proprojobinv = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($where);
 
-                        // where estimate jobs are stored
-                        $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
-                        // die(print_r($estimate_price_overide_data[0]->is_price_override_set));
-                        // print_r($estimate_price_overide_data);
+                    }
 
-                        foreach ($estimate_price_overide_data as $es_job) {
+                    // get all coupon_estimates where estimateid=
+                    $coupon_estimates = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $estimate_id));
 
-                            if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
-                                $job_cost = $es_job->price_override;
-                            } else {
-
-                                $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
-
-                                if ($priceOverrideData->is_price_override_set == 1) {
-                                    $job_cost = $priceOverrideData->price_override;
-                                } else {
-
-                                    //else no price overrides, then calculate job cost
-                                    $lawn_sqf = $property_details->yard_square_feet;
-                                    $job_price = $es_job->job_price;
-
-                                    //get property difficulty level
-                                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-
-                                    if (isset($property_details->difficulty_level) && $property_details->difficulty_level == 2) {
-                                        $difficulty_multiplier = $setting_details->dlmult_2;
-                                    } elseif (isset($property_details->difficulty_level) && $property_details->difficulty_level == 3) {
-                                        $difficulty_multiplier = $setting_details->dlmult_3;
-                                    } else {
-                                        $difficulty_multiplier = $setting_details->dlmult_1;
-                                    }
-
-                                    //get base fee
-                                    if (isset($es_job->base_fee_override)) {
-                                        $base_fee = $es_job->base_fee_override;
-                                    } else {
-                                        $base_fee = $setting_details->base_service_fee;
-                                    }
-
-                                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                                    //get min. service fee
-                                    if (isset($es_job->min_fee_override)) {
-                                        $min_fee = $es_job->min_fee_override;
-                                    } else {
-                                        $min_fee = $setting_details->minimum_service_fee;
-                                    }
-
-                                    // Compare cost per sf with min service fee
-                                    if ($cost_per_sqf > $min_fee) {
-                                        $job_cost = $cost_per_sqf;
-                                    } else {
-                                        $job_cost = $min_fee;
-                                    }
-                                }
-
-                                // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
-                            }
-                            // $total_estimate_cost += $job_cost;
-
-                            $job_id = $es_job->job_id;
-                            $where = array(
-                                'property_program_id' => $property_program_id,
-                                'customer_id' => $customer_id,
-                                'property_id' => $property_id,
-                                'program_id' => $program_id,
-                                'job_id' => $job_id,
+                    // duplicate them for coupon_invoices using invoice_id
+                    if (!empty($coupon_estimates)) {
+                        foreach ($coupon_estimates as $coupon_estimate) {
+                            $coupon_params = array(
+                                'coupon_id' => $coupon_estimate->coupon_id,
                                 'invoice_id' => $invoice_id,
-                                'job_cost' => $job_cost,
-                                'created_at' => $date_time,
-                                'updated_at' => $date_time,
+                                'coupon_code' => $coupon_estimate->coupon_code,
+                                'coupon_amount' => $coupon_estimate->coupon_amount,
+                                'coupon_amount_calculation' => $coupon_estimate->coupon_amount_calculation,
+                                'coupon_type' => 0
                             );
-                            $proprojobinv = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($where);
-                        }
-
-                        // get all coupon_estimates where estimateid=
-                        $coupon_estimates = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $estimate_id));
-                        // die(print_r($coupon_estimates));
-                        // duplicate them for coupon_invoices using invoice_id
-                        if (!empty($coupon_estimates)) {
-                            foreach ($coupon_estimates as $coupon_estimate) {
-                                $coupon_params = array(
-                                    'coupon_id' => $coupon_estimate->coupon_id,
-                                    'invoice_id' => $invoice_id,
-                                    'coupon_code' => $coupon_estimate->coupon_code,
-                                    'coupon_amount' => $coupon_estimate->coupon_amount,
-                                    'coupon_amount_calculation' => $coupon_estimate->coupon_amount_calculation,
-                                    'coupon_type' => 0,
-                                );
-                                $this->CouponModel->CreateOneCouponInvoice($coupon_params);
-                            }
+                            $this->CouponModel->CreateOneCouponInvoice($coupon_params);
                         }
                     }
 
@@ -1554,12 +1516,12 @@ class Welcome extends MY_Controller
 
                     #### send email for price Override
 
-                    if((isset($estimate_price_overide_data) && $estimate_price_overide_data[0]->is_price_override_set != '') || (!empty($coupon_estimates))){
+                    if ((isset($estimate_price_overide_data) && $estimate_price_overide_data[0]->is_price_override_set != '') || (!empty($coupon_estimates))) {
 
-                        $res3 = Send_Mail_dynamic($company_email_details, $emaildata['user_details']->email,  array("name" =>  $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $adminBody, 'Estimate Accepted: [Review Required - Price Override/Coupon]');
+                        $res3 = Send_Mail_dynamic($company_email_details, $emaildata['user_details']->email, array("name" => $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $adminBody, 'Estimate Accepted: [Review Required - Price Override/Coupon]');
                     } else {
                         #admin email
-                        $res2 = Send_Mail_dynamic($company_email_details, $emaildata['user_details']->email,  array("name" =>  $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $adminBody, 'Estimate Accepted');
+                        $res2 = Send_Mail_dynamic($company_email_details, $emaildata['user_details']->email, array("name" => $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $adminBody, 'Estimate Accepted');
                     }
                 }
 
@@ -1687,15 +1649,17 @@ class Welcome extends MY_Controller
 
                 if ($company_details) {
 
-                    $dataService = DataService::Configure(array(
-                        'auth_mode' => 'oauth2',
-                        'ClientID' => $company_details->quickbook_client_id,
-                        'ClientSecret' => $company_details->quickbook_client_secret,
-                        'accessTokenKey' => $company_details->access_token_key,
-                        'refreshTokenKey' => $company_details->refresh_token_key,
-                        'QBORealmID' => $company_details->qbo_realm_id,
-                        'baseUrl' => "Production",
-                    ));
+                    $dataService = DataService::Configure(
+                        array(
+                            'auth_mode' => 'oauth2',
+                            'ClientID' => $company_details->quickbook_client_id,
+                            'ClientSecret' => $company_details->quickbook_client_secret,
+                            'accessTokenKey' => $company_details->access_token_key,
+                            'refreshTokenKey' => $company_details->refresh_token_key,
+                            'QBORealmID' => $company_details->qbo_realm_id,
+                            'baseUrl' => "Production",
+                        )
+                    );
 
                     $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
@@ -1724,15 +1688,17 @@ class Welcome extends MY_Controller
         $realmId = 9130347581324726;
         $company_details = $this->checkQuickbook($realmId);
 
-        $dataService = DataService::Configure(array(
-            'auth_mode' => 'oauth2',
-            'ClientID' => $company_details->quickbook_client_id,
-            'ClientSecret' => $company_details->quickbook_client_secret,
-            'accessTokenKey' => $company_details->access_token_key,
-            'refreshTokenKey' => $company_details->refresh_token_key,
-            'QBORealmID' => $company_details->qbo_realm_id,
-            'baseUrl' => "Production",
-        ));
+        $dataService = DataService::Configure(
+            array(
+                'auth_mode' => 'oauth2',
+                'ClientID' => $company_details->quickbook_client_id,
+                'ClientSecret' => $company_details->quickbook_client_secret,
+                'accessTokenKey' => $company_details->access_token_key,
+                'refreshTokenKey' => $company_details->refresh_token_key,
+                'QBORealmID' => $company_details->qbo_realm_id,
+                'baseUrl' => "Production",
+            )
+        );
 
         $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
@@ -2127,14 +2093,15 @@ class Welcome extends MY_Controller
         http_response_code(200);
     }
 
-    public function payment($invoice_id){
+    public function payment($invoice_id)
+    {
 
         $this->load->model('../modules/admin/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_2');
         $this->load->model('../modules/admin/models/Invoice_sales_tax_model', 'InvoiceSalesTax_2');
 
 
         $invoice_id = base64_decode($invoice_id);
-        if (!$this->isActive($invoice_id)){
+        if (!$this->isActive($invoice_id)) {
             // die('si');
             die('Something has gone wrong. The Invoice you are trying to pay is not active.');
         }
@@ -2261,7 +2228,8 @@ class Welcome extends MY_Controller
         }
     }
 
-    public function paymentProcess($value = ''){
+    public function paymentProcess($value = '')
+    {
 
         $this->load->model('../modules/admin/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
         $this->load->model('../modules/admin/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
@@ -2440,10 +2408,10 @@ class Welcome extends MY_Controller
                     'payment_created' => date("Y-m-d H:i:s"),
                     'partial_payment' => $invoice_details->cost + $total_tax_amount + $invoice_details->partial_payment,
                     'basys_order_id' => $order_id
-                ,
+                    ,
                     'status' => 2,
-                    'opened_date' => $invoice_details->opened_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->opened_date,
-                    'sent_date' => $invoice_details->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->sent_date
+                    'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
+                    'sent_date' => $invoice_details->sent_date == '' ? date("Y-m-d H:i:s") : $invoice_details->sent_date
                 );
 
                 $this->INV->updateInvoive(array('invoice_id' => $data['invoice_id']), $updatearr);
@@ -2579,7 +2547,8 @@ class Welcome extends MY_Controller
         echo json_encode($return_arr);
     }
 
-    public function paymentSuccess($company_id){
+    public function paymentSuccess($company_id)
+    {
 
         $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
         $this->load->view('basys_payment_success', $data);
@@ -2622,7 +2591,6 @@ class Welcome extends MY_Controller
 
     public function sendCustomerInvoices()
     {
-
         // Mail should send link with date and customerId.
         //$invoice_date = date('Y-m-d', strtotime(' -1 day'));
         $where = array(
@@ -2630,11 +2598,12 @@ class Welcome extends MY_Controller
             //'invoice_tbl.company_id' => 44,
             // 'report_id >' => 0,
             'status' => 0,
-            'is_archived' => 0
+            'is_archived' => 0,
+            'email >' => '\'\''
             //'report_id !=' => 0
         );
         $completed_job_customer_detail = $this->INV->getCompletedJobCustomerDetail($where);
-        //die(print_r($completed_job_customer_detail));
+        
         $customer_wise_data = [];
         foreach ($completed_job_customer_detail as $detail) {
             if ($detail['report_id'] > 0) {
@@ -2664,7 +2633,6 @@ class Welcome extends MY_Controller
                 }
             }
         }
-        //die(print_r($customer_wise_data));
         foreach ($customer_wise_data as $customer_id => $customer_data) {
             $email = $customer_data[0]['email'];
             $company_id = $customer_data[0]['company_id'];
@@ -2679,7 +2647,7 @@ class Welcome extends MY_Controller
             $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo != '') ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
             $where_company['is_smtp'] = 1;
             $company_email_details = $this->CompanyModel->getOneCompanyEmailArray(array('company_id' => $company_id));
-//            if($company_id == "44") {
+            //            if($company_id == "44") {
             if (is_array($company_email_details) && $company_email_details['send_daily_invoice_mail'] == 1) {
                 foreach ($invoice_id_list as $key => $inv) {
                     //if invoice is for program invoice method Invoice at Service Completion, check for completed services
@@ -2717,24 +2685,23 @@ class Welcome extends MY_Controller
                     array_push($invoice_arr, $invoice_id);
                 }
                 $this->db->insert_batch('invoice_hash_tbl', $batch_insert_arr);
-                if($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'daily'){
-
-
+                if ($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'daily') {
                     $res = $this->Log->saveEmailLog(
                         'Auto Invoice send',
                         $data['setting_details']->company_id,
                         $customer_id,
-                        $data['customer_details']->email ,
+                        $data['customer_details']->email,
                         $data['customer_details']->secondary_email,
                         'Invoice Details',
-                        $body ,
+                        $body,
                         0,
                         '',
-                        json_encode($invoice_arr) );
-
-                    $res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" =>$data['setting_details']->company_email), $body, 'Invoice Details' , $data['customer_details']->secondary_email);
-//                        die(print_r($res));
-                    if ($res['status'] == 1) {
+                        json_encode($invoice_arr)
+                    );
+                    
+                    $res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email), $body, 'Invoice Details', $data['customer_details']->secondary_email);
+                    print_r($res);
+                    if ($res['status'] == true) {
                         $update_arr = array(
                             "status" => 1,
                             "last_modify" => date("Y-m-d H:i:s"),
@@ -2746,17 +2713,17 @@ class Welcome extends MY_Controller
 
                 }
             }
-//            }
+            //            }
         }
-//         die('fin');
+        //         die('fin');
         //check day of month to determine if we should auto-send monthly invoices to customers
         $today = date('Y-m-d');
-        $checkDayOfMonth = explode('-',$today);
+        $checkDayOfMonth = explode('-', $today);
         $sendMonthly = 0;
-        if(isset($checkDayOfMonth[2]) && $checkDayOfMonth[2] == 01){
+        if (isset($checkDayOfMonth[2]) && $checkDayOfMonth[2] == 01) {
             $sendMonthly = 1;
         }
-        if($sendMonthly == 1){
+        if ($sendMonthly == 1) {
             $sendMonthlyInvoices = $this->sendCustomerInvoicesMonthly();
         }
         return 1;
@@ -2854,7 +2821,7 @@ class Welcome extends MY_Controller
                     array_push($batch_insert_arr, $hash_tbl_arr);
                 }
                 $this->db->insert_batch('invoice_hash_tbl', $batch_insert_arr);
-                if($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'daily'){
+                if ($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'daily') {
                     //$res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" =>$data['setting_details']->company_email), $body, 'Invoice Details - ' . $invoice_date, $data['customer_details']->secondary_email);
                     //					echo "sending daily invoice email to customer id = ".$data['customer_details']->customer_id;
                 }
@@ -2864,12 +2831,12 @@ class Welcome extends MY_Controller
         die('fin');
         //check day of month to determine if we should auto-send monthly invoices to customers
         $today = date('Y-m-d');
-        $checkDayOfMonth = explode('-',$today);
+        $checkDayOfMonth = explode('-', $today);
         $sendMonthly = 0;
-        if(isset($checkDayOfMonth[2]) && $checkDayOfMonth[2] == 01){
+        if (isset($checkDayOfMonth[2]) && $checkDayOfMonth[2] == 01) {
             $sendMonthly = 1;
         }
-        if($sendMonthly == 1){
+        if ($sendMonthly == 1) {
             $sendMonthlyInvoices = $this->sendCustomerInvoicesMonthly();
         }
     }
@@ -2894,17 +2861,17 @@ class Welcome extends MY_Controller
         $reminder_detail = $this->AssignJobs->getAllJobAssignGroup($where);
         //die($this->db->last_query() );
 
-//        die(print_r($reminder_detail));
+        //        die(print_r($reminder_detail));
         $customer_wise_data = [];
         $pre_service_notification_email = 0;
         $pre_service_notification_text = 0;
         foreach ($reminder_detail as $detail) {
 
-            if (strpos( $detail->pre_service_notification,'"2"') !=0  ){
+            if (strpos($detail->pre_service_notification, '"2"') != 0) {
                 //die("Yes, it has a preservice notification to send an email");
                 $pre_service_notification_email = 1;
             }
-            if (strpos( $detail->pre_service_notification,'"3"') !=0  ){
+            if (strpos($detail->pre_service_notification, '"3"') != 0) {
                 //die("Yes, it has a preservice notification to send an email");
                 $pre_service_notification_text = 1;
             }
@@ -2922,7 +2889,7 @@ class Welcome extends MY_Controller
         $property_arr = array();
         foreach ($customer_wise_data as $customer_id => $customer_data) {
             $repeat_property = false;
-            if(!in_array($customer_data[0]['property_id'], $property_arr)){
+            if (!in_array($customer_data[0]['property_id'], $property_arr)) {
                 array_push($property_arr, $customer_data[0]['property_id']);
             } else {
                 $repeat_property = true;
@@ -2946,7 +2913,7 @@ class Welcome extends MY_Controller
             if (is_array($company_email_details)) {
                 $email_opt_in = $data['customer_details']->is_email;
                 if (isset($company_email_details['one_day_prior_status']) && $company_email_details['one_day_prior_status'] == 1) {
-                    if(isset($data['customer_details']->billing_type) && $data['customer_details']->billing_type == 1){
+                    if (isset($data['customer_details']->billing_type) && $data['customer_details']->billing_type == 1) {
                         #get property group billing info
                         $groupBillingDetails = $this->PropertyModel->getGroupBillingByProperty($customer_data[0]['property_id']);
                         $data['customer_details']->first_name = $groupBillingDetails['first_name'];
@@ -2976,9 +2943,7 @@ class Welcome extends MY_Controller
                         //echo "emailing ".$data['customer_details']->email."<bR><bR>";
                     }
                     $email_array[] = $data['customer_details']->email;
-
-                    if ($this->session->userdata['is_text_message'] && isset($company_email_details['one_day_prior_status_text']) && $company_email_details['one_day_prior_status_text'] == 1 && $data['customer_details']->is_mobile_text == 1) {
-
+                    if (isset($company_email_details['one_day_prior_status_text']) && $company_email_details['one_day_prior_status_text'] == 1 && $data['customer_details']->is_mobile_text == 1 && $data['customer_details']->phone != "") {
                         //$string = str_replace("{CUSTOMER_NAME}", $data['customer_details']->first_name . ' ' .$data['customer_details']->last_name,$company_email_details['one_day_prior_text']);
                         $text_res = Send_Text_dynamic($data['customer_details']->phone, $company_email_details['one_day_prior_text'], 'Scheduled Reminder');
                     }
@@ -3036,7 +3001,7 @@ class Welcome extends MY_Controller
 
                     // die(print_r($value));
 
-                    $invoice_details =  $this->INV->getOneInvoive($where);
+                    $invoice_details = $this->INV->getOneInvoive($where);
 
                     $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $value));
 
@@ -3144,7 +3109,7 @@ class Welcome extends MY_Controller
                     }
 
                     // Code to take into account an instance where report_id is not set
-                    else if (!$job_details && $invoice_details->json){
+                    else if (!$job_details && $invoice_details->json) {
                         $json = json_decode($invoice_details->json, true);
 
                         if (isset($json['manual_invoice']) && $json['manual_invoice'] == 1) {
@@ -3199,9 +3164,6 @@ class Welcome extends MY_Controller
                     }
                     $invoice_details->jobs = $jobs;
                     $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $value));
-                    $invoice_details->invoice_partials_payments = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $value));
-                    
-
                     $data['invoice_details'][] = $invoice_details;
                 }
 
@@ -3847,7 +3809,7 @@ class Welcome extends MY_Controller
         $this->load->model('../modules/admin/models/Invoice_sales_tax_model', 'InvoiceSalesTax_2');
 
         $invoice_id = base64_decode($invoice_id);
-        if (!$this->isActive($invoice_id)){
+        if (!$this->isActive($invoice_id)) {
             die('Something has gone wrong. The Invoice you are trying to pay is not active.');
         }
         $where = array('invoice_id' => $invoice_id);
@@ -4108,7 +4070,7 @@ class Welcome extends MY_Controller
         $data['requestData']['address'] = $customer_details['billing_street'];
         $data['requestData']['city'] = $customer_details['billing_city'];
         $data['requestData']['region'] = $customer_details['billing_state'];
-        $data['requestData']['postal'] = str_replace(' ', '', $customer_details['billing_zipcode']);//strip whitespace from CA postcode
+        $data['requestData']['postal'] = str_replace(' ', '', $customer_details['billing_zipcode']); //strip whitespace from CA postcode
         $data['requestData']['profile'] = 'Y';
         $data['requestData']['currency'] = $setting_details->company_currency;
         $data['requestData']['amount'] = number_format($total_amount, 2, '.', '');
@@ -4147,14 +4109,16 @@ class Welcome extends MY_Controller
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"></div>');
 
                 if ($invoice_details->payment_status != 2) {
-                    $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
-                        'invoice_id' => $data['invoice_id'],
-                        'payment_amount' => $data['requestData']['amount'] + $invoice_details->partial_payment,
-                        'payment_applied' => $data['requestData']['amount'] + $invoice_details->partial_payment,
-                        'payment_datetime' => date("Y-m-d H:i:s"),
-                        'payment_method' => 4,
-                        'customer_id' => $invoice_details->customer_id,
-                    ));
+                    $partial_log = $this->PartialPaymentModel->createOnePartialPayment(
+                        array(
+                            'invoice_id' => $data['invoice_id'],
+                            'payment_amount' => $data['requestData']['amount'] + $invoice_details->partial_payment,
+                            'payment_applied' => $data['requestData']['amount'] + $invoice_details->partial_payment,
+                            'payment_datetime' => date("Y-m-d H:i:s"),
+                            'payment_method' => 4,
+                            'customer_id' => $invoice_details->customer_id,
+                        )
+                    );
                     //KT and EE add status, opened_date, and sent date
                     $updatearr = array(
                         'payment_status' => 2,
@@ -4164,10 +4128,10 @@ class Welcome extends MY_Controller
                         'clover_order_id' => $order_id,
                         'clover_transaction_id' => $cc_authorize['result']->retref,
                         'refund_amount_total' => 0.00
-                    ,
+                        ,
                         'status' => 2,
                         'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
-                        'sent_date' => $invoice_details->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->sent_date
+                        'sent_date' => $invoice_details->sent_date == '' ? date("Y-m-d H:i:s") : $invoice_details->sent_date
                     );
 
                     $this->INV->updateInvoive(array('invoice_id' => $data['invoice_id']), $updatearr);
@@ -4253,7 +4217,7 @@ class Welcome extends MY_Controller
 
                     // die(print_r($value));
 
-                    $statement_details =  $this->STATE->getOneWorkStatement($where);
+                    $statement_details = $this->STATE->getOneWorkStatement($where);
 
                     $statement_details->report_details = $this->RP->getOneRepots(array('report_id' => $statement_details->report_id));
 
@@ -4429,11 +4393,12 @@ class Welcome extends MY_Controller
         }
     }
     #### ONLY RUN THIS FUNCTION TO SEED DATABASE WITH COMPANY SLUG FOR CUSTOMER PORTAL ####
-    public function updateAllCompanySlugs(){
+    public function updateAllCompanySlugs()
+    {
         $data['all_companies'] = $this->CompanyModel->getAllCompany();
         // die("IN UPDATE COMPANY SLUG FUNCTION");
         // die(print_r($data['all_companies']));
-        foreach($data['all_companies'] as $company){
+        foreach ($data['all_companies'] as $company) {
 
             $company_id = $company->company_id;
 
@@ -4442,10 +4407,10 @@ class Welcome extends MY_Controller
             $dup_company_check = [];
             $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $company->company_name)));
             //  $dup_slug_check = $this->CompanyModel->getAllCompanySlugDuplicates(array('slug' => $slug));
-            $dup_company_check = $this->CompanyModel->getAllCompanySlugDuplicates(array('company_name' =>$company->company_name));
+            $dup_company_check = $this->CompanyModel->getAllCompanySlugDuplicates(array('company_name' => $company->company_name));
             // die(print_r($dup_company_check));
-            if(count($dup_company_check)>1){
-                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $slug.'-'.$city)));
+            if (count($dup_company_check) > 1) {
+                $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $slug . '-' . $city)));
                 // $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $slug.$city[1])));
                 // die(print_r($slug));
                 $param = array(
@@ -4811,7 +4776,8 @@ class Welcome extends MY_Controller
         $this->dompdf->stream("welcome.pdf", array("Attachment" => 0));
     }
 
-    public function unsubscribePropertyEmail($group_billing_id){
+    public function unsubscribePropertyEmail($group_billing_id)
+    {
         $param = array('email_opt_in' => 0);
         $this->PropertyModel->updateGroupBilling($group_billing_id, $param);
         $this->load->view('message');
@@ -4841,30 +4807,30 @@ class Welcome extends MY_Controller
                 $data['invoice_ids'] = $invoice_ids;
                 $data['company_id'] = $company_id;
                 $invoice_ids = explode(",", $invoice_ids);
-                $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id'=>$company_id));
+                $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
 
                 foreach ($invoice_ids as $key => $value) {
 
                     $where = array(
                         "invoice_tbl.company_id" => $data['company_id'],
-                        'invoice_id' =>$value
+                        'invoice_id' => $value
                     );
-                    $invoice_details =  $this->INV->getOneInvoive($where);
-                    if(!empty($invoice_details->property_id)){
+                    $invoice_details = $this->INV->getOneInvoive($where);
+                    if (!empty($invoice_details->property_id)) {
                         $invoice_details->group_billing_details = $this->PropertyModel->getGroupBillingByProperty($invoice_details->property_id);
                     }
-                    if(empty($invoice_details->job_id)){
+                    if (empty($invoice_details->job_id)) {
                         //get job data
                         $jobs = array();
 
-                        $job_details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram(array('property_program_job_invoice.invoice_id' =>$value));
+                        $job_details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram(array('property_program_job_invoice.invoice_id' => $value));
 
-                        if($job_details){
+                        if ($job_details) {
                             //print_r($job_details);
-                            foreach($job_details as $detail){
-                                $get_assigned_date = $this->Tech->getOneJobAssign(array('technician_job_assign.job_id'=>$detail['job_id'],'invoice_id'=>$value));
-                                if(isset($detail['report_id'])){
-                                    $report = $this->RP->getOneRepots(array('report_id'=>$detail['report_id']));
+                            foreach ($job_details as $detail) {
+                                $get_assigned_date = $this->Tech->getOneJobAssign(array('technician_job_assign.job_id' => $detail['job_id'], 'invoice_id' => $value));
+                                if (isset($detail['report_id'])) {
+                                    $report = $this->RP->getOneRepots(array('report_id' => $detail['report_id']));
                                 } else {
                                     $report = '';
                                 }
@@ -4890,14 +4856,14 @@ class Welcome extends MY_Controller
 
 
 
-                                $jobs[]=array(
-                                    'job_id'=>$detail['job_id'],
-                                    'job_name'=>$detail['job_name'],
-                                    'job_description'=>$detail['job_description'],
-                                    'job_cost'=>$detail['job_cost'],
-                                    'job_assign_date'=>isset($get_assigned_date->job_assign_date) ? $get_assigned_date->job_assign_date : '',
-                                    'program_name'=>isset($detail['program_name']) ? $detail['program_name'] : '',
-                                    'job_report'=>isset($report) ? $report : '',
+                                $jobs[] = array(
+                                    'job_id' => $detail['job_id'],
+                                    'job_name' => $detail['job_name'],
+                                    'job_description' => $detail['job_description'],
+                                    'job_cost' => $detail['job_cost'],
+                                    'job_assign_date' => isset($get_assigned_date->job_assign_date) ? $get_assigned_date->job_assign_date : '',
+                                    'program_name' => isset($detail['program_name']) ? $detail['program_name'] : '',
+                                    'job_report' => isset($report) ? $report : '',
                                     'coupon_job_amm' => $coupon_job_amm,
                                     'coupon_job_amm_calc' => $coupon_job_amm_calc,
                                     'coupon_job_code' => $coupon_job_code,
@@ -4908,12 +4874,12 @@ class Welcome extends MY_Controller
                         $invoice_details->jobs = $jobs;
                     }
 
-                    if(!empty($invoice_details->report_id)){
-                        $invoice_details->report_details =  $this->RP->getOneRepots(array('report_id'=>$invoice_details->report_id));
+                    if (!empty($invoice_details->report_id)) {
+                        $invoice_details->report_details = $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
                     }
 
                     $data['invoice_details'][] = $invoice_details;
-                    $this->load->view('admin/invoice/multiple_pdf_invoice_print_group_billing',$data);
+                    $this->load->view('admin/invoice/multiple_pdf_invoice_print_group_billing', $data);
                     $html = $this->output->get_output();
                     //  // Load pdf library
 
@@ -4966,30 +4932,30 @@ class Welcome extends MY_Controller
                 $data['invoice_ids'] = $invoice_ids;
                 $data['company_id'] = $company_id;
                 $invoice_ids = explode(",", $invoice_ids);
-                $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id'=>$company_id));
+                $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
 
                 foreach ($invoice_ids as $key => $value) {
 
                     $where = array(
                         "invoice_tbl.company_id" => $data['company_id'],
-                        'invoice_id' =>$value
+                        'invoice_id' => $value
                     );
-                    $invoice_details =  $this->INV->getOneInvoive($where);
-                    if(!empty($invoice_details->property_id)){
+                    $invoice_details = $this->INV->getOneInvoive($where);
+                    if (!empty($invoice_details->property_id)) {
                         $invoice_details->group_billing_details = $this->PropertyModel->getGroupBillingByProperty($invoice_details->property_id);
                     }
-                    if(empty($invoice_details->job_id)){
+                    if (empty($invoice_details->job_id)) {
                         //get job data
                         $jobs = array();
 
-                        $job_details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram(array('property_program_job_invoice.invoice_id' =>$value));
+                        $job_details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram(array('property_program_job_invoice.invoice_id' => $value));
 
-                        if($job_details){
+                        if ($job_details) {
                             //print_r($job_details);
-                            foreach($job_details as $detail){
-                                $get_assigned_date = $this->Tech->getOneJobAssign(array('technician_job_assign.job_id'=>$detail['job_id'],'invoice_id'=>$value));
-                                if(isset($detail['report_id'])){
-                                    $report = $this->RP->getOneRepots(array('report_id'=>$detail['report_id']));
+                            foreach ($job_details as $detail) {
+                                $get_assigned_date = $this->Tech->getOneJobAssign(array('technician_job_assign.job_id' => $detail['job_id'], 'invoice_id' => $value));
+                                if (isset($detail['report_id'])) {
+                                    $report = $this->RP->getOneRepots(array('report_id' => $detail['report_id']));
                                 } else {
                                     $report = '';
                                 }
@@ -5015,14 +4981,14 @@ class Welcome extends MY_Controller
 
 
 
-                                $jobs[]=array(
-                                    'job_id'=>$detail['job_id'],
-                                    'job_name'=>$detail['job_name'],
-                                    'job_description'=>$detail['job_description'],
-                                    'job_cost'=>$detail['job_cost'],
-                                    'job_assign_date'=>isset($get_assigned_date->job_assign_date) ? $get_assigned_date->job_assign_date : '',
-                                    'program_name'=>isset($detail['program_name']) ? $detail['program_name'] : '',
-                                    'job_report'=>isset($report) ? $report : '',
+                                $jobs[] = array(
+                                    'job_id' => $detail['job_id'],
+                                    'job_name' => $detail['job_name'],
+                                    'job_description' => $detail['job_description'],
+                                    'job_cost' => $detail['job_cost'],
+                                    'job_assign_date' => isset($get_assigned_date->job_assign_date) ? $get_assigned_date->job_assign_date : '',
+                                    'program_name' => isset($detail['program_name']) ? $detail['program_name'] : '',
+                                    'job_report' => isset($report) ? $report : '',
                                     'coupon_job_amm' => $coupon_job_amm,
                                     'coupon_job_amm_calc' => $coupon_job_amm_calc,
                                     'coupon_job_code' => $coupon_job_code,
@@ -5033,12 +4999,12 @@ class Welcome extends MY_Controller
                         $invoice_details->jobs = $jobs;
                     }
 
-                    if(!empty($invoice_details->report_id)){
-                        $invoice_details->report_details =  $this->RP->getOneRepots(array('report_id'=>$invoice_details->report_id));
+                    if (!empty($invoice_details->report_id)) {
+                        $invoice_details->report_details = $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
                     }
 
                     $data['invoice_details'][] = $invoice_details;
-                    $this->load->view('admin/invoice/multiple_pdf_invoice_print_group_billing',$data);
+                    $this->load->view('admin/invoice/multiple_pdf_invoice_print_group_billing', $data);
                     $html = $this->output->get_output();
                     echo $html;
                     exit;
@@ -5062,9 +5028,10 @@ class Welcome extends MY_Controller
         $where = array(
             'invoice_date >' => $invoice_date,
             'status' => 0,
+            'email >' => '\'\''
         );
         $completed_job_customer_detail = $this->INV->getCompletedJobCustomerDetail($where);
-//		die(print_r($completed_job_customer_detail));
+        //		die(print_r($completed_job_customer_detail));
         $customer_wise_data = [];
         foreach ($completed_job_customer_detail as $detail) {
             if ($detail['report_id'] > 0) {
@@ -5144,11 +5111,11 @@ class Welcome extends MY_Controller
                     array_push($batch_insert_arr, $hash_tbl_arr);
                 }
                 $this->db->insert_batch('invoice_hash_tbl', $batch_insert_arr);
-                //				echo "this customer has an invoice: ".$data['customer_details']->customer_id;
+                //echo "this customer has an invoice: ".$data['customer_details']->customer_id;
                 $body = $this->load->view('invoice_daily_mail', $data, true);
-                if($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'monthly'){
-                    $res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" =>$data['setting_details']->company_email), $body, 'Invoice Details', $data['customer_details']->secondary_email);
-                    //					echo "sending daily invoice email to customer id = ".$data['customer_details']->customer_id;
+                if ($data['customer_details']->autosend_invoices == 1 && $data['customer_details']->autosend_frequency == 'monthly') {
+                    $res = Send_Mail_dynamic($company_email_details, $data['customer_details']->email, array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email), $body, 'Invoice Details', $data['customer_details']->secondary_email);
+                    //echo "sending daily invoice email to customer id = ".$data['customer_details']->customer_id;
                 }
 
 
@@ -5157,7 +5124,8 @@ class Welcome extends MY_Controller
         }
     }
 
-    public function calculateEstimateCouponCost($param = array()){
+    public function calculateEstimateCouponCost($param = array())
+    {
         $total_cost = $param['cost'];
         $coupon_estimate = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $param['estimate_id']));
 
@@ -5182,7 +5150,7 @@ class Welcome extends MY_Controller
                     if ($coupon_details->amount_calculation == 0) {
                         $discount_amm = (float) $coupon_details->amount;
 
-                        if (($total_cost - $discount_amm) < 0 ) {
+                        if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
                         } else {
                             $total_cost -= $discount_amm;
@@ -5192,7 +5160,7 @@ class Welcome extends MY_Controller
                         $percentage = (float) $coupon_details->amount;
                         $discount_amm = (float) $total_cost * ($percentage / 100);
 
-                        if (($total_cost - $discount_amm) < 0 ) {
+                        if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
                         } else {
                             $total_cost -= $discount_amm;
@@ -5206,14 +5174,17 @@ class Welcome extends MY_Controller
         return number_format($total_cost, 2, '.', ',');
     }
 
-    public function calculateServiceCouponCost($param = array()){
+    public function calculateServiceCouponCost($param = array())
+    {
         $total_cost = $param['cost'];
-        $coupon_jobs = $this->CouponModel->getAllCouponJob(array(
-            'job_id' => $param['job_id'],
-            'program_id' => $param['program_id'],
-            'property_id' => $param['property_id'],
-            'customer_id' => $param['customer_id']
-        ));
+        $coupon_jobs = $this->CouponModel->getAllCouponJob(
+            array(
+                'job_id' => $param['job_id'],
+                'program_id' => $param['program_id'],
+                'property_id' => $param['property_id'],
+                'customer_id' => $param['customer_id']
+            )
+        );
 
         if (!empty($coupon_jobs)) {
             foreach ($coupon_jobs as $coupon_job) {
@@ -5236,7 +5207,7 @@ class Welcome extends MY_Controller
                     if ($coupon_details->amount_calculation == 0) {
                         $discount_amm = (float) $coupon_details->amount;
 
-                        if (($total_cost - $discount_amm) < 0 ) {
+                        if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
                         } else {
                             $total_cost -= $discount_amm;
@@ -5246,7 +5217,7 @@ class Welcome extends MY_Controller
                         $percentage = (float) $coupon_details->amount;
                         $discount_amm = (float) $total_cost * ($percentage / 100);
 
-                        if (($total_cost - $discount_amm) < 0 ) {
+                        if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
                         } else {
                             $total_cost -= $discount_amm;
@@ -5260,7 +5231,8 @@ class Welcome extends MY_Controller
         return number_format($total_cost, 2, '.', ',');
     }
 
-    public function calculateCustomerCouponCost($param = array()){
+    public function calculateCustomerCouponCost($param = array())
+    {
         $total_cost = $param['cost'];
         $coupon_customers = $this->CouponModel->getAllCouponCustomerCouponDetails(array('customer_id' => $param['customer_id']));
 
@@ -5285,7 +5257,7 @@ class Welcome extends MY_Controller
                     if ($coupon_details->amount_calculation == 0) {
                         $discount_amm = (float) $coupon_details->amount;
 
-                        if (($total_cost - $discount_amm) < 0 ) {
+                        if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
                         } else {
                             $total_cost -= $discount_amm;
@@ -5295,7 +5267,7 @@ class Welcome extends MY_Controller
                         $percentage = (float) $coupon_details->amount;
                         $discount_amm = (float) $total_cost * ($percentage / 100);
 
-                        if (($total_cost - $discount_amm) < 0 ) {
+                        if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
                         } else {
                             $total_cost -= $discount_amm;
@@ -5341,15 +5313,17 @@ class Welcome extends MY_Controller
         $company_details = $this->checkQuickbookTwo();
         if ($company_details) {
 
-            $dataService = DataService::Configure(array(
-                'auth_mode' => 'oauth2',
-                'ClientID' => $company_details->quickbook_client_id,
-                'ClientSecret' => $company_details->quickbook_client_secret,
-                'accessTokenKey' => $company_details->access_token_key,
-                'refreshTokenKey' => $company_details->refresh_token_key,
-                'QBORealmID' => $company_details->qbo_realm_id,
-                'baseUrl' => "Production"
-            ));
+            $dataService = DataService::Configure(
+                array(
+                    'auth_mode' => 'oauth2',
+                    'ClientID' => $company_details->quickbook_client_id,
+                    'ClientSecret' => $company_details->quickbook_client_secret,
+                    'accessTokenKey' => $company_details->access_token_key,
+                    'refreshTokenKey' => $company_details->refresh_token_key,
+                    'QBORealmID' => $company_details->qbo_realm_id,
+                    'baseUrl' => "Production"
+                )
+            );
 
             $dataService->setLogLocation("/QBO_log.txt");
 
@@ -5361,7 +5335,7 @@ class Welcome extends MY_Controller
                 $return_error .= "The Helper message is: " . $error->getOAuthHelperError() . "\n";
                 $return_error .= "The Response message is: " . $error->getResponseBody() . "\n";
 
-                return   false;
+                return false;
             } else {
 
                 if (!empty($entities)) {
@@ -5394,7 +5368,7 @@ class Welcome extends MY_Controller
             try {
 
 
-                $oauth2LoginHelper = new OAuth2LoginHelper($company_details->quickbook_client_id, $company_details->quickbook_client_secret);  // clint id , clint sceter
+                $oauth2LoginHelper = new OAuth2LoginHelper($company_details->quickbook_client_id, $company_details->quickbook_client_secret); // clint id , clint sceter
                 $accessTokenObj = $oauth2LoginHelper->refreshAccessTokenWithRefreshToken($company_details->refresh_token_key);
                 $accessTokenValue = $accessTokenObj->getAccessToken();
                 $refreshTokenValue = $accessTokenObj->getRefreshToken();
@@ -5431,15 +5405,17 @@ class Welcome extends MY_Controller
 
             // die(print_r($company_details));
 
-            $dataService = DataService::Configure(array(
-                'auth_mode' => 'oauth2',
-                'ClientID' => $company_details->quickbook_client_id,
-                'ClientSecret' => $company_details->quickbook_client_secret,
-                'accessTokenKey' => $company_details->access_token_key,
-                'refreshTokenKey' => $company_details->refresh_token_key,
-                'QBORealmID' => $company_details->qbo_realm_id,
-                'baseUrl' => "Production"
-            ));
+            $dataService = DataService::Configure(
+                array(
+                    'auth_mode' => 'oauth2',
+                    'ClientID' => $company_details->quickbook_client_id,
+                    'ClientSecret' => $company_details->quickbook_client_secret,
+                    'accessTokenKey' => $company_details->access_token_key,
+                    'refreshTokenKey' => $company_details->refresh_token_key,
+                    'QBORealmID' => $company_details->qbo_realm_id,
+                    'baseUrl' => "Production"
+                )
+            );
 
             $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
@@ -5451,7 +5427,7 @@ class Welcome extends MY_Controller
 
             $details = getVisIpAddr();
 
-            $all_sales_tax =  $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $param['invoice_id']));
+            $all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $param['invoice_id']));
 
             $description = 'Service Name: ' . $param['job_name'] . '. Service Description: ' . $param['actual_description_for_QBO'] . '. Service Address: ' . $param['property_street'] . '.';
 
@@ -5461,7 +5437,7 @@ class Welcome extends MY_Controller
                 "DetailType" => "SalesItemLineDetail",
                 "SalesItemLineDetail" => array(
                     "TaxCodeRef" => array(
-                        "value" =>  $details->geoplugin_countryCode == 'IN' ? 3 : 'TAX'
+                        "value" => $details->geoplugin_countryCode == 'IN' ? 3 : 'TAX'
                         // "value" =>  'TAX'
                     )
                 )
@@ -5471,12 +5447,12 @@ class Welcome extends MY_Controller
 
                 foreach ($all_sales_tax as $key => $value) {
                     $line_ar[] = array(
-                        "Description" =>  'Sales Tax: ' . $value['tax_name'] . ' (' . floatval($value['tax_value']) . '%) ',
+                        "Description" => 'Sales Tax: ' . $value['tax_name'] . ' (' . floatval($value['tax_value']) . '%) ',
                         "Amount" => $value['tax_amount'],
                         "DetailType" => "SalesItemLineDetail",
                         "SalesItemLineDetail" => array(
                             "TaxCodeRef" => array(
-                                "value" =>  $details->geoplugin_countryCode == 'IN' ? 3 : 'TAX'
+                                "value" => $details->geoplugin_countryCode == 'IN' ? 3 : 'TAX'
                                 // "value" =>  'TAX'
                             )
                         )
@@ -5526,7 +5502,8 @@ class Welcome extends MY_Controller
         }
     }
 
-    public function pdfPurchaseOrder($purchase_order_id){
+    public function pdfPurchaseOrder($purchase_order_id)
+    {
         $purchase_order_id = base64_decode($purchase_order_id);
 
         $where = array(
@@ -5570,7 +5547,8 @@ class Welcome extends MY_Controller
         $this->dompdf->stream("welcome.pdf", array("Attachment" => 0));
     }
 
-    public function PurchaseOrderAccept($purchase_order_id){
+    public function PurchaseOrderAccept($purchase_order_id)
+    {
 
         $this->load->model('VendorsModel', 'VendorsModel');
 
@@ -5590,7 +5568,8 @@ class Welcome extends MY_Controller
                 'purchase_sent_status' => 2,
                 'purchase_order_status' => 1,
                 'updated_at' => date("Y-m-d H:i:s"),
-                'open_date' => date("Y-m-d H:i:s"));
+                'open_date' => date("Y-m-d H:i:s")
+            );
 
             $result = $this->PurchasesModel->updatePurchaseOrder($whereArr, $param);
             // die(print_r($result));
@@ -5612,7 +5591,7 @@ class Welcome extends MY_Controller
 
                 $emaildata['vendorData'] = $this->VendorsModel->getOneVendor($purchase_order_details->vendor_id);
 
-                $emaildata['purchase_data_details'] = $this->PurchasesModel->getOnePurchase(array( 'purchase_order_tbl.purchase_order_id' => $purchase_order_id, 'purchase_order_status' => 1, 'purchase_order_tbl.vendor_id' => $vendor_id->vendor_id ));
+                $emaildata['purchase_data_details'] = $this->PurchasesModel->getOnePurchase(array('purchase_order_tbl.purchase_order_id' => $purchase_order_id, 'purchase_order_status' => 1, 'purchase_order_tbl.vendor_id' => $vendor_id->vendor_id));
 
                 $where = array('company_id' => $company_id);
                 $emaildata['company_details'] = $this->CompanyModel->getOneCompany($where);
@@ -5680,7 +5659,8 @@ class Welcome extends MY_Controller
         $this->load->view('purchase_order_message', $data);
     }
 
-    public function set_signwell_estimate_accepted($estimate_id) {
+    public function set_signwell_estimate_accepted($estimate_id)
+    {
         $this->load->model('Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel');
         $this->load->model('Invoice_sales_tax_model', 'InvoiceSalesTax');
         $this->load->model('Technician_model', 'Tech');
@@ -5690,7 +5670,7 @@ class Welcome extends MY_Controller
         $result = $this->EstimateModal->updateEstimate($where, $param);
         $estimate_details = $this->EstimateModal->getOneEstimate($where);
         $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $_SESSION["company_id"]));
-//        die($data['setting_details']->slug);
+        //        die($data['setting_details']->slug);
         if ($result) {
             ##### ADDED 3/1/22 #####
             $property_status = $this->PropertyModel->updateAdminTbl($estimate_details->property_id, array('property_status' => '1'));
@@ -6016,42 +5996,44 @@ class Welcome extends MY_Controller
                 }
             }
         }
-        header('Location: '.base_url('welcome/'.$data['setting_details']->slug."?estimate_accepted=true"));
+        header('Location: ' . base_url('welcome/' . $data['setting_details']->slug . "?estimate_accepted=true"));
     }
 
-    public function set_signwell_estimate_rejected($estimate_id) {
+    public function set_signwell_estimate_rejected($estimate_id)
+    {
         $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $_SESSION["company_id"]));
         $where = array('estimate_id' => $estimate_id);
         $param = array('status' => 5, 'estimate_update' => date("Y-m-d H:i:s"));
         $result = $this->EstimateModal->updateEstimate($where, $param);
-        header('Location: '.base_url('welcome/'.$data['setting_details']->slug."?estimate_rejected=true"));
+        header('Location: ' . base_url('welcome/' . $data['setting_details']->slug . "?estimate_rejected=true"));
     }
 
-    public function sendMonthlyInvoice() {
-        $file = fopen("MonthlyStatementResult.txt","w");
-        fwrite($file,'Init. Sending Monthly Statement Process. Date: '.date("Y/m/d"));
+    public function sendMonthlyInvoice()
+    {
+        $file = fopen("MonthlyStatementResult.txt", "w");
+        fwrite($file, 'Init. Sending Monthly Statement Process. Date: ' . date("Y/m/d"));
         fclose($file);
         $actual_link = "$_SERVER[REQUEST_URI]";
-        $actual_link = explode('/',$actual_link);
+        $actual_link = explode('/', $actual_link);
         $email = '';
 
 
-        if (isset($actual_link[3])){
+        if (isset($actual_link[3])) {
             $email = $actual_link[3];
         } /*else {
-            die('Add a valid email after the .../welcome/sendMonthlyInvoice/ on Url. example: http://'.$_SERVER['HTTP_HOST'].'/welcome/sendMonthlyInvoice/email@spraye.io');
-        }*/
+         die('Add a valid email after the .../welcome/sendMonthlyInvoice/ on Url. example: http://'.$_SERVER['HTTP_HOST'].'/welcome/sendMonthlyInvoice/email@spraye.io');
+         }*/
 
         $all_companies = $this->CompanyModel->getCompanyListSubscribedMonthlyStatement();
         // die(print_r($all_companies));
         $all_customers = [];
-        foreach ($all_companies as $key => $value){
+        foreach ($all_companies as $key => $value) {
             //   fwrite($file, 'Company: '.$value->company_id. '\n');
             //$invoiceAgeReport = $this->invoiceAgeReport($value->company_id);
             $aux = $this->ReportsModel->ajaxDataForInvoiceAgeReport($value->company_id);
             if (!empty($aux))
-                foreach ($aux as $value){
-                    array_push($all_customers,  $value);
+                foreach ($aux as $value) {
+                    array_push($all_customers, $value);
                 }
 
         }
@@ -6060,19 +6042,19 @@ class Welcome extends MY_Controller
         //die('<br>exit');
         //$id_customer = '40100'; // for testing
         //$email = 'alvaro.mho2@gmail.com'; // for testing
-        foreach (/*array_slice($all_customers,0,4)*/$all_customers as $key => $value){
+        foreach ( /*array_slice($all_customers,0,4)*/$all_customers as $key => $value) {
             //fwrite($file, 'Customer_id: '.$value. '\n');
             //echo print_r($value);
-            $resp =$this->INV->sendMonthlyInvoice($value,$email);
+            $resp = $this->INV->sendMonthlyInvoice($value, $email);
             //echo $resp;
             $this->load->clear_vars();
             // echo '<br>';
 
 
         }
-        $file = fopen("MonthlyStatementResult.txt","a");
-        fwrite($file,'Init. Sending Monthly Statement Process. Date: '.date("Y/m/d"));
-        fwrite($file,'Process ended');
+        $file = fopen("MonthlyStatementResult.txt", "a");
+        fwrite($file, 'Init. Sending Monthly Statement Process. Date: ' . date("Y/m/d"));
+        fwrite($file, 'Process ended');
         die('end');
 
 
@@ -6343,8 +6325,8 @@ class Welcome extends MY_Controller
         $final_data = array();
 
         //echo print_r($data);
-        foreach ( $data as $value){
-            if ($value['status'] != 0 && $value['balance_due']!= 0){
+        foreach ($data as $value) {
+            if ($value['status'] != 0 && $value['balance_due'] != 0) {
                 //echo $value->banlance_due;
                 $final_data[] = $value;
             }
@@ -6353,33 +6335,36 @@ class Welcome extends MY_Controller
     }
 
 
-    public function invoiceAgeReport($company_id){
+    public function invoiceAgeReport($company_id)
+    {
         // $this->load->model('AdminTbl_company_model', 'CompanyModel');
 
         //$company_id = $this->session->userdata['company_id'];
         #populate filter dropdowns
-        $data['customers'] = $this->Customer->getCustomerList(array('company_id'=>$company_id));
-        $data['service_areas'] = $this->ServiceArea->getAllServiceArea(array('company_id'=>$company_id));
-        $data['tax_details'] = $this->SalesTax->getAllSalesTaxArea(array('company_id'=>$company_id));
+        $data['customers'] = $this->Customer->getCustomerList(array('company_id' => $company_id));
+        $data['service_areas'] = $this->ServiceArea->getAllServiceArea(array('company_id' => $company_id));
+        $data['tax_details'] = $this->SalesTax->getAllSalesTaxArea(array('company_id' => $company_id));
         #get report data
         $report_data = array();
-        echo 'Company_id: ' . $company_id. '<br>';
+        echo 'Company_id: ' . $company_id . '<br>';
         #get customer invoices
         $customer_invoices = array();
         $current = [];
         $aged30 = [];
         $aged60 = [];
         $aged90 = [];
-        if(isset($data['customers']) && !empty($data['customers'])){
-            foreach($data['customers'] as $customer){
+        if (isset($data['customers']) && !empty($data['customers'])) {
+            foreach ($data['customers'] as $customer) {
                 //echo "CUSTOMER: ".$customer->customer_id."<br>";
                 $customer_invoices[$customer->customer_id] = array();
 
                 $whereArr = array(
-                    'customer_id'=>$customer->customer_id,
-                    'status !='=>0, //where status != unsent
-                    'payment_status !='=>2, //where payment_status != paid
-                    'is_archived'=>0, //where not archived
+                    'customer_id' => $customer->customer_id,
+                    'status !=' => 0,
+                    //where status != unsent
+                    'payment_status !=' => 2,
+                    //where payment_status != paid
+                    'is_archived' => 0, //where not archived
                 );
                 $invoices = $this->INV->getAllInvoicesReport($whereArr);
                 die(print_r($invoices));
@@ -6388,28 +6373,28 @@ class Welcome extends MY_Controller
                 $aged60_amount_due = 0;
                 $aged90_amount_due = 0;
 
-                foreach($invoices as $invoice){
+                foreach ($invoices as $invoice) {
                     #Calculate Amount Due: Cost - Coupons + Tax - Partial Payments
                     #check for coupons at customer, property, job level
 
                     $job_cost_total = 0;
-                    $invoice_jobs = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon(array('invoice_id'=>$invoice->invoice_id));
+                    $invoice_jobs = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon(array('invoice_id' => $invoice->invoice_id));
 
                     if (!empty($invoice_jobs)) {
-                        foreach($invoice_jobs as $job) {
+                        foreach ($invoice_jobs as $job) {
                             $job_cost = $job['job_cost'];
 
                             $job_where = array(
                                 'job_id' => $job['job_id'],
-                                'customer_id' =>$job['customer_id'],
-                                'property_id' =>$job['property_id'],
-                                'program_id' =>$job['program_id']
+                                'customer_id' => $job['customer_id'],
+                                'property_id' => $job['property_id'],
+                                'program_id' => $job['program_id']
                             );
 
                             $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
                             if (!empty($coupon_job_details)) {
-                                foreach($coupon_job_details as $coupon) {
+                                foreach ($coupon_job_details as $coupon) {
                                     $coupon_job_amm_total = 0;
                                     $coupon_job_amm = $coupon->coupon_amount;
                                     $coupon_job_calc = $coupon->coupon_amount_calculation;
@@ -6430,12 +6415,12 @@ class Welcome extends MY_Controller
                             $job_cost_total += $job_cost;
                         }
                         $invoice_total_cost = $job_cost_total;
-                    }else {
+                    } else {
                         #account for old invoicing process
                         $invoice_total_cost = $invoice->cost;
                     }
                     #check for coupons at invoice level
-                    $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice->invoice_id ));
+                    $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice->invoice_id));
                     foreach ($coupon_invoice_details as $coupon_invoice) {
                         if (!empty($coupon_invoice)) {
                             $coupon_invoice_amm = $coupon_invoice->coupon_amount;
@@ -6457,11 +6442,11 @@ class Welcome extends MY_Controller
                     $amount_due = $invoice_total_cost + $invoice->tax_amount - $invoice->partial_payment;
 
                     /*$customer_invoices[$customer->customer_id][$invoice->invoice_id] = array(
-                        'cost'=>$invoice->cost,
-                        'cost_after_coupons'=>$invoice_total_cost,
-                        'tax_amount'=>$invoice->tax_amount,
-                        'partial_payment'=>$invoice->partial_payment,
-                        'total_amount_due'=>$amount_due,
+                    'cost'=>$invoice->cost,
+                    'cost_after_coupons'=>$invoice_total_cost,
+                    'tax_amount'=>$invoice->tax_amount,
+                    'partial_payment'=>$invoice->partial_payment,
+                    'total_amount_due'=>$amount_due,
                     ); */
                     #get age of invoice
                     $now = new DateTime('now');
@@ -6469,16 +6454,16 @@ class Welcome extends MY_Controller
                     $aged = $invoice_date->diff($now);
                     $aged = $aged->format('%r%a');
 
-                    if($aged <= 30){
+                    if ($aged <= 30) {
                         $current[] = $invoice->invoice_id;
                         $current_amount_due += $amount_due;
-                    }elseif($aged > 30 && $aged <= 60){
+                    } elseif ($aged > 30 && $aged <= 60) {
                         $aged30[] = $invoice->invoice_id;
                         $aged30_amount_due += $amount_due;
-                    }elseif($aged > 60 && $aged <= 90){
+                    } elseif ($aged > 60 && $aged <= 90) {
                         $aged60[] = $invoice->invoice_id;
                         $aged60_amount_due += $amount_due;
-                    }elseif($aged > 90){
+                    } elseif ($aged > 90) {
                         $aged90[] = $invoice->invoice_id;
                         $aged90_amount_due += $amount_due;
                     }
@@ -6503,20 +6488,20 @@ class Welcome extends MY_Controller
                 //echo "TOTAL 90+ Days: ".count($aged90)."<br><br>";
 
                 #remove customers with $0 balance
-                if($customer_total_due > 0){
+                if ($customer_total_due > 0) {
                     $report_data[] = $customer_invoices[$customer->customer_id];
                 }
-                if(is_array($current) && count($current) > 0){
-                    $data['current_invoices'] = implode(',',$current);
+                if (is_array($current) && count($current) > 0) {
+                    $data['current_invoices'] = implode(',', $current);
                 }
-                if(is_array($aged30) && count($aged30) > 0){
-                    $data['aged30_invoices'] = implode(',',$aged30);
+                if (is_array($aged30) && count($aged30) > 0) {
+                    $data['aged30_invoices'] = implode(',', $aged30);
                 }
-                if(is_array($aged60) && count($aged60) > 0){
-                    $data['aged60_invoices'] = implode(',',$aged60);
+                if (is_array($aged60) && count($aged60) > 0) {
+                    $data['aged60_invoices'] = implode(',', $aged60);
                 }
-                if(is_array($aged90) && count($aged90) > 0){
-                    $data['aged90_invoices'] = implode(',',$aged90);
+                if (is_array($aged90) && count($aged90) > 0) {
+                    $data['aged90_invoices'] = implode(',', $aged90);
                 }
             }
         }
@@ -6556,7 +6541,7 @@ class Welcome extends MY_Controller
 
 
         $invoices = $this->INV->ajaxActiveInvoiceTech($whereArr, $whereArrExclude, $whereArrExclude2, $orWhere);
-//        die($this->db->last_query());
+        //        die($this->db->last_query());
         // die(print_r($invoices));
 
         if (count($invoices) > 0) {

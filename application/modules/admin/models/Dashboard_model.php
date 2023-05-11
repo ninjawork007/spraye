@@ -462,7 +462,7 @@ class Dashboard_model extends CI_Model{
            `jobs`.`service_note`, `jobs`.`job_notes`, `customers`.`customer_status`,technician_job_assign.technician_id, completed_date_last_service_by_type');
         }
 //        $this->db->order_by($col,$dir);
-        if ($is_for_count == false) {
+        if ($is_for_count == false || $limit == 50) {
             $this->db->limit($limit, $start);
             $this->db->order_by($col,$dir);
         }
@@ -1044,7 +1044,7 @@ class Dashboard_model extends CI_Model{
 
        // $this->db->group_by('1,2,5,6,7,8,9');
 //        $this->db->order_by($col,$dir);
-        if ($is_for_count == false) {
+        if ($is_for_count == false || $limit == 50) {
             $this->db->limit($limit, $start);
         }
 

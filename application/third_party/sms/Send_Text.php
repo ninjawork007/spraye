@@ -1,4 +1,5 @@
 <?php
+require APPPATH . 'third_party/twilio-php-main/src/Twilio/autoload.php';
 function Send_Text_dynamic($to,$body,$subject){
 	log_message('info', '/*****************************************************************/');
 		
@@ -42,26 +43,16 @@ function Send_Text_dynamic($to,$body,$subject){
 		
 		$SID = "AC1a2f6cde1d32a846df3c035a574a627d";
 		$TOKEN = "02dcafa38846afbeb34dce008be76c42";
-		$url = "https://api.twilio.com/2010-04-01/Accounts/$SID/SMS/Messages";
+		$client = new Twilio\Rest\Client($SID, $TOKEN);
 		$from = "+18642074430";
-		$data = array (
-			'From' => $from,
-			'To' => $to,
-			'Body' => $body,
+		$message = $client->messages->create(
+			$to,
+			[
+				"from" => $from,
+				"body" => $body
+			]
 		);
-		$post = http_build_query($data);
-		$x = curl_init($url );
-		curl_setopt($x, CURLOPT_POST, true);
-		curl_setopt($x, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($x, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($x, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-		curl_setopt($x, CURLOPT_USERPWD, "$SID:$TOKEN");
-		curl_setopt($x, CURLOPT_POSTFIELDS, $post);
-		$y = curl_exec($x);
-		curl_close($x);
-	
-	return $y;
-	
+		return $message;	
 }
 
 ?>

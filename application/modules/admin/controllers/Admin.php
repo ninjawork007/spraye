@@ -774,8 +774,9 @@ class Admin extends MY_Controller
             'property_tbl.property_status !=' => 0,
         );
 
-        $or_where= [];	
-			
+        $or_where= [];
+        $draw = $this->input->post('draw');
+
 		if($this->input->post('markerarray')){	
 			$markerdata = json_decode($this->input->post('markerarray'));
 
@@ -902,6 +903,8 @@ class Admin extends MY_Controller
             }
         }
 
+        if ($draw == 1 && (empty($where_in) && empty($where_like)))
+            $limit = 50;
         // get data (2 separate fns for search and non search)
 
         /*-----------------------------------------------------------------------------------
@@ -965,8 +968,7 @@ class Admin extends MY_Controller
                     $tempdata  = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in, $or_where);
                     $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in, $or_where);
                 }
-
-                $var_total_item_count_for_pagination = count($var_total_item_count_for_pagination);
+//                $var_total_item_count_for_pagination = count($var_total_item_count_for_pagination);
                // $var_total_item_count_for_pagination = 600;             
             }
         }
@@ -1053,10 +1055,10 @@ class Admin extends MY_Controller
                 if ($value->asap == 1)
                     $asapHighligth = 1;
                 if($IsCustomerInHold==0){  //print_r($data);die();
-                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox map' />";
+                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox map' />";
                 }
                 else {
-                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-row-asap='$asapHighligth' name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox customer_in_hold' />";
+                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-row-asap='$asapHighligth' name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox customer_in_hold' />";
                 }
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' class='myCheckBox map' />";
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' value='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' data-iter=$i class='myCheckBox' />";
@@ -13633,7 +13635,6 @@ class Admin extends MY_Controller
 
         if (!empty($tempdata)) {
             $i = 0;
-			//die(print_r(count($tempdata)));
             // filter & mold data for frontend
             foreach ($tempdata as $key => $value) {
                 	//die(var_dump($tagSearch));
@@ -13717,10 +13718,10 @@ class Admin extends MY_Controller
                     $asapHighligth = 1;
 
                 if($IsCustomerInHold==0){  //print_r($data);die();
-                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox map' />";
+                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox map' />";
                 }
                 else {
-                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-row-asap='$asapHighligth'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox customer_in_hold' />";
+                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-row-asap='$asapHighligth'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox customer_in_hold' />";
                 }
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' class='myCheckBox map' />";
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' value='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' data-iter=$i class='myCheckBox' />";

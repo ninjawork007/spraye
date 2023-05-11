@@ -273,6 +273,7 @@
     }
 </style>
 <script>
+    var AllMarkers = [];
     var global_r = '';
     $priority_filter_input = '';
     var initial_load = true;
@@ -811,7 +812,7 @@
 
 <!--begin edit assign job  -->
 
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsn6KGL3R5IaZBQnVr5LowBTG9s19cRrc"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsn6KGL3R5IaZBQnVr5LowBTG9s19cRrc&libraries=drawing,geometry""></script>
 
 <script>
     	//console.log('loading job names');	
@@ -1154,6 +1155,7 @@
 
         var MapMarkers = [];
 
+
         var map;
         var marker;
         var markers = [];
@@ -1264,22 +1266,263 @@
 
             map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
 
+            const drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: google.maps.drawing.OverlayType.MARKER,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: [
+                        google.maps.drawing.OverlayType.POLYGON
+                    ],
+                },
+                poligonOptions: {
+                    fillColor: "#C0C0C0",
+                    fillOpacity: 1,
+                    strokeWeight: 5,
+                    clickable: true,
+                    editable: true,
+                    draggable: true,
+                    zIndex: 10,
+                },
+            });
            
-
+            drawingManager.setMap(map);
         
             
            var markers = MapMarkers;
+           let selectedMarkers = [];
+           let toRemoveMarkers = [];
+           let allOverlays = [];
+           let polygons = [];
+           function deleteAllShape() {
+                for (var i=0; i < allOverlays.length; i++)
+                {
+                    allOverlays[i].setMap(null);
+                }
+               allOverlays = [];
+            }
 
+            function reSelectVisibleMarkers()
+            {
+                if (allOverlays && allOverlays.length > 0)
+                {
+                    selectedMarkers = [];
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Selecting all properties inside this polygon for you...',// add html attribute if you want or remove
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+
+                    // Delay execution of the rest of the code by 10 milliseconds
+                    setTimeout(() => {
+                        for (i = 0; i < allOverlays.length; i++)
+                            allOverlays[i].setMap(map);
+
+                        selectMarkersInOverlay(map, allOverlays[0], markers);
+
+                        // Close the Sweet Alert loader in the callback function
+                        swal.close();
+
+                    }, 10);
+                }
+            }
+            function uniqueNumber()  {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
            //console.log(MapMarkers);
+            google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
 
            
+                let overlay = event.overlay;
+                allOverlays.push(overlay);
+                google.maps.event.addListener(overlay, 'click', function() {
+                    overlay.setEditable(true); // permite a edição do overlay
+                });
+                google.maps.event.addListener(overlay.getPath(), 'set_at', function(index) {
+                    console.log("Set");
+                    selectedMarkers = [];
+                    unCheckAll();
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Selecting all properties inside this polygon for you...',// add html attribute if you want or remove
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                    // Delay execution of the rest of the code by 10 milliseconds
+                    setTimeout(() => {
+                        selectMarkersInOverlay(map, overlay, markers);
 
+                        // Close the Sweet Alert loader in the callback function
+                        swal.close();
+
+                    }, 10);
+                });
+
+                google.maps.event.addListener(overlay.getPath(), 'insert_at', function(index) {
+
+                    selectedMarkers = [];
+                    unCheckAll();
+                    Swal.fire({
+                        title: 'Please Wait !',
+                        html: 'Selecting all properties inside this polygon for you...',// add html attribute if you want or remove
+                        allowOutsideClick: false,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                    // Delay execution of the rest of the code by 10 milliseconds
+                    setTimeout(() => {
+
+                        selectMarkersInOverlay(map, overlay, markers);
+
+                        // Close the Sweet Alert loader in the callback function
+                        swal.close();
+
+                    }, 10);
+                });
+                function onPolygonEdit() {
+                    // Encontre o índice do polígono editado no array polygons
+                    var editedPolygonIndex = -1;
+                    for (var i = 0; i < allOverlays.length; i++) {
+                        if (allOverlays[i] === overlay.getPath()) {
+                            editedPolygonIndex = i;
+                            break;
+                        }
+                    }
+                }
+                Swal.fire({
+                    title: 'Please Wait !',
+                    html: 'Selecting all properties inside this polygon for you...',// add html attribute if you want or remove
+                    allowOutsideClick: false,
+                    onBeforeOpen: () => {
+                        Swal.showLoading()
+                    },
+                });
+                // Delay execution of the rest of the code by 10 milliseconds
+                setTimeout(() => {
+                    selectMarkersInOverlay(map, overlay, markers);
+
+                    // Close the Sweet Alert loader in the callback function
+                    swal.close();
+
+                }, 10);
+            });
+           function checkPositionInAllOverlays(position) {
+               for(let j = 0; j < allOverlays.length; j++)
+               {
+                   if (google.maps.geometry.poly.containsLocation(position, allOverlays[j])) {
+                       return j;
+                   }
+               }
+               return -1;
+           }
+            function containsObject(obj, list) {
+                var x;
+                for (x in list) {
+                    if (list.hasOwnProperty(x) && list[x] === obj) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            function selectMarkersInOverlay(map, overlay, markers) {
+                if(markers.length == 0)
+                    markers = MapMarkers;
+                let timer = 0;
+                const start = Date.now();
+                let keys = [];
+                $(selectedMarkers).each(function(key, value) {
+                    if (value) {
+                        if (!keys.includes(key))
+                            keys.push(key);
+                    }
+                })
+                if(overlay instanceof google.maps.Polygon) {
+                    for (var i = 0; i < markers.length; i++) {
+                        if (markers[i].getMap())
+                        {
+                            var position = markers[i].getPosition();
+                            if (!keys.includes(i)) {
+                                let location = checkPositionInAllOverlays(position);
+                                console.log(location);
+                                if (location >= 0) {
+                                    if (!selectedMarkers[i]) {
+                                        let parentElementOnHold = $("#"+i).parent().parent().hasClass('row_in_hold');
+                                        // if (markers[i].index)
+                                        //     $("#"+markers[i].index).click();
+                                        // else
+                                        //     $("#"+i).click();
+                                        if (!parentElementOnHold)
+                                            selectedMarkers[i] = markers[i];
+                                    }
+                                } else {
+                                    if (selectedMarkers[i]) {
+                                        // if (selectedMarkers[i].index)
+                                        //     $("#"+selectedMarkers[i].index).click();
+                                        // else
+                                        //     $("#"+i).click();
+                                        selectedMarkers[i] = null;
+                                        toRemoveMarkers[i] = markers[i];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    console.log('Unsupported overlay type.');
+                }
+                const end = Date.now();
+                // let keys2 = Array.from(selectedMarkers.keys());
+                let str = '';
+                let ids = [];
+                let str2 = '';
+                let index;
+                
+                if (selectedMarkers.length > 0)
+                    $('#allMessage').prop('disabled', false);
+
+                $(selectedMarkers).each(function(key, value) {
+                    if (value) {
+                        if (!ids.includes(key)) {
+                            ids.push(key);
+                            index = key;
+                            str += "#"+key+',';
+                        }
+                    }
+                })
+                $(toRemoveMarkers).each(function(key, value) {
+                    if (value) {
+                        str2 += "#"+key+',';
+                    }
+                })
+
+                var answer = str.substring(0, str.length-1);
+                var answer2 = str2.substring(0, str2.length-1);
+
+                // $(answer).click();
+                // $(answer2).click();
+
+                $(answer).prop('checked', true);
+                $(answer2).prop('checked', false);
+                setTimeout(() => {
+                    checkMany(ids);
+                    sumSqrFeet();
+                }, 10);
+                console.log(`Execution time: ${end - start} ms`);
+                console.log(`Selected markers:`);
+                console.log(selectedMarkers.keys());
+            }
             google.maps.event.addListener(map, 'dragend', function boundsChanged() {
 
-                //console.log("This is initial load: " + initial_load);
-				//console.log(filteredMarkers);
-				//console.log(markers);
-                  
+                console.log("This is initial load(dragend): " + initial_load);
                 var validmarkers = [];
                 var passmarkers = [];
                 var count3 = 0;
@@ -1295,14 +1538,16 @@
                 /////
 				if(typeof table !== 'undefined')
 					{
-						console.log("this is our filteredMarkers");
-                       
+						// console.log("this is our filteredMarkers:"+filteredMarkers);
+                        console.log("table undefined");
 
                         filteredMarkers = [];
 
                         MapMarkers.forEach(item => {
                             item.setMap(null);
+                            item = null;
                         });
+                        MapMarkers = [];
 
 
                         var tableData = table.data();
@@ -1321,7 +1566,7 @@
                         var northWestLat = southWestLat;
                         var southEastLng = southWestLng;
                         var southEastLat = northEastLat;
-
+                        console.log("Typeof");
                         for (let i = 0; i < tableData.length; i++) {
 
                             var data = tableData[i];
@@ -1334,29 +1579,29 @@
                             var gudid = split2[0];
 
 
-                            var marker = new google.maps.Marker({
-                                icon: '<?= base_url("assets/img/default.png") ?>',
-                                position: new google.maps.LatLng(tableData[i].property_latitude, tableData[i].property_longitude),
-                                lat: tableData[i].property_latitude,
-                                lng: tableData[i].property_longitude,
-                                map: map,
-                                title: tableData[i].address,
-                                realval: gudid,
-                                index: i
+                            //var marker = new google.maps.Marker({
+                            //    icon: '<?php //= base_url("assets/img/default.png") ?>//',
+                            //    position: new google.maps.LatLng(tableData[i].property_latitude, tableData[i].property_longitude),
+                            //    lat: tableData[i].property_latitude,
+                            //    lng: tableData[i].property_longitude,
+                            //    map: map,
+                            //    title: tableData[i].address,
+                            //    realval: gudid,
+                            //    index: i
+                            //
+                            //});
 
-                            });
-
-                            latlngbounds.extend(marker.position);
+                            // latlngbounds.extend(marker.position);
 							//console.log("latlngbounds: ");
 							
-
-                            MapMarkers.push(marker);
+                            // MapMarkers.push(marker);
+                            // AllMarkers.push(marker);
 							//console.log('placing marker '+marker.position);
 
 
 						}
 				
-						}
+                    }
 				
 				//////
 							
@@ -1367,16 +1612,19 @@
 				
 				
 				for (var i = 0; i < markers.length; i++) {
-                    if (map.getBounds().contains(markers[i].getPosition())) {
+                    if(markers[i].getMap())
+                    {
+                        if (map.getBounds().contains(markers[i].getPosition())) {
                         
-                        passmarkers[i] = markers[i];
+                            passmarkers[i] = markers[i];
                         
-                        //need to get an array of valid markers here
-                        validmarkers[i] = markers[i].realval;
+                            //need to get an array of valid markers here
+                            validmarkers[i] = markers[i].realval;
                          
-                         count3++;
-                    } else {
-						//console.log("property out of bounds "+markers[i].realval);
+                            count3++;
+                        } else {
+                            //console.log("property out of bounds "+markers[i].realval);
+                        }
                     }
                 }
 
@@ -1396,8 +1644,7 @@
                        
                         count++;
 
-                        //console.log("VALID MARKER "+validmarkers[i]);
-						
+                        // console.log("VALID MARKER "+validmarkers[i]);
                         
 
                     } else {
@@ -1407,9 +1654,10 @@
                     
                     
                 }
+                console.log("makearray MARKER "+markerarray);
 				//console.log("VALID MARKER COUNT "+count);
 
-                //console.log("THIS IS COUNT OF VALID MARKERS " + count);
+                console.log("THIS IS COUNT OF VALID MARKERS " + count);
                // //console.log(count);
                 // for (var i = 0; i < validmarkers.length; i++) {
 
@@ -1426,7 +1674,7 @@
            
 
                     
-				//console.log("inside load map table init");
+				console.log("inside load map table init");
 
                 
                 table = $('#unassigntbl').on( 'draw.dt', function () {
@@ -1611,23 +1859,26 @@
 
                         console.log("this is our filteredMarkers2");
                        
+                        // deleteAllShape();
 
                         filteredMarkers = [];
 
                         MapMarkers.forEach(item => {
                             item.setMap(null);
-                        });
+                            item.setVisible(false);
+                            item = null
+                        })
 
-
+                        MapMarkers = [];
                         var tableData = table.data();
                         var latlngbounds = new google.maps.LatLngBounds();
 
                         //console.log("This is tableData: ");
                         //console.log(tableData);
 
-                        //console.log("This is tableData.length: ");
-                        //console.log(tableData.length);
-
+                        // console.log("This is tableData.length: ");
+                        // console.log(tableData.length);
+                        console.log("Initcomplete");
                         for (let i = 0; i < tableData.length; i++) {
 
                             var data = tableData[i];
@@ -1659,7 +1910,7 @@
                             (function(marker, data) {
                             google.maps.event.addListener(marker, "click", function(e) {
                                 infoWindow.setContent(tableData[i].address);
-
+                                $("#"+tableData[i].index).click();
                                 infoWindow.open(map, marker);
                             });
                             })(marker, data);
@@ -1667,24 +1918,22 @@
                             latlngbounds.extend(marker.position);
 							//console.log("latlngbounds: ");
 							
-
                             MapMarkers.push(marker);
+                            AllMarkers.push(marker);
 							//console.log('placing marker '+marker.position);
 
                         }
 
 
 
-                        
                         if (set_initial_center == true) {
-                        latlngbounds.extend(marker.position);
-            			map.fitBounds(latlngbounds);
-                        map.setZoom(4);
+                            latlngbounds.extend(marker.position);
+                            map.fitBounds(latlngbounds);
+                            map.setZoom(4);
                         
-                        set_initial_center = false;
+                            set_initial_center = false;
                         
                         }
-                       
 						//console.log("zoom level "+map.getZoom());
                      
                         // $("div.toolbar").html('');
@@ -2160,6 +2409,10 @@
                                     var _row=$(_col).parent();
                                     $(_row).addClass('row_in_hold');
                             });
+                            setTimeout(() => {
+                                //console.log("Delayed for 1 second.");
+                                reSelectVisibleMarkers();
+                            }, 500);
                         });
 
                         //on draw
@@ -2245,9 +2498,113 @@
             updateMapNote.classList.toggle('show');
         }
 
+        function sumSqrFeet()
+        {
+            var sqftTotal = 0;
+            $('#unassigntbl tbody input:checked').each(function() {
+                sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+            });
+            $('#totalSqFt').val(sqftTotal);
+
+            let applicationSqft = 0;
+            let tmpAddressArray = [];
+            $('#unassigntbl tbody input:checked').each(function() {
+                let currentAddress = $(this).parent().parent().find('td').eq(11).text();
+                if(!tmpAddressArray.includes(currentAddress)) {
+                    tmpAddressArray.push(currentAddress);
+                    applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+                }
+                //console.log(applicationSqft);
+                //console.log(tmpAddressArray);
+            });
+            $('#applicationSqFt').val(applicationSqft);
             
         
+            if(this.checked == false){ //if this item is unchecked
+                $("#select_all")[0].checked = false; //change "select all" checked status to false
+            }
 
+            //check "select all" if all checkbox items are checked
+            if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
+                $("#select_all")[0].checked = true; //change "select all" checked status to true
+            }
+        }
+        
+        function checkMany(ids)
+        {
+            for (j = 0; j < ids.length; j++)
+            {
+                var checked_realvalue = [];
+                $('input:checkbox.map').each(function(index, element) {
+                    ////console.log("REACHED INPUT CHECKBOX MAP");
+                    if ($("#"+ids[j]).is(":checked")) {
+                        // //console.log("if input checkbox map .each is checked");
+                        // //console.log("Index = " + index);
+                        var checked_value = $(this).data('realvalue');
+                        checked_realvalue.push(checked_value);
+                        ////console.log('checked: '+ $(this).val());
+
+                    }
+
+                });
+                ////console.log('array of checked indexes = ' + checked_realvalue);
+                $('#checkbox_realvalues_array').val(checked_realvalue);
+
+                /// END LF
+                position = $("#"+ids[j]).val();
+
+                for (let i = 0; i < filteredMarkers.length; i++) {
+                    // //console.log("position: " + position);
+                    // //console.log("filteredMarkers.index = " + filteredMarkers[i].index);
+                    if (position == filteredMarkers[i].index) {
+                        // //console.log(filteredMarkers[i]);
+                        var data = filteredMarkers[i];
+                        ////console.log(data);
+                    }
+                }
+
+                const image = "http://mt.googleapis.com/vt/icon/name=icons/spotlight/spotlight-poi.png";
+
+                let mapMarker = MapMarkers[position];
+                let myLatlng = new google.maps.LatLng(data.lat, data.lng);
+                let title = data.title;
+
+                ////console.log(MapMarkers);
+                if (mapMarker != null) {
+                    mapMarker.setMap(null);
+                }
+
+                if (!$("#"+ids[j]).is(":checked")) {
+
+                    //console.log("in inactive marker");
+
+                    marker = new google.maps.Marker({
+                        icon: '<?= base_url("assets/img/default.png") ?>',
+                        position: myLatlng,
+                        map: map,
+                        title: data.address
+                    });
+
+                    MapMarkers[position] = marker;
+                } else {
+
+                    marker = new google.maps.Marker({
+                        icon: '<?= base_url("assets/img/free-8-red.png") ?>',
+                        icon: image,
+                        position: myLatlng,
+                        map: map,
+                        title: data.address
+                    });
+                    MapMarkers[position] = marker;
+
+                }
+                var tableData = table.data();
+                google.maps.event.addListener(marker, "click", function(e) {
+                    $("#"+tableData[position].index).click();
+                });
+            }
+
+        }
         function addCheckBoxEvent() {
             ////console.log("entered addCheckBoxEvent");
 
@@ -2339,10 +2696,13 @@
                         map: map,
                         title: data.address
                     });
-
                     MapMarkers[position] = marker;
 
                 }
+                var tableData = table.data();
+                google.maps.event.addListener(marker, "click", function(e) {
+                    $("#"+tableData[position].index).click();
+                });
 
             });
 
@@ -2355,6 +2715,27 @@
                     sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
                 });
                 $('#totalSqFt').val(sqftTotal);
+                var sqftTotal = 0;
+                let applicationSqft = 0;
+                let tmpAddressArray = [];
+                $('.myCheckBox.map').each(function() { //iterate all listed checkbox items
+                    // this.checked = status; //change ".checkbox" checked status
+                    if ($(this).is(':checked')) {
+
+                        sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+                        let currentAddress = $(this).parent().parent().find('td').eq(11).text();
+                        if(!tmpAddressArray.includes(currentAddress)) {
+                            tmpAddressArray.push(currentAddress);
+                            applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+                        }
+
+                    }
+                });
+
+                $('#totalSqFt').val(sqftTotal);
+
+                $('#applicationSqFt').val(applicationSqft);
+
 
                 //uncheck "select all", if one of the listed checkbox item is unchecked
                 if (this.checked == false) { //if this item is unchecked
@@ -2412,6 +2793,37 @@
 
             $('#totalSqFt').val(sqftTotal);
 
+            let applicationSqft = 0;
+            let tmpAddressArray = [];
+
+            $('#unassigntbl tbody input:checked').each(function() {
+                let currentAddress = $(this).parent().parent().find('td').eq(11).text();
+                if(!tmpAddressArray.includes(currentAddress)) {
+                    tmpAddressArray.push(currentAddress);
+                    applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
+                }
+                //console.log(applicationSqft);
+                //console.log(tmpAddressArray);
+            });
+            $('#applicationSqFt').val(applicationSqft);
+            // //check "select all" if all checkbox items are checked
+            // if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
+            //     $("#select_all")[0].checked = true; //change "select all" checked status to true
+            // }
+            $('.myCheckBox.map').each(function(){ //iterate all listed checkbox items
+                //this.checked = status; //change ".checkbox" checked status
+                var has_customer_in_hold=$(this).hasClass("customer_in_hold");
+                console.log(has_customer_in_hold);
+                if(!has_customer_in_hold){
+                    console.log(this)
+                    $(this).checked = status; //change ".checkbox" checked status
+                }
+                if ($(this).is(':checked')) {
+                    // //console.log( $(this).parent().parent().find('td').eq(5).html() );
+                    sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+                }
+            });
+
         });
 
         //changes map marker highlights back to original
@@ -2421,6 +2833,7 @@
 
             MapMarkers.forEach(item => {
                 item.setMap(null);
+                item = null;
             });
 
             MapMarkers = [];
@@ -2499,6 +2912,7 @@
            
             MapMarkers.forEach(item => {
                 item.setMap(null);
+                item = null;
             });
 
             MapMarkers = [];
