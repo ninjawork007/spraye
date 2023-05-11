@@ -1224,14 +1224,14 @@ border-color : #fd7e14;
                                                         <?php
                                                         if(isset($customer_property->property_status)){
                                                             switch($customer_property->property_status){
-                                                                case 1: echo "Active";
-                                                                case 2: echo "Prospect";
-                                                                case 4: echo "Sales Call Scheduled";
-                                                                case 5: echo "Estimate Sent";
-                                                                case 6: echo "Estimate Decline";
-                                                                case 7: echo "Canceled - Moved";
-                                                                case 8: echo "Canceled - Do not call";
-                                                                case 9: echo "Canceled - Call Next Year";
+                                                                case 1: echo "Active"; break;
+                                                                case 2: echo "Prospect"; break;
+                                                                case 4: echo "Sales Call Scheduled"; break;
+                                                                case 5: echo "Estimate Sent"; break;
+                                                                case 6: echo "Estimate Decline"; break;
+                                                                case 7: echo "Canceled - Moved"; break;
+                                                                case 8: echo "Canceled - Do not call"; break;
+                                                                case 9: echo "Canceled - Call Next Year"; break;
                                                                 default: echo "Non-Active";
                                                             }
                                                         }
