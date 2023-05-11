@@ -44,7 +44,7 @@
         </div>
     </div>
 </div>
-<div class="panel panel-flat">
+<!--<div class="panel panel-flat">
     <div class="panel-body">
         <div class="post-list" id="cancel-report-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
             <div class="table-responsive table-spraye" style="min-height: 0px">
@@ -112,4 +112,4 @@
             </div>
         </div>
     </div>
-</div>
+</div>->

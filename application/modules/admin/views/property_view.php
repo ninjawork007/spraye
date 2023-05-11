@@ -284,6 +284,19 @@
 			<form action="admin/cancelProperty/" method="POST" enctype="multipart/form-data" id="cancel-property-form">
 				<input type="hidden" name="property_id" id="property_id" value="">
 				<div class="row">
+
+          <div class="form-group">
+            <div class="col-md-12">                   
+              <label>Cancel Status</label>
+              <select class="form-control" name="cancel_status" id="cancel_status" required>
+                <option value="7">Canceled - Moved</option>
+                <option value="8">Canceled - Do not call</option>
+                <option value="9">Canceled - Call Next Year</option>
+              </select>
+            </div>
+          </div>
+
+
 					<div class="form-group">
 						<div class="col-md-12">                   
 						  <label>What is the reason for canceling?</label>

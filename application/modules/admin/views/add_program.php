@@ -134,10 +134,15 @@
                        <div class="form-group" style="margin-bottom: 3px;">
                         <label class="control-label col-lg-2 col-sm-12 col-xs-12">Property List</label>
                         <div class="multi-select-full col-lg-9 col-sm-10 col-xs-10">
-                          <select   class="multiselect-select-all-filtering2 form-control" name="propertylistarray_tmp[]"  multiple="multiple"   id="property_list">
-                          <?php if (!empty($propertylist)) { foreach($propertylist as $value){ if(isset($value->property_status) && $value->property_status != 0){ ?>
+                          <select   class="multiselect-select-all-filtering2 form-control" name="propertylistarray_tmp[]"  multiple="multiple" id="property_list">
+                          <?php
+                          if (!empty($propertylist)){
+                            foreach($propertylist as $value){
+                              if(isset($value->property_status) && $value->property_status != 0 && $value->property_status != 7 && $value->property_status != 8 && $value->property_status != 9){ ?>
                               <option value="<?= $value->property_id ?>"><?= $value->property_title ?></option>  
-                          <?php } } }?>
+                                <?php}
+                              }
+                            }?>
                           </select>
                          
                        </div>

@@ -1644,20 +1644,24 @@ th,
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-						  <div class="form-group">
-							<label class="control-label col-lg-3">Property Status</label>
-							<div class="col-lg-9" style="    padding-left: 6px;">
-							  <select class="form-control" name="property_status" id="property_status" onchange="showDiv('hidden_source', this)">
-								<option value="">Select Any Status</option>
-								<option value="2" <?php echo  $propertyData['property_status'] == 2 ? 'selected' : '' ?>>Prospect</option>
-								<option value="1" <?php echo  $propertyData['property_status'] == 1 ? 'selected' : '' ?>>Active</option>
-								<option value="0" <?php echo  $propertyData['property_status'] == 0 ? 'selected' : '' ?>>Non-Active</option>
+                          <div class="form-group">
+                            <label class="control-label col-lg-3">Property Status</label>
+                            <div class="col-lg-9" style="    padding-left: 6px;">
+                              <select class="form-control" name="property_status" id="property_status" onchange="showDiv('hidden_source', this)">
+                                <option value="">Select Any Status</option>
+                                <option value="2" <?php echo  $propertyData['property_status'] == 2 ? 'selected' : '' ?>>Prospect</option>
+                                <option value="1" <?php echo  $propertyData['property_status'] == 1 ? 'selected' : '' ?>>Active</option>
+                                <option value="0" <?php echo  $propertyData['property_status'] == 0 ? 'selected' : '' ?>>Non-Active</option>
                                 <option value="3" <?php echo  $propertyData['property_status'] == 3 ? 'selected' : '' ?>>Estimate</option>
                                 <option value="4" <?php echo  $propertyData['property_status'] == 4 ? 'selected' : '' ?>>Sales Call Scheduled</option>
                                 <option value="5" <?php echo  $propertyData['property_status'] == 5 ? 'selected' : '' ?>>Estimate Sent</option>
                                 <option value="6" <?php echo  $propertyData['property_status'] == 6 ? 'selected' : '' ?>>Estimate Declined</option>
-							  </select>
-                              </div>
+
+                                <option value="7" <?php echo  $propertyData['property_status'] == 7 ? 'selected' : '' ?>>Canceled - Moved</option>
+                                <option value="8" <?php echo  $propertyData['property_status'] == 8 ? 'selected' : '' ?>>Canceled - Do not call</option>
+                                <option value="9" <?php echo  $propertyData['property_status'] == 9 ? 'selected' : '' ?>>Canceled - Call Next Year</option>
+                              </select>
+                            </div>
 							</div>
 						</div>
 						<div class="col-md-6">	

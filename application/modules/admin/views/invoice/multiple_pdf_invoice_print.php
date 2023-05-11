@@ -426,7 +426,7 @@
                                             <td></td>
                                             <td></td>
                                             <td class="border-bottom-blank-td text-left default-font-color">Partial Payment</td>
-                                            <td class="border-bottom-blank-td" align="center"><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                            <td class="border-bottom-blank-td" align="center"><?php echo date("m/d/Y", strtotime($PayLogs->payment_datetime)) ?></td>
                                             <td class="border-bottom-blank-td text-right" style="width: 100px; text-align: right;">$<?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
                                             </td>
                                         </tr>
@@ -990,9 +990,7 @@
 
                         <?php }
                     } else { ?>
-
-
-		                <?php if($product_details) { ?>
+                        <?php if($product_details) { ?>
                             <tr>
                                 <td width="100%">
                                     <table width="100%" class="table table-condensed mannual application_tbl">

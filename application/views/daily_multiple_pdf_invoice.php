@@ -517,7 +517,7 @@
                                     <tr>
                                         <td></td>
                                         <td></td>
-                                        <td class="border-bottom-blank-td text-left default-font-color">Partial Payment<br><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                        <td class="border-bottom-blank-td text-left default-font-color">Partial Payment<br><?php echo date("m/d/Y", strtotime($PayLogs->payment_datetime)) ?></td>
                                         <td class="border-bottom-blank-td text-right">$
                                             <?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
                                         </td>
@@ -616,348 +616,476 @@
 
                         </td>
                     </tr>
-
-
-
-
-
                 </tbody>
-
             </table>
 
+            
             <!-- START APPLICATION & PRODUCTS SECTION -->
-            <table width="100%" class="main table table-condensed" cellspacing="0">
+            <table width="100%" class="main table table-condensed">
                 <?php
                 $products = array();
                 $report_id = [];
-                if (isset($invoice_detail) && is_array($invoice_detail) && !empty($invoice_detail)) {
-                    foreach ($invoice_detail as $job) {
+                if (isset($invoice_detail) && is_array($invoice_detail) && !empty($invoice_detail) ) {
+                    $job = $invoice_detail;
+                    if ($job->report_id != '' && $job->report_id != 0) {
+                            if (is_array($job)){
+                                array_push($report_id, $job['report_id']);
+                                array_push( $products, array(
+                                    'job_id' => $job['job_id'],
+                                    'job_name' => $job['job_name'],
+                                    'report' => $job['job_report'],
+                                ));
+                            } else {
+                                array_push($report_id, $job->report_id);
+                                array_push( $products, array(
+                                    'job_id' => $job->job_id,
+                                    'job_name' => $job->job_name,
+                                    'report' => isset($job->report_detail)?$job->report_detail:$job->report,
+                                ));
+                            }
 
-                        if($job->report_id != ''){
-                             //die(print_r($job['job_report']));
-                            array_push($report_id, $job->report_id);
-                            //$job_report_id = $job['job_report']->report_id;
-                            //if ($job_report_id && $job_report_id != '') {
-                            $products[] = array(
-                                'job_id' => $job['job_id'],
-                                'job_name' => $job['job_name'],
-                                'report' => $job['job_report'],
-                            );
-                           // }
+                        } else {
+                            array_push($report_id, $job->jobs[0]['job_report']->report_id);
+                            array_push( $products, array(
+                                'job_id' => $job->jobs[0]['job_id'],
+                                'job_name' => $job->jobs[0]['job_name'],
+                                'report' => isset($job->jobs[0]['job_report'])?$job->jobs[0]['job_report']:$job->jobs[0]->report,
+                            ));
                         }
-                    }
+
+
                 } else {
-                    $job = $invoice_detail->jobs[0];
+                    $job = $invoice_detail;
+
                     if ($invoice_detail->report_id != 0) {
-                        array_push($report_id, $invoice_detail->report_id);
+
+                        array_push($report_id, $job->report_id);
                         $products[]= array(
-                            'job_id'=>$invoice_detail->job_id,
-                            'report'=>isset($invoice_detail->report_details) ? $invoice_detail->report_details : '',
+                            'job_id'=>($job->job_id == '')?$job->jobs[0]['job_id']:$job->job_id,
+                            'report'=> (isset($job->report))?$job->report: $job->report_details,
                         );
                     } else {
-                        array_push($report_id, $job['job_report']->report_id);
-                        if(isset($job['job_report']->job_id)){
-                            $products[] = array(
-                                'job_id' => $job['job_report']->job_id,
-                                'report' => isset($job['job_report']) ? $job['job_report'] : '',
-                            );
-                        }
+                        array_push($report_id, $job->jobs[0]['job_report']->report_id);
+                        $products[] = array(
+                            'job_id' => $job->job_id,
+                            'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
+                        );
                     }
                 }
-                foreach ($products as $k => $v) {
-                    $i = 0;
-                    //var_dump( $v['report']->report_id);
-                   //if ( is_array($v['report']) && !empty($v['report']))
-                        $product_details =  getProductByReport(array('report_id'=>$v['report']->report_id));
-                    //else
-                    //    $product_details =  getProductByReport(array('report_id'=>$report_id));
-                    //$product_details =  getProductByReport(array('report_id'=>$report_id[$k]));
-                    //$product_details =  getProductByReport(array('report_id' => $invoice_detail[$k]->report_id));
-
+                foreach($products as $k=>$v){
+                    if ($v['report'] !== ''){
+                        $rid = $v['report']->report_id;
+                    } else {
+                        $rid = $v['report'];
+                    }
+                    $product_details =  getProductByReport(array('report_id'=> $rid));
                     $invoice_report_details =  $v['report'];
 
-                    if ($invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time)) { ?>
+                    if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
 
-                        <tr>
-                            <td>
-                                <table width="100%" class="table table-condensed inside-tabel mannual application_tbl"
-                                    style="font-size:12px;" cellspacing="0">
-                                    <thead>
-                                        <tr width="100%" class="first_tr" style="text-transform:uppercase;">
-
-                                            <td align="left">&nbsp;&nbsp;APPLICATION & PRODUCT DETAILS</td>
-                                            <td></td>
-                                            <td align="right">
-                                                <?php if (isset($v['job_name'])) echo $v['job_name']; ?>&nbsp;&nbsp;</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr class="default-font-color">
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">DATE & TIME</td>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">PROPERTY ADDRESS</td>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">PROPERTY SIZE</td>
-                                        </tr>
+                        if ($setting_details->is_wind_speed==1 || $setting_details->is_wind_direction==1 || ($setting_details->is_temperature==1) || ($setting_details->is_applicator_name==1) || ($setting_details->is_applicator_number==1 && $invoice_report_details->applicator_number!='' ) ||  ($setting_details->is_applicator_phone==1 && $invoice_report_details->applicator_phone_number!='' ) || ($setting_details->is_property_address==1) || ($setting_details->is_property_size==1) || ($setting_details->is_date==1) || ($setting_details->is_time==1)    ) { ?>
+                            <tr>
+                                <td width="100%">
+                                    <table width="100%" class="table table-condensed mannual">
                                         <tr>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_date == 1) { ?>
-                                                <?= date("m/d/Y", strtotime($invoice_report_details->job_completed_date)) ?>
-                                                <?php } ?>
-                                                <br>
-                                                <?php if ($setting_details->is_time == 1) { ?>
-                                                <?= date("g:i A", strtotime($invoice_report_details->job_completed_time)) ?>
-                                                <?php } ?>
-                                            </td>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_property_address == 1) { ?>
-                                                <?= $property_address_first . ', ' . $invoice_detail->property_city . ', ' . $invoice_detail->property_state . ', ' . $invoice_detail->property_zip  ?>
-                                                <?php } ?>
-                                            </td>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_property_size == 1) { ?>
-                                                <?= $invoice_detail->yard_square_feet  . ' Sq. Ft.' ?>
-                                                <?php } ?>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-
-                        </tr>
-                        <tr>
-
-
-                            <!-- START APPLICATOR DETAILS SECTION -->
-
-                            <td>
-                                <table width="100%" class="table table-condensed inside-tabel mannual application_tbl"
-                                    style="font-size:12px;" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">APPLICATOR'S NAME</td>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">APPLICATOR'S NUMBER</td>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">APPLICATOR'S PHONE</td>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">WIND SPEED</td>
-                                            <td class="default-font-color border-bottom"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                                align="center">TEMP</td>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_applicator_name == 1) { ?>
-                                                <?= $invoice_report_details->user_first_name . ' ' . $invoice_report_details->user_last_name ?>
-                                                <?php } ?>
-                                            </td>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_applicator_number == 1) { ?>
-                                                <?= $invoice_report_details->applicator_number ?>
-                                                <?php } ?>
-                                            </td>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_applicator_phone == 1) { ?>
-                                                <?= $invoice_report_details->applicator_phone_number ?>
-                                                <?php } ?>
-                                            </td>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_wind_speed == 1) {    ?>
-                                                <?= $invoice_report_details->wind_speed ?>
-                                                <?php if ($setting_details->is_wind_direction == 1) { ?>
-                                                <?= $invoice_report_details->direction ?>
-                                                <?php }
-                                                        } ?>
-                                            </td>
-                                            <td align="center"
-                                                style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                                <?php if ($setting_details->is_temperature == 1) { ?>
-                                                <?= $invoice_report_details->temp ?>
-                                                <?php } ?>
+                                            <td>
+                                                <!-- START SINGLE APPLICATION PART -->
+                                                <table width="100%"
+                                                    class="table table-condensed inside-tabel mannual application_tbl"
+                                                    style="font-size:10px;" cellspacing="0">
+                                                    <thead>
+                                                        <tr class="first_tr" style="text-transform:uppercase;">
+                                                            <td colspan="4" valign="middle">&nbsp;&nbsp;APPLICATION & PRODUCT
+                                                                DETAILS</td>
+                                                            <td colspan="3" align="right" valign="middle">
+                                                                <?php if(isset($v['job_name'])) echo $v['job_name']; ?>&nbsp;&nbsp;
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="border-bottom default-font-color">
+                                                            <td class="default-font-color">DATE & TIME</td>
+                                                            <td class="default-font-color">PROPERTY ADDRESS</td>
+                                                            <td class="default-font-color" align="center">PROPERTY SIZE</td>
+                                                            <td class="default-font-color" align="center">APPLICATOR'S NAME</td>
+                                                            <td class="default-font-color" align="center">APPLICATOR'S NUMBER</td>
+                                                            <td class="default-font-color" align="center">WIND SPEED</td>
+                                                            <td class="default-font-color" align="center">TEMP</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td align="left">
+                                                                <?php if ($setting_details->is_date==1) { ?>
+                                                                <?=date("m/d/Y" ,strtotime( $invoice_report_details->job_completed_date))?>
+                                                                <?php } ?>
+                                                                <br>
+                                                                <?php if ($setting_details->is_time==1) { ?>
+                                                                <?= date("g:i A" ,strtotime( $invoice_report_details->job_completed_time)) ?>
+                                                                <?php } ?>
+                                                            </td>
+                                                            <td align="left">
+                                                                <?php if ($setting_details->is_property_address==1) { ?>
+                                                                <?= $property_address_first.', '.$invoice_detail->property_city.', '.$invoice_detail->property_state.', '.$invoice_detail->property_zip  ?>
+                                                                <?php } ?>
+                                                            </td>
+                                                            <td align="center">
+                                                                <?php if ($setting_details->is_property_size==1) { ?>
+                                                                <?= $invoice_detail->yard_square_feet  ?>
+                                                                <?php } ?>
+                                                            </td>
+                                                            <td align="center">
+                                                                <?php
+                                                                if ($setting_details->is_applicator_name==1) { ?>
+                                                                <?= $invoice_report_details->user_first_name.' '.$invoice_report_details->user_last_name ?>
+                                                                <?php } ?>
+                                                            </td>
+                                                            <td align="center">
+                                                                <?php
+                                                                if ($setting_details->is_applicator_number==1) { ?>
+                                                                <?= $invoice_report_details->applicator_number ?>
+                                                                <?php } ?>
+                                                            </td>
+                                                            <td align="center">
+                                                                <?php if ($setting_details->is_wind_speed==1) { ?>
+                                                                <?= $invoice_report_details->wind_speed ?>
+                                                                <?php if ($setting_details->is_wind_direction==1) { ?>
+                                                                <?= $invoice_report_details->direction ?>
+                                                                <?php } } ?>
+                                                            </td>
+                                                            <td align="center">
+                                                                <?php if ($setting_details->is_temperature==1) { ?>
+                                                                <?= $invoice_report_details->temp ?>
+                                                                <?php } ?>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
                                             </td>
                                         </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                        <?php if ($product_details) {
-                                            if ($setting_details->is_product_name || $setting_details->is_epa || $setting_details->is_active_ingredients || $setting_details->is_application_rate || $setting_details->is_estimated_chemical_used || $setting_details->is_chemical_type || $setting_details->is_re_entry_time || $setting_details->is_weed_pest_prevented || $setting_details->is_application_type) { ?>
+
+
+                                        <!-- START PRODUCT DETAILS SECTION -->
+
+                                        <?php
+                                        if($product_details) {
+                                            if ($setting_details->is_product_name || $setting_details->is_epa || $setting_details->is_active_ingredients || $setting_details->is_application_rate || $setting_details->is_estimated_chemical_used || $setting_details->is_chemical_type || $setting_details->is_re_entry_time || $setting_details->is_weed_pest_prevented || $setting_details->is_application_type   ) { ?>
+
                                                 <tr>
+
                                                     <td>
                                                         <!-- START SINGLE APPLICATION PART -->
-                        <table width="100%" class="table table-condensed inside-tabel mannual application_tbl"
-                            style="font-size:10px;" cellspacing="0">
-                            <thead>
-                                <tr class="default-font-color">
-                                    <td></td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">PRODUCT NAME</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center" width="30">EPA #</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">ACTIVE INGREDIENTS</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">APPLICATION RATE</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">Application Type</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">CHEMICAL TYPE</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">RE-ENTRY TIME</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">EST. CHEMICAL USED</td>
-                                    <td class="default-font-color border-bottom"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;"
-                                        align="center">WEED/PEST PREVENTED</td>
-                                    <td></td>
-                                </tr>
-                            </thead>
-                            <tbody>
+                                                        <table width="100%"
+                                                            class="table table-condensed inside-tabel mannual application_tbl"
+                                                            style="font-size:10px;" cellspacing="0">
+                                                            <thead>
+                                                                <tr class="default-font-color">
+                                                                    <td></td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        PRODUCT NAME</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center"
+                                                                        width="30">EPA #</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        ACTIVE INGREDIENTS</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        APPLICATION RATE</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        Application Type</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        CHEMICAL TYPE</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        RE-ENTRY TIME</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        EST. CHEMICAL USED</td>
+                                                                    <td class="border-bottom-blank-td default-font-color" align="center">
+                                                                        WEED/PEST PREVENTED</td>
+                                                                    <td></td>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
 
-                                <?php foreach ($product_details as $key => $product_details_value) {
+                                                                <?php foreach($product_details as $key => $product_details_value) {
 
-                                                    $ingredientDatails = getActiveIngredient(array('product_id' => $product_details_value->product_id));
-                                                    $ingredientarr = array();
-                                                    if ($ingredientDatails) {
-                                                        foreach ($ingredientDatails as $key2 => $value2) {
-                                                            $ingredientarr[] =  $value2->active_ingredient . ' : ' . $value2->percent_active_ingredient . ' % ';
-                                                        }
-                                                    }
+                                                                    $ingredientDatails = getActiveIngredient(array('product_id'=>$product_details_value->product_id));
+                                                                    $ingredientarr = array();
+                                                                    if ($ingredientDatails) { 
+                                                                        foreach ($ingredientDatails as $key2 => $value2) { 
+                                                                            $ingredientarr[] =  $value2->active_ingredient.' : '.$value2->percent_active_ingredient.' % ';
+                                                                        } 
+                                                                    }
 
-                                                        //$estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$invoice_detail->yard_square_feet);
-                                                        // die(print_r($product_details_value));
-                                                        $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
+                                                                   // die(print_r($product_details_value));
+                                                                    $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
 
 
-                                                    if ($setting_details->is_product_name == 1 || ($setting_details->is_epa == 1 && $product_details_value->epa_reg_nunber)  || ($setting_details->is_active_ingredients == 1 && $ingredientDatails) || ($setting_details->is_application_rate == 1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate != 0) ||  ($setting_details->is_estimated_chemical_used == 1 && $estimated_chemical_used != '') || ($setting_details->is_chemical_type == 1 && $product_details_value->chemical_type != 0) ||  ($setting_details->is_re_entry_time == 1 && $product_details_value->re_entry_time != '') || ($setting_details->is_weed_pest_prevented == 1 && $product_details_value->weed_pest_prevented != '') ||  ($setting_details->is_application_type == 1 && $product_details_value->application_type != 0)) { ?>
-                                <tr>
-                                    <td></td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_product_name == 1) { ?>
-                                        <?= $product_details_value->product_name ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_epa == 1 && $product_details_value->epa_reg_nunber) { ?>
-                                        <?= $product_details_value->epa_reg_nunber ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_active_ingredients == 1 && $ingredientDatails) { ?>
-                                        <?= implode(', ', $ingredientarr)  ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_application_rate == 1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate != 0) {
-                                                                    $application_rate = '';
-                                                                    if (!empty($product_details_value->application_rate) && $product_details_value->application_rate != 0) {
-                                                                        $application_rate = $product_details_value->application_rate . ' ' . $product_details_value->application_unit . ' / ' . $product_details_value->application_per;
-                                                                    } ?>
-                                        <?= $application_rate ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_application_type == 1 && $product_details_value->application_type != '') {
-                                        /*    $application_type = '';
-                                            if ($product_details_value->application_type == 1) {
-                                                $application_type = 'Broadcast';
-                                            } else if ($product_details_value->application_type == 2) {
-                                                $application_type = 'Spot Spray';
-                                            } elseif ($product_details_value->application_type == 3) {
-                                                $application_type = 'Granular';
-                                            } */
-                                         echo  $product_details_value->application_type;
-                                         } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_chemical_type == 1 && $product_details_value->chemical_type != '') {
-                                       /* $chemical_type = '';
-                                        if ($product_details_value->chemical_type == 1) {
-                                            $chemical_type = 'Herbicide';
-                                        } else if ($product_details_value->chemical_type == 2) {
-                                            $chemical_type = 'Fungicide';
-                                        } else if ($product_details_value->chemical_type == 3) {
-                                            $chemical_type = 'Insecticide';
-                                        } else if ($product_details_value->chemical_type == 4) {
-                                            $chemical_type = 'Fertilizer';
-                                        } else if ($product_details_value->chemical_type == 5) {
-                                            $chemical_type = 'Wetting Agent';
-                                        } else if ($product_details_value->chemical_type == 6) {
-                                            $chemical_type = 'Surfactant/Tank Additive';
-                                        } else if ($product_details_value->chemical_type == 7) {
-                                            $chemical_type = 'Aquatics';
-                                        } else if ($product_details_value->chemical_type == 8) {
-                                            $chemical_type = 'Growth Regulator';
-                                        } else if ($product_details_value->chemical_type == 9) {
-                                            $chemical_type = 'Biostimulants';
-                                        }*/
-                                            echo $product_details_value->chemical_type;
-                                        } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_re_entry_time == 1 && $product_details_value->re_entry_time != '') {    ?>
-                                        <?= $product_details_value->re_entry_time ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_estimated_chemical_used == 1 && $estimated_chemical_used != '') {    ?>
-                                        <?= $estimated_chemical_used ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td class="border-bottom-blank-td" align="center"
-                                        style="padding-top: 8px !important; padding-bottom: 8px !important;">
-                                        <?php if ($setting_details->is_weed_pest_prevented == 1 && $product_details_value->weed_pest_prevented != '') {    ?>
-                                        <?= $product_details_value->weed_pest_prevented  ?>
-                                        <?php } ?>
-                                    </td>
-                                    <td></td>
-                                </tr>
-                                <?php }
-                                                } ?>
-                            </tbody>
-                        </table>
+                                                                    if  ($setting_details->is_product_name==1 || ($setting_details->is_epa==1 && $product_details_value->epa_reg_nunber )  || ($setting_details->is_active_ingredients==1 && $ingredientDatails ) || ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 ) ||  ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='') || ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) ||  ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) || ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') ||  ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 )   ) { ?>
+                                                                        <tr>
+                                                                            <td></td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_product_name==1) { ?>
+                                                                                    <?= $product_details_value->product_name?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_epa==1 && $product_details_value->epa_reg_nunber ) { ?>
+                                                                                    <?= $product_details_value->epa_reg_nunber ?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_active_ingredients==1 && $ingredientDatails ){ ?>
+                                                                                    <?= implode(', ',$ingredientarr)  ?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 )  { 
+                                                                                    $application_rate = '';
+                                                                                    if (!empty($product_details_value->application_rate) && $product_details_value->application_rate !=0) {
+                                                                                        $application_rate = $product_details_value->application_rate.' '.@$product_details_value->application_unit.' / '.@$product_details_value->application_per;
+                                                                                    } ?>
+                                                                                    <?= $application_rate ?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php
+                                                                                echo $product_details_value->application_type;
+                                                                               /* $application_type = '';
+                                                                                if ($setting_details->is_application_type==1 && $product_details_value->application_type!='' ) {
+
+
+                                                                                    if ($product_details_value->application_type==1) {
+                                                                                        $application_type = 'Broadcast';
+                                                                                    } else if($product_details_value->application_type==2) {
+                                                                                        $application_type = 'Spot Spray';
+                                                                                    } else if ($product_details_value->application_type==3) {
+                                                                                        $application_type = 'Granular';
+                                                                                    } else {
+                                                                                        $application_type = $product_details_value->application_type;
+                                                                                    }
+                                                                                    echo $application_type;
+                                                                                 }*/
+
+                                                                                ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php echo $product_details_value->chemical_type;
+                                                                               /* if ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) {
+                                                                                    $chemical_type = '';                    
+                                                                                    if($product_details_value->chemical_type==1) {
+                                                                                        $chemical_type = 'Herbicide';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==2) {
+                                                                                        $chemical_type = 'Fungicide';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==3) {
+                                                                                        $chemical_type = 'Insecticide';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==4) {
+                                                                                        $chemical_type = 'Fertilizer';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==5) {
+                                                                                        $chemical_type = 'Wetting Agent';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==6) {
+                                                                                        $chemical_type = 'Surfactant/Tank Additive';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==7) {
+                                                                                        $chemical_type = 'Aquatics';
+                                                                                    }
+                                                                                    else if($product_details_value->chemical_type==8) {
+                                                                                        $chemical_type = 'Growth Regulator';
+                                                                                    }  else if($product_details_value->chemical_type==9) {
+                                                                                        $chemical_type = 'Biostimulants';
+                                                                                    }
+                                                                                    echo $chemical_type;
+                                                                                 } */?>
+
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {    ?>
+                                                                                    <?= $product_details_value->re_entry_time ?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {   ?>
+                                                                                    <?= $estimated_chemical_used ?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td class="border-bottom-blank-td" align="center">
+                                                                                <?php if ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') { ?>
+                                                                                    <?= $product_details_value->weed_pest_prevented  ?>
+                                                                                <?php } ?>
+                                                                            </td>
+                                                                            <td></td>
+                                                                        </tr>
+                                                                    <?php } 
+                                                                } ?>
+                                                            </tbody>
+                                                        </table>
                                                     </td>
                                                 </tr>
                                             <?php } ?>
                                         <?php } ?>
-                    <?php } ?>
-                <?php } ?>
+                                    </table>
+                                </td>
+                            </tr>
+
+                        <?php }
+                    } else { ?>
+                        <?php if($product_details) { ?>
+                            <tr>
+                                <td width="100%">
+                                    <table width="100%" class="table table-condensed mannual application_tbl">
+                                        <tr>
+                                            <td>
+                                                <!-- START SINGLE APPLICATION PART -->
+                                                <table width="100%" class="table table-condensed inside-tabel mannual application_tbl"
+                                                    style="font-size:12px;" cellspacing="0">
+                                                    <thead>
+                                                        <tr class="first_tr" style="text-transform:uppercase;">
+                                                            <td colspan="5" valign="middle">&nbsp;&nbsp;APPLICATION & PRODUCT DETAILS
+                                                            </td>
+                                                            <td colspan="4" align="right" valign="middle">
+                                                                <?php if(isset($v['job_name'])) echo $v['job_name']; ?>&nbsp;&nbsp;</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <!-- START PRODUCT DETAILS SECTION -->
+
+                                                        <?php  
+                                                        if ($setting_details->is_product_name || $setting_details->is_epa || $setting_details->is_active_ingredients || $setting_details->is_application_rate || $setting_details->is_estimated_chemical_used || $setting_details->is_chemical_type || $setting_details->is_re_entry_time || $setting_details->is_weed_pest_prevented || $setting_details->is_application_type   ) { ?>
+
+                                                            <tr class="default-font-color">
+
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">PRODUCT NAME</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center" width="30">EPA #</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">ACTIVE INGREDIENTS</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">APPLICATION RATE</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">Application Type</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">CHEMICAL TYPE</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">RE-ENTRY TIME</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">EST. CHEMICAL USED</td>
+                                                                <td class="border-bottom-blank-td default-font-color" align="center">WEED/PEST PREVENTED</td>
+
+                                                            </tr>
+                                                            <?php foreach($product_details as $key => $product_details_value) {
+
+                                                                $ingredientDatails = getActiveIngredient(array('product_id'=>$product_details_value->product_id));
+                                                                $ingredientarr = array();
+                                                                if ($ingredientDatails) { 
+                                                                    foreach ($ingredientDatails as $key2 => $value2) { 
+                                                                        $ingredientarr[] =  $value2->active_ingredient.' : '.$value2->percent_active_ingredient.' % ';
+                                                                    } 
+                                                                }
+                                                                 $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
+                                                                if  ($setting_details->is_product_name==1 || ($setting_details->is_epa==1 && $product_details_value->epa_reg_nunber )  || ($setting_details->is_active_ingredients==1 && $ingredientDatails ) || ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 ) ||  ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='') || ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) ||  ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) || ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') ||  ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 )   ) { ?>
+                                                                    <tr>
+
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_product_name==1) { ?>
+                                                                                <?= $product_details_value->product_name?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_epa==1 && $product_details_value->epa_reg_nunber ) { ?>
+                                                                                <?= $product_details_value->epa_reg_nunber ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_active_ingredients==1 && $ingredientDatails ){ ?>
+                                                                                <?= implode(', ',$ingredientarr)  ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 )  { 
+                                                                                $application_rate = '';
+                                                                                if (!empty($product_details_value->application_rate) && $product_details_value->application_rate !=0) {
+                                                                                    $application_rate = $product_details_value->application_rate.' '.$product_details_value->application_unit.' / '.$product_details_value->application_per;
+                                                                                } ?>
+                                                                                <?= $application_rate ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php echo print_r($setting_details);
+                                                                            if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
+                                                                                $application_type ='';
+                                                                                if ($product_details_value->application_type==1) {
+                                                                                    $application_type = 'Broadcast';
+                                                                                } else if($product_details_value->application_type==2) {
+                                                                                    $application_type = 'Spot Spray';
+                                                                                } elseif ($product_details_value->application_type==3) {
+                                                                                    $application_type = 'Granular';          
+                                                                                } else {
+                                                                                    $application_type = $product_details_value->application_type;
+                                                                                }?>
+                                                                                <?= $application_type ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) { 
+                                                                                $chemical_type = '';                    
+                                                                                if($product_details_value->chemical_type==1) {
+                                                                                    $chemical_type = 'Herbicide';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==2) {
+                                                                                    $chemical_type = 'Fungicide';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==3) {
+                                                                                    $chemical_type = 'Insecticide';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==4) {
+                                                                                    $chemical_type = 'Fertilizer';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==5) {
+                                                                                    $chemical_type = 'Wetting Agent';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==6) {
+                                                                                    $chemical_type = 'Surfactant/Tank Additive';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==7) {
+                                                                                    $chemical_type = 'Aquatics';
+                                                                                }
+                                                                                else if($product_details_value->chemical_type==8) {
+                                                                                    $chemical_type = 'Growth Regulator';
+                                                                                }  else if($product_details_value->chemical_type==9) {
+                                                                                    $chemical_type = 'Biostimulants';
+                                                                                } ?>
+                                                                                <?= $chemical_type ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {    ?>
+                                                                                <?= $product_details_value->re_entry_time ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {   ?>
+                                                                                <?= $estimated_chemical_used ?>
+                                                                            <?php } ?>
+                                                                        </td>
+                                                                        <td class="border-bottom-blank-td" align="center">
+                                                                            <?php if ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') { ?>
+                                                                                <?= $product_details_value->weed_pest_prevented  ?>
+                                                                            <?php } ?>
+                                                                        </td>
+
+                                                                    </tr>
+                                                                <?php }
+                                                            }
+                                                        } ?>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        
+                                    </table>
+                                </td>
+                            </tr>
+                        <?php } ?>
+
+                    <?php $i++;  } ?>
+                    <!-- END PRODUCT DETAILS PART -->
+                <?php } ?>                                        
             </table>
+            <!-- END APPLICATION PRODTUCTS SECTION -->
+
             <?php if ($index == count($invoice_details) - 1 && ($basys_details || $cardconnect_details) && !$all_invoice_paid) { ?>
             <div style="padding-left:45%">
                 <button class="btn btn-success">

@@ -1220,7 +1220,24 @@ border-color : #fd7e14;
                                                 <tr role="row">
                                                     <th colspan="4" class="left-column-property-details"><span class="text-semibold" style="">Property Details</span></th>
 
-                                                    <th class="color-grey"><span  style="font-weight: 500; font-size: 15px">Status <label class="status-label prop-status-<?= @$customer_property->property_status?>" ><?= (@$customer_property->property_status == 1)?'Active':((@$customer_property->property_status == 2)?'Prospect':((@$customer_property->property_status == 4)?'Sales Call Scheduled':((@$customer_property->property_status == 5)?'Estimate Sent':((@$customer_property->property_status == 6)?'Estimate Decline':'Non-Active'))))?></label></span></th>
+                                                    <th class="color-grey"><span  style="font-weight: 500; font-size: 15px">Status <label class="status-label prop-status-<?= @$customer_property->property_status?>" >
+                                                        <?php
+                                                        if(isset($customer_property->property_status)){
+                                                            switch($customer_property->property_status){
+                                                                case 1: echo "Active";
+                                                                case 2: echo "Prospect";
+                                                                case 4: echo "Sales Call Scheduled";
+                                                                case 5: echo "Estimate Sent";
+                                                                case 6: echo "Estimate Decline";
+                                                                case 7: echo "Canceled - Moved";
+                                                                case 8: echo "Canceled - Do not call";
+                                                                case 9: echo "Canceled - Call Next Year";
+                                                                default: echo "Non-Active";
+                                                            }
+                                                        }
+                                                        ?>
+                                                            
+                                                        </label></span></th>
                                                     <th class="text-right" style="vertical-align: top;"> <a class='pencil-link'href="<?=base_url("admin/editProperty/").@$customer_property->property_id?>"><i class="icon-pencil"></i> </a></th>
                                                 </tr>
                                                 </thead>
@@ -3513,40 +3530,34 @@ border-color : #fd7e14;
                         </thead>
                         <tbody>
                             <?php 
-
-                                    if (!empty($selectedPropertyDetailsList)) { foreach ($selectedPropertyDetailsList as $value) { 
-                                        // die(print_r($value));                                    
-                                     
-
-                                        $prop_stat = '';
-
-                                        if ($value->status == 2){
-                                            $prop_stat = '<span class="label label-gray" style= "background-color: #808080!important; border-color: #808080;">Prospect</span>';
-                                        } elseif($value->status == 1) {
-                                            $prop_stat = '<span class="label label-success">Active</span>';
-                                        } elseif($value->status == 4) {
-                                            $prop_stat = '<span class="label label-primary">Sales Call Scheduled</span>';
-                                        }
-                                        elseif($value->status == 5) {
-                                            $prop_stat = '<span class="label label-primary">Estimate Sent</span>';
-                                        }
-                                        elseif($value->status == 6) {
-                                            $prop_stat = '<span class="label label-primary">Estimate Decline</span>';
-                                        }else {
-                                            $prop_stat = '<span class="label label-danger">Non-active</span>';
-                                        }
-
-                                      echo '<tr>
-                                              <td> <a href="'.base_url("admin/editProperty/").$value->id.'"> '.$value->title.'</a>  </td>
-                                              <td>'.$value->address.'</td>
-                                              <td>'.$prop_stat.'</td>
-                                            </tr>';
-
-                                      
-
-                                     } } ?>
-
-
+                            if (!empty($selectedPropertyDetailsList)) { foreach ($selectedPropertyDetailsList as $value) { 
+                                $prop_stat = '';
+                                if($value->status == 2){
+                                    $prop_stat = '<span class="label label-gray" style= "background-color: #808080!important; border-color: #808080;">Prospect</span>';
+                                }elseif($value->status == 1) {
+                                    $prop_stat = '<span class="label label-success">Active</span>';
+                                }elseif($value->status == 4) {
+                                    $prop_stat = '<span class="label label-primary">Sales Call Scheduled</span>';
+                                }elseif($value->status == 5) {
+                                    $prop_stat = '<span class="label label-primary">Estimate Sent</span>';
+                                }elseif($value->status == 6) {
+                                    $prop_stat = '<span class="label label-primary">Estimate Decline</span>';
+                                }elseif($value->status == 7) {
+                                    $prop_stat = '<span class="label label-danger">Canceled - Moved</span>';
+                                }elseif($value->status == 8) {
+                                    $prop_stat = '<span class="label label-danger">Canceled - Do not call</span>';
+                                }elseif($value->status == 9) {
+                                    $prop_stat = '<span class="label label-danger">Canceled - Call Next Year</span>';
+                                }else {
+                                    $prop_stat = '<span class="label label-danger">Non-active</span>';
+                                }
+                                echo '<tr>
+                                        <td> <a href="'.base_url("admin/editProperty/").$value->id.'"> '.$value->title.'</a>  </td>
+                                        <td>'.$value->address.'</td>
+                                        <td>'.$prop_stat.'</td>
+                                    </tr>';
+                                }
+                            } ?>
                         </tbody>
                     </table>
 
@@ -3583,7 +3594,7 @@ border-color : #fd7e14;
 
                                                 if (!empty($all_customer_properties)) { foreach ($all_customer_properties as $value) {
 
-                                                  if(isset($value->property_status) && $value->property_status != 0 && in_array($value->property_id, $selectedpropertylist )) { ?>
+                                                  if(isset($value->property_status) && $value->property_status != 0 && $value->property_status != 7 && $value->property_status != 8 && $value->property_status != 9 && in_array($value->property_id, $selectedpropertylist )) { ?>
 
 
 
@@ -4967,7 +4978,8 @@ border-color : #fd7e14;
                     <label for="property">Choose Property</label>
                     <select class="form-control" id="property" name="property">
                         <option value="" >None</option>
-                       <?php foreach ($all_customer_properties as $property) { if(isset($property->property_status) && $property->property_status != 0){?>
+                       <?php foreach ($all_customer_properties as $property) {
+                        if(isset($property->property_status) && $property->property_status != 0 && $property->property_status != 7 && $property->property_status != 8 && $property->property_status != 9){?>
                                 <option value="<?= $property->property_id; ?>"><?= $property->property_title; ?></option>
                             <?php } }?>
                     </select>

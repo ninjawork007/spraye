@@ -608,6 +608,8 @@ class AdminTbl_property_model extends CI_Model
                 $all_estimate_statuses = explode(",", $row->e_status);
                 // now if we array unique this and we are only left with 5 then EVERY estimate for this property is declined and we need to move the status if the old status was Estimate sent
                 $all_estimate_statuses = array_unique($all_estimate_statuses);
+
+                if($row->property_status != 0 && $row->property_status != 7 && $row->property_status != 8 && $row->property_status != 9)
                 if(count($all_estimate_statuses) == 1 && $all_estimate_statuses[0] == "5" && $row->property_status == "5") {
                     $this->db->update(self::PMTBL,['property_status' => 6], ['property_id' => $row->property_id]);
                 } elseif($row->property_status != '1' && in_array('1',$all_estimate_statuses) == true) {

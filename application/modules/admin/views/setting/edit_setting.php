@@ -4602,7 +4602,7 @@ function RemoveEmails(obj, email){
 
 $('#POEmailIDs').select2({
     language: 'en',
-    placeholder: "Select client",
+    placeholder: "Select User",
     ajax: {
         url: "<?= base_url('admin/setting/SearchUser'); ?>",
         type: "post",

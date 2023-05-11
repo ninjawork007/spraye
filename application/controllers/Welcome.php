@@ -3178,11 +3178,9 @@ class Welcome extends MY_Controller
                 $data['cardconnect_details'] = $this->CardConnect->getOneCardConnect($where_arr);
                 $data['basys_details'] = $this->CompanyModel->getOneBasysRequest($where_arr);
 
-                // die();
-
                 $this->load->view('daily_multiple_pdf_invoice', $data);
                 $html = $this->output->get_output();
-                //  // Load pdf library
+                // Load pdf library
 
                 $this->load->library('pdf');
                 //  // Load HTML content

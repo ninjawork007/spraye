@@ -99,7 +99,7 @@
 									if(in_array( $value->property_id, $selectedproperties)){ 
 										$select = 'selected'; 
 										$disabled = 'disabled'; 
-									}elseif(isset($value->property_status) && $value->property_status == 0){
+									}elseif(isset($value->property_status) && ($value->property_status == 0 || $value->property_status == 7 || $value->property_status == 8 || $value->property_status == 9)){
 										$select = ''; 
 										$disabled = 'disabled'; 
 									}else{ 
