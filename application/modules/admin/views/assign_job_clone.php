@@ -644,7 +644,7 @@
       let applicationSqft = 0;
       let tmpAddressArray = [];
       $('#unassigntbl tbody input:checked').each(function() {
-         let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+         let currentAddress = $(this).parent().parent().find('td').eq(12).text();
          if(!tmpAddressArray.includes(currentAddress)) {
             tmpAddressArray.push(currentAddress);
             applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
@@ -677,7 +677,7 @@
        let applicationSqft = 0;
        let tmpAddressArray = [];
        $('#unassigntbl tbody input:checked').each(function() {
-           let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+           let currentAddress = $(this).parent().parent().find('td').eq(12).text();
            if(!tmpAddressArray.includes(currentAddress)) {
                tmpAddressArray.push(currentAddress);
                applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
@@ -1078,7 +1078,7 @@ $(document).ready(function() {
             let applicationSqft = 0;
             let tmpAddressArray = [];
             $('#unassigntbl tbody input:checked').each(function() {
-                let currentAddress = $(this).parent().parent().find('td').eq(10).text();
+                let currentAddress = $(this).parent().parent().find('td').eq(12).text();
                 if(!tmpAddressArray.includes(currentAddress)) {
                     tmpAddressArray.push(currentAddress);
                     applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
