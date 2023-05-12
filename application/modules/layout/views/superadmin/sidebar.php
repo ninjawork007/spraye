@@ -67,17 +67,20 @@
                <li>
                   <a href="#"><i class="icon-stack2"></i> <span>Reports</span></a>
                   <ul>
-                    <li class="<?= $active_sidebar == "cancelReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelReport');?>">Cancel Report</a></li>
-                    <li class="<?= $active_sidebar == "marketingCustomerDataReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/marketingCustomerDataReport');?>">Marketing / Customer Data Report</a></li>
-                    <li class="<?= $active_sidebar == "customerGrowthReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/customerGrowthReport');?>">Customer Growth Analysis Report</a></li> 
-                    <li class="<?= $active_sidebar == "reports" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports');?>" >Completed Service Log</a></li>
+                     <li class="<?= $active_sidebar == "techAvailableWorkReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/techAvailableWorkReport') ?>"  class="<?= $active_sidebar == "reports" ? "active" : "" ?>" >Available Work Report</a></li>
+                     <li class="<?= $active_sidebar == "reports" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports');?>" >Completed Service Log</a></li>
+                     <li class="<?= $active_sidebar == "creditReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/creditReport');?>" >Credit Report</a></li>
+                    <li class="<?= $active_sidebar == "customerGrowthReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/customerGrowthReport');?>">Customer Growth Analysis Report</a></li>
                     <li class="<?= $active_sidebar == "invoiceAgeReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/invoiceAgeReport');?>" >Invoice Age Report</a></li>
-					      <li class="<?= $active_sidebar == "salesTaxReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/salesTaxReport') ?>"  class="<?= $active_sidebar == "reports" ? "active" : "" ?>" >Sales Tax Report</a></li>
-                    <li class="<?= $active_sidebar == "techEfficiencyReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/techEfficiencyReport') ?>"  class="<?= $active_sidebar == "reports" ? "active" : "" ?>" >Technician Efficiency Report</a></li>
-                    <li class="<?= $active_sidebar == "techAvailableWorkReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/techAvailableWorkReport') ?>"  class="<?= $active_sidebar == "reports" ? "active" : "" ?>" >Available Work Report</a></li>
+                    <li class="<?= $active_sidebar == "marketingCustomerDataReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/marketingCustomerDataReport');?>">Marketing / Customer Data Report</a></li>
+                    <li class="<?= $active_sidebar == "materialResourcePlanningReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/MaterialResourcePlanningReport');?>" >Material Resource Planning</a></li>
 					      <li>
+                     <li class="<?= $active_sidebar == "revenueServieType" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/revenueServieType');?>">Revenue by Service Type</a></li>
+                     <li>
                      <a href="#"><span>Sales</span></a>
                      <ul>
+                        <li class="<?= $active_sidebar == "cancelService" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelService');?>" >Cancel Details Report</a></li>
+                        <li class="<?= $active_sidebar == "cancelReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelReport');?>">Cancel Summary</a></li>
                         <li class="<?= $active_sidebar == "pipelineSummary" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/salesPipelineSummary') ?>"   >Sales Pipeline Summary Report (real time)</a></li>
                         <li>
                            <a href="#"><span>Sales Summary</span></a>
@@ -92,11 +95,9 @@
                         <li class="<?= $active_sidebar == "bonusReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/salesBonusReport') ?>"  >Bonus Report</a></li>
                      </ul>
                     </li>
-                    <li class="<?= $active_sidebar == "materialResourcePlanningReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/MaterialResourcePlanningReport');?>" >Material Resource Planning</a></li>
-
-                    <li class="<?= $active_sidebar == "creditReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/creditReport');?>" >Credit Report</a></li>
-
-                    <li class="<?= $active_sidebar == "cancelService" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelService');?>" >Cancelled Service</a></li>
+                    <li class="<?= $active_sidebar == "salesTaxReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/salesTaxReport') ?>"  class="<?= $active_sidebar == "reports" ? "active" : "" ?>" >Sales Tax Report</a></li>
+                    <li class="<?= $active_sidebar == "techEfficiencyReport" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/techEfficiencyReport') ?>"  class="<?= $active_sidebar == "reports" ? "active" : "" ?>" >Technician Efficiency Report</a></li>
+                    
                   </ul>
                 </li>
 

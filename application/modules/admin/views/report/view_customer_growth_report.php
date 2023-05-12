@@ -71,12 +71,23 @@
 
                           <div class="col-md-4">
                             <div class="form-group multi-select-full">
-                              <label>Program/Service</label>
+                              <label>Programs</label>
                               <select id="assignProgram" name="assignProgram[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
                                     <?php foreach ($programlist as $value) : ?>
                                         <?php if(!strstr($value->program_name, '- Standalone')){?>
                                             <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
                                         <?php } ?>                                        
+                                        <?php endforeach ?>
+                                </select>
+                            </div>
+                          </div>
+
+                          <div class="col-md-4">
+                            <div class="form-group multi-select-full">
+                              <label>Services</label>
+                              <select id="assignService" name="assignService[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
+                                    <?php foreach ($servicelist as $value) : ?>
+                                        <option value="<?= $value->job_id ?>"><?= $value->job_name?></option>
                                         <?php endforeach ?>
                                 </select>
                             </div>
@@ -426,6 +437,7 @@ function searchFilter() {
     var rescom = $("#res_or_com").val();
     var serviceArea = $("#serviceArea").val();
     var assignProgram = $("#assignProgram").val();
+    var assignService = $("#assignService").val();
 
     $('.loading').css("display", "block");
 	
@@ -434,7 +446,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCustomerGrowthReport',
-        data:'start_date='+start_date+'&end_date='+end_date+'&comparison_start_date='+comparison_start_date+'&comparison_end_date='+comparison_end_date+'&user='+user+"&rescom="+rescom+"&serviceArea="+serviceArea+"&assignProgram="+assignProgram,
+        data:'start_date='+start_date+'&end_date='+end_date+'&comparison_start_date='+comparison_start_date+'&comparison_end_date='+comparison_end_date+'&user='+user+"&rescom="+rescom+"&serviceArea="+serviceArea+"&assignProgram="+assignProgram+"&assignService="+assignService,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#customer-growth-report-list').html(html);

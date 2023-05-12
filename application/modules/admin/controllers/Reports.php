@@ -68,6 +68,7 @@ class Reports extends MY_Controller {
         $this->load->model('Save_sales_summary_filter_model', 'SalesSummarySaveModel');
         $this->load->model('Save_service_summary_filter_model', 'ServiceSummarySaveModel');
         $this->load->model('Save_sales_pipeline_filter_model', 'SaveSalesPipelineFilterModel');
+        $this->load->model('Payment_invoice_logs_model', 'PartialPaymentModel');
     }
 
 
@@ -500,6 +501,39 @@ class Reports extends MY_Controller {
         $this->layout->superAdminInvoiceTemplateTable($page);
 	}
 
+    ## Revenue by Service Type Report
+    public function revenueServieType(){
+        $company_id = $this->session->userdata['company_id'];
+        $data['ServiceArea'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
+        
+        $whereArr = array(
+            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+            'is_archived' => 0,
+            'invoice_created >=' => date("Y-01-01"),
+        );
+        
+        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        $ServiceTypeID = array();
+        foreach($data['invoices'] as $INVs){
+            $JobDetails = $this->RP->get_job_detail($INVs->job_id);
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
+            foreach($all_invoice_partials as $PayPart){
+                $ServiceType = 0;
+                if(isset($JobDetails[0]->service_type_id)){
+                    $ServiceType = $JobDetails[0]->service_type_id;
+                }
+
+                $ServiceTypeID[$ServiceType] += $PayPart->payment_amount;
+            }
+        }
+        $data['Services'] = $ServiceTypeID;
+
+        $page["active_sidebar"] = "revenueServieType";
+        $page["page_name"] = 'Revenue By Service Type';
+        $page["page_content"] = $this->load->view("admin/report/view_revenue_service_type", $data, TRUE);
+        $this->layout->superAdminInvoiceTemplateTable($page);
+    }
+
 
     ## Customer Credit Report
     public function creditReport(){
@@ -624,7 +658,7 @@ class Reports extends MY_Controller {
         $data['cancel_reasons'] = $this->CustomerModel->getCancelReasons($this->session->userdata['company_id']);
         
         $page["active_sidebar"] = "cancelService";
-        $page["page_name"] = 'Cancelled Service';
+        $page["page_name"] = 'Cancel Details Report';
         $page["page_content"] = $this->load->view("admin/report/view_cancel_service_report", $data, TRUE);
         $this->layout->superAdminInvoiceTemplateTable($page);
     }
@@ -2651,7 +2685,7 @@ class Reports extends MY_Controller {
             //$fp = fopen($options['db_backup_path'] . '/' . $backup_file_name ,'w+');
             
             //set column headers
-            $fields = array('First Name','Last Name','Company Name','Email','Secondary Email(s)','Mobile','Home','Work','Billing Address',' Billing Address 2','City','Billing State','Zip Code','Customer Status');
+            $fields = array('First Name','Last Name','Company Name','Email', 'Email Subscribed', 'Secondary Email(s)','Mobile', 'Text Subscribed', 'Home','Work','Billing Address',' Billing Address 2','City','Billing State','Zip Code','Customer Status');
         
             fputcsv($f, $fields, $delimiter);
             
@@ -2660,7 +2694,7 @@ class Reports extends MY_Controller {
         
             foreach ($data as $key => $value) {
 
-            $lineData = array($value->first_name,$value->last_name,$value->customer_company_name, $value->email,$value->secondary_email,$value->phone, $value->home_phone, $value->work_phone, $value->billing_street, $value->billing_street_2,$value->billing_city, $value->billing_state, $value->billing_zipcode,$value->customer_status==1 ? 'Active':'Non-Active');
+            $lineData = array($value->first_name,$value->last_name,$value->customer_company_name, $value->email, $value->is_email == 1 ? "Subscribed" : "Unsubscribed", $value->secondary_email,$value->phone, $value->is_mobile_text == 1 ? "Subscribed" : "Unsubscribed", $value->home_phone, $value->work_phone, $value->billing_street, $value->billing_street_2,$value->billing_city, $value->billing_state, $value->billing_zipcode,$value->customer_status==1 ? 'Active':'Non-Active');
 
                 fputcsv($f, $lineData, $delimiter);
             
@@ -7313,7 +7347,7 @@ class Reports extends MY_Controller {
         $report_data['total_sales_revenue'] = number_format($total_sales_revenue,2);
 		$data['report_details'] = $report_data;
 		$page["active_sidebar"] = "cancelReport";
-		$page["page_name"] = 'Cancel Report';
+		$page["page_name"] = 'Cancel Summary';
 		$page["page_content"] = $this->load->view("admin/report/view_cancel_report", $data, TRUE);
 		$this->layout->superAdminTemplateTable($page);
   	}
@@ -7483,7 +7517,7 @@ class Reports extends MY_Controller {
 				}
             }
 
-			$report_data['total_cancelled_properties'] = count($cancelled_properties);
+			$report_data['total_cancelled_properties'] = count($data["AllCancelledProperty"]);
 			$report_data['total_cancelled_services'] = count($all_cancelled);
 			$report_data['total_cancelled_revenue'] = number_format($total_cancelled_revenue,2);
 			$report_data['lost_total_new_cancelled_props'] = count($lost_total_new_cancelled_props);
@@ -7739,7 +7773,7 @@ class Reports extends MY_Controller {
 
         $data['service_areas'] = $this->ServiceArea->getAllServiceAreaMarketing(array('company_id'=>$this->session->userdata['company_id']));
         $data['programlist'] = $this->PropertyModel->getProgramList(array('company_id' => $this->session->userdata['company_id']));
-        
+        $data['servicelist'] = $this->RP->GetServiceName(array('jobs.company_id' => $this->session->userdata['company_id']));
 		$data['report_details'] = $report_data;
         $data['labels'] = $labels;
         $data['chart_data'] = $chart_data;
@@ -7799,6 +7833,9 @@ class Reports extends MY_Controller {
 
         if($this->input->post("assignProgram") != "" && $this->input->post("assignProgram") != "null"){
             $PropertyConditionArray['assignProgram'] = $this->input->post("assignProgram");
+        }
+        if($this->input->post("assignService") != "" && $this->input->post("assignService") != "null"){
+            $PropertyConditionArray['assignService'] = $this->input->post("assignService");
         }
 
         if(!empty($start)){

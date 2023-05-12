@@ -605,6 +605,17 @@ class Reports_model extends CI_Model{
         return $result->job_cost ?? 0;
     }
 
+    public function GetServiceName($where_arr) {
+      $this->db->select('job_id, job_name');
+      $this->db->from('jobs');
+      if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+      $result = $this->db->get();
+      $data = $result->result();
+      return $data;
+    }
+
     public function GetAllServices($where_arr, $where_in = '') {
       $this->db->select('*');
       $this->db->from('jobs');
@@ -918,8 +929,8 @@ class Reports_model extends CI_Model{
                 $this->db->where_in('property_tbl.property_type', $filters_array['filters']['res_or_com']);
             }
             if($filters_array['filters']['cancel_reasons_multi'][0] != 'null' && $filters_array['filters']['cancel_reasons_multi'][0] != NULL) {
-                $this->db->join('cancelled_services_tbl','cancelled_services_tbl.property_id = property_tbl.property_id','inner');
-                $this->db->where_in('cancelled_services_tbl.cancel_reason', $filters_array['filters']['cancel_reasons_multi']);
+                //$this->db->join('cancelled_services_tbl','cancelled_services_tbl.property_id = property_tbl.property_id','inner');
+                $this->db->where_in('property_tbl.cancel_reason', $filters_array['filters']['cancel_reasons_multi']);
             }
 
             if($filters_array['filters']['total_yard_grass'] != 'null' && $filters_array['filters']['total_yard_grass'] != NULL) {
@@ -1024,6 +1035,15 @@ class Reports_model extends CI_Model{
         $this->db->select('job_id');
         $this->db->from('program_job_assign');
         $this->db->where('program_id', $program_id);
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+
+    public function get_job_detail($jobID) {
+        $this->db->select('*');
+        $this->db->from('jobs');
+        $this->db->where('job_id', $jobID);
         $result = $this->db->get();
         $data = $result->result();
         return $data;

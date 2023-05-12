@@ -682,6 +682,7 @@ class AdminTbl_property_model extends CI_Model
         $this->db->select('*');
         $this->db->from('property_tbl');
         $this->db->join('property_program_assign','property_program_assign.property_id = property_tbl.property_id ','inner');
+        $this->db->join('program_job_assign','program_job_assign.program_id = property_program_assign.program_id','inner');
 
         if(isset($where["assignProgram"]) && $where["assignProgram"] != "null" && $where["assignProgram"] != null){
             $SaleRpID = explode(",", $where["assignProgram"]);
@@ -694,6 +695,19 @@ class AdminTbl_property_model extends CI_Model
             $IdString .= ")";
             $this->db->where($IdString);
             unset($where["assignProgram"]);
+        }
+
+        if(isset($where["assignService"]) && $where["assignService"] != "null" && $where["assignService"] != null){
+            $SaleRpID = explode(",", $where["assignService"]);
+
+            $IdString = "program_job_assign.job_id IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+            $this->db->where($IdString);
+            unset($where["assignService"]);
         }
 
         if(isset($where["property_area"]) && $where["property_area"] != "null"){
@@ -737,7 +751,7 @@ class AdminTbl_property_model extends CI_Model
         $this->db->join('customers','customers.customer_id = customer_property_assign.customer_id ','inner');
         $this->db->join('users','users.id = property_tbl.cancelled_by ','inner');
         $this->db->where($where);
-		$this->db->where('property_tbl.property_status', 0);
+		$this->db->where('property_tbl.property_status IN(0,7,8,9)');
 		$this->db->where('property_tbl.property_cancelled IS NOT NULL');
 		
 		if($from != ''){

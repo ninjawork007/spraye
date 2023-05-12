@@ -945,6 +945,9 @@ border-color : #fd7e14;
 
     .prop-status-2 { color: #01669A!important;}
     .prop-status-0{ color: red}
+    .prop-status-7{ color: red}
+    .prop-status-8{ color: red}
+    .prop-status-9{ color: red}
     .prop-status- { color: red!important;}
     .cus-status-0 { color: red!important;}
     .cus-status-2 { color: red!important;}
