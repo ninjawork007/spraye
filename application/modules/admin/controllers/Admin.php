@@ -3458,7 +3458,7 @@ class Admin extends MY_Controller
     public function tecnicianJobAssign()
     {
 
-        ini_set('memory_limit', '2048M');
+        ini_set('memory_limit', '-1');
 
         $data  = $this->input->post();
 

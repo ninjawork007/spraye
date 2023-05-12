@@ -1154,6 +1154,7 @@
         
 
         var MapMarkers = [];
+        var addressMarkers = {};
 
 
         var map;
@@ -1267,7 +1268,7 @@
             map = new google.maps.Map(document.getElementById("dvMap"), mapOptions);
 
             const drawingManager = new google.maps.drawing.DrawingManager({
-                drawingMode: google.maps.drawing.OverlayType.MARKER,
+                drawingMode: null,
                 drawingControl: true,
                 drawingControlOptions: {
                     position: google.maps.ControlPosition.TOP_CENTER,
@@ -1285,10 +1286,9 @@
                     zIndex: 10,
                 },
             });
-           
+
             drawingManager.setMap(map);
-        
-            
+
            var markers = MapMarkers;
            let selectedMarkers = [];
            let toRemoveMarkers = [];
@@ -1334,7 +1334,6 @@
                     .toString(16)
                     .substring(1);
             }
-           //console.log(MapMarkers);
             google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
 
            
@@ -1343,7 +1342,8 @@
                 google.maps.event.addListener(overlay, 'click', function() {
                     overlay.setEditable(true); // permite a edição do overlay
                 });
-                google.maps.event.addListener(overlay.getPath(), 'set_at', function(index) {
+
+                google.maps.event.addListener(overlay, 'set_at', function(index) {
                     console.log("Set");
                     selectedMarkers = [];
                     unCheckAll();
@@ -1365,7 +1365,7 @@
                     }, 10);
                 });
 
-                google.maps.event.addListener(overlay.getPath(), 'insert_at', function(index) {
+                google.maps.event.addListener(overlay, 'insert_at', function(index) {
 
                     selectedMarkers = [];
                     unCheckAll();
@@ -1861,7 +1861,8 @@
                        
                         // deleteAllShape();
 
-                        filteredMarkers = [];
+                        addressMarkers = {};
+                        let sameProperty = [];
 
                         MapMarkers.forEach(item => {
                             item.setMap(null);
@@ -1907,9 +1908,25 @@
                             });
 
 
+                            var address = tableData[i].address;
+
+                            if (address in addressMarkers) {
+                                addressMarkers[address].push(data.index);
+                            } else {
+                                addressMarkers[address] = [data.index];
+                            }
+
                             (function(marker, data) {
                             google.maps.event.addListener(marker, "click", function(e) {
                                 infoWindow.setContent(tableData[i].address);
+                                if (tableData[i].address in addressMarkers)
+                                {
+                                    for(j = 0; j < addressMarkers[tableData[i].address].length; j++)
+                                    {
+                                        if (i !== tableData[addressMarkers[tableData[i].address][j]].index)
+                                            $("#"+tableData[addressMarkers[tableData[i].address][j]].index).click();
+                                    }
+                                }
                                 $("#"+tableData[i].index).click();
                                 infoWindow.open(map, marker);
                             });
@@ -1917,7 +1934,7 @@
 
                             latlngbounds.extend(marker.position);
 							//console.log("latlngbounds: ");
-							
+
                             MapMarkers.push(marker);
                             AllMarkers.push(marker);
 							//console.log('placing marker '+marker.position);
@@ -1934,6 +1951,7 @@
                             set_initial_center = false;
                         
                         }
+                        console.log(addressMarkers);
 						//console.log("zoom level "+map.getZoom());
                      
                         // $("div.toolbar").html('');
