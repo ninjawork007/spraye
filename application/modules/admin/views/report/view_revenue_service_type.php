@@ -56,6 +56,29 @@
 <div class="loading" style="display:none;">
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
 </div>
+
+<table class="table datatable-button-print-basic">
+	<thead>
+		<th>Invoice Number</th>
+		<th>Service Name</th>
+		<th>Amount
+	</thead>
+	<tbody>
+		<?php
+		foreach($invoices as $Inv){
+		?>
+		<tr>
+			<td><?php echo $Inv->invoice_id ?></td>
+			<td><?php echo $Inv->job_id ?></td>
+			<td><?php echo $Inv->payment ?></td>
+		</tr>
+
+		<?php
+		}
+		?>
+	</tbody>
+</table>
+
 <div class="post-list" id="invoice-age-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
 	<div class="table-responsive table-spraye">
 		<table class="table datatable-button-print-basic">
@@ -63,7 +86,6 @@
 				<tr>
 					<th>Date</th>
 					<th>Service Type</th>
-					<th>Include</th>
 					<th>Amount</th>
 				</tr>
 			</thead>
@@ -81,7 +103,6 @@
 				<tr>
 					<td><?php echo date("Y-01-01") . " TO " . date("Y-m-d") ?></td>
 					<td><?php echo $ServiceTypeName ?></td>
-					<td></td>
 					<td><?php echo $ServiceName ?></td>
 				</tr>
 				<?php
