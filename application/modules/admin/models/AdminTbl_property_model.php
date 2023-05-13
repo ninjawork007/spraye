@@ -751,7 +751,6 @@ class AdminTbl_property_model extends CI_Model
         $this->db->join('customers','customers.customer_id = customer_property_assign.customer_id ','inner');
         $this->db->join('users','users.id = property_tbl.cancelled_by ','inner');
         $this->db->where($where);
-		$this->db->where('property_tbl.property_status IN(0,7,8,9)');
 		$this->db->where('property_tbl.property_cancelled IS NOT NULL');
 		
 		if($from != ''){

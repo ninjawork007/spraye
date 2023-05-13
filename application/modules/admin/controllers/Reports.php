@@ -1522,6 +1522,10 @@ class Reports extends MY_Controller {
         if($this->input->post("reason") != ""){
             $whereArr['property_tbl.cancel_reason like '] = "%".$this->input->post("reason")."%";
         }
+
+        if($this->input->post("CancelStatus") != ""){
+            $whereArr['property_tbl.property_status'] = $this->input->post("CancelStatus");
+        }
         
         $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
         $NewServiceArray = array();
@@ -7184,7 +7188,7 @@ class Reports extends MY_Controller {
 		);
 		
 		#get cancelled properties
-		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=> $this->session->userdata['company_id']));
+		$cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange(array('property_tbl.company_id'=> $this->session->userdata['company_id'], 'property_tbl.property_status IN(0,7,8,9)'));
 
         $data["AllCancelledProperty"] = $cancelled_properties;
         $data['ServiceArea'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
@@ -7399,6 +7403,10 @@ class Reports extends MY_Controller {
 
         if($this->input->post("reason") != ""){
             $ConditionProperty['property_tbl.cancel_reason like '] = "%".$this->input->post("reason")."%";
+        }
+
+        if($this->input->post("CancelStatus") != ""){
+            $ConditionProperty['property_tbl.property_status'] = $this->input->post("CancelStatus");
         }
 
         $cancelled_properties = $this->PropertyModel->getCancelledPropertyByDateRange($ConditionProperty, $start, $end);
@@ -7965,6 +7973,17 @@ class Reports extends MY_Controller {
         #get existing properties
         $comparison_existing_properties = [];
         $comparison_existing_cancelled_properties = [];
+        unset($PropertyConditionArray['assignProgram']);
+        unset($PropertyConditionArray['assignService']);
+
+        if($this->input->post("assignProgramCompare") != "" && $this->input->post("assignProgramCompare") != "null"){
+            $PropertyConditionArray['assignProgram'] = $this->input->post("assignProgramCompare");
+        }
+        if($this->input->post("assignServiceCompare") != "" && $this->input->post("assignServiceCompare") != "null"){
+            $PropertyConditionArray['assignService'] = $this->input->post("assignServiceCompare");
+        }
+
+
         if(!empty($comparison_start)){
             if(empty($comparison_end)){
                 $comparison_end = date('Y-m-d H:i:s',strtotime('now'));

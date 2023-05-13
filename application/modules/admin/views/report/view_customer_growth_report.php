@@ -17,59 +17,7 @@
 			<div class="panel panel-body" style="background-color:#ededed;" >
 				<form id="serchform" action="<?= base_url('admin/reports/downloadCustomerGrowthReport') ?>" method="post">
 					<div class="row">
-						 <div class="col-md-6">
-							<div class="form-group">
-							  <label>Start Date</label>
-							  <input type="date" id="start_date" name="start_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-							</div>
-						  </div>
-						  <div class="col-md-6">
-							<div class="form-group">
-							  <label>End Date</label>
-							  <input type="date" id="end_date" name="end_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
-							</div>
-						  </div>
-				  	</div>
-                    <div class="row">
-						 <div class="col-md-6">
-							<div class="form-group">
-							  <label>Comparison Start Date</label>
-							  <input type="date" id="comparison_start_date" name="comparison_start_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
-							</div>
-						  </div>
-						  <div class="col-md-6">
-							<div class="form-group">
-							  <label>Comparison End Date</label>
-							  <input type="date" id="comparison_end_date" name="comparison_end_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
-							</div>
-						  </div>
-				  	</div>
-
-
-                    <div class="row">
-                         <div class="col-md-4">
-                            <div class="form-group">
-                              <label>Residential or Commercial</label>
-                              <select class="form-control" name="res_or_com" id="res_or_com">
-                                    <option value="">None selected</option>
-                                    <option value="Residential"> Residential </option>
-                                    <option value="Commercial"> Commercial </option>
-                                </select>
-                            </div>
-                          </div>
-
-                          <div class="col-md-4">
-                            <div class="form-group multi-select-full">
-                              <label>Service Area</label>
-                              <select id="serviceArea" name="serviceArea[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
-                                <?php foreach ($service_areas as $area): ?>
-                                    <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
-                                <?php endforeach ?>
-                                </select>
-                            </div>
-                          </div>
-
-                          <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group multi-select-full">
                               <label>Programs</label>
                               <select id="assignProgram" name="assignProgram[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
@@ -82,13 +30,87 @@
                             </div>
                           </div>
 
-                          <div class="col-md-4">
+                          <div class="col-md-3">
                             <div class="form-group multi-select-full">
                               <label>Services</label>
                               <select id="assignService" name="assignService[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
                                     <?php foreach ($servicelist as $value) : ?>
                                         <option value="<?= $value->job_id ?>"><?= $value->job_name?></option>
                                         <?php endforeach ?>
+                                </select>
+                            </div>
+                          </div>
+						 <div class="col-md-3">
+							<div class="form-group">
+							  <label>Start Date</label>
+							  <input type="date" id="start_date" name="start_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+							</div>
+						  </div>
+						  <div class="col-md-3">
+							<div class="form-group">
+							  <label>End Date</label>
+							  <input type="date" id="end_date" name="end_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
+							</div>
+						  </div>
+				  	</div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group multi-select-full">
+                              <label>Programs</label>
+                              <select id="assignProgramCompare" name="assignProgramCompare[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
+                                    <?php foreach ($programlist as $value) : ?>
+                                        <?php if(!strstr($value->program_name, '- Standalone')){?>
+                                            <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                        <?php } ?>                                        
+                                        <?php endforeach ?>
+                                </select>
+                            </div>
+                          </div>
+
+                          <div class="col-md-3">
+                            <div class="form-group multi-select-full">
+                              <label>Services</label>
+                              <select id="assignServiceCompare" name="assignServiceCompare[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
+                                    <?php foreach ($servicelist as $value) : ?>
+                                        <option value="<?= $value->job_id ?>"><?= $value->job_name?></option>
+                                        <?php endforeach ?>
+                                </select>
+                            </div>
+                          </div>
+						 <div class="col-md-3">
+							<div class="form-group">
+							  <label>Comparison Start Date</label>
+							  <input type="date" id="comparison_start_date" name="comparison_start_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
+							</div>
+						  </div>
+						  <div class="col-md-3">
+							<div class="form-group">
+							  <label>Comparison End Date</label>
+							  <input type="date" id="comparison_end_date" name="comparison_end_date" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
+							</div>
+						  </div>
+				  	</div>
+
+
+                    <div class="row">
+                         <div class="col-md-6">
+                            <div class="form-group">
+                              <label>Residential or Commercial</label>
+                              <select class="form-control" name="res_or_com" id="res_or_com">
+                                    <option value="">None selected</option>
+                                    <option value="Residential"> Residential </option>
+                                    <option value="Commercial"> Commercial </option>
+                                </select>
+                            </div>
+                          </div>
+
+                          <div class="col-md-6">
+                            <div class="form-group multi-select-full">
+                              <label>Service Area</label>
+                              <select id="serviceArea" name="serviceArea[]" multiple class="multiselect-select-all-filtering" placeholder="None selected">
+                                <?php foreach ($service_areas as $area): ?>
+                                    <option value="<?= $area->property_area_cat_id ?>"> <?= $area->category_area_name ?> </option>
+                                <?php endforeach ?>
                                 </select>
                             </div>
                           </div>
@@ -437,7 +459,9 @@ function searchFilter() {
     var rescom = $("#res_or_com").val();
     var serviceArea = $("#serviceArea").val();
     var assignProgram = $("#assignProgram").val();
+    var assignProgramCompare = $("#assignProgramCompare").val();
     var assignService = $("#assignService").val();
+    var assignServiceCompare = $("#assignServiceCompare").val();
 
     $('.loading').css("display", "block");
 	
@@ -446,7 +470,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCustomerGrowthReport',
-        data:'start_date='+start_date+'&end_date='+end_date+'&comparison_start_date='+comparison_start_date+'&comparison_end_date='+comparison_end_date+'&user='+user+"&rescom="+rescom+"&serviceArea="+serviceArea+"&assignProgram="+assignProgram+"&assignService="+assignService,
+        data:'start_date='+start_date+'&end_date='+end_date+'&comparison_start_date='+comparison_start_date+'&comparison_end_date='+comparison_end_date+'&user='+user+"&rescom="+rescom+"&serviceArea="+serviceArea+"&assignProgram="+assignProgram+"&assignService="+assignService+"&assignProgramCompare="+assignProgramCompare+"&assignServiceCompare="+assignServiceCompare,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#customer-growth-report-list').html(html);

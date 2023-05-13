@@ -1197,10 +1197,10 @@ class Dashboard_model extends CI_Model{
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
-//        $this->db->group_by('1,2');
         $this->db->order_by('technician_job_assign.job_assign_date','desc');
         $result = $this->db->get();
         $data = $result->result();
+        //print_r($this->db->last_query());
         return $data;
     }
     public function getCustomerAllServicesWOARea($where_arr = '') {

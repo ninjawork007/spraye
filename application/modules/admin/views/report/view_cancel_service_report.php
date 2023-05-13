@@ -57,21 +57,21 @@
                             </div>
                         </div>
 
-						 <div class="col-md-4">
+						 <div class="col-md-3">
 							<div class="form-group">
 							  <label>Start Date</label>
 							  <input type="date" id="date_from" name="date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
 							</div>
 						  </div>
 
-						  <div class="col-md-4">
+						  <div class="col-md-3">
 							<div class="form-group">
 							  <label>End Date</label>
 							  <input type="date" id="date_to" name="date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?= date('Y-m-d H:i:s'); ?>">
 							</div>
 						  </div>
 
-                          <div class="col-md-4">
+                          <div class="col-md-3">
                             <div class="form-group">
                               <label>Cancel Reason</label>
                               <select id="reason" name="reason" class="form-control" placeholder="Enter reason for cancel">
@@ -84,6 +84,19 @@
                                 }
                                 ?>
                                 <option>Other</option>
+                              </select>
+                            </div>
+                           </div>
+
+
+                           <div class="col-md-3">
+                            <div class="form-group">
+                              <label>Cancel Status</label>
+                              <select id="CancelStatus" name="CancelStatus" class="form-control" placeholder="Enter reason for cancel">
+                                <option value="">All</option>
+                                <option value="7">Canceled - Do not call</option>
+                                <option value="8">Canceled - Moved</option>
+                                <option value="9">Canceled - Call Next Year</option>
                               </select>
                             </div>
                            </div>
@@ -225,6 +238,7 @@ function searchFilter() {
 	var serviceArea = $("#service_area").val();
 	var newExisting = $("#newExisting").val();
 	var reason = $("#reason").val();
+	var CancelStatus = $("#CancelStatus").val();
 
     $('.loading').css("display", "block");
 	
@@ -233,7 +247,7 @@ function searchFilter() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCancelService',
-        data:'customer='+customer+'&date_from='+date_from+'&date_to='+date_to+"&serviceArea="+serviceArea+"&newExisting="+newExisting+"&reason="+reason,
+        data:'customer='+customer+'&date_from='+date_from+'&date_to='+date_to+"&serviceArea="+serviceArea+"&newExisting="+newExisting+"&reason="+reason+"&CancelStatus="+CancelStatus,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#invoice-age-list').html(html);
