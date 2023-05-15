@@ -4914,6 +4914,7 @@ class Admin extends MY_Controller
                         'customer_status' => $data[15],
                         'pre_service_notification' => '["2"]',
                     );
+
                     $customer_where = array(
                         'company_id' => $company_id,
                         'billing_street' => $customer_param['billing_street']
@@ -4949,7 +4950,7 @@ class Admin extends MY_Controller
                     if ($customer_param['customer_status'] != 0 && $customer_param['customer_status'] != 1 && $customer_param['customer_status'] != 2) {
                         $customer_param['customer_status'] = 0;
                     }
-                    $customer_param = array_filter($customer_param);
+                    //$customer_param = array_filter($customer_param);
                     $property_param = array_filter($property_param);
                     $sales_tax_param = array_filter($sales_tax_param);
 

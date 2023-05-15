@@ -1118,6 +1118,35 @@ class Purchases extends MY_Controller{
             
             $upo = $this->PurchasesModel->updatePurchaseOrder($where, $update);
 
+            $company_id = $this->session->userdata['company_id'];
+            $purchase_order_id =   $data['purchase_order_id'];
+              
+             // get second message
+            $data['msgtext'] = "PO Status changed to Ready for Payment";
+
+            // get first message    
+            $purchase_order = $this->PurchasesModel->getOnePurchase(['purchase_order_tbl.purchase_order_id' => $purchase_order_id]);    
+            $data['msgtext_one'] = $purchase_order->notes;
+            $data['vendor_details'] = $this->VendorsModel->getOneVendor($purchase_order->vendor_id);
+            $data['link'] =  base_url('welcome/pdfPurchaseOrder/').base64_encode($purchase_order_id);
+            $data['link_acc'] =  base_url('welcome/PurchaseOrderAccept/').base64_encode($purchase_order_id);
+            $where_company = array('company_id' =>$company_id);
+          
+            $data['setting_details'] = $this->CompanyModel->getOneCompany($where_company);
+            $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo != '') ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
+          
+            $body = $this->load->view('inventory/purchases/purchase_order_email',$data,true);
+            
+            $where_company['is_smtp'] = 1;
+            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where_company);
+                        
+            if (!$company_email_details) {
+                $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+            }
+
+            Send_Mail_dynamic($company_email_details, explode(",", $data['setting_details']->ready_for_payment_po_email), array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
+
+
         } else if(($inv_total + $data['invoice_total_amt']) == $purchase_order->subtotal && $purchase_order->purchase_order_status != 3) {
 
             $invoiced = array(

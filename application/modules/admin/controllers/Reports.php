@@ -7380,14 +7380,13 @@ class Reports extends MY_Controller {
 		$query = array(
 			'cancelled_services_tbl.company_id' => $this->session->userdata['company_id'],
 		);
-		
-		if($user != 'all'){
-			$query['cancelled_services_tbl.user_id'] = $user;
-		}
 
 		#get cancelled properties
         $ConditionProperty = array();
         $ConditionProperty['property_tbl.company_id'] = $company_id;
+        if($user != 'all'){
+            $ConditionProperty['t_estimate.sales_rep'] = $user;
+        }
 		
         if($this->input->post("serviceArea") != ""){
             $ConditionProperty['property_tbl.property_area'] = $this->input->post("serviceArea");
