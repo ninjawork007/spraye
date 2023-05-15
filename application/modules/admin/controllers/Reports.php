@@ -565,8 +565,6 @@ class Reports extends MY_Controller {
         $company_id = $this->session->userdata['company_id'];
         #populate filter dropdowns
         $data['customers'] = $this->CustomerModel->getCustomerList(array('company_id' => $this->session->userdata['company_id']));
-
-        $company_id = $this->session->userdata['company_id'];
         $data['jobs'] = $this->JobModel->getAllJob(array('jobs.company_id' =>$this->session->userdata['company_id']));
 
         $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id));
@@ -580,7 +578,6 @@ class Reports extends MY_Controller {
 
         foreach($data['all_services'] as $all_services) {
             $cost = 0;
-
             $canc_arr = array(
                 'job_id' => $all_services->job_id,
                 'customer_id' => $all_services->customer_id,
@@ -1528,6 +1525,7 @@ class Reports extends MY_Controller {
         }
         
         $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep($whereArr);
+        $data['setting_details'] = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
         $NewServiceArray = array();
         foreach($data['all_services'] as $all_services) {
             $cost = 0;
