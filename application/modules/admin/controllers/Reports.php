@@ -513,23 +513,45 @@ class Reports extends MY_Controller {
         );
         
         $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
-
         $ServiceTypeID = array();
+        
         foreach($data['invoices'] as $Index => $INVs){
-            $JobDetails = $this->RP->get_job_detail($INVs->job_id);
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
+            $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
+            $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
             $TotalPayment = 0;
             foreach($all_invoice_partials as $PayPart){
                 $TotalPayment += $PayPart->payment_amount;
-                $ServiceType = 0;
-                if(isset($JobDetails[0]->service_type_id)){
-                    $ServiceType = $JobDetails[0]->service_type_id;
-                }
-
-                $ServiceTypeID[$ServiceType] += $PayPart->payment_amount;
             }
             $data['invoices'][$Index]->payment = $TotalPayment;
+
+            $jobs = array();
+            if ($details) {
+                foreach ($details as $detail) {
+                    $JobDetails = $this->RP->get_job_detail($detail['job_id']);
+                    if($TotalPayment > $detail['job_cost']){
+                        $PaidAmount = $detail['job_cost'];
+                        $TotalPayment -= $detail['job_cost'];
+                    }else{
+                        $PaidAmount = $TotalPayment;
+                    }
+
+                    $jobs[] = array(
+                        'job_name' => $detail['job_name'],
+                        'job_cost' => $detail['job_cost'],
+                        'PaidAmount' => $PaidAmount
+                    );
+                    $ServiceType = 0;
+                    if(isset($JobDetails[0]->service_type_id)){
+                        $ServiceType = $JobDetails[0]->service_type_id;
+                    }
+
+                    $ServiceTypeID[$ServiceType] += $PaidAmount;
+                }
+            }
+            
+            $data['invoices'][$Index]->Jobs = $jobs;
         }
         $data['Services'] = $ServiceTypeID;
 

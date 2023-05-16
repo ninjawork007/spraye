@@ -5361,7 +5361,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $param['partial_payment'] = $over_all_due;
                 $param['payment_status'] = 2;
                 //KT
-                $param['status'] = 2;
+                $param['status'] = 1;
                 if ($invoice_details->opened_date == '') {
                     $param['opened_date'] = date("Y-m-d H:i:s");
                 } else {
@@ -5423,7 +5423,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     $param['partial_payment'] = $over_all_due;
                     $param['payment_status'] = 2;
                     //KT
-                    $param['status'] = 2;
+                    $param['status'] = 1;
                     if ($invoice_details->opened_date == '') {
                         $param['opened_date'] = date("Y-m-d H:i:s");
                     } else {
@@ -5523,7 +5523,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $param['partial_payment'] = $new_total_partial;
             $param['payment_status'] = 2;
             //KT
-            $param['status'] = 2;
+            $param['status'] = 1;
             if ($invoice_details->opened_date == '') {
                 $param['opened_date'] = date("Y-m-d H:i:s");
             } else {
@@ -5956,10 +5956,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 'invoice_id' => $invoice,
             );
 
-            $param = array(
-                'payment_status' => $data['payment_status'],
-                'last_modify' => date("Y-m-d H:i:s"),
-            );
+            if($data['payment_status'] == 2){
+                $param = array(
+                    'payment_status' => $data['payment_status'],
+                    'status' => 2,
+                    'last_modify' => date("Y-m-d H:i:s"),
+                );
+            }else{
+                $param = array(
+                    'payment_status' => $data['payment_status'],
+                    'last_modify' => date("Y-m-d H:i:s"),
+                );
+            }
 
             $invoice_details = $this->INV->getOneInvoive($where);
 
@@ -6112,7 +6120,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     $param['partial_payment'] = $over_all_due;
                     $param['payment_status'] = 2;
                     //KT
-                    $param['status'] = 2;
+                    $param['status'] = 1;
                     if ($invoice_details->opened_date == '') {
                         $param['opened_date'] = date("Y-m-d H:i:s");
                     } else {
@@ -6162,7 +6170,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         $param['partial_payment'] = $over_all_due;
                         $param['payment_status'] = 2;
                         //KT
-                        $param['status'] = 2;
+                        $param['status'] = 1;
                         if ($invoice_details->opened_date == '') {
                             $param['opened_date'] = date("Y-m-d H:i:s");
                         } else {
@@ -6231,7 +6239,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $param['partial_payment'] = $new_total_partial;
                 $param['payment_status'] = 2;
                 //KT
-                $param['status'] = 2;
+                $param['status'] = 1;
                 if ($invoice_details->opened_date == '') {
                     $param['opened_date'] = date("Y-m-d H:i:s");
                 } else {
@@ -6566,7 +6574,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             
     
                             //mark this invoice as paid
-                            $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'partial_payment' => $invoice_amount, 'payment_created' => date('Y-m-d H:i:s')]);
+                            $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 1, 'payment_status' => 2, 'partial_payment' => $invoice_amount, 'payment_created' => date('Y-m-d H:i:s')]);
                         
                             $credit_amount -= $invoice_amount;
                         
@@ -6780,7 +6788,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                                             
                     
                                             //mark this invoice as paid
-                                            $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'partial_payment' => $invoice_amount, 'payment_created' => date('Y-m-d H:i:s')]);
+                                            $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 1, 'payment_status' => 2, 'partial_payment' => $invoice_amount, 'payment_created' => date('Y-m-d H:i:s')]);
                                         
                                             $credit_amount -= $invoice_amount;
                                         
