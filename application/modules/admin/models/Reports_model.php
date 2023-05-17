@@ -1049,6 +1049,17 @@ class Reports_model extends CI_Model{
         return $data;
     }
 
+    public function get_job_company($CompanyID) {
+        $this->db->select('*');
+        $this->db->from('jobs');
+        $this->db->where('company_id', $CompanyID);
+        $this->db->where('service_type_id !=', "0");
+        $this->db->group_by("service_type_id");
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+
     public function get_invoice_number_from_programs($program_id, $property_id) {
         $this->db->select('GROUP_CONCAT(invoice_id) as invoice_ids');
         $this->db->from('property_program_job_invoice');

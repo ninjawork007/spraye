@@ -513,6 +513,8 @@ class Reports extends MY_Controller {
         );
         
         $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        $data['AllServiceType'] = $this->RP->get_job_company($this->session->userdata['company_id']);
+
         $ServiceTypeID = array();
         
         foreach($data['invoices'] as $Index => $INVs){
@@ -553,12 +555,208 @@ class Reports extends MY_Controller {
             
             $data['invoices'][$Index]->Jobs = $jobs;
         }
+
         $data['Services'] = $ServiceTypeID;
 
         $page["active_sidebar"] = "revenueServieType";
         $page["page_name"] = 'Revenue By Service Type';
         $page["page_content"] = $this->load->view("admin/report/view_revenue_service_type", $data, TRUE);
         $this->layout->superAdminInvoiceTemplateTable($page);
+    }
+
+    public function ajaxDataForTevenueServieType(){
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+        $start_date = $this->input->post('start_date');
+        $end_date = $this->input->post('end_date');
+        
+        $whereArr = array(
+            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+            'is_archived' => 0,
+        );
+
+        if($start_date != ""){
+            $whereArr['invoice_created >='] = $start_date;
+        }
+
+        if($end_date != ""){
+            $whereArr['invoice_created <='] = $end_date;
+        }
+        
+        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+
+        $data['StartDate'] = $data['invoices'][0]->invoice_created;
+        $data['EndDate'] = $data['invoices'][count($data['invoices']) -1]->invoice_created;
+
+        $data['AllServiceType'] = $this->RP->get_job_company($this->session->userdata['company_id']);
+
+        $ServiceTypeID = array();
+        
+        foreach($data['invoices'] as $Index => $INVs){
+            $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
+            $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
+
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
+            $TotalPayment = 0;
+            foreach($all_invoice_partials as $PayPart){
+                $TotalPayment += $PayPart->payment_amount;
+            }
+            $data['invoices'][$Index]->payment = $TotalPayment;
+
+            $jobs = array();
+            if ($details) {
+                foreach ($details as $detail) {
+                    $JobDetails = $this->RP->get_job_detail($detail['job_id']);
+                    if($TotalPayment > $detail['job_cost']){
+                        $PaidAmount = $detail['job_cost'];
+                        $TotalPayment -= $detail['job_cost'];
+                    }else{
+                        $PaidAmount = $TotalPayment;
+                    }
+
+                    $jobs[] = array(
+                        'job_name' => $detail['job_name'],
+                        'job_cost' => $detail['job_cost'],
+                        'PaidAmount' => $PaidAmount
+                    );
+                    $ServiceType = 0;
+                    if(isset($JobDetails[0]->service_type_id)){
+                        $ServiceType = $JobDetails[0]->service_type_id;
+                    }
+
+                    if($customer != ""){
+                        if($customer == $JobDetails[0]->service_type_id){
+                            $ServiceTypeID[$ServiceType] += $PaidAmount;
+                        }
+                    }else{
+                        $ServiceTypeID[$ServiceType] += $PaidAmount;
+                    }
+                }
+            }
+            $data['invoices'][$Index]->Jobs = $jobs;
+        }
+        $data['Services'] = $ServiceTypeID;
+        $body =  $this->load->view('admin/report/ajax_revenue_service_type', $data, false);
+    }
+
+    public function downloadRevueTypeCSV(){
+        $company_id = $this->session->userdata['company_id'];
+        $customer = $this->input->post('customer');
+        $start_date = $this->input->post('start_date');
+        $end_date = $this->input->post('end_date');
+        
+        $whereArr = array(
+            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+            'is_archived' => 0,
+        );
+
+        if($start_date != ""){
+            $whereArr['invoice_created >='] = $start_date;
+        }
+
+        if($end_date != ""){
+            $whereArr['invoice_created <='] = $end_date;
+        }
+        
+        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+
+        $StartDate = $data['invoices'][0]->invoice_created;
+        $EndDate = $data['invoices'][count($data['invoices']) -1]->invoice_created;
+
+        $data['AllServiceType'] = $this->RP->get_job_company($this->session->userdata['company_id']);
+
+        $ServiceTypeID = array();
+        
+        foreach($data['invoices'] as $Index => $INVs){
+            $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
+            $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
+
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
+            $TotalPayment = 0;
+            foreach($all_invoice_partials as $PayPart){
+                $TotalPayment += $PayPart->payment_amount;
+            }
+            $data['invoices'][$Index]->payment = $TotalPayment;
+
+            $jobs = array();
+            if ($details) {
+                foreach ($details as $detail) {
+                    $JobDetails = $this->RP->get_job_detail($detail['job_id']);
+                    if($TotalPayment > $detail['job_cost']){
+                        $PaidAmount = $detail['job_cost'];
+                        $TotalPayment -= $detail['job_cost'];
+                    }else{
+                        $PaidAmount = $TotalPayment;
+                    }
+
+                    $jobs[] = array(
+                        'job_name' => $detail['job_name'],
+                        'job_cost' => $detail['job_cost'],
+                        'PaidAmount' => $PaidAmount
+                    );
+                    $ServiceType = 0;
+                    if(isset($JobDetails[0]->service_type_id)){
+                        $ServiceType = $JobDetails[0]->service_type_id;
+                    }
+
+                    if($customer != ""){
+                        if($customer == $JobDetails[0]->service_type_id){
+                            $ServiceTypeID[$ServiceType] += $PaidAmount;
+                        }
+                    }else{
+                        $ServiceTypeID[$ServiceType] += $PaidAmount;
+                    }
+                }
+            }
+        }
+
+        
+        if(is_array($ServiceTypeID) && count($ServiceTypeID) > 0){
+             $delimiter = ",";
+             $filename = "revenue_service_type" . date('Y-m-d') . ".csv";
+            
+            #create a file pointer
+             $f = fopen('php://memory', 'w');
+            
+        
+            #set column headers
+             $fields = array('Date','Service Type','Amount');
+             fputcsv($f, $fields, $delimiter);
+            
+            #output each row of the data, format line as csv and write to file pointer
+            $total_current = 0;
+            $total_30 = 0;
+            $total_60 = 0;
+            $total_90 = 0;
+            $total_all = 0;
+            foreach ($ServiceTypeID as $Index => $ServiceName) {
+                $ServiceTypeName = "";
+                if($Index == 0 || $Index == ""){
+                    $ServiceTypeName = "NONE SELECTED   ";
+                }else{
+                    $Serv = $this->db->select('*')->from("service_type_tbl")->where(array("service_type_id" => $Index))->get()->row();
+                    $ServiceTypeName = $Serv->service_type_name;
+                }
+
+                $lineData = array(date("m/d/Y", strtotime($StartDate)) . " TO " . date("m/d/Y", strtotime($EndDate)), $ServiceTypeName, $ServiceName);
+
+                fputcsv($f, $lineData, $delimiter);
+            }
+
+            #move back to beginning of file
+            fseek($f, 0);
+
+            #set headers to download file rather than displayed
+            header('Content-Type: text/csv'); 
+            header('Content-Disposition: attachment; filename="' .$filename. '";');
+
+            #output all remaining data on a file pointer
+            fpassthru($f);
+
+        } else {
+             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
+             redirect("admin/reports/revenueServieType");
+        }    
     }
 
 
@@ -7279,10 +7477,18 @@ class Reports extends MY_Controller {
             $where_estimate = array(
                 'customers.customer_id' => $CanPropers->customer_id,
                 'property_tbl.property_id' => $CanPropers->property_id,
+                'sales_rep !=' => ''
             );
             
-            $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
-            $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
+            $estimate_job_details = $this->EstimateModal->getAllEstimate($where_estimate);
+
+            $SalesRepArray = array();
+            foreach($estimate_job_details as $EST){
+                $SaleRepRow = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $EST->estimate_id));
+                $SalesRepArray[] = @$SaleRepRow[0]->user_first_name." ".@$SaleRepRow[0]->user_last_name;
+            }
+
+            $SalesRepArray = array_unique($SalesRepArray);
 
             $ProgramCancelledArray = array_values($ProgramCancelledArray);
             $ProgramCancelledArray = array_unique($ProgramCancelledArray);
@@ -7293,7 +7499,7 @@ class Reports extends MY_Controller {
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
             $data["AllCancelledProperty"][$CanProIndex]->program_cancelled = implode(", ", $ProgramCancelledArray);
             $data["AllCancelledProperty"][$CanProIndex]->service_cancelled = implode(", ", $ServiceProgCancelled);
-            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
+            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = implode(", ", $SalesRepArray);
         }
 
 		#get cancelled services
@@ -7438,6 +7644,7 @@ class Reports extends MY_Controller {
             $ProgramCancelledArray = array();
             $AllServicesOfCustomer = $this->CancelledModel->getCancelledServicesByProperty($CanPropers->property_id);
             $cost = 0;
+
             foreach($AllServicesOfCustomer as $all_services) {
                 $PrmName = $this->CancelledModel->getCancelledProgramName($all_services->program_id);
                 $ProgramCancelledArray[] = @$PrmName->program_name;
@@ -7447,55 +7654,64 @@ class Reports extends MY_Controller {
                 // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
                 $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $all_services->property_id, 'program_id' => $all_services->program_id));
                     
-                if ($priceOverrideData->is_price_override_set == 1) {
-                    $cost +=  $priceOverrideData->price_override;
-                } else {
-                    //else no price overrides, then calculate job cost
-                    $lawn_sqf = $propertyDetails->yard_square_feet;
-                    $job_price = $jobDetails->job_price;
-
-                    //get property difficulty level
-                    if (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 2) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                    } elseif (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 3) {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                    if ($priceOverrideData->is_price_override_set == 1) {
+                        $cost +=  $priceOverrideData->price_override;
                     } else {
-                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                    }
+                        //else no price overrides, then calculate job cost
+                        $lawn_sqf = $propertyDetails->yard_square_feet;
+                        $job_price = $jobDetails->job_price;
 
-                    //get base fee 
-                    if (isset($all_services->base_fee_override)) {
-                        $base_fee = $all_services->base_fee_override;
-                    } else {
-                        $base_fee = $data['setting_details']->base_service_fee;
-                    }
+                        //get property difficulty level
+                        if (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 2) {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                        } elseif (isset($propertyDetails->difficulty_level) && $propertyDetails->difficulty_level == 3) {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                        } else {
+                            $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                        }
 
-                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+                        //get base fee 
+                        if (isset($all_services->base_fee_override)) {
+                            $base_fee = $all_services->base_fee_override;
+                        } else {
+                            $base_fee = $data['setting_details']->base_service_fee;
+                        }
 
-                    //get min. service fee
-                    if (isset($all_services->min_fee_override)) {
-                        $min_fee = $all_services->min_fee_override;
-                    } else {
-                        $min_fee = $data['setting_details']->minimum_service_fee;
-                    }
+                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
 
-                    // Compare cost per sf with min service fee
-                    if ($cost_per_sqf > $min_fee) {
-                        $cost += $cost_per_sqf;
-                    } else {
-                        $cost += $min_fee;
-                    }
+                        //get min. service fee
+                        if (isset($all_services->min_fee_override)) {
+                            $min_fee = $all_services->min_fee_override;
+                        } else {
+                            $min_fee = $data['setting_details']->minimum_service_fee;
+                        }
+
+                        // Compare cost per sf with min service fee
+                        if ($cost_per_sqf > $min_fee) {
+                            $cost += $cost_per_sqf;
+                        } else {
+                            $cost += $min_fee;
+                        }
                 }
+
                 $ServiceProgCancelled[] = $jobDetails->job_name;
             }
 
             $where_estimate = array(
                 'customers.customer_id' => $CanPropers->customer_id,
                 'property_tbl.property_id' => $CanPropers->property_id,
+                'sales_rep !=' => ''
             );
             
-            $estimate_job_details = $this->EstimateModal->getOneEstimate($where_estimate);
-            $SaleRepObj = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $estimate_job_details->estimate_id));
+            $estimate_job_details = $this->EstimateModal->getAllEstimate($where_estimate);
+
+            $SalesRepArray = array();
+            foreach($estimate_job_details as $EST){
+                $SaleRepRow = $this->EstimateModal->getAllSalesRepEstimate(array("estimate_id" => $EST->estimate_id));
+                $SalesRepArray[] = @$SaleRepRow[0]->user_first_name." ".@$SaleRepRow[0]->user_last_name;
+            }
+
+            $SalesRepArray = array_unique($SalesRepArray);
 
             $ProgramCancelledArray = array_values($ProgramCancelledArray);
             $ProgramCancelledArray = array_unique($ProgramCancelledArray);
@@ -7506,7 +7722,7 @@ class Reports extends MY_Controller {
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
             $data["AllCancelledProperty"][$CanProIndex]->program_cancelled = implode(", ", $ProgramCancelledArray);
             $data["AllCancelledProperty"][$CanProIndex]->service_cancelled = implode(", ", $ServiceProgCancelled);
-            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = @$SaleRepObj[0]->user_first_name." ".@$SaleRepObj[0]->user_last_name;
+            $data["AllCancelledProperty"][$CanProIndex]->SalesRep = implode(", ", $SalesRepArray);
         }
 
 		#get cancelled services

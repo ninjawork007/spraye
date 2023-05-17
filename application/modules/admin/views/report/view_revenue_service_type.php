@@ -15,17 +15,19 @@
 		<div class="panel-body">
 			<b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
 			<div class="panel panel-body" style="background-color:#ededed;" >
-				<form id="serchform" action="<?= base_url('admin/reports/downloadCreditReportCsv') ?>" method="post">
+				<form id="serchform" action="<?= base_url('admin/reports/downloadRevueTypeCSV') ?>" method="post">
 					<div class="row">
 						<div class="col-md-4">
 							<div class="form-group">
 								<label>Service Type</label>
 								<select class="bootstrap-select form-control" name="customer"  id="customer" data-live-search="true">
 									<option value="" >Select a Service Type</option>
-									<?php if ($ServiceArea) {
-										foreach ($ServiceArea as $customer) { ?>
-											<option value=<?= $customer->property_area_cat_id ?>><?= $customer->category_area_name?></option>
-									<?php } } ?>
+										<?php foreach ($AllServiceType as $ServiceData) {
+											$Serv = $this->db->select('*')->from("service_type_tbl")->where(array("service_type_id" => $ServiceData->service_type_id))->get()->row();
+											$ServiceTypeName = $Serv->service_type_name;
+											?>
+											<option value=<?= $ServiceData->service_type_id ?>><?= $ServiceTypeName ?></option>
+									<?php } ?>
 								</select>
 							</div>
 						</div>
@@ -57,29 +59,8 @@
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
 </div>
 
-<table class="table datatable-button-print-basic">
-	<thead>
-		<th>Invoice Number</th>
-		<th>Service Name</th>
-		<th>Amount
-	</thead>
-	<tbody>
-		<?php
-		foreach($invoices as $Inv){
-		?>
-		<tr>
-			<td><?php echo $Inv->invoice_id ?></td>
-			<td><?php echo $Inv->job_id ?></td>
-			<td><?php echo $Inv->payment ?></td>
-		</tr>
-
-		<?php
-		}
-		?>
-	</tbody>
-</table>
-
-<div class="post-list" id="invoice-age-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
+<div id="invoice-age-list">
+<div class="post-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
 	<div class="table-responsive table-spraye">
 		<table class="table datatable-button-print-basic">
 			<thead>
@@ -101,7 +82,7 @@
 					}
 				?>
 				<tr>
-					<td><?php echo date("Y-01-01") . " TO " . date("Y-m-d") ?></td>
+					<td><?php echo date("01/01/Y") . " TO " . date("m/d/Y") ?></td>
 					<td><?php echo $ServiceTypeName ?></td>
 					<td><?php echo $ServiceName ?></td>
 				</tr>
@@ -112,6 +93,7 @@
 		</table>
 	</div>
 </div>
+</th>
 <script>
 $(document).ready(function() {
       tableInitialize();
@@ -147,19 +129,17 @@ function filterInterval(interval){
 }
 function searchFilter() {
 	var customer = $('#customer').val();
-	var service_area = $('#service_area').val();
-    var tax_name = $('#tax_name').val();
-    var property_type = $('#property_type').val();
-	var interval = $('#interval').val();
+	var start_date = $("#start_date").val();
+	var end_date = $("#end_date").val();
 
-    $('.loading').css("display", "block");
+	$('.loading').css("display", "block");
 	
 	$('#invoice-age-list').html('');
 	
     $.ajax({
         type: 'POST',
-        url: '<?php echo base_url(); ?>admin/reports/ajaxDataForCustomerCreditReport',
-        data:'customer='+customer,
+        url: '<?php echo base_url(); ?>admin/reports/ajaxDataForTevenueServieType',
+        data:'customer='+customer+"&start_date="+start_date+"&end_date="+end_date,
         success: function (html) {
             $(".loading").css("display", "none");
             $('#invoice-age-list').html(html);
