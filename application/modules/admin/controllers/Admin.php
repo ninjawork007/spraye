@@ -42,8 +42,6 @@ class Admin extends MY_Controller
         $this->load->helper('form_validation_rule_helper');
         $this->load->helper('available_days_helper');
 
-        $this->load->model('Customer_model', 'customer');
-
 		if ( !$this->session->userdata('spraye_technician_login') && isset($_SERVER['REQUEST_URI'])) {
             $actual_link = $_SERVER['REQUEST_URI'];
             $_SESSION['iniurl'] = $actual_link;
@@ -102,6 +100,7 @@ class Admin extends MY_Controller
 		$this->load->model('Service_type_model', 'ServiceTypeModel');
 		$this->load->model('Cancelled_services_model', 'CST');
 		$this->load->model('AdminTbl_tags_model', 'TagsModel');	
+        $this->load->model('Payment_invoice_logs_model', 'PartialPaymentModel');
     }
 
     // TEMP USE FOR NO-MAP ROUTING VIEW
@@ -634,14 +633,7 @@ class Admin extends MY_Controller
                             $status = '<span class="label label-prospect">Estimate Sent</span>';
                         } elseif($value->property_status==6) {
                             $status = '<span class="label label-primary">Estimate Declined</span>';
-                        }elseif ($value->property_status==7) {
-                            $status = '<span class="label label-danger">Canceled - Moved</span>';
-                        }elseif ($value->property_status==8) {
-                            $status = '<span class="label label-danger">Canceled - Do not call</span>';
-                        }elseif ($value->property_status==9) {
-                            $status = '<span class="label label-danger">Canceled - Call Next Year</span>';
                         }
-
                         $data[$i]['property_status'] = $status;
 
                         $action_html = '
@@ -653,7 +645,7 @@ class Admin extends MY_Controller
                             <li style="display: inline; padding-right: 10px;">
                                 <a href="'.base_url("admin/propertyDelete/").$value->property_id .'" class="confirm_delete button-next"><i class="fa fa-trash   position-center" style="color: #9a9797;"></i></a>
                             </li>';
-                            if($value->property_status != 0 && $value->property_status != 7 && $value->property_status != 8 && $value->property_status != 9){
+                            if($value->property_status !=0 ){
                                 $action_html .= '<li style="display: inline; padding-right: 10px;" >
                                     <a href="#" class="confirm_cancellation" onclick="cancelProperty('. $value->property_id .')" >
                                         <i class="fa fa-remove position-center"  title="Cancel Property" style="color: #9a9797; size: 16px"></i>
@@ -2058,9 +2050,9 @@ class Admin extends MY_Controller
 		$this->customerHoldPayments();
 		// end call customer hold service scheduler
         $company_id =  $this->session->userdata['company_id'];
-        $where_revenue = array('company_id' => $company_id, 'status' => 2, 'MoNTH(invoice_date)' => DATE('m'), 'YEAR(invoice_date)' => DATE('Y'));
+        $where_revenue = array('company_id' => $company_id, 'status' => 2);
         $data['result_revenue'] =   $this->INV->getSumInvoive($where_revenue);
-        $where_partial = array('company_id' => $this->session->userdata['company_id'], 'status' => 3, 'MoNTH(invoice_date)' => DATE('m'), 'YEAR(invoice_date)' => DATE('Y'));
+        $where_partial = array('company_id' => $this->session->userdata['company_id'], 'status' => 3);
         $result_partial =   $this->INV->getSumInvoive($where_partial);
         //Gross revenue
         $year = date("Y-m");
@@ -2068,13 +2060,15 @@ class Admin extends MY_Controller
             'company_id' => $this->session->userdata['company_id'], 
             'payment_status >' => 0,
             'is_archived' => 0, 
-            'invoice_date >=' => $year . '-01'
+            'payment_invoice_logs.payment_datetime >=' => $year . '-01'
         );
         $result_revenue_total = $this->INV->getSumInvoive($where_revenue_total);
         $data['result_revenue']->cost = $result_revenue_total->total_partial-$result_revenue_total->refund_amount_total;
+        $data['OutstandingInvoiceCost'] = $this->getOutstandingInvoiceCost();
+        $data['OutstandingInvoiceCost'] = number_format($data['OutstandingInvoiceCost'],2);
         // end gross revenue
         // $data['result_revenue']->cost = $data['result_revenue']->cost + $result_partial->total_partial;
-        $where_unpiad = array('company_id' => $company_id, 'status' => 1, 'MoNTH(invoice_date)' => DATE('m'), 'YEAR(invoice_date)' => DATE('Y'));
+        $where_unpiad = array('company_id' => $company_id, 'status' => 1);
         $unpiad_data =   $this->INV->getSumInvoive($where_unpiad);
         $data['result_revenue']->unpiad_amount =    $unpiad_data->cost + $result_partial->remaning_amount;
         $d = new DateTime('first day of this month');
@@ -4900,21 +4894,18 @@ class Admin extends MY_Controller
                         'last_name' => $data[1],
                         'customer_company_name' => $data[2],
                         'email' => $data[3],
-                        'is_email' => $data[4],
-                        'secondary_email' => $data[5],
-                        'phone' => $data[6],
-                        'is_mobile_text' => $data[7],
-                        'home_phone' => $data[8],
-                        'work_phone' => $data[9],
-                        'billing_street' => $data[10],
-                        'billing_street_2' => $data[11],
-                        'billing_city' => $data[12],
-                        'billing_state' => $data[13],
-                        'billing_zipcode' => $data[14],
-                        'customer_status' => $data[15],
+                        'secondary_email' => $data[4],
+                        'phone' => $data[5],
+                        'home_phone' => $data[6],
+                        'work_phone' => $data[7],
+                        'billing_street' => $data[8],
+                        'billing_street_2' => $data[9],
+                        'billing_city' => $data[10],
+                        'billing_state' => $data[11],
+                        'billing_zipcode' => $data[12],
+                        'customer_status' => $data[13],
                         'pre_service_notification' => '["2"]',
                     );
-
                     $customer_where = array(
                         'company_id' => $company_id,
                         'billing_street' => $customer_param['billing_street']
@@ -4922,35 +4913,35 @@ class Admin extends MY_Controller
                     $property_param = array(
                         'user_id' => $user_id,
                         'company_id' => $company_id,
-                        'property_title' => $data[16],
-                        'property_address' => $data[17],
-                        'property_address_2' => $data[18],
-                        'property_city' => $data[19],
-                        'property_state' => $data[20],
-                        'property_zip' => $data[21],
-                        'property_area' => $data[22],
-                        'property_type' => $data[23],
-                        'yard_square_feet' => $data[24],
-                        'property_notes' => $data[25],
+                        'property_title' => $data[14],
+                        'property_address' => $data[15],
+                        'property_address_2' => $data[16],
+                        'property_city' => $data[17],
+                        'property_state' => $data[18],
+                        'property_zip' => $data[19],
+                        'property_area' => $data[20],
+                        'property_type' => $data[21],
+                        'yard_square_feet' => $data[22],
+                        'property_notes' => $data[23],
                     );
                     $sales_tax_param = array(
                         'user_id' => $this->session->userdata('user_id'),
                         'company_id' => $this->session->userdata('company_id'),
-                        'tax_name' => $data[26],
-                        'tax_value' => $data[27],
+                        'tax_name' => $data[24],
+                        'tax_value' => $data[25],
                     );
                     $program_param = array(
                         'user_id' => $this->session->userdata('user_id'),
                         'company_id' => $this->session->userdata('company_id'),
-                        'program_name' => $data[28],
-                        'program_price' => $data[29],
-                        'program_notes' => $data[30],
-                        'price_override' => $data[31],
+                        'program_name' => $data[26],
+                        'program_price' => $data[27],
+                        'program_notes' => $data[28],
+                        'price_override' => $data[29],
                     );
                     if ($customer_param['customer_status'] != 0 && $customer_param['customer_status'] != 1 && $customer_param['customer_status'] != 2) {
                         $customer_param['customer_status'] = 0;
                     }
-                    //$customer_param = array_filter($customer_param);
+                    $customer_param = array_filter($customer_param);
                     $property_param = array_filter($property_param);
                     $sales_tax_param = array_filter($sales_tax_param);
 
@@ -5164,12 +5155,6 @@ class Admin extends MY_Controller
         //die(print_r($data['customerData']));
 		$data['servicelist'] = $this->JobModel->getJobList($where);
 		$data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id,'customers.customer_id' => $customerID));
-
-
-        //To Fetch Responsible Party for Add Credit Model
-        $where = array('company_id' => $this->session->userdata['company_id']);
-        $data['CompaniesUser'] = $this->Administrator->getAllAdmin($where);
-
 
         foreach($data['all_services'] as $all_services) {
             $cost = 0;
@@ -6507,6 +6492,7 @@ class Admin extends MY_Controller
 			if ($customer_property_details) {
 			  $QBO_description = array();
 			  $actual_description_for_QBO = array();
+              $QBO_cost = 0;
 			  foreach ($customer_property_details as $key2 => $value2) {
 
 				//get customer info
@@ -6515,7 +6501,7 @@ class Admin extends MY_Controller
 				$total_cost = 0;
 				$description = "";
                 $est_cost = 0;
-                $QBO_cost = 0;
+                
 
 
 				// foreach program property job... calculate job cost	
@@ -6611,7 +6597,7 @@ class Admin extends MY_Controller
                         'job_id' => $job_id
                     );
 
-                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                   } else {
                     $job_coup_param = array(
                         'customer_id' => $value2->customer_id,
@@ -6621,7 +6607,7 @@ class Admin extends MY_Controller
                         'job_id' => $job_id
                     );
 
-                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                   }
 				}
 
@@ -7743,7 +7729,7 @@ class Admin extends MY_Controller
 				$service_specific_id = $type->type_id;
 			}
 		}
-		$data['service_specific_note_type_id'] = $service_specific_id;
+		$data['service_specific_note_type_id'] = $service_specific_id; 
 
         $page["active_sidebar"] = "properties";
         $page["page_name"] = "Update Property";
@@ -8097,6 +8083,7 @@ class Admin extends MY_Controller
 								  if ($customer_property_details) {
 									$QBO_description = array();
 									$actual_description_for_QBO = array();
+                                    $QBO_cost = 0;
 									foreach ($customer_property_details as $key2 => $value2) {
 
 									  //get customer info
@@ -8105,7 +8092,7 @@ class Admin extends MY_Controller
 									  $total_cost = 0;
 									  $description = "";
                                       $est_cost = 0;
-                                      $QBO_cost = 0;
+                                      
 
 									  // foreach program property job... calculate job cost	
 									  foreach ($jobs as $key3 => $value3) {
@@ -8200,7 +8187,7 @@ class Admin extends MY_Controller
                                                 'job_id' => $job_id
                                             );
                         
-                                            $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                            $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                           } else {
                                             $job_coup_param = array(
                                                 'customer_id' => $value2->customer_id,
@@ -8210,7 +8197,7 @@ class Admin extends MY_Controller
                                                 'job_id' => $job_id
                                             );
                         
-                                            $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                            $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                           }
 									  }
 
@@ -8678,13 +8665,14 @@ class Admin extends MY_Controller
                     if ($customer_property_details) {
                         $QBO_description = array();
                         $actual_description_for_QBO = array();
+                        $QBO_cost = 0;
                         foreach ($customer_property_details as $key2 => $value2) {
                             //get customer info	
                             $cust_details =   getOneCustomerInfo(array('customer_id' => $value2->customer_id));
                             $total_cost = 0;
                             $description = "";
                             $est_cost = 0;
-                            $QBO_cost = 0;
+                            
 
                             // foreach program property job... calculate job cost	
                             foreach ($data['program_job'] as $key3 => $value3) {
@@ -8782,7 +8770,7 @@ class Admin extends MY_Controller
                                         'property_id' => $value->property_id,
                                     );
                 
-                                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                   } else {
                                     $job_coup_param = array(
                                         'customer_id' => $value2->customer_id,
@@ -8795,7 +8783,7 @@ class Admin extends MY_Controller
                                         'property_id' => $value->property_id,
                                     );
                 
-                                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                   }
                             } //end foreach job
                             //echo "total ".$total_cost."<br>";
@@ -9159,13 +9147,14 @@ class Admin extends MY_Controller
                     if ($customer_property_details) {
                         $QBO_description = array();
                         $actual_description_for_QBO = array();
+                        $QBO_cost = 0;
                         foreach ($customer_property_details as $key2 => $value2) {
                             //get customer info	
                             $cust_details =   getOneCustomerInfo(array('customer_id' => $value2->customer_id));
                             $total_cost = 0;
                             $description = "";
                             $est_cost = 0;
-                            $QBO_cost = 0;
+                            
                             // foreach program property job... figure cost
                             foreach ($data['program_job'] as $key3 => $value3) {
                                 $job_id = $value3;
@@ -9263,7 +9252,7 @@ class Admin extends MY_Controller
                                         'job_id' => $job_id
                                     );
                 
-                                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                   } else {
                                     $job_coup_param = array(
                                         'customer_id' => $value2->customer_id,
@@ -9273,7 +9262,7 @@ class Admin extends MY_Controller
                                         'job_id' => $job_id
                                     );
                 
-                                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                   }
                             } //end foreach job
                             //echo "total ".$total_cost."<br>";
@@ -9659,13 +9648,16 @@ class Admin extends MY_Controller
                         $total_cost = 0;
                         $description = "";
                         $est_cost = 0;
-                        $QBO_cost = 0;
+                        
+                        
                         foreach ($customer_property_details as $key2 => $value2) {
-                            $QBO_description = array();
-                            $actual_description_for_QBO = array();
+                            
                             //get customer info	
                             $cust_details =   getOneCustomerInfo(array('customer_id' => $value2->customer_id));
 
+                            $QBO_description = array();
+                            $actual_description_for_QBO = array();
+                            $QBO_cost = 0;
                             //foreach program job get cost
                             foreach ($post_data['program_job'] as $key3 => $value3) {
                                 $job_id = $value3;
@@ -9763,7 +9755,7 @@ class Admin extends MY_Controller
                                         'customer_id' => $value2->customer_id,
                                     );
                 
-                                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                   } else {
                                     $job_coup_param = array(
                                         'cost' => $cost,
@@ -9773,7 +9765,7 @@ class Admin extends MY_Controller
                                         'customer_id' => $value2->customer_id,
                                     );
                 
-                                    $QBO_cost = $this->calculateServiceCouponCost($job_coup_param);
+                                    $QBO_cost += $this->calculateServiceCouponCost($job_coup_param);
                                   }
                             } //end foreach job
 
@@ -11101,7 +11093,7 @@ class Admin extends MY_Controller
                 )
             );
 
-            if ($param['email'] != '') {
+            if (isSet($param['email']) && $param['email'] != '') {
 
                 $invoice_arr['BillEmail'] = array(
                     "Address" => $param['email']
@@ -11181,25 +11173,16 @@ class Admin extends MY_Controller
     public function getWeatherInfo($lat, $long)
     {
 
-
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => "https://api.darksky.net/forecast/" . DarkApiKey . "/" . $lat . "," . $long,
+            //CURLOPT_URL => "https://api.darksky.net/forecast/" . DarkApiKey . "/" . $lat . "," . $long,
+            CURLOPT_URL => "https://weatherkit.apple.com/api/v1/weather/en_US/".$lat."/".$long."?dataSets=currentWeather,forecastDaily",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_POSTFIELDS => "{\n\t\"patient_id\" : 1\n}",
-            CURLOPT_HTTPHEADER => array(
-                "authorization: Basic YWRtaW46MTIzNA==",
-                "cache-control: no-cache",
-                "content-type: application/json",
-                "postman-token: 3d238a29-0f62-1d43-c717-28898b90be75",
-                "x-api-key: sdftr5t34tagfa54tgv54r5tgs5t"
-            ),
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer '.WeatherKitKey,
+            ],
         ));
 
         $response = curl_exec($curl);
@@ -13032,34 +13015,8 @@ class Admin extends MY_Controller
 	$email_data = array();
 	$email_data['cancel_reason'] = $cancel_reason;
 	$email_data['services'] = [];
-
-
 	#update property status
-	$handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('cancelled_by' => $this->session->userdata['id'], 'property_status'=> $data["cancel_status"],'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
-
-    #GetEstimate of this properyt and cancel
-    $GetEstimates = $this->EstimateModel->getAllEstimate(array("property_tbl.property_id" => $property_id));
-    foreach($GetEstimates as $Estms){
-        if($Estms->status == 1){
-            $this->EstimateModel->updateEstimate(array("estimate_id" => $Estms->estimate_id), array("status" => 5));
-        }
-    }
-
-
-    #Getting all property of customer and check if all cancel
-    $customer_info = $this->PropertyModel->getAllcustomer(array('property_id'=>$property_id));
-    $AllProp = $this->CustomerModel->getAllproperty(array("customer_id" => $customer_info[0]->customer_id));
-
-    $CustomerCancel = 0;
-    foreach($AllProp as $APL){
-        if($APL->property_status == 0 || $APL->property_status == 7 || $APL->property_status == 8 || $APL->property_status == 9){
-            $CustomerCancel++;
-        }
-    }
-    
-    if($CustomerCancel == count($AllProp)){
-        $this->CustomerModel->updateCustomerData(array("customer_status" => 0), array("customer_id" => $customer_info[0]->customer_id));
-    }
+	$handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('property_status'=>0,'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
 
 	#outstanding services should be cancelled
 	$outstandingServices = $this->PropertyModel->getUnassignJobsByProperty($property_id);
@@ -13877,53 +13834,171 @@ class Admin extends MY_Controller
         print $result ? 1 : 0;
     }
 
+    public function getOutstandingInvoiceCost() {
+        $limit = 0;
 
+        $start = 0;
+        $total_number = 0;
+        $order = 'invoice_id';
 
-    public function AddBatchCsv(){
-        $filename = $_FILES["csv_file"]["tmp_name"];
+        $dir = 'DESC';
 
-        $Array = array();
-        if ($_FILES["csv_file"]["size"] > 0) {
-            $company_id = $this->session->userdata('company_id');
-            $user_id = $this->session->userdata('user_id');
-            $row = 1;
-            if (($handle = fopen($filename, "r")) !== FALSE) {
-                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                    if ($row == 1) {
-                        $row++;
-                        continue;
+        // WHERE:
+        $whereArr = array(
+            'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+            'is_archived' => 0
+        );
+        // WHERE NOT: all of the below true
+        $whereArrExclude = array(
+            "programs.program_price" => 2,
+            // "technician_job_assign.is_complete" => 0,
+            "technician_job_assign.is_complete !=" => 1,
+            "technician_job_assign.is_complete IS NOT NULL" => null,
+        );
+
+        // WHERE NOT: all of the below true
+        $whereArrExclude2 = array(
+            "programs.program_price" => 2,
+            "technician_job_assign.invoice_id IS NULL" => null,
+            "invoice_tbl.report_id" => 0,
+            "property_program_job_invoice2.report_id IS NULL" => null,
+        );
+        $orWhere = array();
+
+        
+        $invoices = $this->INV->ajaxActiveInvoicesTech($whereArr, $limit, $start, $order, $dir, $whereArrExclude, $whereArrExclude2, $orWhere, false);
+        if (!empty($invoices)) {
+
+            foreach ($invoices as $invoice) {
+
+                // die(print_r($value));
+
+                $status = 1;
+
+                //////////////////////////////////
+                // START INVOICE CALCULATION COST //
+
+                //invoice cost
+                $invoice_total_cost = $invoice->cost;
+
+                //cost of all services (with price overrides) - service coupons
+                $job_cost_total = 0;
+                $where = array(
+                    'property_program_job_invoice.invoice_id' => $invoice->invoice_id,
+                );
+                $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
+                if (!empty($proprojobinv)) {
+                    foreach ($proprojobinv as $job) {
+
+                        $job_cost = $job['job_cost'];
+
+                        $job_where = array(
+                            'job_id' => $job['job_id'],
+                            'customer_id' => $job['customer_id'],
+                            'property_id' => $job['property_id'],
+                            'program_id' => $job['program_id'],
+                        );
+                        $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                        if (!empty($coupon_job_details)) {
+
+                            foreach ($coupon_job_details as $coupon) {
+                                // $nestedData['email'] = json_encode($coupon->coupon_amount);
+                                $coupon_job_amm_total = 0;
+                                $coupon_job_amm = $coupon->coupon_amount;
+                                $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                if ($coupon_job_calc == 0) { // flat amm
+                                    $coupon_job_amm_total = (float) $coupon_job_amm;
+                                } else { // percentage
+                                    $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                }
+
+                                $job_cost = $job_cost - $coupon_job_amm_total;
+
+                                if ($job_cost < 0) {
+                                    $job_cost = 0;
+                                }
+                            }
+                        }
+
+                        $job_cost_total += $job_cost;
                     }
+                } else {
+                    // $total_tax_amount = getAllSalesTaxSumByInvoice($invoice->invoice_id)->total_tax_amount;
+                    // $invoice_total_cost += $total_tax_amount;
+                    // $invoice_total_cost = $invoice->cost+$total_tax_amount;
 
-                    $customer_id = $data[0];
-                    $CreditAmount = $data[1];
-                    $PaymentType = $data[2];
-                    $CheckNumber = $data[3];
-
-
-                    $items = $this->customer->getOneCustomerDetail($customer_id);
-                    if($items == ""){
-                        continue;
-                    }
-
-                    if($CreditAmount == "" && $CreditAmount == 0){
-                        continue;
-                    }
-
-                    $Array[] = array("Customer" => $customer_id, "Amount" => $CreditAmount, "PaymentType" => $PaymentType, "Reference" => $CheckNumber);
+                    // IF none from that table, is old invoice, calculate old way
+                    $job_cost_total = $invoice->cost;
                 }
-            } else {
-                $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> file</strong> can not read please check file.</div>');
+                $invoice_total_cost = $job_cost_total;
+
+                // check price override -- any that are not stored in just that ^^.
+
+                // - invoice coupons
+                $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice->invoice_id));
+                foreach ($coupon_invoice_details as $coupon_invoice) {
+                    if (!empty($coupon_invoice)) {
+                        $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                        $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+
+                        if ($coupon_invoice_amm_calc == 0) { // flat amm
+                            $invoice_total_cost -= (float) $coupon_invoice_amm;
+                        } else { // percentage
+                            $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                            $invoice_total_cost -= $coupon_invoice_amm;
+                        }
+                        if ($invoice_total_cost < 0) {
+                            $invoice_total_cost = 0;
+                        }
+                    }
+                }
+
+                // + tax cost
+                $invoice_total_tax = 0;
+                $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $invoice->invoice_id));
+                if (!empty($invoice_sales_tax_details)) {
+                    foreach ($invoice_sales_tax_details as $tax) {
+                        if (array_key_exists("tax_value", $tax)) {
+                            $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
+                            $invoice_total_tax += $tax_amm_to_add;
+                        }
+                    }
+                }
+                $invoice_total_cost += $invoice_total_tax;
+
+                // END TOTAL INVOICE CALCULATION COST //
+                ///////////////////////////////////////
+
+                $due = $invoice_total_cost - $invoice->partial_payment;
+                // Make sure the invoice takes into account all past partial payments
+                $all_invoice_partials_total = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice->invoice_id));
+
+                if (count($all_invoice_partials_total) > 0) {
+                    $paid_already = 0;
+                    foreach ($all_invoice_partials_total as $paid_amount) {
+                        if ($paid_amount->payment_amount > 0) {
+                            $paid_already += $paid_amount->payment_amount;
+                        }
+                    }
+                    $due = $invoice_total_cost - $paid_already;
+                }
+
+                // no negative due
+                if ($due < 0) {
+                    $due = 0;
+                }
+
+                // if invoice is paid, due = 0
+                if ($invoice->payment_status == 2) {
+                    $due = 0;
+                }
+
+                $balance_due = $due == 0 ? '$0.00' : '$' . number_format($due, 2);
+                $total_number = $due + $total_number;
             }
-        } else {
-            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong> Do</strong> not select black file.</div>');
         }
-
-        $data['credits'] = $Array;
-        $page["active_sidebar"] = "invoice";
-        $page["page_name"] = "Batch Payments";
-        $page["page_content"] = $this->load->view("admin/batch_credit_verify", $data, TRUE);
-        $this->layout->superAdminTemplateTable($page);
-
-        //echo json_encode($Array);
+        return $total_number;
     }
 }

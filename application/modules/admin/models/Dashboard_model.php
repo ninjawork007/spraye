@@ -2067,7 +2067,6 @@ class Dashboard_model extends CI_Model{
         $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
 
 
-
         if (is_array($where_like) && array_key_exists( 'job_name', $where_like )) {
             $this->db->where_in( 'job_name', $where_in['job_name'] );
             if (is_array($where_like) && array_key_exists( 'job_name', $where_like )) {
@@ -2221,7 +2220,7 @@ class Dashboard_model extends CI_Model{
 
         $result = $this->db->get();
         $data = $result->result();
-//        die(print_r($this->db->last_query()));
+        //die(print_r($this->db->last_query()));
 //        $this->benchmark->mark('code_inside_end');
 //        echo $this->benchmark->elapsed_time('code_inside_start', 'code_inside_end');
 //        echo '<br>';

@@ -400,7 +400,7 @@
                         <div class="panel">
                            <div class="panel-body">
                               <h5 class="no-margin" >Outstanding Invoices</h5>
-                              <div class="text-muted text-size-small text-success"><?= (!empty($result_revenue->unpiad_amount)) ? '$ '.number_format($result_revenue->unpiad_amount,2)    : "$ 0" ?>  <span class="text-muted month-txt" >This month</span></div>
+                              <div class="text-muted text-size-small text-success">$<?= $OutstandingInvoiceCost ?> </div>
                            </div>
                         </div>
                      
@@ -542,58 +542,143 @@
                               <span></span>
                            </h2>
                            <div class="row align-items-center">
-                              <div class="col-lg-3">
-                                 <div class="icon-c">
-                                    <img src="<?php echo base_url('assets/weather/images/').$widget_data->currently->icon.'.png'; ?>" alt="" />
+                              <div class="col-lg-3 pull-left">
+                                 <div class="icon-c pull-right">
+                                    <?php
+                                        $icon_name = "";
+                                        switch($widget_data->currentWeather->conditionCode) {
+                                         case "Clear":
+                                             $icon_name = "clear-day";
+                                         break;
+                                         case "MostlyClear":
+                                             $icon_name = "clear-day";
+                                         break;
+                                         case "PartlyCloudy":
+                                             $icon_name = "partly-cloudy-day";
+                                         break;
+                                         case "MostlyCloudy":
+                                             $icon_name = "partly-cloudy-day";
+                                         break;
+                                         case "Cloudy":
+                                             $icon_name = "cloudy";
+                                         break;
+                                         case "Hazy":
+                                             $icon_name = "fog";
+                                         break;
+                                         case "Thunderstorms":
+                                             $icon_name = "thunderstorm";
+                                         break;
+                                         case "ScatteredThunderstorms":
+                                             $icon_name = "thunderstorm";
+                                         break;
+                                         case "Drizzle":
+                                             $icon_name = "rain";
+                                         break;
+                                         case "rain":
+                                         case "Rain":
+                                             $icon_name = "rain";
+                                         break;
+                                         case "HeavyRain":
+                                             $icon_name = "rain";
+                                         break;
+                                         case "Windy":
+                                            $icon_name = 'wind';
+                                         break;
+                                        }
+                                    ?>
+                                    <img src="<?php echo base_url('assets/weather/images/').$icon_name.'.png'; ?>" style='max-width:40px;' alt="" />
                                  </div>
                               </div>
-                              <div class="col-lg-3">
-                                 <div class="temp-desc">
+                              <div class="col-lg-9 pull-right">
+                                 <div class="temp-desc pull-left">
                                     <h5><?php
-                                       echo round($widget_data->currently->temperature);
-                                       ?>°<br>
+                                        $temp_in_f = ($widget_data->currentWeather->temperature * 9/5) + 32;
+                                       echo round($temp_in_f);
+                                       ?>°
+                                       <em>Wind: <?php 
+                                            echo round(($widget_data->currentWeather->windSpeed / 1.609344),2).' mph' 
+                                            ?>
+                                        </em>
                                     </h5>
-                                    <em>Wind: <?php echo round($widget_data->currently->windSpeed,2).' mph' ?>
-                                    </em>
+                                    
                                  </div>
                               </div>
-                              <div class="col-lg-6">
-                                 <div class="temp-desc">
-                                    <h6>
-                                       <?php echo $widget_data->currently->summary;?>
-                                    </h6>
-                                    <em><?php echo $widget_data->daily->summary; ?></em>
-                                 </div>
-                              </div>
+                              
                            </div>
                         </div>
                         <div class="weatherforecast">
                            <ul>
                               <?php
-                                 $rows = $widget_data->daily->data;
+                                //var_dump($widget_data->forecastDaily->days);
+                                 $rows = $widget_data->forecastDaily->days;
+                                 //var_dump($rows);
                                  foreach ($rows as $key => $value) {  
                                  ?>
-                              <li class="day old-in">
+                              <li class="day old-in" style='max-height:22px;'>
                                  <div class="dayname">
                                     <span><strong>
                                     <?php 
-                                       $date = $value->time;
-                                       
+                                       $date = $value->daytimeForecast->forecastStart;
+                                       $icon_name = "";
+                                       switch($value->conditionCode) {
+                                        case "Clear":
+                                            $icon_name = "clear-day";
+                                        break;
+                                        case "MostlyClear":
+                                            $icon_name = "clear-day";
+                                        break;
+                                        case "PartlyCloudy":
+                                            $icon_name = "partly-cloudy-day";
+                                        break;
+                                        case "MostlyCloudy":
+                                            $icon_name = "partly-cloudy-day";
+                                        break;
+                                        case "Cloudy":
+                                            $icon_name = "cloudy";
+                                        break;
+                                        case "Hazy":
+                                            $icon_name = "fog";
+                                        break;
+                                        case "Thunderstorms":
+                                            $icon_name = "thunderstorm";
+                                        break;
+                                        case "ScatteredThunderstorms":
+                                            $icon_name = "thunderstorm";
+                                        break;
+                                        case "Drizzle":
+                                            $icon_name = "rain";
+                                        break;
+                                        case "rain":
+                                        case "Rain":
+                                            $icon_name = "rain";
+                                        break;
+                                        case "HeavyRain":
+                                            $icon_name = "rain";
+                                        break;
+                                        case "Windy":
+                                            $icon_name = 'wind';
+                                         break;
+                                       }
                                        if ($key==0) {
-                                        echo "Today";
+                                        echo "<span style='font-size: smaller;'>Today</span>";
                                        } else {
-                                        echo date('D', $date);  
+                                        echo "<span style='font-size: smaller;'>".date('D', strtotime($date))."</span>";  
                                        } 
                                        
                                        ?>
                                     </strong></span>
                                  </div>
                                  <div class="sm-day-icon">
-                                    <img src="<?php echo base_url('assets/weather/images/').$value->icon.'.png'; ?>" alt="" />
+                                    <img src="<?php echo base_url('assets/weather/images/').$icon_name.'.png'; ?>" style='max-width:20px;' alt="" />
                                  </div>
                                  <div class="temps-day">
-                                    <div class="temp-day a"><strong><?php echo round($value->temperatureHigh);  ?>°</strong></div>
-                                    <div class="temp-m-day b"><strong><?php echo round($value->temperatureLow); ?>°</strong></div>
+                                    <?php
+                                        $max_temp_in_f = ($value->temperatureMax * 9/5) + 32;
+                                        $min_temp_in_f = ($value->temperatureMin * 9/5) + 32;
+
+                                    ?>
+                                    <div class="temp-day a" style='font-size: smaller;'><strong><?php echo round($max_temp_in_f);  ?>°</strong></div>
+                                    <div class="temp-m-day b" style='font-size: smaller;'><strong><?php echo round($min_temp_in_f); ?>°</strong></div>
                                  </div>
                               </li>
                               <?php  }  ?>

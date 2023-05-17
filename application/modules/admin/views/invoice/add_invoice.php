@@ -89,10 +89,8 @@
                               <?php 
                                  if (!empty($program_details)) {
                                    foreach ($program_details as $key => $value) {
-									   if($value->program_price == 3){
-										   //manual billing programs only
+
 										   echo '<option value="'.$value->program_id.'" >'.$value->program_name.'</option>';
-									   }
                                      
                                    }
                                  }
@@ -102,21 +100,7 @@
                         </div>
                      </div>
                   </div>
-			<!--  <div class="col-md-6"> 
-                     <div class="form-group">
-                        <label class="control-label col-md-3">Cost</label>
-                        <div class="col-md-9">
-
-                          <div class="input-group">  
-                            <span class="input-group-btn">
-                                 <span class="btn btn-success">$</span>
-                            </span>
-                            <input type="text" class="form-control" name="cost" placeholder="Enter Cost">                              
-                           </div>
-
-                        </div>
-                     </div>
-                  </div> -->
+			
 				 <div class="col-md-6">
                      <div class="form-group">
                         <label class="control-label col-md-3">Notes</label>
@@ -317,9 +301,58 @@
 			$('.prioritytbody:last').append($row);
 			$n = $n+1;        
 			$('#job_id_order_array').val(selectedValues);
-		  }
-   } 
-});
+		}
+    } 
+   });
+
+    $("#program_id").change(function(){
+        var program_id = $(this).val();
+        var property_id = $('#property_id').val();
+
+        $.ajax({
+                type: "POST", 
+                url: "<?= base_url('admin/Invoices/getAllServicesByProgram')  ?>",
+                data: {program_id : program_id, property_id: property_id }, 
+                dataType: 'JSON', 
+            }).done(function(response){
+
+                if (response.status==200) {
+                 console.log(response);
+
+                $.each( response.result, function( key, val ) {
+
+                    optionValue = val.job_id;
+
+                    if ($.inArray(optionValue, selectedValues)!='-1') {
+
+                    } else {
+                        $('.prioritydivcontainer').css("display","block");
+
+                        optionText = val.job_name;
+
+                        selectedValues.push(optionValue);
+
+                        selectedTexts.push(optionText);
+
+                        var $row = $('<tr id="trid'+$n+'">'+
+                            '<td class="index" >'+$n+'</td>'+
+                            '<td>'+optionText+'</td>'+
+                            '<td><input type="text" class="form-control job-cost" name="cost['+optionValue+']" placeholder="Enter Cost" value="" ></td>'+			 
+                            '<td class="removeclass" id="'+$n+'" optionValueRemove="'+optionValue+'" optionTextRemove="'+optionText+'" ><ul class="icons-list"><li><a href="#"><i class="icon-trash"><li></i></a></li></ul></td>'+
+                            '</tr>');    
+
+
+                            $('.prioritytbody:last').append($row);
+                            $n = $n+1;        
+                            $('#job_id_order_array').val(selectedValues);
+                    }
+                });
+    
+            }   
+
+        });
+
+    });
 
 	
 // REMOVE SELECTED SERVICE FROM LIST
