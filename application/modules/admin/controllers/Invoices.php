@@ -1859,12 +1859,6 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
     }
 
 
-
-
-
-
-
-
     public function addInvoice()
     {
 
@@ -1875,6 +1869,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         $data['job_details'] = $this->JobModel->getAllJob($where);
         $where = array('company_id' => $this->session->userdata['company_id']);
         $data['program_details'] = $this->ProgramModel->get_all_program($where);
+        // die(print_r($data["program_details"]));
         $where = array('company_id' => $this->session->userdata['company_id']);
         $coupon_where = array(
             'company_id' => $this->session->userdata['company_id'],
@@ -1924,7 +1919,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         $property_id = $this->input->post('property_id');
 
         
-        $data = $this->PropertyModel->getAllprogram(array('property_id' => $property_id, 'programs.program_price' => 3));
+        $data = $this->PropertyModel->getAllprogram(array('property_id' => $property_id));
         
 
         if (!empty($data)) {
@@ -1946,7 +1941,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
         $data = $this->input->post();
 
-        //die(print_r($data));
+        // die(print_r($data));
 
         $this->form_validation->set_rules('customer_id', 'Property Title', 'required');
 
@@ -1993,6 +1988,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $cost_with_service_coupons = 0;
 
+            $cost_with_cust_coupon = 0;
+
             foreach ($jobs as $key => $job) {
 
                 //$prop_prog = $this->PropertyModel->getOnePropertyProgram(array('property_id'=>$data['property_id'], 'program_id'=>$data['program_id']));
@@ -2023,7 +2020,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $job_details = $this->JobModel->getOneJob(array('job_id' => $job));
 
                 $coup_job_param = array(
-                    'cost' => $job_details->job_price,
+                    'cost' => $data['cost'][$job],
                     'job_id' => $job,
                     'customer_id' => $data['customer_id'],
                     'property_id' => $data['property_id'],
@@ -2056,7 +2053,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 'customer_id' => $data['customer_id']
             );
 
-            $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
+            $cost_with_cust_coupon += $this->calculateCustomerCouponCost($coup_cust_param);
 
 
             //die(print_r($total));
@@ -2146,9 +2143,14 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $QBO_param = $param;
                 $QBO_param['property_street'] = explode(',', $property_details->property_address)[0];
                 $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
+                $QBO_cost = $cost_with_cust_coupon;
 
+                if (array_key_exists("assign_onetime_coupons", $data)){
+                    $coupon_ids_arr = $data['assign_onetime_coupons'];
+                    $QBO_cost = $this->calculateOneTimeCouponCost($cost_with_cust_coupon, $coupon_ids_arr);
+                }
 
-                $QBO_param['cost'] = $cost_with_cust_coupon;
+                $QBO_param['cost'] = $QBO_cost;
 
                 $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
 
@@ -9314,6 +9316,71 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
     
         return number_format($total_cost, 2, '.', ',');
     }
+
+    public function calculateOneTimeCouponCost($cost, $coupon_ids){
+        $total_cost = $cost;
+        
+        foreach($coupon_ids as $coupon_id){
+            $coupon_details = $this->CouponModel->getOneCoupon(array('coupon_id' => $coupon_id));
+    
+            // CHECK THAT EXPIRATION DATE IS IN FUTURE OR 000000
+            $expiration_pass = true;
+            if ($coupon_details->expiration_date != "0000-00-00 00:00:00") {
+                $coupon_expiration_date = strtotime($coupon_details->expiration_date);
+        
+                $now = time();
+                if ($coupon_expiration_date < $now) {
+                    $expiration_pass = false;
+                }
+            }
+        
+            if ($expiration_pass == true) {
+                if ($coupon_details->amount_calculation == 0) {
+                    $discount_amm = (float) $coupon_details->amount;
+        
+                    if (($total_cost - $discount_amm) < 0 ) {
+                        $total_cost = 0;
+                    } else {
+                        $total_cost -= $discount_amm;
+                    }
+        
+                } else {
+                    $percentage = (float) $coupon_details->amount;
+                    $discount_amm = (float) $total_cost * ($percentage / 100);
+        
+                    if (($total_cost - $discount_amm) < 0 ) {
+                        $total_cost = 0;
+                    } else {
+                        $total_cost -= $discount_amm;
+                    }
+        
+                }
+            } 
+        }
+       
+        
+     
+        $total_cost = floatval($total_cost);
+    
+        return number_format($total_cost, 2, '.', ',');
+        
+    }
+
+    public function getAllServicesByProgram($value=''){
+        $program_id =  $this->input->post('program_id');
+        $property_id = $this->input->post('property_id');
+        $property_size = $this->PropertyModel->getPropertySquareFootage($property_id);
+        // die(print_r($property_size));
+        $program_details =  $this->ProgramModel->getProgramAssignJobs(array('program_id' =>$program_id));
+    
+        if ($program_details) {
+          $return_result =  array('status'=>200,'property_size'=>$property_size,'result'=>$program_details,'msg'=>'successfully');
+        } else{
+          $return_result =  array('status'=>400,'property_size'=>$property_size,'result'=>array(),'msg'=>'successfully');
+        }
+        echo json_encode($return_result);
+    
+      }
 
 
 

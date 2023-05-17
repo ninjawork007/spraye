@@ -87,8 +87,10 @@ defined('EXIT__AUTO_MAX') or define('EXIT__AUTO_MAX', 125); // highest automatic
 define('GoogleMapKey','AIzaSyBH7pmiDU016Cg76ffpkYQWcFQ4NaAC2VI');
 define('RootAppId','5df095d632834faf9445b944d04121a2');
 define('BingMAp','AtzFrQsruznA-qMUoFg0sjmusWARhhxX3FwYb3Q4ho0vsbSjnmLsET6gjcVPaKeM');
-define('DarkApiKey','13d9f0513ccb7401868029c05ea94b31');
-define('openweathermap','9914c8e12b1d6a30eb4a6207a13ac4dd');
+//define('DarkApiKey','13d9f0513ccb7401868029c05ea94b31');
+define('openweathermap','e63b7b4d048293e6eaf9c1a7fe54ac73');
+// DARK SKY API is no longer in use - so WeatherKit stuff is being added 4/11/23
+define('WeatherKitKey','eyJhbGciOiJFUzI1NiIsImtpZCI6Ikw2V0dZMzRaVFgiLCJpZCI6IlU3VzRDVzVXUlcuaW8uc3ByYXllLnNwcmF5ZXdlYXRoZXIifQ.eyJpc3MiOiJVN1c0Q1c1V1JXIiwiaWF0IjoxNjgxMjIzNjM4LCJleHAiOjI5OTI1ODk4NTYsInN1YiI6ImlvLnNwcmF5ZS5zcHJheWV3ZWF0aGVyIn0.rjbIlTlDGcD2evwYTNLNrBZ863qlWD1B-GAWUk-JARi1ESYSSiwg8dPyeZlrLkfsIgT84lkJXn62m_8NrDjdwg');
 define('helpEmailTo','support@spraye.io');
 define('OPENSSL_KEY','42264528482B4D6251655468576D5A7134743777217A25432A462D4A404E6352');
 define('AES_256_CBC', 'AES-256-CBC');

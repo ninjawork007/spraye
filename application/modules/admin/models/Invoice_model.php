@@ -552,10 +552,11 @@ class Invoice_model extends CI_Model{
 
     public function getSumInvoive($where_arr) {
 
-        $this->db->select(' sum( IFNULL(tax_amount, 0 ) ) + cost as cost , partial_payment , sum( IFNULL(tax_amount, 0 ) ) + cost - partial_payment as remaning_amount , refund_amount_total,  invoice_tbl.invoice_id ');
+        $this->db->select(' sum( IFNULL(tax_amount, 0 ) ) + cost as cost , partial_payment , sum( IFNULL(tax_amount, 0 ) ) + cost - partial_payment as remaning_amount , refund_amount_total,  invoice_tbl.invoice_id, payment_invoice_logs.payment_datetime ');
 
         $this->db->from('invoice_tbl');
         $this->db->join('invoice_sales_tax','invoice_sales_tax.invoice_id = invoice_tbl.invoice_id','left');
+        $this->db->join('payment_invoice_logs','payment_invoice_logs.invoice_id = invoice_tbl.invoice_id','left');
         $this->db->where($where_arr);
         $this->db->group_by('invoice_tbl.invoice_id');
 

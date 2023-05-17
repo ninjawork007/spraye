@@ -119,127 +119,70 @@ function Send_Mail_dynamic($smtparray = array(), $to, $company_data, $body, $sub
 
 		if (isset($company_data["email"])) {
 			$reply_email = $company_data["email"];
-
 		}
-		//$body = "<strong>I'm HTML!</strong>";
+
+		$url = "https://api.sendgrid.com/v3/mail/send";
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_URL, $url);
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+		$headers = array(
+			//"authorization: Bearer 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", old key from before hack
+			"authorization: Bearer " . SEND_G,
+			"Content-Type: application/json",
+		);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+		$tos = array();
+		$tos[] = ['email' => $to, 'name' => $to];
+		if ($secondary_email != '')
+		{
+			$secondary_email_list = explode(',', $secondary_email);
+			foreach ($secondary_email_list as $secondary_email_ele) {
+				$tos[] = ['email' => $secondary_email_ele, 'name' => $secondary_email_ele];
+			}
+		}
+		$data = [
+			'personalizations' => [
+				0 => [
+					'to' => $tos,
+				],
+			],
+			'from' => [
+				'email' => $from_email,
+				'name' => $from_name,
+			],
+			'reply_to' => [
+				'email' => $reply_email,
+				'name' => $reply_name,
+			],
+			'subject' => $subject,
+			'content' => [
+				0 => [
+					'type' => 'text/html',
+					'value' => $body,
+				],
+			]
+		];
+
 		if ($file) {
-			$url = "https://api.sendgrid.com/v3/mail/send";
-			$curl = curl_init($url);
-			curl_setopt($curl, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_HEADER, true);
-			curl_setopt($curl, CURLOPT_POST, true);
-			curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-			$headers = array(
-				//"authorization: Bearer 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", old key from before hack
-				"authorization: Bearer " . SEND_G,
-				"Content-Type: application/json",
-			);
-			curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-			$data = [
-				'personalizations' => [
-					0 => [
-						'to' => [
-							0 => [
-								'email' => $to,
-							],
-						],
-					],
-				],
-				'from' => [
-					'email' => $from_email,
-					'name' => $from_name,
-				],
-				'reply_to' => [
-					'email' => $reply_email,
-					'name' => $reply_name,
-				],
-				'subject' => $subject,
-				'content' => [
-					0 => [
-						'type' => 'text/html',
-						'value' => $body,
-					],
-				],
-				'attachments' => [
-					0 => [
-						'content' => $file['file'],
-						'type' => 'text/plain',
-						'filename' => $file['file_name'],
-					],
-				],
+			$data['attachments'] = [
+				0 => [
+					'content' => $file['file'],
+					'type' => 'text/plain',
+					'filename' => $file['file_name']
+				]
 			];
-
-			curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
-			$res = curl_exec($curl);
-			$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-			curl_close($curl);
-			if ($httpcode == 202) {
-				return array('status' => true, 'message' => 'Email send succefully');
-			} else {
-				return array('status' => false, 'message' => print_r($res));
-			}
-		} else {
-			//die('{"personalizations":[{"to":[{"email":"'.$to.'","name":"'.$to.'"}],"subject":"'.$subject.'"}],"content": [{"type": "text/html", "value": "'.$body.'"}],"from":{"email":"'.trim($from_email).'","name":"'.$from_name.'"},"reply_to":{"email":"'.$reply_email .'","name":"'.$reply_name .'"}}');
-			//die('from email '.$from_email. ' after');
-			$url = 'https://api.sendgrid.com/';
-			$request = $url . 'api/mail.send.json';
-			// Generate curl request
-			$session = curl_init($request);
-			// Tell PHP not to use SSLv3 (instead opting for TLS)
-			curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-			//curl_setopt($session, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . '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')); old key
-			curl_setopt($session, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . SEND_G));
-			// Tell curl to use HTTP POST
-			curl_setopt($session, CURLOPT_POST, true);
-			// Tell curl that this is the body of the POST
-			//curl_setopt ($session, CURLOPT_POSTFIELDS, '{"personalizations":[{"to":[{"email":"'.$to.'","name":"'.$to.'"}],"subject":"'.$subject.'"}],"content": [{"type": "text/html", "value": "'.$body.'"}],"from":{"email":"'.trim($from_email).'","name":"'.$from_name.'"},"reply_to":{"email":"'.$reply_email .'","name":"'.$reply_name .'"}}');
-			curl_setopt($session, CURLOPT_POSTFIELDS, 'to=' . $to . '&toname=' . $to . '&subject=' . $subject . '&html=' . urlencode($body) . '&from=' . $from_email . '&fromname=' . $from_name . '&replyto=' . $reply_email . '&replytoname=' . $reply_name);
-			// Tell curl not to return headers, but do return the response
-			curl_setopt($session, CURLOPT_HEADER, false);
-			curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-
-			// obtain response
-			$res = curl_exec($session);
-			curl_close($session);
-			// print everything out
-			//die(print_r($secondary_email));
-			if ($secondary_email != "") {
-				$secondary_email_list = explode(',', $secondary_email);
-				foreach ($secondary_email_list as $secondary_email_ele) {
-					$session = curl_init($request);
-					// Tell PHP not to use SSLv3 (instead opting for TLS)
-					curl_setopt($session, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
-					//curl_setopt($session, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . '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')); old key
-					curl_setopt($session, CURLOPT_HTTPHEADER, array('Authorization: Bearer ' . SEND_G));
-					// Tell curl to use HTTP POST
-					curl_setopt($session, CURLOPT_POST, true);
-					// Tell curl that this is the body of the POST
-					//curl_setopt ($session, CURLOPT_POSTFIELDS, '{"personalizations":[{"to":[{"email":"'.$to.'","name":"'.$to.'"}],"subject":"'.$subject.'"}],"content": [{"type": "text/html", "value": "'.$body.'"}],"from":{"email":"'.trim($from_email).'","name":"'.$from_name.'"},"reply_to":{"email":"'.$reply_email .'","name":"'.$reply_name .'"}}');
-					curl_setopt($session, CURLOPT_POSTFIELDS, 'to=' . $secondary_email_ele . '&toname=' . $secondary_email_ele . '&subject=' . $subject . '&html=' . urlencode($body) . '&from=' . $from_email . '&fromname=' . $from_name . '&replyto=' . $reply_email . '&replytoname=' . $reply_name);
-					// Tell curl not to return headers, but do return the response
-					curl_setopt($session, CURLOPT_HEADER, false);
-					curl_setopt($session, CURLOPT_RETURNTRANSFER, true);
-
-					// obtain response
-					$res = curl_exec($session);
-					curl_close($session);
-				}
-			}
-			$res_obj = json_decode($res);
-			if ($res_obj->message == "error") {
-				return array('status' => false, 'message' => print_r($res));
-			} else if ($res_obj->message == "success") {
-				return array('status' => true, 'message' => 'Email send succefully');
-			}
 		}
-		// 
-
-		//$res = array();
-
-		//die($_SERVER['DOCUMENT_ROOT']);
-
-
-
+		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+		$res = curl_exec($curl);
+		$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		curl_close($curl);
+		if ($httpcode == 202) {
+			return array('status' => true, 'message' => 'Email send succefully');
+		} else {
+			return array('status' => false, 'message' => print_r($res));
+		}
 	}
 }
 

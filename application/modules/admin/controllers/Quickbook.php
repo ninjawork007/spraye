@@ -81,7 +81,8 @@ class Quickbook extends MY_Controller {
         'ClientID' => $this->input->post('quickbook_client_id'),
         'ClientSecret' => $this->input->post('quickbook_client_secret'),
         'RedirectURI' => 'https://dashboard.spraye.io/admin/quickbook/processCode',
-        //'RedirectURI' => 'https://dev-env.spraye.io/admin/quickbook/processCode',
+        // 'RedirectURI' => 'https://dev-env.spraye.io/admin/quickbook/processCode',
+        // 'RedirectURI' => 'https://spraye-dev9.blayzer.com/admin/quickbook/processCode',
         'scope' => 'com.intuit.quickbooks.accounting openid profile email phone address',
         'baseUrl' => "Production"
       ));
@@ -111,6 +112,7 @@ function processCode()
         'ClientSecret' =>  $this->session->userdata('quicjbookArray')['quickbook_client_secret'],
         'RedirectURI' => 'https://dashboard.spraye.io/admin/quickbook/processCode',
 //        'RedirectURI' => 'https://dev-env.spraye.io/admin/quickbook/processCode',
+        // 'RedirectURI' => 'https://spraye-dev9.blayzer.com/admin/quickbook/processCode',
         'scope' => 'com.intuit.quickbooks.accounting openid profile email phone address',
         'baseUrl' => "Production"
     ));
