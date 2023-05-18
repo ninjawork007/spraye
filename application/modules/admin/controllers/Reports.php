@@ -1,6 +1,8 @@
 <?php
-
 defined('BASEPATH') OR exit('No direct script access allowed');
+require_once APPPATH . '/third_party/smtp/Send_Mail.php';
+require FCPATH . 'vendor/autoload.php';
+include APPPATH ."libraries/dompdf/autoload.inc.php";
 
 class Reports extends MY_Controller {
 
