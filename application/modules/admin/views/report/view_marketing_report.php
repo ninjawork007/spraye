@@ -347,15 +347,24 @@ opacity: 1;
                                             <?php endforeach ?>
                                         </select>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-5 multi-select-full">
+                                                <label># of Completed Services
+                                                    <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title="You must first select a Program for this filter"> <i class=" icon-info22 tooltip-icon"></i>
 
-                                    <div class="col-md-3 multi-select-full">
-                                        <label># Completed Services in selected programs start</label>
-                                        <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
-                                    </div>
+                                                    </span>
+                                                </label>
+                                                <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                            </div>
 
-                                    <div class="col-md-3 multi-select-full">
-                                        <label># Completed Services in selected programs end</label>
-                                        <input type="number" id="serviceCompletedEnd" name="serviceCompletedEnd" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                            <div class="col-md-1" style="margin-top: 25px">TO</div>
+
+                                            <div class="col-md-6 multi-select-full">
+                                                <label>&nbsp;</label>
+                                                <input type="number" id="serviceCompletedEnd" name="serviceCompletedEnd" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="clearfix"></div>
 
@@ -398,9 +407,56 @@ opacity: 1;
 						<div class="text-center">
 							<button type="button" class="btn btn-success" onClick="searchFilter()" ><i class="icon-search4 position-left"></i> Search</button>
 							<button type="button" class="btn btn-primary" onClick="resetform()" ><i class="icon-reset position-left"></i> Reset</button>
-							<button type="submit" class="btn btn-info"><i class="icon-file-download position-left"></i> Download CSV</button>
+							<button type="submit" name="SendButtonEmail" value="3" class="btn btn-info"><i class="icon-file-download position-left"></i> Download CSV</button>
+                            <button type="button" data-target="#modal_mass_email" data-toggle="modal" class="btn btn-info"><i class="icon-file-download position-left"></i> Send Email to List</button>
 						</div>
 					</div>
+
+                    <!--start modal -->
+                    <div id="modal_mass_email" class="modal fade">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h6 class="modal-title">Send Mass Email</h6>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-group multi-select-full">
+                                        <label>Programms</label>
+                                        <select class="multiselect-select-all-filtering form-control" name="MassProgramms[]" multiple="multiple" style='white-space: break-spaces;'>
+                                            <?php foreach ($program_details as $value): ?>
+                                                <option value="<?= $value->program_id ?>"> <?= $value->program_name ?> </option>
+                                            <?php endforeach ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group multi-select-full">
+                                        <label>Email Subject</label>
+                                        <input type="text" name="email_subject" class="form-control">
+                                    </div>
+
+                                    <div class="form-group multi-select-full">
+                                        <label>Email Text</label>
+                                        <textarea id="editor1" name="mailText"></textarea>
+                                    </div>
+
+                                    <span>Dynamic value for email : <br>
+                                        <b>Customer First Name : </b> {CUSTOMER_FIRST_NAME}<br>
+                                        <b>Customer Last Name : </b> {CUSTOMER_LAST_NAME}<br>
+                                        <b>Property Name : </b> {PROPERTY_NAME}<br>
+                                        <b>Property Address : </b> {PROPERTY_ADDRESS}<br>
+                                        <b>Programm Name : </b> {PROGRAMM_NAME}<br>
+                                    </span>
+
+                                    <div class="modal-footer">
+                                        <button class="btn btn-primary" type="submit" name="SendButtonEmail" value="1">Send Email</button>
+                                        <button class="btn btn-primary" type="submit" name="SendButtonEmail" value="2">Save Draft</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--end modal -->
 				</form>
 			</div>
 		</div>
@@ -456,7 +512,12 @@ opacity: 1;
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
 </div>
 <script type="text/javascript" src="<?= base_url('assets/admin') ?>/assets/js/pages/components_popups.js"></script>
+
+  <script src="https://cdn.ckeditor.com/4.21.0/standard-all/ckeditor.js"></script>
+
 <script>
+CKEDITOR.replace('editor1');
+
 $(document).ready(function() {
     tableInitialize();
 });

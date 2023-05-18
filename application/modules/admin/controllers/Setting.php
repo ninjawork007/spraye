@@ -1230,89 +1230,61 @@ class Setting extends MY_Controller
         }
     }
 
-    public function updateSmtp()
-    {
-
+    public function updateSmtp(){
         $data = $this->input->post();
-
         $this->form_validation->set_rules('smtp_host', 'smtp_host', 'required');
-
         $this->form_validation->set_rules('smtp_port', 'smtp_port', 'required');
-
         $this->form_validation->set_rules('smtp_username', 'smtp_username', 'required');
-
         $this->form_validation->set_rules('smtp_password', 'smtp_password', 'required');
-
-
-
+        
         if ($this->form_validation->run() == FALSE) {
-
-
-
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">' . validation_errors() . '</div>');
-
             $this->index();
         } else {
-
-
-
             $param = array(
-
                 'smtp_host' => $data['smtp_host_type'] . $data['smtp_host'],
-
                 'smtp_port' => $data['smtp_port'],
-
                 'smtp_username' => $data['smtp_username'],
-
-                'smtp_password' => $data['smtp_password'],
-
-
-
+                'smtp_password' => $data['smtp_password']
             );
-
-
-
-
 
             $checksmtp =   Send_Mail_dynamic($param, $this->session->userdata['compny_details']->company_email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), 'This mail has been made for smtp credential check, please ignore it', 'Check SMTP credential');
 
 
-
-
-
             if ($checksmtp['status']) {
-
                 $where = array('company_id' => $this->session->userdata['company_id']);
-
                 $param['is_smtp'] = 1;
-
                 $param['updated_at'] = date('Y-m-d H:i:s');
-
-
-
                 $result = $this->CompanyEmail->updateCompanyEmail($where, $param);
-
-
-
                 if ($result) {
-
-
-
                     $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>SMTP </strong>details updated successfully</div>');
-
                     redirect("admin/setting");
                 } else {
-
                     $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>SMTP </strong>Details not updated. Please try again</div>');
-
                     redirect("admin/setting");
                 }
             } else {
-
                 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">' . $checksmtp['message'] . '<a href="http://support.spraye.io/support/solutions/articles/47001135041-smtp-settings-how-to-send-emails-from-your-company-domain" target="_blank" class="info"  >learn more</a>' . '</div>');
-
                 redirect("admin/setting");
             }
+        }
+    }
+
+    public function MassEmail(){
+        $data = $this->input->post();
+        $this->form_validation->set_rules('mass_email_id', 'mass_email_id', 'required');
+        if ($this->form_validation->run() == FALSE) {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">' . validation_errors() . '</div>');
+            $this->index();
+        } else {
+            $param = array(
+                'mass_email_id' => $data['mass_email_id'],
+                'updated_at' => date('Y-m-d H:i:s')
+            );
+            $where = array('company_id' => $this->session->userdata['company_id']);
+            $result = $this->CompanyEmail->updateCompanyEmail($where, $param);
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>SMTP </strong>details updated successfully</div>');
+            redirect("admin/setting");
         }
     }
 

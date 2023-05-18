@@ -121,7 +121,7 @@ class Cancelled_services_model extends CI_Model{
     }
 
     public function getCancelledServiceInfoDetails($where){
-        $this->db->select('cancelled_services_tbl.*, property_tbl.property_created');
+        $this->db->select('cancelled_services_tbl.*, property_tbl.property_created, property_tbl.yard_square_feet, property_tbl.difficulty_level');
         $this->db->from('cancelled_services_tbl');
 		$this->db->join('property_tbl','property_tbl.property_id = cancelled_services_tbl.property_id','inner');
         $this->db->where($where);

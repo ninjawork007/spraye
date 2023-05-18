@@ -40,6 +40,7 @@ class Reports extends MY_Controller {
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('Invoice_model','INV');
         $this->load->library('form_validation');
+        $this->load->model('Company_email_model', 'CompanyEmail');
         $this->load->model('AdminTbl_customer_model', 'CustomerModel');
         $this->load->model('Reports_model', 'RP');
         $this->load->helper('report_helper');
@@ -69,6 +70,7 @@ class Reports extends MY_Controller {
         $this->load->model('Save_service_summary_filter_model', 'ServiceSummarySaveModel');
         $this->load->model('Save_sales_pipeline_filter_model', 'SaveSalesPipelineFilterModel');
         $this->load->model('Payment_invoice_logs_model', 'PartialPaymentModel');
+        $this->load->model('MassEmailModel', 'MassEmailModel');
     }
 
 
@@ -873,6 +875,67 @@ class Reports extends MY_Controller {
         }
 
         $data['Services'] = $NewServiceArray;
+
+
+        $TotalRevenueLost = 0;
+        $TotlaNewRevenueLost = 0;
+        $TotalExistingRevenueLost = 0;
+
+        $canc_arr = array();
+        $CenInfo = $this->CancelledModel->getCancelledServiceInfoDetails($canc_arr);
+
+        foreach($CenInfo as $AS){
+            $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $AS->property_id, 'program_id' => $AS->program_id));
+            $JobDataFromID = $this->JobModel->getOneJob(array("job_id" => $AS->job_id));
+
+            if ($priceOverrideData->is_price_override_set == 1) {
+                $cost =  $priceOverrideData->price_override;
+            } else {
+                $lawn_sqf = $AS->yard_square_feet;
+                $job_price = $JobDataFromID->job_price;
+
+                $difficulty_multiplier = 0;
+
+                if (isset($AS->difficulty_level) && $AS->difficulty_level == 2) {
+                    $difficulty_multiplier = $data['setting_details']->dlmult_2;
+                } elseif (isset($AS->difficulty_level) && $AS->difficulty_level == 3) {
+                    $difficulty_multiplier = $data['setting_details']->dlmult_3;
+                } else {
+                    if(isset($data['setting_details']->dlmult_1)){
+                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
+                    }
+                }
+
+                //get base fee 
+                $base_fee = 0;
+                if (isset($JobDataFromID->base_fee_override)) {
+                    $base_fee = $JobDataFromID->base_fee_override;
+                } else {
+                    if(isset($data['setting_details']->base_service_fee)){
+                        $base_fee = $data['setting_details']->base_service_fee;
+                    }
+                }
+                $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+                $min_fee = 0;
+                if (isset($JobDataFromID->min_fee_override)) {
+                    $min_fee = $JobDataFromID->min_fee_override;
+                } else {
+                    $min_fee = $data['setting_details']->minimum_service_fee;
+                }
+                if ($cost_per_sqf > $min_fee) {
+                    $cost = $cost_per_sqf;
+                } else {
+                    $cost = $min_fee;
+                }
+            }
+
+            $TotalRevenueLost += $cost;
+            if($AS->created_at < date("Y-m-d", strtotime("-30 days"))){
+                $TotalExistingRevenueLost += $cost;
+            }else{
+                $TotlaNewRevenueLost += $cost;
+            }
+        }
 
         $data['TotalRevenueLost'] = $TotalRevenueLost;
         $data['TotalExistingRevenueLost'] = $TotalExistingRevenueLost;
@@ -8662,7 +8725,6 @@ class Reports extends MY_Controller {
         $page["page_name"] = 'Material Resource Planning Report';
         $page["page_content"] = $this->load->view("admin/report/view_material_resource_planning_report", $data, TRUE);
         $this->layout->superAdminReportTemplateTable($page);
-
     }
 
 
@@ -10022,34 +10084,72 @@ class Reports extends MY_Controller {
         }
 
         $data['report_details'] = $report_data;
-		
+
 		if(is_array($data['report_details']) && count($data['report_details']) > 0){
-			$delimiter = ",";
-            $filename = "marketing_report_" . date('Y-m-d') . ".csv";
-			
-			#create a file pointer
-            $f = fopen('php://memory', 'w');
-     		
-			#set column headers
-			$fields = array('Customer Number','First Name','Last Name','Email','Second Email','Address','Cell Phone', 'Phone' , 'Revenue by Program', 'YTD Revenue', 'Projected Annual Revenue', 'Lot Size', 'Annual Revenue Per 1000 Sq Ft');
-			fputcsv($f, $fields, $delimiter);
-				
-			#output each row of the data, format line as csv and write to file pointer
-			$lineData = $data['report_details'];
-            
-            foreach($lineData as $ld) {
-                fputcsv($f, $ld, $delimiter);
+            if($this->input->post('SendButtonEmail') == 3){
+    			$delimiter = ",";
+                $filename = "marketing_report_" . date('Y-m-d') . ".csv";
+    			
+    			#create a file pointer
+                $f = fopen('php://memory', 'w');
+         		
+    			#set column headers
+    			$fields = array('Customer Number','First Name','Last Name','Email','Second Email','Address','Cell Phone', 'Phone' , 'Revenue by Program', 'YTD Revenue', 'Projected Annual Revenue', 'Lot Size', 'Annual Revenue Per 1000 Sq Ft');
+    			fputcsv($f, $fields, $delimiter);
+    				
+    			#output each row of the data, format line as csv and write to file pointer
+    			$lineData = $data['report_details'];
+                
+                foreach($lineData as $ld) {
+                    fputcsv($f, $ld, $delimiter);
+                }
+    					
+    			#move back to beginning of file
+    			fseek($f, 0);
+
+    			#set headers to download file rather than displayed
+    			header('Content-Type: text/csv'); 
+    			header('Content-Disposition: attachment; filename="' .$filename. '";');
+
+    			#output all remaining data on a file pointer
+    			fpassthru($f);
             }
-					
-			#move back to beginning of file
-			fseek($f, 0);
+            if($this->input->post('SendButtonEmail') == 2){
+                $CustomerArray = array();
+                foreach($data["customers"] as $CusDat){
+                    $CustomerArray[] = $CusDat->customer_id;
+                }
+                $Data = array(
+                    "company_id" => $company_id,
+                    "cusotmer_id" => implode(",", $CustomerArray),
+                    "programmes_id" => implode(",", $_POST['MassProgramms']),
+                    "mail_text" => $_POST['mailText'],
+                    "email_subject" => $_POST['email_subject'],
+                    "status" => 0
+                );
+                $this->MassEmailModel->saveMassEmailData($Data);
+                redirect("admin/reports/marketingCustomerDataReport");
+            }
 
-			#set headers to download file rather than displayed
-			header('Content-Type: text/csv'); 
-			header('Content-Disposition: attachment; filename="' .$filename. '";');
-
-			#output all remaining data on a file pointer
-			fpassthru($f);
+            if($this->input->post('SendButtonEmail') == 1){
+                $CustomerArray = array();
+                foreach($data["customers"] as $CusDat){
+                    $CustomerArray[] = $CusDat->customer_id;
+                }
+                $Data = array(
+                    "company_id" => $company_id,
+                    "cusotmer_id" => implode(",", $CustomerArray),
+                    "programmes_id" => implode(",", $_POST['MassProgramms']),
+                    "mail_text" => $_POST['mailText'],
+                    "email_subject" => $_POST['email_subject'],
+                    "status" => 1,
+                    "send_date" => date("Y-m-d")
+                );
+                $ModelID = $this->MassEmailModel->saveMassEmailData($Data);
+                $this->sendMassEmail($ModelID);
+                
+                //redirect("admin/reports/marketingCustomerDataReport");
+            }
 
         } else {
              $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
@@ -10076,6 +10176,51 @@ class Reports extends MY_Controller {
         unset($customer_work_phone);
         unset($customer_number_link);
 	}
+
+    public function sendMassEmail($ModelID){
+        $Data = $ModelID = $this->MassEmailModel->getMassEmailData(array("id" => $ModelID));
+        $CustomerArray = explode(",", $Data->cusotmer_id);
+        $ProgrammArray = explode(",", $Data->programmes_id);
+
+        $body = $Data->mail_text;
+        $where_company = array('company_id' =>  $this->session->userdata['company_id']);
+        $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where_company);
+        if (!$company_email_details) {
+            $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+        }
+
+        foreach($CustomerArray as $CusData){
+            $CustomerDetails = $this->CustomerModel->getOneCustomerDetail($CusData);
+            if($CustomerDetails->email != ""){
+                $body = str_replace('{CUSTOMER_FIRST_NAME}', $CustomerDetails->first_name, $body);
+                $body = str_replace('{CUSTOMER_LAST_NAME}', $CustomerDetails->last_name, $body);
+                $GetProperty = $this->PropertyModel->getAllCustomerProperties($CusData);
+
+                $body = str_replace('{PROPERTY_NAME}', $GetProperty[0]->property_title, $body);
+                $body = str_replace('{PROPERTY_ADDRESS}', $GetProperty[0]->property_address, $body);
+
+                $AllProgrammNames = array();
+                foreach($ProgrammArray as $PrmArr){
+                    $GetProgramName = $this->PropertyModel->getProgramList(array("program_id" => $PrmArr));
+                    $AllProgrammNames[] = $GetProgramName[0]->program_name;
+                }
+
+                $body = str_replace('{PROGRAMM_NAME}', implode(", ", $AllProgrammNames), $body);
+
+                Send_Mail_dynamic(
+                    $company_email_details,
+                    $CustomerDetails->email,
+                    array(
+                        "name" => $this->session->userdata['compny_details']->company_name,
+                        "email" => $this->session->userdata['compny_details']->company_email
+                    ),
+                    $body,
+                    $Data->email_subject,
+                    $CustomerDetails->secondary_email,
+                );
+            }
+        }
+    }
 
     public function saveTechnicianFilter(){
         $data = $this->input->post();
@@ -10127,5 +10272,19 @@ class Reports extends MY_Controller {
         }else{
             $this->SaveSalesPipelineFilterModel->updateSaveReport(array("user_id" => $this->session->userdata['id']), $data);
         }
+    }
+
+    public function emailMarketing(){  
+        $company_id = $this->session->userdata['company_id'];
+       
+        $where_arr = array('company_id' =>$this->session->userdata['company_id']);
+        $data['joblist'] = $joblist;
+        // $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
+        // $data['users'] = $this->Administrator->getAllAdmin($where_arr);
+        // die(print_r($data));
+        $page["active_sidebar"] = "materialResourcePlanningReport";
+        $page["page_name"] = 'Material Resource Planning Report';
+        $page["page_content"] = $this->load->view("admin/report/view_material_resource_planning_report", $data, TRUE);
+        $this->layout->superAdminReportTemplateTable($page);
     }
 }

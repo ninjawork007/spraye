@@ -2307,6 +2307,7 @@ public function changeStatus() {
               'program_id'            => $program_id,
               'price_override'        => 0,
               'is_price_override_set' => 0,
+              'sale_date' => date("Y-m-d")
           );
           $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
 

@@ -1061,12 +1061,46 @@ line-height: normal;
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">Mass Email ID</label>
+                                <div class="col-lg-9">
+                                    <input type="email" class="form-control" name="mass_email_id" placeholder="Mass Email ID" value="<?= $company_email_details->mass_email_id ?>">
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </fieldset>
                 <div class="text-right">
                     <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
                 </div>
             </form>
+
+
+            <form class="form-horizontal" action="<?= base_url('admin/setting/MassEmail') ?>" method="post" enctype="multipart/form-data">
+                <fieldset class="content-group">
+                    <legend class="text-bold">Mass Email Settings
+                    </legend>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">Mass Email ID</label>
+                                <div class="col-lg-9">
+                                    <input type="email" class="form-control" name="mass_email_id" placeholder="Mass Email ID" value="<?= $company_email_details->mass_email_id ?>">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </fieldset>
+                <div class="text-right">
+                    <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
+                </div>
+            </form>
+
+
             <!-- ///////////////////////////////////////// INVICE SETTING ////////////////////////////// -->
             <div id="credit_card_processing" style="padding:35px 19px;">
                 <fieldset class="content-group">
