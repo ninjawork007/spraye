@@ -10209,7 +10209,7 @@ class Reports extends MY_Controller {
 
                 $body = str_replace('{PROGRAMM_NAME}', implode(", ", $AllProgrammNames), $body);
 
-                Send_Mail_dynamic(
+                /*Send_Mail_dynamic(
                     $company_email_details,
                     $CustomerDetails->email,
                     array(
@@ -10219,7 +10219,7 @@ class Reports extends MY_Controller {
                     $body,
                     $Data->email_subject,
                     $CustomerDetails->secondary_email,
-                );
+                );*/
             }
         }
     }
