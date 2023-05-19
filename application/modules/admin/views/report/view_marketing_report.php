@@ -351,9 +351,7 @@ opacity: 1;
                                         <div class="row">
                                             <div class="col-md-5 multi-select-full">
                                                 <label># of Completed Services
-                                                    <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title="You must first select a Program for this filter"> <i class=" icon-info22 tooltip-icon"></i>
-
-                                                    </span>
+                                                    <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title="You must first select a Program for this filter"> <i class=" icon-info22 tooltip-icon"></i></span>
                                                 </label>
                                                 <input type="number" id="serviceCompleted" name="serviceCompleted" class="form-control" onkeypress="return (event.charCode !=8 && event.charCode ==0 || (event.charCode >= 48 && event.charCode <= 57))">
                                             </div>
@@ -377,7 +375,9 @@ opacity: 1;
                                         </select>
                                     </div>
                                     <div class="col-md-3 mt-15 multi-select-full">
-                                        <label>Service Sold During Year Do not have now</label>
+                                        <label>Previously Sold Services
+                                            <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title="Choosing a service(s) here will filter your customer list to include ONLY customers who previously had this service assigned in a given date range but do not currently have that service outstanding."> <i class=" icon-info22 tooltip-icon"></i></span>
+                                        </label>
                                         <select class="multiselect-select-all-filtering form-control" name="serviceSoldNotNow[]" id="serviceSoldNotNow" multiple="multiple">
                                             <?php $already_used_job_names = array(); ?>
                                             <?php foreach ($outstanding_services as $outstanding): ?>
@@ -392,11 +392,11 @@ opacity: 1;
                                         </select>
                                     </div>
                                     <div class="col-md-3 mt-15">
-                                        <label>Service Check Start Date</label>
+                                        <label>Previously sold services Start Date</label>
                                         <input type="date" id="ServiceSoldNotNowStart" name="ServiceSoldNotNowStart" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
                                     </div>
                                     <div class="col-md-3 mt-15">
-                                        <label>Service Check End Date</label>
+                                        <label>Previously Sold Services End Date</label>
                                         <input type="date" id="ServiceSoldNotNowEnd" name="ServiceSoldNotNowEnd" class="form-control pickaalldate" placeholder="YYYY-MM-DD">
                                     </div>
                                 </div>
@@ -581,6 +581,14 @@ function searchFilter() {
     var ServiceSoldNotNowEnd = $("#ServiceSoldNotNowEnd").val();
     var serviceCompleted = $("#serviceCompleted").val();
     var serviceCompletedEnd = $("#serviceCompletedEnd").val();
+
+    if(ServiceSoldNotNowStart != "" || ServiceSoldNotNowEnd != ""){
+        if(serviceSoldNotNow == "" || serviceSoldNotNow == null){
+            alert("Select previously sold services to perform filter");
+            return;
+        }
+
+    }
 
     var customer_status = $('#customer_status').val();
     var estimate_accpeted = $('#estimate_accpeted').val();

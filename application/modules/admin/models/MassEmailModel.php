@@ -6,11 +6,12 @@ class MassEmailModel extends CI_Model{
     }
 
     public function getMassEmailData($where) {
+        $this->db->select('*');
         $this->db->from("mass_email");
         $this->db->where($where);
         $this->db->order_by('created_at','desc');
         $result = $this->db->get();
-        $data = $result->row();
+        $data = $result->result();
         return $data;
     }
 }

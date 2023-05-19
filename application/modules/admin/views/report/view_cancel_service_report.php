@@ -113,28 +113,34 @@
 		
 
 		<div class="row mt-5">
-			<div class="col-lg-4">
+			<div class="col-lg-3">
 				<div class="service-bols">
 		        <h3 class="ser-head">Total Canceled Revenue (New)</h3>
 		        <p class=" ser-num text-success">$<?php echo number_format($TotlaNewRevenueLost, 2) ?></p>
 		      </div>
 			</div>
 
-			<div class="col-lg-4">
+			<div class="col-lg-3">
 				<div class="service-bols">
 		        <h3 class="ser-head">Total Canceled Revenue (Existing)</h3>
 		        <p class=" ser-num text-success">$<?php echo number_format($TotalExistingRevenueLost, 2) ?></p>
 		      </div>
 			</div>
 
-			<div class="col-lg-4">
+			<div class="col-lg-3">
 				<div class="service-bols">
 		        <h3 class="ser-head">Total Canceled Revenue (All)</h3>
 		        <p class=" ser-num text-danger">$<?php echo number_format($TotalRevenueLost, 2) ?></p>
 		      </div>
 			</div>
-		</div>
 
+			<div class="col-lg-3">
+				<div class="service-bols">
+		        <h3 class="ser-head">Total Cancelled Services</h3>
+		        <p class=" ser-num text-danger"><?php echo count($Services) ?></p>
+		      </div>
+			</div>
+		</div>
 		</div>
 	</div>
 </div>

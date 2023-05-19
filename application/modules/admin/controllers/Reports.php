@@ -878,67 +878,6 @@ class Reports extends MY_Controller {
 
         $data['Services'] = $NewServiceArray;
 
-
-        $TotalRevenueLost = 0;
-        $TotlaNewRevenueLost = 0;
-        $TotalExistingRevenueLost = 0;
-
-        $canc_arr = array();
-        $CenInfo = $this->CancelledModel->getCancelledServiceInfoDetails($canc_arr);
-
-        foreach($CenInfo as $AS){
-            $priceOverrideData  = $this->Tech->getOnePriceOverride(array('property_id' => $AS->property_id, 'program_id' => $AS->program_id));
-            $JobDataFromID = $this->JobModel->getOneJob(array("job_id" => $AS->job_id));
-
-            if ($priceOverrideData->is_price_override_set == 1) {
-                $cost =  $priceOverrideData->price_override;
-            } else {
-                $lawn_sqf = $AS->yard_square_feet;
-                $job_price = $JobDataFromID->job_price;
-
-                $difficulty_multiplier = 0;
-
-                if (isset($AS->difficulty_level) && $AS->difficulty_level == 2) {
-                    $difficulty_multiplier = $data['setting_details']->dlmult_2;
-                } elseif (isset($AS->difficulty_level) && $AS->difficulty_level == 3) {
-                    $difficulty_multiplier = $data['setting_details']->dlmult_3;
-                } else {
-                    if(isset($data['setting_details']->dlmult_1)){
-                        $difficulty_multiplier = $data['setting_details']->dlmult_1;
-                    }
-                }
-
-                //get base fee 
-                $base_fee = 0;
-                if (isset($JobDataFromID->base_fee_override)) {
-                    $base_fee = $JobDataFromID->base_fee_override;
-                } else {
-                    if(isset($data['setting_details']->base_service_fee)){
-                        $base_fee = $data['setting_details']->base_service_fee;
-                    }
-                }
-                $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-                $min_fee = 0;
-                if (isset($JobDataFromID->min_fee_override)) {
-                    $min_fee = $JobDataFromID->min_fee_override;
-                } else {
-                    $min_fee = $data['setting_details']->minimum_service_fee;
-                }
-                if ($cost_per_sqf > $min_fee) {
-                    $cost = $cost_per_sqf;
-                } else {
-                    $cost = $min_fee;
-                }
-            }
-
-            $TotalRevenueLost += $cost;
-            if($AS->created_at < date("Y-m-d", strtotime("-30 days"))){
-                $TotalExistingRevenueLost += $cost;
-            }else{
-                $TotlaNewRevenueLost += $cost;
-            }
-        }
-
         $data['TotalRevenueLost'] = $TotalRevenueLost;
         $data['TotalExistingRevenueLost'] = $TotalExistingRevenueLost;
         $data['TotlaNewRevenueLost'] = $TotlaNewRevenueLost;
@@ -949,7 +888,6 @@ class Reports extends MY_Controller {
         $page["page_content"] = $this->load->view("admin/report/view_cancel_service_report", $data, TRUE);
         $this->layout->superAdminInvoiceTemplateTable($page);
     }
-
 
 
 ## Ajax Data for Invoice Age Report
@@ -10150,7 +10088,7 @@ class Reports extends MY_Controller {
                 $ModelID = $this->MassEmailModel->saveMassEmailData($Data);
                 $this->sendMassEmail($ModelID);
                 
-                //redirect("admin/reports/marketingCustomerDataReport");
+                redirect("admin/reports/marketingCustomerDataReport");
             }
 
         } else {
@@ -10203,23 +10141,36 @@ class Reports extends MY_Controller {
 
                 $AllProgrammNames = array();
                 foreach($ProgrammArray as $PrmArr){
-                    $GetProgramName = $this->PropertyModel->getProgramList(array("program_id" => $PrmArr));
-                    $AllProgrammNames[] = $GetProgramName[0]->program_name;
+                    $IsSendEmail = 0;
+                    foreach($GetProperty as $GPS){
+                        $CheckAssignment = $this->ProgramModel->getAllproperty(array("property_tbl.property_id" => $GPS->property_id, "program_id" => $PrmArr));
+
+                        if(count($CheckAssignment) > 0){
+                            $IsSendEmail = 1;
+                        }
+                    }
+
+                    if($IsSendEmail == 1){
+                        $GetProgramName = $this->PropertyModel->getProgramList(array("program_id" => $PrmArr));
+                        $AllProgrammNames[] = $GetProgramName[0]->program_name;
+                    }
                 }
 
                 $body = str_replace('{PROGRAMM_NAME}', implode(", ", $AllProgrammNames), $body);
 
-                /*Send_Mail_dynamic(
-                    $company_email_details,
-                    $CustomerDetails->email,
-                    array(
-                        "name" => $this->session->userdata['compny_details']->company_name,
-                        "email" => $this->session->userdata['compny_details']->company_email
-                    ),
-                    $body,
-                    $Data->email_subject,
-                    $CustomerDetails->secondary_email,
-                );*/
+                if(count($AllProgrammNames) > 0){
+                    Send_Mail_dynamic(
+                        $company_email_details,
+                        $CustomerDetails->email,
+                        array(
+                            "name" => $this->session->userdata['compny_details']->company_name,
+                            "email" => $this->session->userdata['compny_details']->company_email
+                        ),
+                        $body,
+                        $Data->email_subject,
+                        $CustomerDetails->secondary_email,
+                    );
+                }
             }
         }
     }
@@ -10276,17 +10227,14 @@ class Reports extends MY_Controller {
         }
     }
 
-    public function emailMarketing(){  
+    public function emailMarketing(){
         $company_id = $this->session->userdata['company_id'];
-       
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
-        $data['joblist'] = $joblist;
-        // $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
-        // $data['users'] = $this->Administrator->getAllAdmin($where_arr);
-        // die(print_r($data));
-        $page["active_sidebar"] = "materialResourcePlanningReport";
-        $page["page_name"] = 'Material Resource Planning Report';
-        $page["page_content"] = $this->load->view("admin/report/view_material_resource_planning_report", $data, TRUE);
+        $GetData = $this->MassEmailModel->getMassEmailData($where_arr);
+        $data['EmailList'] = $GetData;
+        $page["active_sidebar"] = "email_marketing";
+        $page["page_name"] = 'Email Marketing';
+        $page["page_content"] = $this->load->view("admin/report/view_email_marketing", $data, TRUE);
         $this->layout->superAdminReportTemplateTable($page);
     }
 }

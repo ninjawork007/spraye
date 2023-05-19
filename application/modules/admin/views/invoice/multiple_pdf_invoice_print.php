@@ -120,18 +120,18 @@
 
     <body>
         <?php
-	//$setting_address_array = Get_Address_From_Google_Maps($setting_details->company_address);
-	$setting_address_array = explode(',',$setting_details->company_address,2);
-	foreach ($invoice_details as $index=> $invoice_detail) {  
+    //$setting_address_array = Get_Address_From_Google_Maps($setting_details->company_address);
+    $setting_address_array = explode(',',$setting_details->company_address,2);
+    foreach ($invoice_details as $index=> $invoice_detail) {  
         $property_address_array = explode(',', $invoice_detail->property_address);
         $property_address_first = array_shift($property_address_array);
         $property_address_last = implode(',',$property_address_array);
         $billing_street_array = Get_Address_From_Google_Maps($invoice_detail->billing_street);
         $property_street_array = Get_Address_From_Google_Maps($invoice_detail->property_address);
         $page_break_class = "";
-	    if($index > 0) {
-    	    $page_break_class = "page_break";
-  	    } ?>
+        if($index > 0) {
+            $page_break_class = "page_break";
+        } ?>
         <div class="container <?php echo $page_break_class ?>">
 
             <table width="100%" style="margin-bottom: 20px;">
@@ -141,19 +141,19 @@
                         <address>
                             <strong><?= $setting_details->company_name ?></strong><br>
                             <?php if( isset($setting_address_array) ) {
-							    if( isset($setting_address_array[0]) ) {
-								    echo $setting_address_array[0];
-							    }
-							    if( isset($setting_address_array[1]) ) {
-								    echo '<br/>'.$setting_address_array[1];
-							    }
-						    } ?>
+                                if( isset($setting_address_array[0]) ) {
+                                    echo $setting_address_array[0];
+                                }
+                                if( isset($setting_address_array[1]) ) {
+                                    echo '<br/>'.$setting_address_array[1];
+                                }
+                            } ?>
                             <br>
                             <?php if(isset($setting_details->company_phone_number)) { ?>
                                 <?= formatPhoneNum($setting_details->company_phone_number); ?><br>
                             <?php }  
-				
-				            echo $setting_details->company_email ?><br>
+                
+                            echo $setting_details->company_email ?><br>
 
                             <?php if ($setting_details->web_address!='') { ?>
                                 <a href="<?= $setting_details->web_address ?>"><?= $setting_details->web_address ?></a>
@@ -235,19 +235,19 @@
                     <td align="left">
                         <?= $invoice_detail->first_name.' '.$invoice_detail->last_name ?><br>
                         <?php if ($invoice_detail->billing_street) {
-					        $customer_billing_address = explode(',',$invoice_detail->billing_street);
-					        $customer_address_first = array_shift($customer_billing_address);
-					        $customer_address_last = implode(',',$customer_billing_address);
+                            $customer_billing_address = explode(',',$invoice_detail->billing_street);
+                            $customer_address_first = array_shift($customer_billing_address);
+                            $customer_address_last = implode(',',$customer_billing_address);
 
-					        echo $customer_address_first.'<br>';
+                            echo $customer_address_first.'<br>';
 
-					        // support for both kinds of address input
-					        if ($customer_address_last) {
-						        echo $customer_address_last;
-					        } else {
-						        echo $invoice_detail->billing_city.', '.$invoice_detail->billing_state.', '.$invoice_detail->billing_zipcode;
-					        }
-				        } ?>
+                            // support for both kinds of address input
+                            if ($customer_address_last) {
+                                echo $customer_address_last;
+                            } else {
+                                echo $invoice_detail->billing_city.', '.$invoice_detail->billing_state.', '.$invoice_detail->billing_zipcode;
+                            }
+                        } ?>
                         <br>
                     </td>
                     <td></td>
@@ -285,8 +285,8 @@
                 </thead>
                 <tbody>
                     <?php $total_inv_line_costs = 0;
-            	        if (isset($invoice_detail->jobs) && is_array($invoice_detail->jobs) && !empty($invoice_detail->jobs) ) {
-					        foreach($invoice_detail->jobs as $job){ ?>
+                        if (isset($invoice_detail->jobs) && is_array($invoice_detail->jobs) && !empty($invoice_detail->jobs) ) {
+                            foreach($invoice_detail->jobs as $job){ ?>
                                 <tr class="border-bottom-blank-td">
                                     <td class="text-left" width="30%">
                                         <?php if ($property_street_array && is_array($property_street_array) && !empty($property_street_array) ) {
@@ -305,14 +305,14 @@
                                     </td>
                                     <td class="text-left" width="10%">
                                         <?php if(isset($job['job_assign_date'])){
-						                    echo $job['job_assign_date']; 
-					  		            } ?>
+                                            echo $job['job_assign_date']; 
+                                        } ?>
                                     </td>
 
                                     <td class="text-left" width="20%">
                                         <?php if($job['job_cost'] != ''){
-								            echo "$". number_format($job['job_cost'],2);  
-							            } ?>
+                                            echo "$". number_format($job['job_cost'],2);  
+                                        } ?>
                                     </td>
 
                                 </tr>
@@ -358,8 +358,8 @@
                                     </tr>
                                 <?php  }
                                 $total_inv_line_costs += (float) $total_job_cost;
-					        }
-				        } else { ?>
+                            }
+                        } else { ?>
                             <tr class="border-bottom-blank-td">
                                 <td class="text-left" width="30%">
                                     <?php if ($property_street_array && is_array($property_street_array) && !empty($property_street_array) ) {
@@ -379,14 +379,14 @@
                                 <td class="text-left" width="10%">
     
                                     <?php if(isset($invoice_detail->job_assign_date)){
-					                    echo date('m/d/Y', strtotime($invoice_detail->job_assign_date));
-				                    } else if(isset($invoice_detail->job_completed)) {
-					                    echo date('m/d/Y', strtotime($invoice_detail->job_completed)); 
-				                    } else if(isset($invoice_detail->invoice_created)) {
-					                    echo date('m/d/Y', strtotime($invoice_detail->invoice_created)); 
-				                    } else if(isset($invoice_detail->invoice_date)) {
-					                    echo date('m/d/Y', strtotime($invoice_detail->invoice_date)); 
-				                    } else echo 'Pending'; ?>
+                                        echo date('m/d/Y', strtotime($invoice_detail->job_assign_date));
+                                    } else if(isset($invoice_detail->job_completed)) {
+                                        echo date('m/d/Y', strtotime($invoice_detail->job_completed)); 
+                                    } else if(isset($invoice_detail->invoice_created)) {
+                                        echo date('m/d/Y', strtotime($invoice_detail->invoice_created)); 
+                                    } else if(isset($invoice_detail->invoice_date)) {
+                                        echo date('m/d/Y', strtotime($invoice_detail->invoice_date)); 
+                                    } else echo 'Pending'; ?>
                                 </td>
 
                                 <td class="text-left" width="10%">
@@ -426,49 +426,54 @@
                                             <td></td>
                                             <td></td>
                                             <td class="border-bottom-blank-td text-left default-font-color">Partial Payment</td>
-                                            <td class="border-bottom-blank-td" align="center"><?php echo date("m/d/Y", strtotime($PayLogs->payment_datetime)) ?></td>
+                                            <td class="border-bottom-blank-td" align="center"><?php echo date("d/m/Y", strtotime($PayLogs->payment_datetime)) ?></td>
                                             <td class="border-bottom-blank-td text-right" style="width: 100px; text-align: right;">$<?=($PayLogs->payment_amount < 0) ? "" : "-" ?><?= number_format(abs($PayLogs->payment_amount),2); ?>
                                             </td>
                                         </tr>
                                         <?php
                                         }
                                     }
-                                    
-									$invoice_total_cost = (float) $total_inv_line_costs;
-									// COUPON_INVOICE
+                                    ?>
+
+                                    <?php 
+
+                                    // $invoice_total_cost = (float) $invoice_details->cost;
+                                    $invoice_total_cost = (float) $total_inv_line_costs;
+                            
+                                    // COUPON_INVOICE
                                     $coupon_invoice = $invoice_detail->coupon_details;
-									foreach ( $coupon_invoice as $coupon_details ) { ?>
+                                    foreach ( $coupon_invoice as $coupon_details ) { ?>
                                         <tr>
                                             <td></td>
                                             <td></td>
                                             <td></td>
                                             <?php if ($coupon_details->coupon_amount_calculation == 0) {
-												echo '<td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td text-left default-font-color">'.$coupon_details->coupon_code.'</td> ';
-												$discount_amm = (float) $coupon_details->coupon_amount;
-												echo "- $ " . (string) number_format($discount_amm,2);
+                                                echo '<td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td text-left default-font-color">'.$coupon_details->coupon_code.'</td> ';
+                                                $discount_amm = (float) $coupon_details->coupon_amount;
+                                                echo "- $ " . (string) number_format($discount_amm,2);
 
-												if (($invoice_total_cost - $discount_amm) < 0 ) {
-													$invoice_total_cost = 0;
-												} else {
-													$invoice_total_cost -= $discount_amm;
-												}
+                                                if (($invoice_total_cost - $discount_amm) < 0 ) {
+                                                    $invoice_total_cost = 0;
+                                                } else {
+                                                    $invoice_total_cost -= $discount_amm;
+                                                }
 
-											} else {
-												$percentage = (float) $coupon_details->coupon_amount;
-												$discount_amm = (float) $invoice_total_cost * ($percentage / 100);
-												echo '<td class="border-bottom-blank-td text-left default-font-color">'.$coupon_details->coupon_code.' (-'.$percentage.'%)</td><td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td text-right">';
-												echo "- $ " . number_format($discount_amm, 2);
+                                            } else {
+                                                $percentage = (float) $coupon_details->coupon_amount;
+                                                $discount_amm = (float) $invoice_total_cost * ($percentage / 100);
+                                                echo '<td class="border-bottom-blank-td text-left default-font-color">'.$coupon_details->coupon_code.' (-'.$percentage.'%)</td><td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td text-right">';
+                                                echo "- $ " . number_format($discount_amm, 2);
 
-												if (($invoice_total_cost - $discount_amm) < 0 ) {
-													$invoice_total_cost = 0;
-												} else {
-													$invoice_total_cost -= $discount_amm;
-												}
+                                                if (($invoice_total_cost - $discount_amm) < 0 ) {
+                                                    $invoice_total_cost = 0;
+                                                } else {
+                                                    $invoice_total_cost -= $discount_amm;
+                                                }
 
-											} ?>
+                                            } ?>
                                             </td>
                                         </tr>
-                                    <?php }	?>
+                                    <?php } ?>
                                     <?php 
 
                                     $total_tax_amount = 0;
@@ -487,7 +492,7 @@
                                                 <td class="border-bottom-blank-td"></td>
                                                 <td class="border-bottom-blank-td text-right">$
                                                 <?= number_format(($invoice_total_cost *($invoice_sales_tax_details['tax_value']/100)),2);  ?></td>
-										        <?php $invoice_total_cost += ($invoice_total_cost *($invoice_sales_tax_details['tax_value']/100)); ?>
+                                                <?php $invoice_total_cost += ($invoice_total_cost *($invoice_sales_tax_details['tax_value']/100)); ?>
                                             </tr>
                                         <?php } 
                                     } ?>
@@ -496,7 +501,7 @@
                                     <?php 
                                     if ($invoice_detail->all_sales_tax && $invoice_detail->payment_status==2 ) {
                                     ?>
-                                        <!--<tr>
+                                        <tr>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -507,7 +512,7 @@
                                             <td class="border-bottom-blank-last text-right">$
                                                 <?= number_format($invoice_total_cost,2);  ?>
                                             </td>
-                                        </tr>-->
+                                        </tr>
                                     <?php } ?>
 
                                     <?php  if ( $invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>
@@ -682,8 +687,8 @@
                 $products = array();
                 $report_id = [];
 
-				if (isset($invoice_detail) && is_array($invoice_detail) && !empty($invoice_detail) ) {
-					$job = $invoice_detail;
+                if (isset($invoice_detail) && is_array($invoice_detail) && !empty($invoice_detail) ) {
+                    $job = $invoice_detail;
 
 
                     if ($job->report_id != '' && $job->report_id != 0) {
@@ -715,36 +720,27 @@
 
                 } else {
                     $job = $invoice_detail;
-
                     if ($invoice_detail->report_id != 0) {
-
-                        array_push($report_id, $job->report_id);
+                        array_push($report_id, $invoice_detail->report_id);
                         $products[]= array(
-                            'job_id'=>($job->job_id == '')?$job->jobs[0]['job_id']:$job->job_id,
-                            'report'=> (isset($job->report))?$job->report: $job->report_details,
+                            'job_id'=>$invoice_detail->job_id,
+                            'report'=> isset($invoice_detail->report_details) ? $invoice_detail->report_details : (isset($invoice_detail->report) ? $invoice_detail->report : ''),
                         );
                     } else {
                         array_push($report_id, $job->jobs[0]['job_report']->report_id);
                         $products[] = array(
-                            'job_id' => $job->job_id,
+                            'job_id' => $invoice_detail->job_id,
                             'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
                         );
                     }
                 }
             foreach($products as $k=>$v){
 
-                    //die(print_r($v['report']));
-                    if ($v['report'] !== ''){
-                        $rid = $v['report']->report_id;
-                    } else {
-                        $rid = $v['report'];
-                    }
-                    $product_details =  getProductByReport(array('report_id'=> $rid));
-				    $invoice_report_details =  $v['report'];
+                    $product_details =  getProductByReport(array('report_id'=> $v['report']->report_id));
+                    $invoice_report_details =  $v['report'];
+                    if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
 
-				    if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
-
-       				    if ($setting_details->is_wind_speed==1 || $setting_details->is_wind_direction==1 || ($setting_details->is_temperature==1) || ($setting_details->is_applicator_name==1) || ($setting_details->is_applicator_number==1 && $invoice_report_details->applicator_number!='' ) ||  ($setting_details->is_applicator_phone==1 && $invoice_report_details->applicator_phone_number!='' ) || ($setting_details->is_property_address==1) || ($setting_details->is_property_size==1) || ($setting_details->is_date==1) || ($setting_details->is_time==1)    ) { ?>
+                        if ($setting_details->is_wind_speed==1 || $setting_details->is_wind_direction==1 || ($setting_details->is_temperature==1) || ($setting_details->is_applicator_name==1) || ($setting_details->is_applicator_number==1 && $invoice_report_details->applicator_number!='' ) ||  ($setting_details->is_applicator_phone==1 && $invoice_report_details->applicator_phone_number!='' ) || ($setting_details->is_property_address==1) || ($setting_details->is_property_size==1) || ($setting_details->is_date==1) || ($setting_details->is_time==1)    ) { ?>
                             <tr>
                                 <td width="100%">
                                     <table width="100%" class="table table-condensed mannual application_tbl">
@@ -794,19 +790,17 @@
                                                                 <?php } ?>
                                                             </td>
                                                             <td align="center">
-                                                                <?php
-                                                                if ($setting_details->is_applicator_name==1) { ?>
+                                                                <?php if ($setting_details->is_applicator_name==1) { ?>
                                                                 <?= $invoice_report_details->user_first_name.' '.$invoice_report_details->user_last_name ?>
                                                                 <?php } ?>
                                                             </td>
                                                             <td align="center">
-                                                                <?php
-                                                                if ($setting_details->is_applicator_number==1) { ?>
+                                                                <?php if ($setting_details->is_applicator_number==1) { ?>
                                                                 <?= $invoice_report_details->applicator_number ?>
                                                                 <?php } ?>
                                                             </td>
                                                             <td align="center">
-                                                                <?php if ($setting_details->is_wind_speed==1) {	?>
+                                                                <?php if ($setting_details->is_wind_speed==1) { ?>
                                                                 <?= $invoice_report_details->wind_speed ?>
                                                                 <?php if ($setting_details->is_wind_direction==1) { ?>
                                                                 <?= $invoice_report_details->direction ?>
@@ -899,35 +893,26 @@
                                                                                 <?php if ($setting_details->is_application_rate==1 && !empty($product_details_value->application_rate) && $product_details_value->application_rate !=0 )  { 
                                                                                     $application_rate = '';
                                                                                     if (!empty($product_details_value->application_rate) && $product_details_value->application_rate !=0) {
-                                                                                        $application_rate = $product_details_value->application_rate.' '.@$product_details_value->application_unit.' / '.@$product_details_value->application_per;
+                                                                                        $application_rate = $product_details_value->application_rate.' '.$product_details_value->application_unit.' / '.$product_details_value->application_per;
                                                                                     } ?>
                                                                                     <?= $application_rate ?>
                                                                                 <?php } ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php
-                                                                                echo $product_details_value->application_type;
-                                                                               /* $application_type = '';
-                                                                                if ($setting_details->is_application_type==1 && $product_details_value->application_type!='' ) {
-
-
+                                                                                <?php if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
+                                                                                    $application_type ='';
                                                                                     if ($product_details_value->application_type==1) {
                                                                                         $application_type = 'Broadcast';
                                                                                     } else if($product_details_value->application_type==2) {
                                                                                         $application_type = 'Spot Spray';
-                                                                                    } else if ($product_details_value->application_type==3) {
-                                                                                        $application_type = 'Granular';
-                                                                                    } else {
-                                                                                        $application_type = $product_details_value->application_type;
-                                                                                    }
-                                                                                    echo $application_type;
-                                                                                 }*/
-
-                                                                                ?>
+                                                                                    } elseif ($product_details_value->application_type==3) {
+                                                                                        $application_type = 'Granular';          
+                                                                                    } ?>
+                                                                                    <?= $application_type ?>
+                                                                                <?php } ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php echo $product_details_value->chemical_type;
-                                                                               /* if ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) {
+                                                                                <?php if ($setting_details->is_chemical_type==1 && $product_details_value->chemical_type!=0 ) { 
                                                                                     $chemical_type = '';                    
                                                                                     if($product_details_value->chemical_type==1) {
                                                                                         $chemical_type = 'Herbicide';
@@ -954,23 +939,22 @@
                                                                                         $chemical_type = 'Growth Regulator';
                                                                                     }  else if($product_details_value->chemical_type==9) {
                                                                                         $chemical_type = 'Biostimulants';
-                                                                                    }
-                                                                                    echo $chemical_type;
-                                                                                 } */?>
-
+                                                                                    } ?>
+                                                                                    <?= $chemical_type ?>
+                                                                                <?php } ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {	?>
+                                                                                <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {    ?>
                                                                                     <?= $product_details_value->re_entry_time ?>
                                                                                 <?php } ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php if ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {	?>
+                                                                                <?php if ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {   ?>
                                                                                     <?= $estimated_chemical_used ?>
                                                                                 <?php } ?>
                                                                             </td>
                                                                             <td class="border-bottom-blank-td" align="center">
-                                                                                <?php if ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') {	?>
+                                                                                <?php if ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') { ?>
                                                                                     <?= $product_details_value->weed_pest_prevented  ?>
                                                                                 <?php } ?>
                                                                             </td>
@@ -990,6 +974,8 @@
 
                         <?php }
                     } else { ?>
+
+
                         <?php if($product_details) { ?>
                             <tr>
                                 <td width="100%">
@@ -1064,8 +1050,7 @@
                                                                             <?php } ?>
                                                                         </td>
                                                                         <td class="border-bottom-blank-td" align="center">
-                                                                            <?php echo print_r($setting_details);
-                                                                            if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
+                                                                            <?php if ($setting_details->is_application_type==1 && $product_details_value->application_type!=0 ) {
                                                                                 $application_type ='';
                                                                                 if ($product_details_value->application_type==1) {
                                                                                     $application_type = 'Broadcast';
@@ -1073,9 +1058,7 @@
                                                                                     $application_type = 'Spot Spray';
                                                                                 } elseif ($product_details_value->application_type==3) {
                                                                                     $application_type = 'Granular';          
-                                                                                } else {
-                                                                                    $application_type = $product_details_value->application_type;
-                                                                                }?>
+                                                                                } ?>
                                                                                 <?= $application_type ?>
                                                                             <?php } ?>
                                                                         </td>
@@ -1112,17 +1095,17 @@
                                                                             <?php } ?>
                                                                         </td>
                                                                         <td class="border-bottom-blank-td" align="center">
-                                                                            <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {	?>
+                                                                            <?php if ($setting_details->is_re_entry_time==1 && $product_details_value->re_entry_time!='' ) {    ?>
                                                                                 <?= $product_details_value->re_entry_time ?>
                                                                             <?php } ?>
                                                                         </td>
                                                                         <td class="border-bottom-blank-td" align="center">
-                                                                            <?php if ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {	?>
+                                                                            <?php if ($setting_details->is_estimated_chemical_used==1 && $estimated_chemical_used!='' ) {   ?>
                                                                                 <?= $estimated_chemical_used ?>
                                                                             <?php } ?>
                                                                         </td>
                                                                         <td class="border-bottom-blank-td" align="center">
-                                                                            <?php if ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') {	?>
+                                                                            <?php if ($setting_details->is_weed_pest_prevented==1 && $product_details_value->weed_pest_prevented!='') { ?>
                                                                                 <?= $product_details_value->weed_pest_prevented  ?>
                                                                             <?php } ?>
                                                                         </td>
@@ -1141,7 +1124,7 @@
                             </tr>
                         <?php } ?>
 
-                    <?php $i++;	 } ?>
+                    <?php $i++;  } ?>
                     <!-- END PRODUCT DETAILS PART -->
                 <?php } ?>                                        
             </table>

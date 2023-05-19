@@ -117,6 +117,8 @@ class Invoices extends MY_Controller
         $this->load->model('Payment_invoice_logs_model', 'PartialPaymentModel');
 
         $this->load->model('Refund_invoice_logs_model', 'RefundPaymentModel');
+
+        $this->load->model('Payment_logs_model', 'PaymentLogModel');
     }
     public function index(){
         $year = date("Y");
@@ -2738,6 +2740,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
 
         $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice_id));
+        $AllInvoiceLogs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $invoice_id));
 
         //die(print_r($this->db->last_query()));
         $data['num_all_invoice_partials'] = count($all_invoice_partials);
@@ -2752,6 +2755,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $data['partial_payments_calc'] += $partial_payment->payment_amount;
         }
        //die(print_r( $data['partial_payments_calc']));
+        $data["AllInvoiceLogs"] = $AllInvoiceLogs;
         
         $page["active_sidebar"] = "invoicenav";
         $page["page_name"] = 'Update Invoice';
@@ -3015,6 +3019,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             $payment_note = $data['payment_info'];
                         }
 
+                        $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                        $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                        $time = $date->format('Y-m-d H:i:s');
+
+                        $result = $this->PaymentLogModel->createLogRecord(array(
+                            'invoice_id' => $invoice_details->invoice_id,
+                            'user_id' => $this->session->userdata['id'],
+                            'amount' => $over_all_due - $total_invoice_partial_logs,
+                            'action' => "Payment Added",
+                            'created_at' => $time,
+                        ));
+
                         $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                             'invoice_id' => $invoice_details->invoice_id,
                             'payment_amount' => $over_all_due - $total_invoice_partial_logs,
@@ -3053,6 +3069,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         } else {
                             $payment_note = $data['payment_info'];
                         }
+
+                        $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                        $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                        $time = $date->format('Y-m-d H:i:s');
+
+                        $result = $this->PaymentLogModel->createLogRecord(array(
+                            'invoice_id' => $invoice_details->invoice_id,
+                            'user_id' => $this->session->userdata['id'],
+                            'amount' => $data['new_partial_payment'],
+                            'action' => "Payment Added",
+                            'created_at' => $time,
+                        ));
 
                         $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                             'invoice_id' => $invoice_details->invoice_id,
@@ -4769,6 +4797,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $invoice_details->late_fee = $late_fee;
 
             $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoiceID));
+            $invoice_details->logs = $this->PaymentLogModel->getAllPaymentLogs(array('invoice_id' => $invoiceID));
             $data['invoice_details'][] = $invoice_details;
             //die(print_r($data["invoice_details"]));
             // INVOICE WIDE COUPONS
@@ -5685,6 +5714,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 }
                 $param['payment_method'] = $data['payment_method'];
 
+                $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                $time = $date->format('Y-m-d H:i:s');
+
+                $result = $this->PaymentLogModel->createLogRecord(array(
+                    'invoice_id' => $tmp_invoice_id,
+                    'user_id' => $this->session->userdata['id'],
+                    "amount" => $over_all_due - $total_cost_all_partial_payment_logs,
+                    'action' => "Payment Added",
+                    'created_at' => $time,
+                ));
+
 
                 $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                     'invoice_id' => $tmp_invoice_id,
@@ -5730,6 +5771,19 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     } else if ($data['payment_method'] == 3) {
                         $other = $data['payment_info'];
                     }
+
+                    $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                    $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                    $time = $date->format('Y-m-d H:i:s');
+
+                    $result = $this->PaymentLogModel->createLogRecord(array(
+                        'invoice_id' => $tmp_invoice_id,
+                        'user_id' => $this->session->userdata['id'],
+                        "amount" => $data['partial_payment'],
+                        'action' => "Payment Added",
+                        'created_at' => $time,
+                    ));
+
                     $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                         'invoice_id' => $tmp_invoice_id,
                         'payment_amount' => $data['partial_payment'],
@@ -5821,6 +5875,19 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $param['other_note'] = $other;
             }
             $param['payment_method'] = $data['payment_method'];
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $tmp_invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                "amount" => $due_balance,
+                'action' => "Payment Added",
+                'created_at' => $time,
+            ));
+
             $result = $this->PartialPaymentModel->createOnePartialPayment(array(
                 'invoice_id' => $tmp_invoice_id,
                 'payment_amount' => $due_balance,
@@ -5905,6 +5972,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             // die(print_r($other));
             // $refund = $data['partial_payment'] - $data['refund_total'];
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $tmp_invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                "amount" => $data['refund_payment'],
+                'action' => "Refund Given",
+                'created_at' => $time,
+            ));
 
             $param = array(
                 // 'payment_invoice_logs_id' => $payment_log_id,
@@ -6020,6 +6099,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             // die(print_r($other));
             // $refund = $data['partial_payment'] - $data['refund_total'];
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $tmp_invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                "amount" => $data['refund_payment'],
+                'action' => "Refund Given",
+                'created_at' => $time,
+            ));
 
             $param = array(
                 // 'payment_invoice_logs_id' => $payment_log_id,
@@ -6543,6 +6634,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 // die(print_r($other));
                 // $refund = $data['partial_payment'] - $data['refund_total'];
 
+                $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                $time = $date->format('Y-m-d H:i:s');
+
+                $result = $this->PaymentLogModel->createLogRecord(array(
+                    'invoice_id' => $tmp_invoice_id,
+                    'user_id' => $this->session->userdata['id'],
+                    "amount" => $data['refund_payment'],
+                    'action' => "Refund Given",
+                    'created_at' => $time,
+                ));
+
                 $param = array(
                     // 'payment_invoice_logs_id' => $payment_log_id,
                     'invoice_id' => $tmp_invoice_id,
@@ -6631,6 +6734,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                 // die(print_r($other));
                 // $refund = $data['partial_payment'] - $data['refund_total'];
+
+                $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                $time = $date->format('Y-m-d H:i:s');
+
+                $result = $this->PaymentLogModel->createLogRecord(array(
+                    'invoice_id' => $tmp_invoice_id,
+                    'user_id' => $this->session->userdata['id'],
+                    "amount" => $data['refund_payment'],
+                    'action' => "Refund Given",
+                    'created_at' => $time,
+                ));
 
                 $param = array(
                     // 'payment_invoice_logs_id' => $payment_log_id,
@@ -7612,7 +7727,21 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             'payment_invoice_logs_id' => $payment_log_id,
         );
 
+        $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+        $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+        $time = $date->format('Y-m-d H:i:s');
+
+        $result = $this->PaymentLogModel->createLogRecord(array(
+            'invoice_id' => $invoice_id,
+            'user_id' => $this->session->userdata['id'],
+            "amount" => $data['payment_amount'],
+            'action' => "Partial Payment Delete",
+            'created_at' => $time,
+        ));
+
         $invoice_details = $this->PartialPaymentModel->deletePartialPayment($where);
+
+
 
         #### UPDATE REFUND PAYMENT LOG ####
         $where = array(
@@ -7657,6 +7786,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             $data['updated_payment'] = $data['payment_amount'] - $data['partial_payment'];
             //  die(print_r($data));
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                "amount" => $data['partial_payment'],
+                'action' => "Refund Given",
+                'created_at' => $time,
+            ));
 
             ##### CREATE A NEW REFUND PAYMENT LOG #####
             $param = array(
@@ -7800,6 +7941,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             // $refunded_amount = ($data['payment_amount'] - $data['partial_payments'] );
 
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                "amount" => $data['partial_payment'],
+                'action' => "Refund Given",
+                'created_at' => $time,
+            ));
+
             $param = array(
                 'payment_invoice_logs_id' => $payment_log_id,
                 'invoice_id' => $invoice_id,
@@ -7885,6 +8038,18 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             );
 
             $invoice_details = $this->INV->updateInvoive($where, $param);
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                "amount" => $data['partial_payment'],
+                'action' => "Refund Given",
+                'created_at' => $time,
+            ));
 
             ##### CREATE A NEW REFUND PAYMENT LOG #####
             $param = array(
