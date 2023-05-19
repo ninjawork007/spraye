@@ -10168,7 +10168,7 @@ class Reports extends MY_Controller {
                         ),
                         $body,
                         $Data->email_subject,
-                        $CustomerDetails->secondary_email,
+                        $CustomerDetails->secondary_email
                     );
                 }
             }
