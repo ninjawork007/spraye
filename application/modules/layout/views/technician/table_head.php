@@ -37,8 +37,8 @@
 	<!-- Theme JS files -->
 	<script src="<?= base_url("assets/technician")?>/assets/js/status/bootstrap-toggle.min.js"></script>
 
-	<!-- <script type="text/javascript" src="<?= base_url('assets/technician') ?>/assets/js/plugins/forms/styling/switchery.min.js"></script>
-	<script type="text/javascript" src="<?= base_url('assets/technician') ?>/assets/js/plugins/forms/styling/switch.min.js"></script> -->
+	<script type="text/javascript" src="<?= base_url('assets/technician') ?>/assets/js/plugins/forms/styling/switchery.min.js"></script>
+	<script type="text/javascript" src="<?= base_url('assets/technician') ?>/assets/js/plugins/forms/styling/switch.min.js"></script>
 	
 	<script type="text/javascript" src="<?= base_url('assets/technician') ?>/assets/js/plugins/notifications/pnotify.min.js"></script>
 	<script type="text/javascript" src="<?= base_url('assets/technician') ?>/assets/js/plugins/uploaders/fileinput/plugins/purify.min.js"></script>

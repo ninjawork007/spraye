@@ -3945,6 +3945,7 @@ class Welcome extends MY_Controller
         $where = array('invoice_id' => $data['invoice_id']);
         $invoice_details = $this->INV->getOneInvoive($where);
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details->company_id));
+        $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_details->company_id, 'status' => 1));
         $tax_details = $this->INV->getAllInvoiceSalesTax($where);
         $customer_details = $this->Customer->getCustomerDetail($invoice_details->customer_id);
         $property_details = $this->PropertyModel->getOneProperty(array('property_id' => $invoice_details->property_id));
@@ -4070,7 +4071,10 @@ class Welcome extends MY_Controller
         $data['requestData']['profile'] = 'Y';
         $data['requestData']['currency'] = $setting_details->company_currency;
         $data['requestData']['amount'] = number_format($total_amount, 2, '.', '');
-
+        $data['username'] = $cardconnect_details->username;
+        $data['password'] = decryptPassword($cardconnect_details->password);
+        $data['merchid'] = $cardconnect_details->merchant_id;
+        $data['requestData']['merchid'] = $cardconnect_details->merchant_id;
         // die(print_r(floatval(preg_replace('/[^\d.]/','', number_format($total_amount, 2)))));
         // $dataToLog = array($total_amount);
         // $data = implode(" - ", $dataToLog);
@@ -4082,7 +4086,7 @@ class Welcome extends MY_Controller
 
         if ($cc_authorize['status'] == 200) {
 
-            if ($cc_authorize['result']->respstat == 'A') {
+            if (strcmp($cc_authorize['result']->respstat, 'A') == 0) {
 
                 $cap = array(
                     'username' => $data['username'],

@@ -150,7 +150,12 @@ class Administrator extends CI_Model{
     //     return $data;
     // }
 
- 
 
+    public function getUserById($user_id) {
+        $this->db->from(self::ADMINTBL)
+            ->where('id', $user_id);
+
+        return $this->db->get()->row_array();
+    }
 }
  

@@ -35,7 +35,7 @@ function getProductByReport($where_arr){
     if (is_array($where_arr)) {
         $CI->db->where($where_arr);
     }
-    //$CI->db->join('products','products.product_id=report_product.product_id','inner');
+    $CI->db->join('products','products.product_id=report_product.product_id','inner');
 
     $result = $CI->db->get();
 

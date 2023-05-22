@@ -301,7 +301,7 @@ class AdminTbl_customer_model extends CI_Model{
 
 
 
-	public function getAllpropertyExt($where_arr = '') {
+	public function getAllpropertyExt($where_arr = '', $customer_id = '') {
 		$this->db->select('*');
 		$this->db->from('property_tbl');
 		if (is_array($where_arr)) {
@@ -310,6 +310,9 @@ class AdminTbl_customer_model extends CI_Model{
 		$this->db->join('customer_property_assign','property_tbl.property_id=customer_property_assign.property_id','inner');
 		$this->db->join('customers','customer_property_assign.customer_id=customers.customer_id','inner');
 		$this->db->join('category_property_area', 'property_tbl.property_area=category_property_area.property_area_cat_id', 'left');
+        if (!empty($customer_id)) {
+            $this->db->order_by("FIELD(customers.customer_id, '$customer_id') DESC");
+        }
 		$result = $this->db->get();
 		$data = $result->result();
 		return $data;

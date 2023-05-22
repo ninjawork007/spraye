@@ -222,7 +222,9 @@
         initComplete: function(data){
             console.log(data)
             $("div.toolbar")
-                .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li onclick="filterSearch(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li onclick="filterSearch(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Draft</a></li><li onclick="filterSearch(1)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li onclick="filterSearch(2)" ><a href="#"><span class="status-mark bg-till position-left"></span> Accepted</a></li><li onclick="filterSearch(5)" ><a href="#"><span class="status-mark bg-orange position-left"></span> Declined</a></li> <li onclick="filterSearch(3)" ><a href="#"><span class="status-mark bg-success position-left"></span> Paid</a></li>       </ul></div>&nbsp;&nbsp;<button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage">Send By Email</button>&nbsp;&nbsp;<?php if($setting_details->signwell_api_key != "") { ?><button type="submit"  disabled="disabled" data-toggle="modal" onclick="send_to_signwell()" class="btn btn-success btn-outline" id="send_signwell">Send through SignWell</button>&nbsp;&nbsp;<?php } ?><button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');
+                //        },
+                //        },
+                .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right filter-status-estimate"><li onclick="filterSearch(4)" data-id="4" class="active"><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li onclick="filterSearch(0)" data-id="0"><a href="#"><span class="status-mark bg-warning position-left"></span> Draft</a></li><li onclick="filterSearch(1)" data-id="1"><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li onclick="filterSearch(2)" data-id="2"><a href="#"><span class="status-mark bg-till position-left"></span> Accepted</a></li><li onclick="filterSearch(5)" data-id="5"><a href="#"><span class="status-mark bg-orange position-left"></span> Declined</a></li> <li onclick="filterSearch(3)" data-id="3"><a href="#"><span class="status-mark bg-success position-left"></span> Paid</a></li>       </ul></div>&nbsp;&nbsp;<button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage">Send By Email</button>&nbsp;&nbsp;<?php if($setting_details->signwell_api_key != "") { ?><button type="submit"  disabled="disabled" data-toggle="modal" onclick="send_to_signwell()" class="btn btn-success btn-outline" id="send_signwell">Send through SignWell</button>&nbsp;&nbsp;<?php } ?><button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');
         },
         buttons:[
             {
@@ -244,6 +246,8 @@
     function  filterSearch(status) {
         table.columns(5).search(status).draw();
 
+        $(".filter-status-estimate li").removeClass("active");
+        $(".filter-status-estimate li[data-id="+ status +"]").addClass("active");
 
     }
 

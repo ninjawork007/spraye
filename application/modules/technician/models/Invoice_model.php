@@ -49,11 +49,34 @@ class Invoice_model extends CI_Model{
            $result = $this->db->get();
 
         $data = $result->row();
-        // die(print_r($this->db->last_query()));
-        return $data;    
+        return $data;
     }
 
+    public function getLateFee($invoice_id) {
+        $sql = "SELECT 
+                    IF(apply_late_fee
+                            AND auto_late_fee_multiplier
+                            AND is_recurring,
+                        auto_late_fee_multiplier * late_fee_amount,
+                        IF(apply_late_fee, late_fee_amount, 0)) late_fee_amount
+                FROM
+                    (SELECT 
+                        IF(DATEDIFF(NOW(), a.first_sent_date) > b.late_fee_due, 1, 0) apply_late_fee,
+                            IF(b.late_fee_is_recurring, 1, 0) is_recurring,
+                            TIMESTAMPDIFF(MONTH, DATE_ADD(a.first_sent_date, INTERVAL 10 DAY), NOW()) auto_late_fee_multiplier,
+                            ROUND(IF(b.late_fee_flat > 0, b.late_fee_flat, (b.late_fee_percent * a.cost * .01)), 2) late_fee_amount
+                    FROM
+                        invoice_tbl a
+                    JOIN t_company b ON a.company_id = b.company_id
+                        AND a.is_late_fee = 1
+                    WHERE
+                        a.invoice_id = {$invoice_id}) t";
 
+        $query = $this->db->query($sql);
+        $result = $query->row();
+
+        return !empty($result) ? $result->late_fee_amount : 0 ;
+    }
 
 
 

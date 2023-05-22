@@ -93,18 +93,108 @@ class AdminTbl_company_model extends CI_Model{
    {
       $query = $this->db->insert(self::ENOTES, $data);
       return $this->db->insert_id();
-   }   
-
-   public function getCompanyNotes($companyId)
-   {
-      $this->db->from(self::ENOTES);
-      $this->db->where('note_company_id',$companyId);
-      $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
-      $this->db->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left');
-      $this->db->join('customers', 'customers.customer_id=e_notes.note_customer_id','left');
-	  $this->db->join('jobs', 'e_notes.note_assigned_services=jobs.job_id', 'left');
-      return $this->db->get()->result();
    }
+
+    public function getCompanyNotes($companyId, $filter = [], $is_count_return = false, $limit = 0, $page = 1)
+    {
+        $this->db->select('e_notes.*,
+                           users.*,
+                           CONCAT(user_assigned.user_first_name, " ", user_assigned.user_last_name) as user_assigned_full_name,
+                           CONCAT(customers.first_name, " ", customers.last_name) as customer_full_name,
+                           property_tbl.*,
+                           jobs.*,
+                           e_note_types.*
+                        ')
+                ->from(self::ENOTES)
+                ->where('note_company_id', $companyId)
+                ->join('e_note_types', 'e_note_types.type_id=e_notes.note_type', 'left')
+                ->join('users', 'users.id=e_notes.note_user_id', 'inner')
+                ->join('users as user_assigned', 'user_assigned.id=e_notes.note_assigned_user', 'left')
+                ->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left')
+                ->join('customers', 'customers.customer_id=e_notes.note_customer_id', 'left')
+                ->join('jobs', 'e_notes.note_assigned_services=jobs.job_id', 'left');
+        if (is_array($filter) && count($filter) > 0) {
+            if (!empty($filter['note_creator'])) {
+                $this->db->where_in('note_user_id', explode(',', $filter['note_creator']));
+            }
+            if (!empty($filter['note_type'])) {
+                $this->db->where_in('note_type', explode(',', $filter['note_type']));
+            }
+
+            // due date range filter
+            if (!empty($filter['note_due_date_start']) && !empty($filter['note_due_date_end'])) {
+                $this->db->where("note_due_date BETWEEN '".date('Y-m-d 00:00:00', strtotime($filter['note_due_date_start']))."' 
+                                                AND '".date('Y-m-d 23:59:59', strtotime($filter['note_due_date_end']))."'");
+            } else if (empty($filter['note_due_date_start']) && !empty($filter['note_due_date_end'])) {
+                // they did not give us start date - so we can assume they mean today
+                $this->db->where("note_due_date BETWEEN '".date('Y-m-d 00:00:00', strtotime('today'))."' 
+                                                AND '".date('Y-m-d 23:59:59',strtotime($filter['note_due_date_end']))."'");
+            } else if (!empty($filter['note_due_date_start']) && empty($filter['note_due_date_end'])) {
+                // they did not give us end date - so we can assume they mean today
+                $this->db->where("note_due_date BETWEEN '".date('Y-m-d 00:00:00', strtotime($filter['note_due_date_start']))."' 
+                                                AND '".date('Y-m-d 23:59:59',strtotime('today'))."'");
+            }
+
+            // created date range filter
+            if (!empty($filter['note_created_date_start']) && !empty($filter['note_created_date_end'])) {
+                $this->db->where("note_created_at BETWEEN '".date('Y-m-d 00:00:00', strtotime($filter['note_created_date_start']))."' 
+                                                  AND '".date('Y-m-d 23:59:59', strtotime($filter['note_created_date_end']))."'");
+            } else if (empty($filter['note_created_date_start']) && !empty($filter['note_created_date_end'])) {
+                // they did not give us start date - so we can assume they mean today
+                $this->db->where("note_created_at BETWEEN '".date('Y-m-d 00:00:00', strtotime('today'))."' 
+                                                  AND '".date('Y-m-d 23:59:59',strtotime($filter['note_created_date_end']))."'");
+            } else if (!empty($filter['note_created_date_start']) && empty($filter['note_created_date_end'])) {
+                // they did not give us end date - so we can assume they mean today
+                $this->db->where("note_created_at BETWEEN '".date('Y-m-d 00:00:00', strtotime($filter['note_created_date_start']))."' 
+                                                  AND '".date('Y-m-d 23:59:59',strtotime('today'))."'");
+            }
+
+            if (isset($filter['note_category'])) {
+                switch ($filter['note_category']) {
+                    case 'property':
+                        $this->db->where('note_category', 0);
+                        break;
+                    case 'customer':
+                        $this->db->where('note_category', 1);
+                        break;
+                    case 'technician':
+                        $this->db->where('note_category', 2);
+                        break;
+                    case 'fleet':
+                        $this->db->where('note_category', 3);
+                        break;
+                }
+            }
+            if (!empty($filter['note_assignee'])) {
+                $this->db->where_in('note_assigned_user', explode(',', $filter['note_assignee']));
+            }
+            if (isset($filter['note_sort']) && $filter['note_sort'] !== '') {
+                if ($filter['note_sort'] == 0) {
+                    $this->db->order_by('note_id', 'desc');
+                } else if ($filter['note_sort'] == 1) {
+                    $this->db->order_by('note_due_date', 'desc');
+                } else if ($filter['note_sort'] == 2) {
+                    $this->db->order_by('is_urgent', 'desc');
+                }
+            } else {
+                $this->db->order_by('is_urgent DESC, note_created_at DESC');
+            }
+            if (!empty($filter['note_status'])) {
+                $this->db->where('note_status', $filter['note_status']);
+            }
+        } else {
+            $this->db->order_by('is_urgent DESC, note_created_at DESC');
+        }
+
+        if ($is_count_return) {
+            return $this->db->count_all_results();
+        }
+        if ($limit > 0) {
+            $this->db->limit($limit, ($page - 1) * $limit);
+        }
+        $result = $this->db->get()->result();
+        return $result;
+    }
 
    public function getNote($noteId)
    {
@@ -112,6 +202,12 @@ class AdminTbl_company_model extends CI_Model{
       $this->db->where('note_id',$noteId);
       $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
       return $this->db->get()->result();
+   }
+   public function getNoteById($noteId)
+   {
+      $this->db->from(self::ENOTES);
+      $this->db->where('note_id',$noteId);
+      return $this->db->get()->row_array();
    }
 
    public function getUserNotes($userId)
@@ -122,40 +218,114 @@ class AdminTbl_company_model extends CI_Model{
       return $this->db->get()->result();
    }
 
-   public function getCustomerNotes($customerId) 
-   {
-      $this->db->from(self::ENOTES);
-      $where = array(
-         'note_customer_id' => $customerId,
-         'note_category' => 1
-      );
-      $this->db->where($where);
-      $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
-      $this->db->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left');
-      $this->db->join('customers', 'customers.customer_id=e_notes.note_customer_id','left');
-      return $this->db->get()->result();
-   }
 
-   public function getPropertyNotes($propertyId)
-   {
-      $this->db->from(self::ENOTES);
-      $this->db->where('note_property_id',$propertyId);
-      $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
-      $this->db->join('customers', 'customers.customer_id=e_notes.note_customer_id','left');
-      $this->db->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left');
-	  $this->db->join('jobs', 'e_notes.note_assigned_services=jobs.job_id', 'left');
-      return $this->db->get()->result();
-   }
+    public function getCustomerNotes($customerId, $filter = [], $property_ids = [], $is_count_return = false, $limit = 0, $page = 1)
+    {
+        $this->db->select('e_notes.*,
+                           users.*,
+                           CONCAT(user_assigned.user_first_name, " ", user_assigned.user_last_name) as user_assigned_full_name,
+                           CONCAT(customers.first_name, " ", customers.last_name) as customer_full_name,
+                           property_tbl.*,
+                           jobs.*
+                        ')
+            ->from(self::ENOTES)
+            ->join('users', 'users.id=e_notes.note_user_id', 'inner')
+            ->join('users as user_assigned', 'user_assigned.id=e_notes.note_assigned_user', 'left')
+            ->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left')
+            ->join('customers', 'customers.customer_id=e_notes.note_customer_id', 'left')
+            ->join('jobs', 'e_notes.note_assigned_services=jobs.job_id', 'left');
 
-   public function getCustomerPropertyNotes($where)
+        $this->db->group_start();
+        // where note of customer
+        $where = array(
+            'note_customer_id' => $customerId,
+            'note_category' => 1
+        );
+        $this->db->where($where);
+        // where note property related to customer
+        if (is_array($property_ids) && count($property_ids)) {
+            $this->db->or_group_start()
+                ->where('note_company_id', $this->session->userdata['company_id'])
+                ->where('note_category', 0)
+                ->where_in('property_tbl.property_id', $property_ids)
+                ->group_end();
+        }
+        // where note technician related to customer
+        $this->db->or_group_start()
+            ->where('note_customer_id', $customerId)
+            ->where('note_category', 2)
+            ->group_end();
+        $this->db->group_end();
+        if (is_array($filter) && count($filter) > 0) {
+            if (!empty($filter['note_property'])) {
+                $this->db->where('note_property_id', $filter['note_property']);
+            }
+            if (!empty($filter['note_status'])) {
+                $this->db->where('note_status', $filter['note_status']);
+            }
+
+            if (isset($filter['note_category'])) {
+                switch ($filter['note_category']) {
+                    case 'property':
+                        $this->db->where('note_category', 0);
+                        break;
+                    case 'customer':
+                        $this->db->where('note_category', 1);
+                        break;
+                    case 'technician':
+                        $this->db->where('note_category', 2);
+                        break;
+                    case 'fleet':
+                        $this->db->where('note_category', 3);
+                        break;
+                }
+            }
+        }
+        $this->db->order_by('is_urgent DESC, note_created_at DESC');
+
+        if ($is_count_return) {
+            return $this->db->count_all_results();
+        }
+        if ($limit > 0) {
+            $this->db->limit($limit, ($page - 1) * $limit);
+        }
+
+        $result = $this->db->get()->result();
+        return $result;
+    }
+
+   public function getPropertyNotes($propertyId, $filter = [], $is_count_return = false, $limit = 0, $page = 1)
    {
-      $this->db->from(self::ENOTES);
-      $this->db->where($where);
-      $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
-      $this->db->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left');
-      $this->db->join('customers', 'customers.customer_id=e_notes.note_customer_id','left');
-	  $this->db->join('jobs', 'e_notes.note_assigned_services=jobs.job_id', 'left');
-      return $this->db->get()->result();
+       $this->db->select('e_notes.*,
+                           users.*,
+                           CONCAT(user_assigned.user_first_name, " ", user_assigned.user_last_name) as user_assigned_full_name,
+                           CONCAT(customers.first_name, " ", customers.last_name) as customer_full_name,
+                           property_tbl.*,
+                           jobs.*
+                        ')
+           ->from(self::ENOTES)
+           ->where('note_property_id',$propertyId)
+           ->join('users', 'users.id=e_notes.note_user_id', 'inner')
+           ->join('users as user_assigned', 'user_assigned.id=e_notes.note_assigned_user', 'left')
+           ->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left')
+           ->join('customers', 'customers.customer_id=e_notes.note_customer_id', 'left')
+           ->join('jobs', 'e_notes.note_assigned_services=jobs.job_id', 'left');
+       if (is_array($filter) && count($filter) > 0) {
+           if (!empty($filter['note_status'])) {
+               $this->db->where('note_status', $filter['note_status']);
+           }
+       }
+       $this->db->order_by('is_urgent DESC, note_created_at DESC');
+
+
+       if ($is_count_return) {
+           return $this->db->count_all_results();
+       }
+       if ($limit > 0) {
+           $this->db->limit($limit, ($page - 1) * $limit);
+       }
+
+       return $this->db->get()->result();
    }
 
    public function getPropertyNotesByCompanyAndCategory($where)
@@ -208,6 +378,14 @@ class AdminTbl_company_model extends CI_Model{
    public function closeNoteStatus($noteId)
    {
       $this->db->set('note_status', 2);
+      $this->db->where('note_id', $noteId);
+      $result = $this->db->update(self::ENOTES);
+      return $result;
+   }
+
+   public function setNoteUrgentById($noteId, $urgent = 0)
+   {
+      $this->db->set('is_urgent', $urgent);
       $this->db->where('note_id', $noteId);
       $result = $this->db->update(self::ENOTES);
       return $result;
@@ -317,16 +495,6 @@ class AdminTbl_company_model extends CI_Model{
       return $result;
    }
 
-   public function getTechCompletionNotes($where)
-   {
-      $this->db->from(self::ENOTES);
-      $this->db->where($where);
-      $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
-      $this->db->join('property_tbl', 'property_tbl.property_id=e_notes.note_property_id', 'left');
-      $this->db->join('customers', 'customers.customer_id=e_notes.note_customer_id','left');
-      return $this->db->get()->result();
-   }    
-
    // Fleet Vehicles
     public function getAllFleetVehicles($company_id)
     {
@@ -393,15 +561,45 @@ class AdminTbl_company_model extends CI_Model{
      * @param array $where_arr
      * Contains: company_id, note_truck_id 
      */
-    public function getSingleVehicleNotes($where_arr)
+    public function getSingleVehicleNotes($fleet_id, $filter, $is_count_return = false, $limit = 0, $page = 1)
     {
-        $this->db->from(self::ENOTES);
-        if (is_array($where_arr)) {
-            $this->db->where($where_arr);
+        $this->db->select('e_notes.*,
+                           users.*,
+                           CONCAT(user_assigned.user_first_name, " ", user_assigned.user_last_name) as user_assigned_full_name,
+                           CONCAT(customers.first_name, " ", customers.last_name) as customer_full_name
+                        ')
+            ->from(self::ENOTES)
+            ->where('note_truck_id', $fleet_id)
+            ->join('users', 'users.id=e_notes.note_user_id', 'inner')
+            ->join('users as user_assigned', 'user_assigned.id=e_notes.note_assigned_user', 'left')
+            ->join('customers', 'customers.customer_id=e_notes.note_customer_id', 'left');
+        if (is_array($filter) && count($filter)) {
+            if (isset($filter['note_company_id'])) {
+                $this->db->where('note_company_id', $filter['note_company_id']);
+            }
+
+            if (isset($filter['note_type'])) {
+                switch ($filter['note_type']) {
+                    case 'general':
+                        $this->db->where('note_type', 2);
+                        break;
+                    case 'maintenance':
+                        $this->db->where('note_type', 3);
+                        break;
+                }
+            }
         }
-        $this->db->join('users', 'users.id=e_notes.note_user_id','inner');
+        $this->db->order_by('is_urgent DESC, note_created_at DESC');
+
+        if ($is_count_return) {
+            return $this->db->count_all_results();
+        }
+        if ($limit > 0) {
+            $this->db->limit($limit, ($page - 1) * $limit);
+        }
         $result = $this->db->get();
         $data = $result->result();
+
         return $data;
     }
 
@@ -449,6 +647,14 @@ class AdminTbl_company_model extends CI_Model{
         $result = $this->db->get();
         $data = $result->row();
         return $data;
+    }
+
+    public function closeMaintenanceEntry($note_id)
+    {
+        $this->db->set('mnt_status', 0);
+        $this->db->where('mnt_note_id', $note_id);
+        $result = $this->db->update(self::FM);
+        return $result;
     }
 
    //  Fleet Inspection Report
@@ -555,4 +761,34 @@ class AdminTbl_company_model extends CI_Model{
         return $data->assign_job_view;
     }
   }
+
+    public function getNoteDueDateToday() {
+        $this->db->from('e_notes')
+                 ->where('note_due_date', date('Y-m-d'));
+        return $this->db->get()->result();
+    }
+
+    public function getCompanyByNoteId($note_id) {
+        $this->db->from('e_notes')
+            ->join('users', 'users.id = e_notes.note_user_id', 'inner')
+            ->join('t_company', 't_company.company_id = users.company_id', 'inner')
+            ->where('note_id', $note_id);
+        return $this->db->get()->row();
+    }
+
+    public function getNotesEmptyCustomer() {
+        $this->db->from('e_notes')
+            ->where('note_customer_id IS NULL');
+        return $this->db->get()->result();
+    }
+
+    public function getNoteVehicleMaintenanceInfoByNoteId($note_id)
+    {
+        $this->db->from(self::FM)
+                 ->join(self::FV, 'fleet_maintenance.mnt_truck_id = fleet_vehicles.fleet_id', 'join')
+                 ->where('mnt_note_id', $note_id);
+        $result = $this->db->get();
+        $data = $result->row();
+        return $data;
+    }
 }

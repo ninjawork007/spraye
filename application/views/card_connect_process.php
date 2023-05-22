@@ -168,16 +168,8 @@ if ($invoice_details) {
                                         value="<?php echo $cardconnect_details->merchant_id ?>">
                                     <input type="hidden" name="invoiceid" id="invoiceid"
                                         value="<?php echo $invoice_details->invoice_id ?>">
-                                    <input type="hidden" name="user" id="user"
-                                        value="<?php echo $cardconnect_details->username ?>">
-                                    <input type="hidden" name="pass" id="pass"
-                                        value="<?php echo decryptPassword($cardconnect_details->password) ?>">
-
                                 </form>
                             </div>
-
-
-
                             <div class="form-group login-options">
                                 <div class="row">
                                     <?php
@@ -325,8 +317,6 @@ if ($invoice_details) {
                             },
                             invoice_id: $('#invoiceid').val(),
                             merchid: $('#merchid').val(),
-                            username: $('#user').val(),
-                            password: $('#pass').val()
                         },
                         dataType: "JSON",
                         success: function(response) {
