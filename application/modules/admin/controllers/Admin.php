@@ -8927,7 +8927,8 @@ class Admin extends MY_Controller
                 'company_id' => $company_id,
                 'program_name' => $data['program_name'],
                 'program_price' => $data['program_price'],
-                'program_notes' => $data['program_notes']
+                'program_notes' => $data['program_notes'],
+                'parent_program_id' => $data['OriginaProgrammID']
                 //'program_job' => $data['program_job']
             );
 
@@ -8959,12 +8960,12 @@ class Admin extends MY_Controller
             if (isset($data['propertylistarray']) && !empty($data['propertylistarray'])) {
                 $program['properties'] = array();
                 foreach (json_decode($data['propertylistarray']) as $value) {
-
                     $param3 = array(
                         'program_id' => $result,
                         'property_id' => $value->property_id,
                         'price_override' => $value->price_override,
-                        'is_price_override_set' => $value->is_price_override_set
+                        'is_price_override_set' => $value->is_price_override_set,
+                        'sale_date' => $value->sale_date,
                         ///add invoice_id here
                     );
                     //assign program to property

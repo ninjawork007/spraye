@@ -323,6 +323,7 @@ label.control-label.col-lg-3 {
                           placeholder="Enter Partial payment" 
                           value="<?php echo ($invoice_details->payment_status==4 || $invoice_details->payment_status==2) ?number_format(0,2, '.', '') : number_format($due_amount ,2, '.', '')   ?>" 
                           style="margin-left: -4px; margin-bottom: 5px;">
+                          
                           <div style="height: 10px;"></div>
                           <label class="control-label col-lg-9">Refunded Amount:</label>
                         <input 

@@ -2833,17 +2833,15 @@ class Estimates extends MY_Controller
     public function addBulkRenewalProgramData($program_id)
     {
         $data = $this->input->post();
-        // die(print_r($data));
+
         //Validate Form Data
         $this->form_validation->set_rules('program_name', 'Name', 'required');
         $this->form_validation->set_rules('program_price', 'Price', 'required');
         $this->form_validation->set_rules('program_notes', 'Notes', 'trim');
         $this->form_validation->set_rules('program_job', 'Service', 'trim|required');
         if ($this->form_validation->run() == FALSE) {
-            // echo validation_errors();
             $this->addBulkRenewalProgram($program_id);
         } else {
-            // die(print_r(json_encode($data)));
             if (isset($data['propertylistarray_temp']) && !is_array($data['propertylistarray_temp'])) {
                 $data['propertylistarray_temp'] = explode(',', $data['propertylistarray_temp']);
             }
@@ -2898,7 +2896,8 @@ class Estimates extends MY_Controller
                 'company_id' => $company_id,
                 'program_name' => $program_name,
                 'program_price' => $data['program_price'],
-                'program_notes' => $data['program_notes']
+                'program_notes' => $data['program_notes'],
+                'parent_program_id' => $data['OriginaProgrammID']
                 //'program_job' => $data['program_job']
             );
             //Create Program

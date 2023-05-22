@@ -14,4 +14,22 @@ class MassEmailModel extends CI_Model{
         $data = $result->result();
         return $data;
     }
+
+    public function updateEmailData($Param, $where){
+        $this->db->where($where);
+        $this->db->update("mass_email", $Param);
+        return $this->db->affected_rows();
+    }
+
+    public function deleteData($where){
+        $this->db->where($where);
+        $this->db->delete("mass_email");
+        $a = $this->db->affected_rows();
+        if($a){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 }

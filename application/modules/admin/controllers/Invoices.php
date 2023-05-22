@@ -7693,14 +7693,10 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
     public function deletePaymentLog($value = '')
     {
         $data = $this->input->post();
-        // die(print_r($data));
-        //$payment_log_id = $data['payment_invoice_log_id'];
         $payment_log_id = $data['payment_log_id'];
-        //does deleting payment need to update Invoice?
         $invoice_id = $data['invoice_id'];
 
         #### GET ALL PARTIAL PAYMENTS  and SETTING DATA['partial_payment'] ####
-
         $all_invoice_partials = $this->INV->getOneRow(array('invoice_id' => $invoice_id));
         $data['partial_payments'] = $all_invoice_partials->partial_payment;
 
@@ -7720,8 +7716,14 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         );
 
         $param = array(
-            'partial_payment' => ($data['payment_amount'] - $data['partial_payments']),
+            'partial_payment' => ($data['partial_payments'] - $data['payment_amount']),
         );
+
+        if($param["partial_payment"] <= 0){
+            $param["payment_status"] = 0;
+        }else{
+            $param["payment_status"] = 1;
+        }
 
         $invoice_details = $this->INV->updateInvoive($where, $param);
 

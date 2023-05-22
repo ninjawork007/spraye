@@ -23,6 +23,7 @@
 					<th>Subject</th>
 					<th>Sent Date</th>
 					<th>Status</th>
+					<th>Action</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -39,6 +40,23 @@
 					?>
 					</td>
 					<td><?php echo $Data->status == 0 ? "Draft" : "Sent" ?></td>
+					<td>
+						<ul style="list-style-type: none; padding-left: 0px;">
+							<?php
+							if($Data->status == 0){
+							?>
+							<li style="display: inline; padding-right: 10px;">
+								<a href="<?php echo base_url() ?>/admin/MassEmail/ResendEmail?id=<?php echo $Data->id ?>" class="confirm_delete button-next"><i class="icon-envelop3 position-center" style="color: #9a9797;"></i></a>
+							</li>
+								<?php
+							}
+							?>
+
+							<li style="display: inline; padding-right: 10px;">
+								<a href="<?php echo base_url() ?>/admin/MassEmail/DeleteEmails?id=<?php echo $Data->id ?>" class="confirm_delete button-next"><i class="fa fa-trash   position-center" style="color: #9a9797;"></i></a>
+							</li>
+						</ul>
+					</td>
 				</tr>
 				<?php
 				}
@@ -47,61 +65,55 @@
 		</table>
 	</div>
 </div>
-</th>
+
+
+<script src="<?= base_url() ?>assets/popup/js/sweetalert2.all.js"></script>
+<script type="text/javascript">
+	$('.confirm_delete').click(function(e){
+		e.preventDefault();
+		var url = $(this).attr('href');
+		swal({
+			title: 'Are you sure?',
+			text: "You won't be able to recover this !",
+			type: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#009402',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		}).then((result) => {
+			if (result.value) {
+				window.location = url;
+			}
+		})
+	});
+</script>
+
 <script>
 $(document).ready(function() {
-      tableInitialize();
+	tableInitialize();
 });
 function tableInitialize(argument) {
-// Setting Datatable Defaults
-      $.extend( $.fn.dataTable.defaults, {
-          autoWidth: false,
-          dom: '<"datatable-header"fBl><"datatable-scroll-wrap"t><"datatable-footer"ip>',
-          language: {
-              search: '<span>Filter:</span> _INPUT_',
-              lengthMenu: '<span>Show:</span> _MENU_',
-              paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' }
-          },
-      });
-// Basic Initialization
-      $('.datatable-button-print-basic').DataTable({
-          "iDisplayLength": <?= $this ->session->userdata('compny_details')-> default_display_length?>,
-          "aLengthMenu": [[10,20,50,100,200,500],[10,20,50,100,200,500]],
-          buttons: [
-              {
-                  extend: 'print',
-                  text: '<i class="icon-printer position-left"></i> Print table',
-                  className: 'btn bg-blue'
-              },
-			  
-          ]
-      });
-}	
-function filterInterval(interval){
-	$('input#interval').val(interval);
-	searchFilter();
-}
-function searchFilter() {
-	var customer = $('#customer').val();
-	var start_date = $("#start_date").val();
-	var end_date = $("#end_date").val();
+	$.extend( $.fn.dataTable.defaults, {
+		autoWidth: false,
+		dom: '<"datatable-header"fBl><"datatable-scroll-wrap"t><"datatable-footer"ip>',
+		language: {
+			search: '<span>Filter:</span> _INPUT_',
+			lengthMenu: '<span>Show:</span> _MENU_',
+			paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' }
+		},
+	});
 
-	$('.loading').css("display", "block");
-	
-	$('#invoice-age-list').html('');
-	
-    $.ajax({
-        type: 'POST',
-        url: '<?php echo base_url(); ?>admin/reports/ajaxDataForTevenueServieType',
-        data:'customer='+customer+"&start_date="+start_date+"&end_date="+end_date,
-        success: function (html) {
-            $(".loading").css("display", "none");
-            $('#invoice-age-list').html(html);
-            tableInitialize();
-        }
-    });
-}
-function resetform(){
-	location.reload();
+	$('.datatable-button-print-basic').DataTable({
+		"iDisplayLength": <?= $this ->session->userdata('compny_details')-> default_display_length?>,
+		"aLengthMenu": [[10,20,50,100,200,500],[10,20,50,100,200,500]],
+		buttons: [
+		{
+			extend: 'print',
+			text: '<i class="icon-printer position-left"></i> Print table',
+			className: 'btn bg-blue'
+		},
+		]
+	});
 }
 </script>

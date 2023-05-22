@@ -1,5 +1,4 @@
 <?php
-
 class Migrate extends MY_Controller
 {
     public function __construct()

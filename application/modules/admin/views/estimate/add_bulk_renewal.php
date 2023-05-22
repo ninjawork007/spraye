@@ -217,6 +217,9 @@ table#dataTable_override {
 			  <b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
 
               <form class="form-horizontal" action="<?= base_url('admin/estimates/addBulkRenewalProgramData/').$programData['program_id'] ?>" method="post" name="addcopyprogram" enctype="multipart/form-data" >
+
+                <input type="hidden" name="OriginaProgrammID" value="<?php echo $programData['program_id'] ?>">
+                
                 <fieldset class="content-group">      
                   
               <div class="row">

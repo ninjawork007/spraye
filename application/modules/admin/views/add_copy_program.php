@@ -35,6 +35,8 @@
                 endif; ?></b>
 
             <form class="form-horizontal" action="<?= base_url('admin/addCopyProgramData') ?>" method="post" name="addcopyprogram" enctype="multipart/form-data">
+
+                <input type="hidden" name="OriginaProgrammID" value="<?php echo $programData['program_id'] ?>">
                 <fieldset class="content-group">
 
                     <div class="row">
@@ -195,7 +197,7 @@
                                                         'property_id' => $value->property_id,
                                                         'price_override' => $value->price_override,
                                                         'is_price_override_set' => $value->is_price_override_set,
-
+                                                        'sale_date' => $value->sale_date,
                                                     );
 
 
