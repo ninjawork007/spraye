@@ -123,7 +123,7 @@ foreach($route_results as $k=>$route){
         //$total_sq_feet_by_type[$route['yard_square_feet']];
 
         $total_sq_feet_front += $route['front_yard_square_feet'];
-    $total_sq_feet_back += $route['back_yard_square_feet'];
+    $total_sq_feet_back += (double)$route['back_yard_square_feet'];
     if (!in_array($route['property_address'],$properties)){
         array_push($properties, $route['property_address']);
         $total_stops++;
@@ -135,16 +135,16 @@ foreach($route_results as $k=>$route){
         array_push($propertiesandservice, $route['property_address'].$route['service_name']);
         $service_detail_array[$route['service_name']] =
             array("properties"=> 1,
-                "yard_square_feet" => (isset($route['yard_square_feet']))?$route['yard_square_feet']:0,
-                "front_yard_square_feet"=> (isset($route['front_yard_square_feet']))?$route['front_yard_square_feet']:0,
-                "back_yard_square_feet"=> (isset($route['back_yard_square_feet']))?$route['back_yard_square_feet']:0,
+                "yard_square_feet" => (!empty($route['yard_square_feet']))?$route['yard_square_feet']:0,
+                "front_yard_square_feet"=> (!empty($route['front_yard_square_feet']))?$route['front_yard_square_feet']:0,
+                "back_yard_square_feet"=> (!empty($route['back_yard_square_feet']))?$route['back_yard_square_feet']:0,
                 "products" => $route['product_used']
             );
     } else {
         $service_detail_array[$route['service_name']]['properties'] += 1;
-        $service_detail_array[$route['service_name']]['yard_square_feet'] += (isset($route['yard_square_feet']))?$route['yard_square_feet']:0;
-        $service_detail_array[$route['service_name']]['front_yard_square_feet'] += (isset($route['front_yard_square_feet']))?$route['front_yard_square_feet']:0;
-        $service_detail_array[$route['service_name']]['back_yard_square_feet'] += (isset($route['front_yard_square_feet']))?$route['front_yard_square_feet']:0;
+        $service_detail_array[$route['service_name']]['yard_square_feet'] += (!empty($route['yard_square_feet']))?$route['yard_square_feet']:0;
+        $service_detail_array[$route['service_name']]['front_yard_square_feet'] += (!empty($route['front_yard_square_feet']))?$route['front_yard_square_feet']:0;
+        $service_detail_array[$route['service_name']]['back_yard_square_feet'] += (!empty($route['front_yard_square_feet']))?$route['front_yard_square_feet']:0;
 //        foreach ($route['product_used'] as $prd_used){
 //            array_push($service_detail_array[$route['service_name']]['products'], $prd_used);
 //

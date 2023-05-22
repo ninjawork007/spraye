@@ -4,3 +4,9 @@ application/config/database.php
 
 .idea/*
 MonthlyStatementResult.txt
+
+.DS_Store
+
+# /vendor/
+/application/cache
+/application/logs

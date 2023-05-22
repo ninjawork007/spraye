@@ -1,5 +1,9 @@
 <script src="https://code.jquery.com/ui/1.8.24/jquery-ui.min.js" ></script>
 <style type="text/css">
+    .btndiv > * {
+        margin-bottom: 4px;
+    }
+    
   #dvMap {
        height: 865px;
        margin-left: -20px;
@@ -33,7 +37,7 @@
 
                         <div class="row">
                           
-                           <div class="col-md-6">
+                           <div class="col-md-6 btndiv">
                                 <button class="btn btn-warning" id="CoordsButton">Save Service Area</button>
                                 <button class="btn btn-info" id="delete-button">Delete Selected Area</button>
                                 <button class="btn btn-info" id="delete-all-button">Delete All</button>

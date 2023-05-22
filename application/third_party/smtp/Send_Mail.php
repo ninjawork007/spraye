@@ -3,7 +3,7 @@ function Send_Mail($to, $from_email, $body, $subject)
 //function Send_Mail($to,$from_email,$body)
 {
 	require_once 'class.phpmailer.php';
-	$from = $from_email; //"canopus.info@gmail.com"; //from email is sending 
+	$from = $from_email; //"canopus.info@gmail.com"; //from email is sending
 	$mail = new PHPMailer();
 	$mail->IsSMTP(true); // use SMTP
 	$mail->IsHTML(true);
@@ -53,7 +53,6 @@ function Send_Mail_dynamic($smtparray = array(), $to, $company_data, $body, $sub
 	$mail->SMTPAuth = true; // enable SMTP authentication
 
 	if (isset($smtparray['smtp_host']) && $smtparray['smtp_host'] != '' && $smtparray['smtp_username'] != 'no-reply@spraye.io') {
-		//die(print_r($smtparray));
 		//$to = 'blance@blayzer.com';
 
 		$from_email = $company_data["email"];
@@ -185,5 +184,4 @@ function Send_Mail_dynamic($smtparray = array(), $to, $company_data, $body, $sub
 		}
 	}
 }
-
 ?>

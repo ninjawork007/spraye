@@ -122,7 +122,7 @@
         <?php
 	//$setting_address_array = Get_Address_From_Google_Maps($setting_details->company_address);
 	$setting_address_array = explode(',',$setting_details->company_address,2);
-	foreach ($invoice_details as $index=>$invoice_detail) {  
+	foreach ($invoice_details as $index=>$invoice_detail) {
         $property_address_array = explode(',', $invoice_detail->property_address);
         $property_address_first = array_shift($property_address_array);
         $property_address_last = implode(',',$property_address_array);
@@ -721,7 +721,9 @@
                             'report'=> (isset($job->report))?$job->report: $job->report_details,
                         );
                     } else {
-                        array_push($report_id, $job->jobs[0]['job_report']->report_id);
+                        if (! empty($job->jobs[0]['job_report'])) {
+                            array_push($report_id, $job->jobs[0]['job_report']->report_id);
+                        }
                         $products[] = array(
                             'job_id' => $job->job_id,
                             'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
@@ -1144,7 +1146,7 @@
                             </tr>
                         <?php } ?>
 
-                    <?php $i++;	 } ?>
+                    <?php } ?>
                     <!-- END PRODUCT DETAILS PART -->
                 <?php } ?>                                        
             </table>

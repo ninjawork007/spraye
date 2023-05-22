@@ -75,7 +75,10 @@
 
 	<script type="text/javascript" src="<?= base_url('assets/admin') ?>/assets/js/pages/form_bootstrap_select.js"></script>
 
-	 <script type="text/javascript" src="<?= base_url("assets/admin")?>/assets/js/pages/datatables_extension_colvis.js"></script> 
+	 <script type="text/javascript" src="<?= base_url("assets/admin")?>/assets/js/pages/datatables_extension_colvis.js"></script>
+
+	<script type="text/javascript" src="<?= base_url('assets/admin') ?>/assets/js/plugins/forms/styling/switchery.min.js"></script>
+	<script type="text/javascript" src="<?= base_url('assets/admin') ?>/assets/js/plugins/forms/styling/switch.min.js"></script>
 
 		<script src="<?= base_url() ?>/assets/popup/js/sweetalert2.all.js"></script>
   <script type="text/javascript" src="<?= base_url() ?>assets/validation/form-validation.js"></script>

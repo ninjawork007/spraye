@@ -3099,7 +3099,7 @@ class Welcome extends MY_Controller
         $tax_details = $this->INV->getAllInvoiceSalesTax($where);
         $customer_details = $this->Customer->getCustomerDetail($invoice_details->customer_id);
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details->company_id));
-
+        $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_details->company_id, 'status' => 1));
         $data['requestData']['email'] = $customer_details['email'];
 
 
@@ -3217,6 +3217,10 @@ class Welcome extends MY_Controller
 
         $data['requestData']['amount'] = number_format($total_amount, 2, '.', ',');
         $data['requestData']['currency'] = $setting_details->company_currency;
+        $data['username'] = $cardconnect_details->username;
+        $data['password'] = decryptPassword($cardconnect_details->password);
+        $data['merchid'] = $cardconnect_details->merchant_id;
+        $data['requestData']['merchid'] = $cardconnect_details->merchant_id;
 		//die(print_r($total_amount));
         // $dataToLog = array($total_amount);
         // $data = implode(" - ", $dataToLog);
@@ -3231,7 +3235,7 @@ class Welcome extends MY_Controller
 
         if ($cc_authorize['status'] == 200) {
 
-            if ($cc_authorize['result']->respcode == 000) {
+            if (strcmp($cc_authorize['result']->respstat, 'A') == 0){
 
                 $cap = array(
                     'username' => $data['username'],
@@ -4451,7 +4455,7 @@ class Welcome extends MY_Controller
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_arr[0]->company_id));
         $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
         $customer_details = $this->Customer->getCustomerDetail($invoice_arr[0]->customer_id);
-
+        $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_arr[0]->company_id, 'status' => 1));
         $invoice_amt_tax = [];
         if ($tax_details) {
             foreach($tax_details as $tax){
@@ -4601,7 +4605,10 @@ class Welcome extends MY_Controller
         $data['requestData']['profile'] = 'Y';
         $data['requestData']['currency'] = $setting_details->company_currency;
         $data['requestData']['amount'] = number_format($total_amount, 2, '.', '');
-
+        $data['username'] = $cardconnect_details->username;
+        $data['password'] = decryptPassword($cardconnect_details->password);
+        $data['merchid'] = $cardconnect_details->merchant_id;
+        $data['requestData']['merchid'] = $cardconnect_details->merchant_id;
         // die(print_r(floatval(preg_replace('/[^\d.]/','', number_format($total_amount, 2)))));
         // $dataToLog = array($total_amount);
         // $data = implode(" - ", $dataToLog);
@@ -4614,7 +4621,7 @@ class Welcome extends MY_Controller
 
         if ($cc_authorize['status'] == 200) {
 
-            if ($cc_authorize['result']->respstat == 'A') {
+            if (strcmp($cc_authorize['result']->respstat, 'A') == 0){
 
                 $cap = array(
                     'username' => $data['username'],
@@ -4823,7 +4830,7 @@ class Welcome extends MY_Controller
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_arr[0]->company_id));
         $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
         $customer_details = $this->Customer->getCustomerDetail($invoice_arr[0]->customer_id);
-
+        $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_arr[0]->company_id, 'status' => 1));
         $invoice_amt_tax = [];
         if ($tax_details) {
             foreach($tax_details as $tax){
@@ -4968,7 +4975,10 @@ class Welcome extends MY_Controller
         $data['requestData']['postal'] = $customer_details['billing_zipcode'];
         $data['requestData']['profile'] = 'Y';
         $data['requestData']['amount'] = number_format($total_amount, 2, '.', '');
-
+        $data['username'] = $cardconnect_details->username;
+        $data['password'] = decryptPassword($cardconnect_details->password);
+        $data['merchid'] = $cardconnect_details->merchant_id;
+        $data['requestData']['merchid'] = $cardconnect_details->merchant_id;
         // die(print_r(floatval(preg_replace('/[^\d.]/','', number_format($total_amount, 2)))));
         // $dataToLog = array($total_amount);
         // $data = implode(" - ", $dataToLog);
@@ -4981,7 +4991,7 @@ class Welcome extends MY_Controller
 
         if ($cc_authorize['status'] == 200) {
 
-            if ($cc_authorize['result']->respstat == 'A') {
+            if (strcmp($cc_authorize['result']->respstat, 'A') == 0){
 
                 $cap = array(
                     'username' => $data['username'],

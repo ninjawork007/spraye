@@ -4179,7 +4179,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $invoice_where = array(
                     'invoice_tbl.property_id' => $assigned_job_details->property_id,
                     'invoice_tbl.job_id' => $assigned_job_details->job_id,
-                    'program_id' => $assigned_job_details->program_id,
+                    'invoice_tbl.program_id' => $assigned_job_details->program_id,
                     'invoice_tbl.customer_id' => $assigned_job_details->customer_id,
                     'invoice_tbl.company_id' => $this->session->userdata['company_id'],
                 );
@@ -4496,7 +4496,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 $invoice_where = array(
                     'invoice_tbl.property_id' => $assigned_job_details->property_id,
                     'invoice_tbl.job_id' => $assigned_job_details->job_id,
-                    'program_id' => $assigned_job_details->program_id,
+                    'invoice_tbl.program_id' => $assigned_job_details->program_id,
                     'invoice_tbl.customer_id' => $assigned_job_details->customer_id,
                     'invoice_tbl.company_id' => $this->session->userdata['company_id'],
                 );
@@ -4616,6 +4616,9 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 }
             }
 
+            //late fee
+            $late_fee = $this->INV->getLateFee($invoice_details->invoice_id);
+            $invoice_details->late_fee = $late_fee;
             $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_details->invoice_id));
             $data['invoice_details'][] = $invoice_details;
         }
@@ -9067,6 +9070,10 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         $invoice_details->payment_status = 0;
                     }
                 }
+
+                //late fee
+                $late_fee = $this->INV->getLateFee($invoice_details->invoice_id);
+                $invoice_details->late_fee = $late_fee;
 
                 $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_details->invoice_id));
                 $data['invoice_details'][] = $invoice_details;

@@ -77,7 +77,5 @@ class Administrator extends CI_Model{
         }
     }
 
- 
-
 }
  

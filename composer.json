@@ -15,7 +15,8 @@
 		"hownowstephen/php-foursquare": "v1.2.0",
 		"jwilsson/spotify-web-api-php": "2.2.0",
 		"quickbooks/v3-php-sdk": "^5.0",
-		"aws/aws-sdk-php": "2.*"
+		"aws/aws-sdk-php": "2.*",
+		"dragonmantank/cron-expression": "^3.0"
 	},
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"

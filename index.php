@@ -1,6 +1,6 @@
 <?php
 
-if(basename($_SERVER['REQUEST_URI']) === 'health') {
+if(isset($_SERVER['REQUEST_URI']) && basename($_SERVER['REQUEST_URI']) === 'health') {
 	// Health check for Elastic beanstalk
 	echo "Ok";
 	exit;

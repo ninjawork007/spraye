@@ -712,7 +712,7 @@ class Reports extends MY_Controller {
 				$customer_invoices[$customer->customer_id] = array();
 
 				$whereArr = array(
-					'customer_id'=>$customer->customer_id,
+					'invoice_tbl.customer_id'=>$customer->customer_id,
 					'status !='=>0, //where status != unsent
 					'payment_status !='=>2, //where payment_status != paid
 					'is_archived'=>0, //where not archived
@@ -911,7 +911,7 @@ class Reports extends MY_Controller {
 				$customer_invoices[$customer->customer_id] = array();
 
 				$whereArr = array(
-					'customer_id'=>$customer->customer_id,
+					'invoice_tbl.customer_id'=>$customer->customer_id,
 					'status !='=>0, //where status != unsent
 					'payment_status !='=>2, //where payment_status != paid
 					'is_archived'=>0, //where not archived
@@ -1063,7 +1063,7 @@ class Reports extends MY_Controller {
 				$customer_invoices[$customer->customer_id] = array();
 
 				$whereArr = array(
-					'customer_id'=>$customer->customer_id,
+					'invoice_tbl.customer_id'=>$customer->customer_id,
 					'status !='=>0, //where status != unsent
 					'payment_status !='=>2, //where payment_status != paid
 					'is_archived'=>0, //where not archived
@@ -2180,6 +2180,69 @@ class Reports extends MY_Controller {
         redirect("admin/customerList");
         }    
 
+    }
+
+    /**
+     * download notes based on filterred to csv file
+     *
+     * @return void
+     */
+    public function NotesCSVDownload() {
+        $get_data = $this->input->get();
+        $notes = $this->CompanyModel->getCompanyNotes($this->session->userdata['company_id'], $get_data);
+
+        if (count($notes) > 0) {
+            $delimiter = ",";
+            $filename = "notes_" . date('Y-m-d') . ".csv";
+
+            //create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            //set column headers
+            $fields = array(
+                'Note Customer',
+                'Note Creator',
+                'Note Created Date',
+                'Note Contents',
+                'Note Type',
+                'Note Assigned',
+                'Customer Address',
+                'Note Status',
+                'Note Due Date',
+                'Tech Visible',
+            );
+
+            fputcsv($f, $fields, $delimiter);
+
+            foreach ($notes as $key => $value) {
+                $body = array(
+                    $value->customer_full_name,
+                    $value->user_first_name ? ($value->user_first_name . ' . ' . $value->user_last_name) : '',
+                    $value->note_created_at,
+                    $value->note_contents,
+                    $value->type_name,
+                    $value->user_assigned_full_name,
+                    $value->property_address . ', ' . $value->property_city,
+                    $value->note_status == 1 ? 'Open' : ($value->note_status == 2 ? 'Closed' : ''),
+                    $value->note_due_date,
+                    $value->include_in_tech_view == 1 ? 'Yes' : 'No',
+                );
+                fputcsv($f, $body, $delimiter);
+
+            }
+
+            //move back to beginning of file
+            fseek($f, 0);
+
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' .$filename. '";');
+
+            //output all remaining data on a file pointer
+            fpassthru($f);
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
+            redirect("admin/notesViewAll");
+        }
     }
   
 

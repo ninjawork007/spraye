@@ -181,10 +181,7 @@
                                     </span> -->
                                     <input type="hidden" name="merchid" id="merchid"
                                         value="<?php echo $cardconnect_details->merchant_id ?>">
-                                    <input type="hidden" name="user" id="user"
-                                        value="<?php echo $cardconnect_details->username ?>">
-                                    <input type="hidden" name="pass" id="pass"
-                                        value="<?php echo decryptPassword($cardconnect_details->password) ?>">
+                                    
 
                                 </form>
                             </div>
@@ -349,8 +346,8 @@
                         },
                         invoice_id: invoices,
                         merchid: $('#merchid').val(),
-                        username: $('#user').val(),
-                        password: $('#pass').val()
+                        //username: $('#user').val(),
+                        //password: $('#pass').val()
                     },
                     dataType: "JSON",
                     success: function(response) {

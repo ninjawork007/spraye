@@ -2649,7 +2649,7 @@ public function dashboard($customerID = NULL,$active=0) {
 
                 if ($cc_authorize['status'] == 200){
 
-                    if ($cc_authorize['result']->respstat == 'A'){
+                    if (strcmp($cc_authorize['result']->respstat, 'A') == 0){
                         $where = array('customer_id' => $data['customer_id']);
                         $param = array(
                             'customer_clover_token' => $cc_authorize['result']->profileid,
