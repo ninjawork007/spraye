@@ -1061,16 +1061,6 @@ line-height: normal;
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="control-label col-lg-3">Mass Email ID</label>
-                                <div class="col-lg-9">
-                                    <input type="email" class="form-control" name="mass_email_id" placeholder="Mass Email ID" value="<?= $company_email_details->mass_email_id ?>">
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </fieldset>
                 <div class="text-right">

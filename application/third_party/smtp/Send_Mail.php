@@ -175,6 +175,7 @@ function Send_Mail_dynamic($smtparray = array(), $to, $company_data, $body, $sub
 		}
 		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
 		$res = curl_exec($curl);
+		echo $res;
 		$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
 		if ($httpcode == 202) {

@@ -1144,7 +1144,8 @@ class Purchases extends MY_Controller{
                 $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
             }
 
-            Send_Mail_dynamic($company_email_details, explode(",", $data['setting_details']->ready_for_payment_po_email), array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
+            echo Send_Mail_dynamic($company_email_details, explode(",", $data['setting_details']->ready_for_payment_po_email), array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Purchase Order Details');
+            die;
 
 
         } else if(($inv_total + $data['invoice_total_amt']) == $purchase_order->subtotal && $purchase_order->purchase_order_status != 3) {
