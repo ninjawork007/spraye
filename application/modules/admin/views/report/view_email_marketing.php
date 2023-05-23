@@ -14,9 +14,14 @@
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
 </div>
 
+<div class="p-15 pull-right">
+	<a href="<?php echo base_url() ?>/admin/reports/marketingCustomerDataReport" target="_blank"><button type="button" class="btn btn-info"><i class="icon-envelop3 position-left"></i> Send New Email</button></a>
+</div>
+<div class="clearfix"></div>
+
 <div id="invoice-age-list">
 <div class="post-list" <?php if(empty($report_details)){ ?> style="padding-top:20px" <?php } ?> >
-	<div class="table-responsive table-spraye">
+	<div class="table-responsive table-spraye p-15">
 		<table class="table datatable-button-print-basic">
 			<thead>
 				<tr>
