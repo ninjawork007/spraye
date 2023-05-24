@@ -316,5 +316,16 @@ class AdminTbl_program_model extends CI_Model{
       }
     }
 
+    public function getAllEstimateJoinedPrograms($where_arr) {
+        $this->db->select('*');        
+        $this->db->from('estimate_programs');
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }        
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+
 }
  

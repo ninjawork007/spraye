@@ -45,8 +45,8 @@
 
                          
                          //$html2  = str_replace("{SERVICE_NAME}",'<b>Service</b> :'.$email_data_details->job_name.'<br>',$html);
-
-                         $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$email_data_details->program_name.'<br>',$html);
+                                
+                         $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$program_names.'<br>',$html);
 
                          $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$email_data_details->property_address.'<br>',$html3);
 

@@ -364,6 +364,16 @@ line-height: normal;
                             </div>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">Zapier API Key</label>
+                                <div class="col-lg-9">
+                                    <input type="text" name="user_id" readonly class="form-control" value="<?= $this->session->userdata('user_id') ?>" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </fieldset>
                 <div class="text-right">
                     <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>

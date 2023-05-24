@@ -4798,6 +4798,36 @@ class Admin extends MY_Controller
             $param['secondary_email'] = $data['secondary_email_list_hid'];
             $result1 = $this->CustomerModel->insert_customer($param);
 
+            
+
+            //webhook_trigger
+            $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+            if($user_info->webhook_customer_created){
+                $this->load->model('api/Webhook');
+                //die(print_r($this->CustomerModel->getCustomerDetail($result1)));
+                $customerResult = $this->CustomerModel->getCustomerDetail($result1);
+
+                //$object = (object) $customerResult;
+
+                //$dataArray = [];
+
+                //$dataArray[] = $object;
+                $obj = new stdClass;
+                foreach($customerResult as $key => $value){                    
+                    $obj->$key = $value;
+                    
+
+                } 
+
+                //$dataArray[] = $obj;
+
+                //die(print_r($dataArray));
+
+                $response = $this->Webhook->callTrigger($user_info->webhook_customer_created, $obj ); //$this->CustomerModel->getCustomerDetail($result1)
+                //die(print_r($response));
+            }
+            
+
             if (!empty($data['assign_property'])) {
 
                 foreach ($data['assign_property'] as $value) {
@@ -4807,7 +4837,8 @@ class Admin extends MY_Controller
                     );
                     $result = $this->CustomerModel->assignProperty($param2);
                 }
-            }
+            }          
+
 
             if ($result1) {
 
@@ -5168,8 +5199,9 @@ class Admin extends MY_Controller
 
         $prop_programs = array();
         foreach ($customerProperties as $k => $prop) {
-            //get programs
-            $programs = $this->PropertyModel->getAssignedPrograms(array('property_tbl.property_id' => $prop->property_id, 'program_active' => 1));
+            //get programs 
+            $programs = $this->PropertyModel->getAssignedPrograms(array('property_tbl.property_id' => $prop->property_id, 'program_active' => 1, 'ad_hoc' => 0));
+
             //die(print_r($programs));
             foreach ($programs as $program) {
                 $prop_programs[] = array(
@@ -6330,62 +6362,80 @@ class Admin extends MY_Controller
                     'program_id' => $data['program_id'],
                 );
 
-                $program['properties'] = array();
-                $check = $this->PropertyModel->getOnePropertyProgram($param);
-                if (!$check) {
-                    $result = $this->PropertyModel->assignProgram($param);
-                    if ($result) {
-                        ##email/text notifications
-                        $property_details = $this->PropertyModel->getOneProperty(array('property_id' => $value));
-                        $customer_details = $this->CustomerModel->getOnecustomerPropert(array('property_id' => $value));
+		$program['properties'] = array();
+		$check = $this->PropertyModel->getOnePropertyProgram($param);
 
-                        ##check customer billing type
-                        $checkGroupBilling = $this->CustomerModel->checkGroupBilling($customer_details->customer_id);
-                        #if customer billing type = group billing, then we notify the property level contact info
-                        if ($checkGroupBilling) {
-                            $emaildata['contactData'] = $this->PropertyModel->getGroupBillingByProperty($value);
-                            $emaildata['propertyData'] = $property_details;
-                            $emaildata['programData'] = $this->ProgramModel->getProgramDetail($data['program_id']);
-                            $emaildata['assign_date'] = date("Y-m-d H:i:s");
-                            $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
-                            $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $this->session->userdata['company_id']));
-                            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $this->session->userdata['company_id'], 'is_smtp' => 1));
-                            $body = $this->load->view('email/group_billing/program_email', $emaildata, true);
-                            if (!$company_email_details) {
-                                $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
-                            }
-                            #send email
-                            if (isset($emaildata['company_email_details']->program_assigned_status) && $emaildata['company_email_details']->program_assigned_status == 1 && isset($emaildata['contactData']['email_opt_in']) && $emaildata['contactData']['email_opt_in'] == 1) {
-                                $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['contactData']['email'], array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), $body, 'Program Assigned');
-                            }
-                            #send text
-                            if (isset($emaildata['company_details']->is_text_message) && $emaildata['company_details']->is_text_message == 1 && isset($emaildata['company_email_details']->program_assigned_status_text) && $emaildata['company_email_details']->program_assigned_status_text == 1 && isset($emaildata['contactData']['phone_opt_in']) && $emaildata['contactData']['phone_opt_in'] == 1) {
-                                $sendText = Send_Text_dynamic($emaildata['contactData']['phone'], $emaildata['company_email_details']->program_assigned_text, 'Program Assigned');
-                            }
-                        } else {
-                            $emaildata['customerData'] = $this->CustomerModel->getOneCustomer(array('customer_id' => $customer_details->customer_id));
-                            $emaildata['email_data_details'] = $this->Tech->getProgramPropertyEmailData(array('customer_id' => $customer_details->customer_id, 'is_email' => 1, 'program_id' => $data['program_id'], 'property_id' => $value));
-                            $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
-                            $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $this->session->userdata['company_id']));
-                            $emaildata['assign_date'] = date("Y-m-d H:i:s");
-                            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $this->session->userdata['company_id'], 'is_smtp' => 1));
-                            $body = $this->load->view('email/program_email', $emaildata, true);
-                            if (!$company_email_details) {
-                                $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
-                            }
-                            #check if company setting for this notification are turned on AND check if customer is subscribed to email notifications
-                            if ($emaildata['company_email_details']->program_assigned_status == 1 && isset($emaildata['customerData']->is_email) && $emaildata['customerData']->is_email == 1) {
-                                $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['customerData']->email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), $body, 'Program Assigned', $emaildata['customerData']->secondary_email);
-                            }
-                            #check if company has text message notifications and if setting for this notification are turned on AND check if customer is subscribed to text notifications
-                            if (isset($emaildata['company_details']->is_text_message) && $emaildata['company_details']->is_text_message == 1 && isset($emaildata['company_email_details']->program_assigned_status_text) && $emaildata['company_email_details']->program_assigned_status_text == 1 && isset($emaildata['customerData']->is_mobile_text) && $emaildata['customerData']->is_mobile_text == 1) {
-                                $sendText = Send_Text_dynamic($emaildata['customerData']->phone, $emaildata['company_email_details']->program_assigned_text, 'Program Assigned');
-                            }
-                        }
-                    }
-                    $program['properties'][$value] = array(
-                        'program_property_id' => $result,
-                    );
+        $customer_details_by_prop = $this->CustomerModel->getAllCustomerByPropert(array('property_id'=>$value));
+
+        $property_details_webhook =  $this->PropertyModel->getOneProperty(array('property_id'=>$data['property_ids'][0]));
+        
+        
+        //die(print_r($property_details_webhook));
+
+        //webhook_trigger
+        $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+        if($user_info->webhook_program_assigned){
+            $this->load->model('api/Webhook');
+            $webhook_data = ['property_id' => $property_details_webhook->property_id, 'property_name' => $property_details_webhook->property_title, 'property_address' => $property_details_webhook->property_address, 'property_square_footage' => $property_details_webhook->yard_square_feet, 'program_id' => $data['program_id'], 'program_name' => $prog_details['program_name'], 'property_name'=>$property_details_webhook->property_title, 'customer_email' =>  $customer_details_by_prop[0]->email, 'customer_name' =>  $customer_details_by_prop[0]->first_name . " " . $customer_details_by_prop[0]->last_name, 'address' => $customer_details_by_prop[0]->billing_street . " " . $customer_details_by_prop[0]->billing_city . ", " . $customer_details_by_prop[0]->billing_state . " " . $customer_details_by_prop[0]->billing_zipcode, 'phone' => $customer_details_by_prop[0]->phone];
+            //die(print_r($webhook_data));
+            $response = $this->Webhook->callTrigger($user_info->webhook_program_assigned, $webhook_data);
+        }
+
+
+			  if(!$check){
+				  $result = $this->PropertyModel->assignProgram($param);
+		  if($result){
+			##email/text notifications
+			$property_details = $this->PropertyModel->getOneProperty(array('property_id'=>$value));
+			$customer_details = $this->CustomerModel->getOnecustomerPropert(array('property_id'=>$value));
+			  
+			##check customer billing type
+			$checkGroupBilling = $this->CustomerModel->checkGroupBilling($customer_details->customer_id);
+			#if customer billing type = group billing, then we notify the property level contact info
+			if($checkGroupBilling){
+				$emaildata['contactData'] = $this->PropertyModel->getGroupBillingByProperty($value);
+				$emaildata['propertyData'] = $property_details;
+				$emaildata['programData'] = $this->ProgramModel->getProgramDetail($data['program_id']);
+				$emaildata['assign_date'] = date("Y-m-d H:i:s");
+				$emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+				$emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $this->session->userdata['company_id']));
+				$company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $this->session->userdata['company_id'],'is_smtp'=>1));
+				$body = $this->load->view('email/group_billing/program_email', $emaildata, true);
+				if(!$company_email_details){
+					$company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+				}
+				#send email
+				if (isset($emaildata['company_email_details']->program_assigned_status) && $emaildata['company_email_details']->program_assigned_status == 1 && isset($emaildata['contactData']['email_opt_in']) && $emaildata['contactData']['email_opt_in'] == 1) {
+					$sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['contactData']['email'], array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Program Assigned');
+				}
+				#send text
+				if(isset($emaildata['company_details']->is_text_message) && $emaildata['company_details']->is_text_message == 1 && isset($emaildata['company_email_details']->program_assigned_status_text) && $emaildata['company_email_details']->program_assigned_status_text == 1 && isset($emaildata['contactData']['phone_opt_in']) && $emaildata['contactData']['phone_opt_in'] == 1){
+					$sendText = Send_Text_dynamic($emaildata['contactData']['phone'], $emaildata['company_email_details']->program_assigned_text, 'Program Assigned');
+				}
+			}else{
+				$emaildata['customerData'] = $this->CustomerModel->getOneCustomer(array('customer_id'=>$customer_details->customer_id));
+				$emaildata['email_data_details'] = $this->Tech->getProgramPropertyEmailData(array('customer_id'=>$customer_details->customer_id,'is_email'=>1, 'program_id'=>$data['program_id'],'property_id'=>$value));
+				$emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+				$emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id'=>$this->session->userdata['company_id']));
+				$emaildata['assign_date'] = date("Y-m-d H:i:s");
+				$company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id'=>$this->session->userdata['company_id'],'is_smtp'=>1));
+				$body  = $this->load->view('email/program_email', $emaildata, true);
+				if(!$company_email_details){
+							$company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+						  }
+				#check if company setting for this notification are turned on AND check if customer is subscribed to email notifications
+				if($emaildata['company_email_details']->program_assigned_status == 1 && isset($emaildata['customerData']->is_email) && $emaildata['customerData']->is_email ==1){
+				  $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['customerData']->email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email),  $body, 'Program Assigned', $emaildata['customerData']->secondary_email);
+				}
+				#check if company has text message notifications and if setting for this notification are turned on AND check if customer is subscribed to text notifications
+				if(isset($emaildata['company_details']->is_text_message) && $emaildata['company_details']->is_text_message == 1 && isset($emaildata['company_email_details']->program_assigned_status_text) && $emaildata['company_email_details']->program_assigned_status_text == 1 && isset($emaildata['customerData']->is_mobile_text) && $emaildata['customerData']->is_mobile_text == 1){
+				  $sendText = Send_Text_dynamic($emaildata['customerData']->phone, $emaildata['company_email_details']->program_assigned_text, 'Program Assigned');
+				}
+			}
+		  }
+		  $program['properties'][$value] = array(
+			'program_property_id' => $result,
+		  );
 
                     // Generate Invoice if One-Time Invoicing Program
                     if ($prog_details['program_price'] == 1) {
@@ -7066,6 +7116,7 @@ class Admin extends MY_Controller
                 'measure_map_project_id' => $data['measure_map_project_id'],
                 'tags' => $tags,
             );
+
             if (isset($data['source']) && !empty($data['source'])) {
                 $param['source'] = $data['source'];
             }
@@ -7139,6 +7190,54 @@ class Admin extends MY_Controller
                         }
                     }
 
+                    //webhook_trigger
+                    $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+                    if($user_info->webhook_property_created){
+                        $this->load->model('api/Webhook');
+                        
+
+                        //$dataProperty = $this->PropertyModel->getOnePropertyDetail($result1);
+                        
+                        $customer_id = $this->PropertyModel->getSelectedCustomer($result1);
+                        //die(print_r($customer_id));
+                        $customer_id_arr = array(
+                            'customer_id' => $customer_id[0]->customer_id
+                        );
+                        $customer = $this->CustomerModel->getOneCustomer($customer_id_arr);
+                        
+                        $webhook_data = ['Property ID' => $result1, 'Customer Email'=>$customer->email, 'Property Name'=>$param['property_title'], 'Service Area'=>$param['property_area'], 'Property Address'=>$param['property_address'], 'Latitude'=>$param['property_latitude'], 'Longitude'=>$param['property_longitude'], 'Yard Square Feet'=>$param['yard_square_feet'], 'Grass Type'=>$param['total_yard_grass'] ];
+                        
+                        //die(print_r($webhook_data));
+                        $response = $this->Webhook->callTrigger($user_info->webhook_property_created, $webhook_data);
+
+
+                    }
+
+                    //if tags then webhook
+                    //webhook_trigger
+                    if(!empty($param['tags'])){
+                        
+                        $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+                        // foreach($param['tags'] as $currTags){
+                            // if (!$this->input->post('tags[]') == $currTags){
+                                if($user_info->webhook_tag_created){
+                                    $this->load->model('api/Webhook');
+                                    $response = $this->Webhook->callTrigger($user_info->webhook_tag_created,  $result = ['property_id' => $result1, 'tags' =>  $param['tags']]);
+                                }
+                            // }
+                        // }
+                        
+                    }
+
+                    if($result1){
+                        if(isset($data['property_conditions']) && is_array($data['property_conditions']) && !empty($data['property_conditions'])){
+                            #assign property conditions
+                            foreach($data['property_conditions'] as $condition){
+                                $handleAssignConditions = $this->PropertyModel->assignPropertyCondition(array('property_id'=>$result1,'property_condition_id'=>$condition));
+                            }
+                        }
+                    }
+
                     ##### ASSIGN SALE VISIT SERVICE (RG) #####
                     $salesVisit = $this->ProgramModel->get_all_program(array('program_name' => 'Sales Visit Standalone', 'company_id' => $company_id));
                     // die(print_r($salesVisit));
@@ -7151,8 +7250,8 @@ class Admin extends MY_Controller
                             'property_id' => $result1,
                             'program_id' => $salesVisit[0]->program_id,
                         );
-
-                        $result = $this->PropertyModel->assignProgram($prospect);
+                        // THIS LINE COMMENTED OUT ON 4/28/23 AS PER A BASECAMP FROM BRIAN (https://basecamp.com/2362279/projects/17952987/messages/103539042)
+                        //$result = $this->PropertyModel->assignProgram($prospect);
                         // die(print_r($result));
                     }
                     ####
@@ -7382,8 +7481,8 @@ class Admin extends MY_Controller
                                 // 'price_override' => $value->price_override,
                                 // 'is_price_override_set' => $value->is_price_override_set
                             );
-
-                            $result = $this->PropertyModel->assignProgram($prospect);
+                            // THIS LINE COMMENTED OUT ON 4/28/23 AS PER A BASECAMP FROM BRIAN (https://basecamp.com/2362279/projects/17952987/messages/103539042)
+                            //$result = $this->PropertyModel->assignProgram($prospect);
                         }
                         ####
 
@@ -7489,6 +7588,7 @@ class Admin extends MY_Controller
         } else {
             $propertyID = $this->uri->segment(4);
         }
+        
 
         $data['service_areas'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
         $data['polygon_bounds'] = [];
@@ -7718,102 +7818,115 @@ class Admin extends MY_Controller
 
     }
 
+	public function updateProperty()
+	{
+        
+		$post_data = $this->input->post();
+		$property_id = $this->input->post('property_id');
 
-    public function updateProperty()
-    {
-        $post_data = $this->input->post();
-        $property_id = $this->input->post('property_id');
-        $orig_progs = explode(',', $this->input->post('original_progs'));
-        $company_id = $this->session->userdata['company_id'];
-        $user_id = $this->session->userdata['user_id'];
-        $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-        //print_r($property_id); die();
-        $this->form_validation->set_rules('property_title', 'Property Title', 'required');
-        $this->form_validation->set_rules('property_address', 'Address', 'required');
-        $this->form_validation->set_rules('property_address_2', 'Address 2', 'trim');
-        $this->form_validation->set_rules('property_city', 'City', 'required');
-        $this->form_validation->set_rules('property_state', 'State', 'required');
-        $this->form_validation->set_rules('property_zip', 'Zipcode', 'required');
-        $this->form_validation->set_rules('property_area', 'Area', 'trim');
-        $this->form_validation->set_rules('property_type', 'Property Type', 'required');
-        $this->form_validation->set_rules('yard_square_feet', 'Squre Feet', 'required');
-        $this->form_validation->set_rules('property_notes', 'Notes', 'trim');
-        $this->form_validation->set_rules('assign_program[]', 'Assign Program', 'trim');
-        $this->form_validation->set_rules('assign_customer[]', 'Assign Customer', 'trim');
-        // $this->form_validation->set_rules('difficulty_level', 'Difficulty Level', 'required');
-        $this->form_validation->set_rules('tags[]', 'Assign Tags');
-        $this->form_validation->set_rules('total_yard_grass', 'Squre Feet', 'trim');
-        $this->form_validation->set_rules('front_yard_square_feet', 'Squre Feet', 'trim');
-        $this->form_validation->set_rules('back_yard_square_feet', 'Squre Feet', 'trim');
-        $this->form_validation->set_rules('front_yard_grass', 'Assign Customer', 'trim');
-        $this->form_validation->set_rules('back_yard_grass', 'Assign Customer', 'trim');
-        $this->form_validation->set_rules('measure_map_project_id', 'Measure Map ID', 'trim');
+        $data['propertyData'] = $this->PropertyModel->getPropertyDetail($property_id);
 
-        if ($this->form_validation->run() == FALSE) {
+        //*******Get current tags before db update*****
+        $select_ids=[];	
+		if( $data['propertyData']['tags']!=null && $data['propertyData']['tags']!=""){	
+			$tags=$data['propertyData']['tags'];	
+			$select_ids=explode(',', $tags);	
+		}	
+        //********************************************
 
-            $this->addProperty();
-        } else {
-            $post_data = $this->input->post();
-            #get program list from post data
-            $post_program_ids = [];
-            $existing_program_ids = [];
-            $new_program_ids = [];
-            $remove_program_ids = [];
-            if (isset($post_data['assign_program']) && !empty($post_data['assign_program'])) {
-                foreach (json_decode($post_data['assign_program']) as $prog) {
-                    $post_program_ids[] = $prog->program_id;
-                }
-            }
-            #get all previously assigned programs for this property
-            $getAssignedPrograms = $this->PropertyModel->getAllprogram(array('property_id' => $property_id));
-            if (!empty($getAssignedPrograms)) {
-                foreach ($getAssignedPrograms as $prev) {
-                    if (is_array($post_program_ids) && in_array($prev->program_id, $post_program_ids)) {
-                        $existing_program_ids[] = $prev->program_id;
-                    } elseif (is_array($post_program_ids) && !in_array($prev->program_id, $post_program_ids)) {
-                        $remove_program_ids[$prev->property_program_id] = $prev->program_id;
-                    }
-                }
-            }
-            foreach ($post_program_ids as $post_program) {
-                if (is_array($existing_program_ids) && !in_array($post_program, $existing_program_ids)) {
-                    $new_program_ids[] = $post_program;
-                }
-            }
-            $tags = '';
-            if (isset($post_data['tags'])) {
-                $tags = implode(',', $post_data['tags']);
-            }
-            $param = array(
-                'property_title' => $post_data['property_title'],
-                'property_address' => $post_data['property_address'],
-                'property_address_2' => $post_data['property_address_2'],
-                'property_city' => $post_data['property_city'],
-                'property_state' => $post_data['property_state'],
-                'property_zip' => $post_data['property_zip'],
-                'property_area' => $post_data['property_area'],
-                'property_type' => $post_data['property_type'],
-                'yard_square_feet' => $post_data['yard_square_feet'],
-                'property_notes' => $post_data['property_notes'],
-                'property_status' => $post_data['property_status'],
-                'front_yard_square_feet' => $post_data['front_yard_square_feet'],
-                'back_yard_square_feet' => $post_data['back_yard_square_feet'],
-                'tags' => $tags,
+		$orig_progs = explode(',', $this->input->post('original_progs'));
+		$company_id = $this->session->userdata['company_id'];
+		$user_id = $this->session->userdata['user_id'];
+		$setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+		//print_r($property_id); die();
+		$this->form_validation->set_rules('property_title', 'Property Title', 'required');
+		$this->form_validation->set_rules('property_address', 'Address', 'required');
+		$this->form_validation->set_rules('property_address_2', 'Address 2', 'trim');
+		$this->form_validation->set_rules('property_city', 'City', 'required');
+		$this->form_validation->set_rules('property_state', 'State', 'required');
+		$this->form_validation->set_rules('property_zip', 'Zipcode', 'required');
+		$this->form_validation->set_rules('property_area', 'Area', 'trim');
+		$this->form_validation->set_rules('property_type', 'Property Type', 'required');
+		$this->form_validation->set_rules('yard_square_feet', 'Squre Feet', 'required');
+		$this->form_validation->set_rules('property_notes', 'Notes', 'trim');
+		$this->form_validation->set_rules('assign_program[]', 'Assign Program', 'trim');
+		$this->form_validation->set_rules('assign_customer[]', 'Assign Customer', 'trim');
+		// $this->form_validation->set_rules('difficulty_level', 'Difficulty Level', 'required');
+		$this->form_validation->set_rules('tags[]', 'Assign Tags');	
+		$this->form_validation->set_rules('total_yard_grass', 'Squre Feet', 'trim');
+		$this->form_validation->set_rules('front_yard_square_feet', 'Squre Feet', 'trim');
+		$this->form_validation->set_rules('back_yard_square_feet', 'Squre Feet', 'trim');
+		$this->form_validation->set_rules('front_yard_grass', 'Assign Customer', 'trim');
+		$this->form_validation->set_rules('back_yard_grass', 'Assign Customer', 'trim');
+		$this->form_validation->set_rules('measure_map_project_id', 'Measure Map ID', 'trim');
+
+		if ($this->form_validation->run() == FALSE) {
+
+			$this->addProperty();
+		} else {
+			$post_data = $this->input->post();
+			#get program list from post data
+			  $post_program_ids = [];
+			  $existing_program_ids = [];
+			  $new_program_ids = [];
+			  $remove_program_ids = [];
+			  if(isset($post_data['assign_program']) && !empty($post_data['assign_program'])){
+				foreach(json_decode($post_data['assign_program']) as $prog){
+				  $post_program_ids[]=$prog->program_id;
+				}
+			  }
+		  	#get all previously assigned programs for this property
+		  	$getAssignedPrograms = $this->PropertyModel->getAllprogram(array('property_id'=>$property_id));
+		  	if(!empty($getAssignedPrograms)){
+				foreach($getAssignedPrograms as $prev){
+			  	if(is_array($post_program_ids) && in_array($prev->program_id,$post_program_ids)){
+					$existing_program_ids[] = $prev->program_id;
+				}elseif(is_array($post_program_ids) && !in_array($prev->program_id,$post_program_ids)){
+					$remove_program_ids[$prev->property_program_id] = $prev->program_id;
+			  	}
+				}
+		  	}
+		  	foreach($post_program_ids as $post_program){
+				if(is_array($existing_program_ids) && !in_array($post_program,$existing_program_ids)){
+			  	$new_program_ids[] = $post_program;
+				}
+		  	}
+			$tags ='';	
+			if(isset($post_data['tags'])){	
+				$tags= implode(',', $post_data['tags']);	
+			}
+			$param = array(
+				'property_title' => $post_data['property_title'],
+				'property_address' => $post_data['property_address'],
+				'property_address_2' => $post_data['property_address_2'],
+				'property_city' => $post_data['property_city'],
+				'property_state' => $post_data['property_state'],
+				'property_zip' => $post_data['property_zip'],
+				'property_area' => $post_data['property_area'],
+				'property_type' => $post_data['property_type'],
+				'yard_square_feet' => $post_data['yard_square_feet'],
+				'property_notes' => $post_data['property_notes'],
+				'property_status' => $post_data['property_status'],
+				'front_yard_square_feet' => $post_data['front_yard_square_feet'],
+				'back_yard_square_feet' => $post_data['back_yard_square_feet'],
+				'tags' => $tags,
                 'source' => $post_data["source"]
-            );
+			);
 
+            $beforeSavedParams = $param['tags'];
+            
             #check if property is already cancelled
             $checkIfCancelled = $this->PropertyModel->checkPropertyCancelled($property_id);
-
-            if ($checkIfCancelled) {
+            
+            if($checkIfCancelled){
                 #if previously cancelled and status is being changed to active or prospect we need to remove cancelled date
-                if (isset($post_data['property_status']) && $post_data['property_status'] != 0) {
+                if(isset($post_data['property_status']) && $post_data['property_status'] != 0){
                     $param['property_cancelled'] = NULL;
                 }
-            } else {
-                if (isset($post_data['property_status']) && $post_data['property_status'] == 0) {
-                    // $param['property_cancelled'] = date('Y-m-d H:i:s', strtotime('now'));
-                    # do we need to call cancelProperty function here?  Not in scope but may need to clarify
+            }else{
+                if(isset($post_data['property_status']) && $post_data['property_status'] == 0){
+                   // $param['property_cancelled'] = date('Y-m-d H:i:s', strtotime('now'));
+                    # do we need to call cancelProperty function here?  Not in scope but may need to clarify 
                 }
             }
             if (!empty($post_data['difficulty_level'])) {
@@ -7850,56 +7963,77 @@ class Admin extends MY_Controller
 
                     $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Property </strong>  Already exists.</div>');
 
-                    redirect("admin/propertyList");
-                } else {
+					redirect("admin/propertyList");
+				} else {
+					$result = $this->PropertyModel->updateAdminTbl($property_id, $param);
+					
 
-                    $result = $this->PropertyModel->updateAdminTbl($property_id, $param);
+                    //if tags then trigger webhook
+                    if(!empty($param['tags'])){ // need to check if new tag or existing tag. only trigger for new
+                        //tags already in db before update
+                        $currTags = $select_ids;
 
-                    if (isset($post_data['is_group_billing']) && $post_data['is_group_billing'] == 1) {
-                        if (isset($post_data['property_is_email']) && $post_data['property_is_email'] == 'on') {
-                            $email_opt_in = 1;
-                        } else {
-                            $email_opt_in = 0;
-                        }
-                        if (isset($post_data['property_is_text']) && $post_data['property_is_text'] == 'on') {
-                            $phone_opt_in = 1;
-                        } else {
-                            $phone_opt_in = 0;
-                        }
-                        $group_billing_params = array(
-                            'property_id' => $property_id,
-                            'first_name' => $post_data['property_first_name'],
-                            'last_name' => $post_data['property_last_name'],
-                            'email' => $post_data['property_email'],
-                            'secondary_email' => isset($post_data['secondary_email']) && !empty($post_data['secondary_email']) ? $post_data['secondary_email'] : '',
-                            'email_opt_in' => $email_opt_in,
-                            'phone' => $post_data['property_phone'],
-                            'secondary_phone' => isset($post_data['secondary_phone']) && !empty($post_data['secondary_phone']) ? $post_data['secondary_phone'] : '',
-                            'phone_opt_in' => $phone_opt_in,
-                        );
-                        if (isset($post_data['group_billing_id'])) {
-                            $updateGroupBilling = $this->PropertyModel->updateGroupBilling($post_data['group_billing_id'], $group_billing_params);
-                        } else {
-                            $assignGroupBilling = $this->PropertyModel->assignGroupBilling($group_billing_params);
+                       //check for values of posted (submitted) tags that are not in current tags (in db)
+                       $differences = array_diff($post_data['tags'], $currTags);
+                       $differenceString = implode(",", $differences);
+
+						$user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+                        if($user_info->webhook_tag_created){
+                            if($differenceString) {
+                                $this->load->model('api/Webhook');
+                            $response = $this->Webhook->callTrigger($user_info->webhook_tag_created, $result = ['property_id' => $property_id, 'tags' =>  $param['tags']]);
+                            }
                         }
                     }
-                    #get existing property conditions
-                    $getAssignedConditions = $this->PropertyModel->getAssignedPropertyConditions(array('property_id' => $property_id));
-                    if (!empty($getAssignedConditions)) {
-                        #remove conditions from property
-                        $deleteAssignedConditions = $this->PropertyModel->deleteAssignedPropertyConditions(array('property_id' => $property_id));
-                    }
-                    if (isset($post_data['property_conditions']) && is_array($post_data['property_conditions'])) {
-                        #assign property conditions
-                        foreach ($post_data['property_conditions'] as $condition) {
-                            $handleAssignConditions = $this->PropertyModel->assignPropertyCondition(array('property_id' => $property_id, 'property_condition_id' => $condition));
-                        }
-                    }
-                    $where = array('property_id' => $property_id);
-                    $delete = $this->PropertyModel->deleteAssignCustomer($where);
-                    $count = 0;
-                    if (isset($post_data['assign_customer']) && !empty($post_data['assign_customer'])) {
-                        foreach ($post_data['assign_customer'] as $value) {
+
+
+
+
+					if(isset($post_data['is_group_billing']) && $post_data['is_group_billing'] == 1){
+						if(isset($post_data['property_is_email']) && $post_data['property_is_email'] == 'on'){
+							$email_opt_in = 1;
+						}else{
+							$email_opt_in = 0;
+						}
+						if(isset($post_data['property_is_text']) && $post_data['property_is_text'] == 'on'){
+							$phone_opt_in = 1;
+						}else{
+							$phone_opt_in = 0;
+						}
+						$group_billing_params = array(
+							  'property_id' => $property_id,
+							  'first_name' => $post_data['property_first_name'],
+							  'last_name' => $post_data['property_last_name'],
+							  'email' => $post_data['property_email'],
+                              'secondary_email' => isset($post_data['secondary_email']) && !empty($post_data['secondary_email']) ? $post_data['secondary_email'] : '',
+							  'email_opt_in' => $email_opt_in,
+							  'phone' => $post_data['property_phone'],
+                              'secondary_phone' => isset($post_data['secondary_phone']) && !empty($post_data['secondary_phone']) ? $post_data['secondary_phone'] : '',
+							  'phone_opt_in' => $phone_opt_in,
+        				);
+						if(isset($post_data['group_billing_id'])){
+							$updateGroupBilling = $this->PropertyModel->updateGroupBilling($post_data['group_billing_id'],$group_billing_params);
+						}else{
+							$assignGroupBilling = $this->PropertyModel->assignGroupBilling($group_billing_params);
+						}
+					}
+					#get existing property conditions
+					$getAssignedConditions = $this->PropertyModel->getAssignedPropertyConditions(array('property_id'=>$property_id));
+					if(!empty($getAssignedConditions)){
+						#remove conditions from property
+						$deleteAssignedConditions = $this->PropertyModel->deleteAssignedPropertyConditions(array('property_id'=>$property_id));
+					}
+					if(isset($post_data['property_conditions']) && is_array($post_data['property_conditions'])){
+						#assign property conditions
+						foreach($post_data['property_conditions'] as $condition){
+							$handleAssignConditions = $this->PropertyModel->assignPropertyCondition(array('property_id'=>$property_id,'property_condition_id'=>$condition));
+						}
+					}
+					$where = array('property_id' => $property_id);
+					$delete = $this->PropertyModel->deleteAssignCustomer($where);
+					$count = 0;
+					if (isset($post_data['assign_customer']) && !empty($post_data['assign_customer']))	{
+						foreach ($post_data['assign_customer'] as $value) {
 
                             $param2 = array(
                                 'property_id' => $property_id,
@@ -8169,13 +8303,12 @@ class Admin extends MY_Controller
                                                     );
 
                                                     $QBO_param['cost'] = $this->calculateCustomerCouponCost($cust_coup_param);
-
-
                                                     $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
                                                     //if quickbooks invoice then update invoice table with id
                                                     if ($quickbook_invoice_id) {
                                                         $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
                                                     }
+
 
                                                     foreach ($program['properties'] as $propID => $prop) {
                                                         if ($propID == $property_id) {
@@ -8239,9 +8372,43 @@ class Admin extends MY_Controller
                                         }
                                     }
                                 }// End Create Invoice
-                            }//end if new program
-                        }
-                    }
+
+                                $customerInformation = $this->CustomerModel->getCustomerDetail($customer_details->customer_id);
+                                $programInformation = $this->ProgramModel->getProgramDetail($param3['program_id']);
+                                
+                                
+                                //die(print_r($customerInformation)); 
+                                //die(print_r($customer_details)); 
+                                                                
+                                //$property_details= stdClass Object ( [property_id] => 55164 [company_id] => 44 [user_id] => 752a2563acae4aa59f422661a66b3304 [property_title] => MikeSchleiffarthTestProperty11 [property_address] => 718 Messina Drive, Ballwin, MO, USA [property_latitude] => 38.5781529 [property_longitude] => -90.5301542 [property_address_2] => [property_city] => Ballwin [property_state] => MO [property_zip] => 63021 [property_area] => 337 [property_type] => Residential [yard_square_feet] => 1500 [property_notes] => [property_status] => 4 [cancel_reason] => [source] => 0 [property_created] => 2023-03-30 13:12:51 [property_cancelled] => [property_updated] => 2023-03-31 09:52:20 [difficulty_level] => 1 [total_yard_grass] => Bermuda [front_yard_square_feet] => 0 [back_yard_square_feet] => 0 [front_yard_grass] => [back_yard_grass] => [measure_map_project_id] => [alerts] => [tags] => 1 [service_note] => [program_text_for_display] => ) 
+                                //$customer_details= stdClass Object ( [customer_assign_id] => 124484 [customer_id] => 48683 [property_id] => 55164 [assign_date] => 2023-04-17 13:23:27 )
+                                                                
+                               // customerInformation =  Array ( [customer_id] => 48683 [quickbook_customer_id] => 0 [company_id] => 44 [user_id] => 752a2563acae4aa59f422661a66b3304 [first_name] => michael [last_name] => schleiffarth [customer_company_name] => [email] => mschleiffarth@blayzer.com [secondary_email] => [password] => [is_email] => 0 [phone] => 3141111111 [home_phone] => 0 [work_phone] => 0 [billing_street] => 388 messina [customer_latitude] => [customer_longitude] => [billing_street_2] => [billing_city] => ballwin [billing_state] => MO [billing_zipcode] => 63021 [assign_property] => [customer_status] => 1 [billing_type] => 0 [autosend_invoices] => 1 [autosend_frequency] => daily [created_at] => 2023-02-16 07:45:15 [updated_at] => 2023-03-30 12:39:14 [basys_autocharge] => 0 [clover_autocharge] => 0 [basys_customer_id] => [is_mobile_text] => 0 [password_reset_link] => [reset_link_expire] => [customer_clover_token] => [clover_acct_id] => 0 [pre_service_notification] => [] [alerts] =>
+                               // programInformation = Array ( [program_id] => 934 [company_id] => 44 [user_id] => 752a2563acae4aa59f422661a66b3304 [program_name] => BL Test [program_price] => 1 [program_notes] => [program_job] => [program_created] => 2021-03-25 11:01:25 [program_update] => 2022-05-13 17:31:41 [program_active] => 1 [ad_hoc] => 0 [program_schedule_window] => 30
+                               
+                               
+                               //update property status
+                               $this->PropertyModel->autoStatusCheck(0, $param3['property_id']);
+
+
+                               
+                               //webhook_trigger
+                                
+                                $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+                                if($user_info->webhook_program_assigned){
+                                    $this->load->model('api/Webhook');
+                                    $webhook_data = ['property_id' => $param3['property_id'], 'property_name' => $property_details->property_title, 'property_address' => $property_details->property_address, 'property_square_footage' => $property_details->yard_square_feet, 'program_id' => $param3['program_id'], 'program_name' => $programInformation['program_name'], 'property_name'=>$property_details->property_title, 'customer_email' =>  $customerInformation['email'], 'customer_name' =>  $customerInformation['first_name'] . " " . $customerInformation['last_name'], 'address' => $customerInformation['billing_street'] . " " . $customerInformation['billing_city'] . ", " . $customerInformation['billing_state'] . " " . $customerInformation['billing_zipcode'], 'phone' => $customerInformation['phone']];
+                                    //die(print_r($webhook_data));
+                                    $response = $this->Webhook->callTrigger($user_info->webhook_program_assigned, $webhook_data);
+                                }
+                                
+                                
+
+
+							}//end if new program
+
+						}
+					}
 
                     $delete1 = $this->PropertySalesTax->deletePropertySalesTax(array('property_id' => $property_id));
                     if (isset($post_data['sale_tax_area_id']) && !empty($post_data['sale_tax_area_id'])) {
@@ -13126,56 +13293,34 @@ class Admin extends MY_Controller
             }
         }//end if outstanding services
 
-        #Automatically create a note for that customer/property that says the service or property was cancelled.
-        #get customer assigned to property
-        $customer_info = $this->PropertyModel->getAllcustomer(array('property_id' => $property_id));
-        $noteParams = array(
-            'note_user_id' => $this->session->userdata['id'],
-            'note_company_id' => $this->session->userdata['company_id'],
-            'note_category' => 1,
-            'note_property_id' => $property_id,
-            'note_customer_id' => isset($customer_info[0]->customer_id) ? $customer_info[0]->customer_id : NULL,
-            'note_contents' => 'This property has been cancelled for the following reason: ' . $cancel_reason . '.',
-            'note_type' => 0,
-        );
+    //webhook_trigger
+    $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+    if($user_info->webhook_account_cancelled){
+        $this->load->model('api/Webhook');
+        
+        $webhook_data = ['Customer Name'=>$email_data['customer_name'], 'Customer Email'=>$user_details->email, 'Property Address'=>$email_data['property_address'], 'Service Area'=>$property_details['property_area']];
+        
+        //die(print_r($webhook_data));
+        $response = $this->Webhook->callTrigger($user_info->webhook_account_cancelled, $webhook_data);
 
-        $note = $this->CompanyModel->addNote($noteParams);
 
-        #An email should be sent out to the admin user automatically when a property
-        $property_details = $this->PropertyModel->getPropertyDetail($property_id);
-        $email_data['property_title'] = $property_details['property_title'];
-        $email_data['property_address'] = $property_details['property_address'];
-        $email_data['customer_details'] = $customer_info[0];
-        $email_data['customer_name'] = isset($customer_info[0]->first_name) && isset($customer_info[0]->last_name) ? $customer_info[0]->first_name . " " . $customer_info[0]->last_name : "";
-        $email_data['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
-        $user_details = $this->CompanyModel->getOneAdminUser(array('company_id' => $this->session->userdata['company_id'], 'role_id' => 1));
-        $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $this->session->userdata['company_id'], 'is_smtp' => 1));
-        if (!$company_email_details) {
-            $company_email_details = $this->CompanyModel->getOneDefaultEmailArray();
-        }
-        $subject = "Property Cancelled for " . $email_data['customer_name'];
-        $body = $this->load->view('email/cancel_property_admin_email', $email_data, TRUE);
-        if ($company_email_details) {
-            $res = Send_Mail_dynamic($company_email_details, $user_details->email, array("name" => $email_data['company_details']->company_name, "email" => $email_data['company_details']->company_email), $body, $subject);
-        }
-        #handle customer email
-        if ($send_customer_email == 1 && $customer_info[0]->is_email == 1) {
-            $subject = 'Property Cancelled';
-            $body = $this->load->view('email/cancel_property_customer_email', $email_data, TRUE);
-            $sendCustomerEmail = Send_Mail_dynamic($company_email_details, $email_data['customer_details']->email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), $body, $subject, $email_data['customer_details']->secondary_email);
-        }
-
-        if ($handleCancelProperty) {
-            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Property </strong> cancelled successfully</div>');
-            redirect("admin/propertyList");
-        } else {
-            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Something </strong> went wrong.</div>');
-            redirect("admin/propertyList");
-        }
     }
 
-    public function cancelService()
-    {
+    
+
+
+	 if($handleCancelProperty){
+		 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Property </strong> cancelled successfully</div>');
+		 redirect("admin/propertyList");
+	 }else{
+		 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Something </strong> went wrong.</div>');
+		 redirect("admin/propertyList");
+	 }
+ }
+
+
+
+    public function cancelService(){
         $this->load->model('Cancelled_services_model', 'CST');
 
         $data = $this->input->post();
@@ -14185,27 +14330,6 @@ class Admin extends MY_Controller
     }
 
     /**
-     * execute thought cron jobs once per day to send an email notification to user related
-     *
-     * @return void
-     */
-    public function on_note_due_date()
-    {
-        if (!$this->input->is_cli_request()) {
-            echo "This script can only be accessed via the command line" . PHP_EOL;
-            return;
-        }
-
-        $notes = $this->CompanyModel->getNoteDueDateToday();
-        if (!empty($notes)) {
-            foreach ($notes as $note) {
-                $this->notification_on_note($note->note_id, 'note_on_due_date');
-            }
-        }
-    }
-
-
-    /**
      * fixing all notes that doesn't exist customer name
      *
      * @return void
@@ -14260,5 +14384,17 @@ class Admin extends MY_Controller
             'last_tag_close' => '</li>',
             'attributes' => array('class' => 'page-link')
         );
+    }
+    public function testwebhook(){
+        //webhook_trigger
+        $user_info = $this->Administrator->getOneAdmin(["user_id" => $this->session->userdata('user_id')]);
+        $result = $this->CustomerModel->getCustomerDetail(4599);
+        print_r($result);
+        if($user_info->webhook_customer_created){
+            $this->load->model('api/Webhook');
+            $response = $this->Webhook->callTrigger($user_info->webhook_customer_created, $result);
+
+            print_r($response);
+        }
     }
 }

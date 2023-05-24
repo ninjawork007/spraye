@@ -15,6 +15,16 @@ class Administrator extends CI_Model{
         return $this->db->insert_id();
     }
 
+    public function updateWebhook($wherearr, $updatearr) {
+
+        $this->db->where($wherearr);
+
+        $this->db->update(self::ADMINTBL, $updatearr);
+        return $this->db->affected_rows();
+
+    }
+
+    
     public function getOneAdmin($where_arr = '') {
            
         $this->db->select('*');
@@ -28,6 +38,7 @@ class Administrator extends CI_Model{
         $result = $this->db->get();
 
         $data = $result->row();
+        
         return $data;
     }
 

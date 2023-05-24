@@ -2520,7 +2520,6 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             );
 
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
-
             if ($details) {
 
                 foreach ($details as $detail) {
@@ -3899,13 +3898,16 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
             }
 
+
            // echo  $this->db->last_query();
             //die(print_r($data));
             foreach ($details as $detail) {
                 $get_assigned_date = $this->Tech->getOneTechJobAssign(array('technician_job_assign.job_id' => $detail['job_id'], 'invoice_id' => $data['invoice_details']->invoice_id));
 
                 if (isset($detail['report_id'])) {
+
                     $report = $data['report_details'];
+
                     $jobs[] = array(
                         'job_id' => $detail['job_id'],
                         'job_name' => $detail['job_name'],
@@ -3953,6 +3955,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 }
             }
             $data['invoice_details']->jobs = $jobs;
+
             // echo '<pre>';
             // print_r($data['invoice_details']);
             // die();
@@ -4816,6 +4819,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $whereArr['invoice_tbl.sent_date >='] = $post_data['start_date'];
         }
         if (isset($post_data['end_date']) && !empty($post_data['end_date'])) {
+
 
             $end_of_day = new DateTime($post_data['end_date'] . '+1 day');
             $end_of_day = $end_of_day->format('Y-m-d');
@@ -6725,6 +6729,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         $invoice_details = $this->INV->getOneInvoive($where);
         $param = array('last_modify' => date("Y-m-d H:i:s"));
         // Need to change status to sent for case other than paid or partial payment.
+        $credit_balance_check = 0;
+
         if ($invoice_details->status == 0 ) {
             $param['status'] = 1;
             $param['sent_date'] = date("Y-m-d H:i:s");
@@ -6737,7 +6743,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         }
         $this->INV->updateInvoive($where, $param);
 
-        if($credit_balance_check){
+        if($credit_balance_check == 1){
+
             // ** PROCESS CREDIT BALANCE ON THIS INVOICE
             //Check if invoiceCreditBalance available and process this invoice
             //get unpaid invoices for customer
@@ -6932,7 +6939,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     if (!$company_email_details) {
                         $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
                     }
-
+                    $credit_balance_check = 0;
                     $batch_insert_arr = array();
                     foreach ($customer_data as $value) {
                         $hash_tbl_arr = array();
@@ -6950,7 +6957,8 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                         $where_arr = array("invoice_id" => $value['invoice_id']);
                         $this->INV->updateInvoive($where_arr, $update_arr);
 
-                        if($credit_balance_check){
+                        if($credit_balance_check == 1){
+
                             // ** PROCESS CREDIT BALANCE ON THIS INVOICE
                             //Check if invoiceCreditBalance available and process this invoice
                             //get unpaid invoices for customer

@@ -159,20 +159,23 @@
         color: #5bc0de;
     }
 
-    .btn-warning.btn-outline {
+.btn-primary.btn-outline:hover,
+.btn-success.btn-outline:hover,
+.btn-info.btn-outline:hover,
+.btn-warning.btn-outline:hover,
+.btn-danger.btn-outline:hover {
+    color: #fff;
+}
+
+.multiselect-container input[type=checkbox] {
+    left: 12px !important;
+}
+
+.btn-warning.btn-outline {
         color: #f0ad4e;
     }
-
     .btn-danger.btn-outline {
         color: #d9534f;
-    }
-
-    .btn-primary.btn-outline:hover,
-    .btn-success.btn-outline:hover,
-    .btn-info.btn-outline:hover,
-    .btn-warning.btn-outline:hover,
-    .btn-danger.btn-outline:hover {
-        color: #fff;
     }
 
 
@@ -325,8 +328,8 @@
                 </div>
             </div>
 
-            <form id="submit_form" action="<?= base_url('admin/Estimates/addBulkEstimateData') ?>" method="post" name=""
-                  enctype="multipart/form-data">
+            <form id="submit_form" action="<?= base_url('admin/Estimates/addBulkEstimateData') ?>" method="post" name="" enctype="multipart/form-data">
+                <input type='hidden' id='program_pricing' name='program_pricing' />
                 <div class="row invoice-form">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -379,7 +382,8 @@
                         <div class="form-group">
                             <label class="control-label col-lg-3">Pricing</label>
                             <div class="col-lg-9">
-                                <select class="form-control" name="program_price" id="program_price" required disabled>
+                                <select class="form-control" name="program_price" id="program_price" required>
+                                    <option value=''>Choose</option>
                                     <option value=1>One Time Project Invoicing</option>
                                     <option value=2>Invoiced at Job Completion</option>
                                     <option value=3>Manual Billing</option>
@@ -392,21 +396,8 @@
                         <div class="form-group">
                             <label class="control-label col-lg-3">Select Program(s)</label>
                             <div class="multi-select-full col-lg-9">
-                                <select class="multiselect-select-all-filtering form-control" multiple="multiple"
-                                        name="program_id_array[]" id="program_list">
-                                    <?php
-                                    if (!empty($program_details)) {
-                                        foreach ($program_details as $value) { ?>
-                                            <!--  <option value="$value->product_id"> $value->product_name</option> -->
-
-                                            <option value="<?= $value->program_id ?>"
-                                                    <?php if (in_array($value->program_id, $selectedprogramlist)) { ?>selected <?php } ?>
-                                                      > <?= $value->program_name ?> </option>
-
-                                            <?php
-                                        }
-                                    }
-                                    ?>
+                                <select class="multiselect-select-all-filtering form-control" multiple="multiple" name="program_id_array[]" id="program_list">
+                                    <option value="">Select Pricing First</option>
                                 </select>
                             </div>
                             <!-- <textarea   name="joblistarray" id="assign_job_ids2" style="display: none;" >[]</textarea> -->
@@ -493,8 +484,8 @@
                                             <!--  <option value="$value->product_id"> $value->product_name</option> -->
 
                                             <option value="<?= $value->job_id ?>"
-                                                    <?php if (in_array($value->job_id, $selectedjoblist)) { ?>selected <?php } ?>
-                                                      > <?= $value->job_name ?> </option>
+                                                <?php if (in_array($value->job_id, $selectedjoblist)) { ?>selected <?php } ?>> <?= $value->job_name ?>
+                                            </option>
 
                                         <?php }
                                     }
@@ -504,18 +495,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        <!-- <div class="form-group">
-                          <label class="control-label col-lg-3">Service(s) Pricing</label>
-                          <div class="col-lg-9">
-                            <select class="form-control" name="program_price" id="program_price">
-                              <option value="">Select Any Pricing</option>
-                              <option value=1>One-Time Service Invoicing</option>
-                              <option value=2>Invoiced at Service Completion</option>
-                              <option value=3>Manual Billing</option>
-                            </select>
-                          </div>
-                        </div>             -->
 
                         <div class="form-group">
                             <div class="selected-wrap">
@@ -946,6 +925,28 @@
             }
             buildListArray();
             priceOverrideRedraw();
+        }
+    });
+
+    $('#program_price').change(function() {
+        val = $(this).val();
+        $("#program_pricing").val(val);
+        list = '';
+        if(val == 0) {
+            list = '<option value="choose">Select Pricing First</option>';
+            $('#program_list').html(list);
+            $('#program_list').multiselect('rebuild');
+        } else {
+            // now we need to run ajax to get the programs that match this pricing
+            $.ajax({
+                type: "POST",
+                url: "<?= base_url('admin/Estimates/getAllProgramsByPricingForSelect')  ?>",
+                data: {pricing : val }, 
+                dataType: 'JSON', 
+            }).done(function(response){
+                $('#program_list').html(response.data);
+                $('#program_list').multiselect('rebuild');
+            });
         }
     });
 

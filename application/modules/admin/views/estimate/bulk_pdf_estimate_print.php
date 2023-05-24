@@ -204,11 +204,7 @@
             margin-bottom: 0 !important;
 
         }
-        .container {
-            page-break-after: always;
-        }.container:last-child {
-            page-break-after: avoid;
-        }
+        
     </style>
     <link href="<?=base_url('assets/admin/assets/css/bootstrap.min.pdf.css')?>" rel="stylesheet" id="bootstrap-css">
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
@@ -302,18 +298,33 @@ $setting_address_last = implode(',', $setting_address_array);
             </td>
             <td align="left" width="40%">
 
-                <?php switch ($estimate->program_price) {
-                    case 1:
-                        echo 'One-Time Project Invoicing';
-                        break;
-                    case 2:
-                        echo 'Invoiced at Job Completion';
-                        break;
-                    case 3:
-                        echo 'Manual Billing';
-                        break;
-
-                }?>
+                <?php 
+                    if($estimate->program_pricing != "" && $estimate->program_pricing != "0") {
+                        switch ($estimate->program_pricing) {
+                            case 1:
+                                echo 'One-Time Project Invoicing';
+                                break;
+                            case 2:
+                                echo 'Invoiced at Job Completion';
+                                break;
+                            case 3:
+                                echo 'Manual Billing';
+                                break;
+                        }
+                    } else {
+                        switch ($estimate->program_price) {
+                            case 1:
+                                echo 'One-Time Project Invoicing';
+                                break;
+                            case 2:
+                                echo 'Invoiced at Job Completion';
+                                break;
+                            case 3:
+                                echo 'Manual Billing';
+                                break;
+                        }
+                    }
+                ?>
 
             </td>
 

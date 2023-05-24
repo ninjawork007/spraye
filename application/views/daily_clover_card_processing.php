@@ -100,6 +100,29 @@ if ($invoice_cost > 0) {
     if (!$already_paid) {
         if ($cardconnect_details) {?>
                 <div class="form-group has-feedback has-feedback-left card-form"></div>
+                  
+                <div class="form-group card-form">
+                    <form name="tokenform" id="tokenform">
+
+                    <iframe id="tokenFrame" name="tokenFrame"
+                        src="<?= CARDCONNECT_TOKEN_URL ?>?usecvv=true&useexpiry=true&css=input%5Bname%3Dccnumfield%5D%7Bwidth%3A252px%3B%7Dinput%7Bborder-radius%3A4px%3Bborder%3A1px%20solid%20%23dcdee2%3Bcolor%3A%23223666%3Boutline%3A0%3Bmargin-bottom%3A8px%3B%7Dselect%7Bborder-radius%3A4px%3Bborder%3A1px%20solid%20%23dcdee2%3Bcolor%3A%23223666%3Boutline%3A0%3Bmargin-bottom%3A8px%3Bwidth%3A64px%3B%7D&placeholder=0000%200000%200000%200000&placeholdercvv=000&maskfirsttwo=true" frameborder="0"
+                        scrolling="no"></iframe>
+                    <input type="hidden" name="cc_token" id="cc_token" />
+                    
+                    <!-- <span name="exp" class="expiration">
+                        <input type="number" min="01" max="12" step="1" name="month" placeholder="MM" maxlength="2" size="2" />
+                        <input type="number" min="20" max="60" step="1" name="year" placeholder="YY" maxlength="2" size="2" />
+                    </span> -->
+                    <input type="hidden" name="merchid" id="merchid"
+                        value="<?php echo $cardconnect_details->merchant_id ?>">
+                    <input type="hidden" name="user" id="user"
+                        value="<?php echo $cardconnect_details->username ?>">
+                    <input type="hidden" name="pass" id="pass"
+                        value="<?php echo decryptPassword($cardconnect_details->password) ?>">
+
+                    </form>
+                </div>
+
                   <div class="form-group login-options">
                     <div class="row">
                     <?php
@@ -115,7 +138,7 @@ if ($invoice_cost > 0) {
                   <div class="form-group login-options">
                     <div class="row">
                       <div class="col-sm-12 text-right" style="float:right; ">
-                        <input onclick="example.submit()" type="submit" id="btn-login" class="btn  btn-block " style="background-color: #47a447;color: #fff" value="Pay">
+                        <input type="submit" id="pay_button" class="btn  btn-block " style="background-color: #47a447;color: #fff" value="Pay">
                       </div>
                     </div>
                   </div>
@@ -129,6 +152,11 @@ if ($invoice_cost > 0) {
                         <i class="fa fa-cc-discover" style="color:orange;"></i>
                       </div>
                     </div>
+                    <?php 
+                            $string_ids = str_replace(',',' ',$invoice_ids);
+                            ?>
+
+                    <input type="hidden"  name="invoices[]" value="<?php $string_ids ?>">
                   </div>
                   <?php if ($convenience_fee != 0) {?>
                   <span class="text-center no-margin" >
@@ -163,69 +191,78 @@ if ($invoice_cost > 0) {
           $(".alert-danger").fadeTo(5000, 500).slideUp(500, function(){
             $(".alert-danger").slideUp(500);
           });
-          var example = new Tokenizer({
-          apikey: '<?=$basys_details->publuc_key?>',
-          container: document.querySelector('.card-form'),
-          submission: (resp) => {
-          // Figure out what response you got back
-            switch(resp.status) {
-              case 'success':
-                $("#loading").css("display","block");
+          $('#pay_button').click(function(e) {
+            e.preventDefault();
+
+            console.log("token form has been submitted");
+
+            $("#loading").css("display", "block");
+            var invoices = '<?= $string_ids ?>';
+            setTimeout(function(){
                 $.ajax({
-                  url: '<?php echo base_url('welcome/daily_paymentProcess/daily'); ?>',
-                  type: 'POST',
-                  data: { api_key : '<?=$basys_details->api_key?>', 'invoice_id':'<?=$invoice_ids?>', token : resp.token  },
-                  dataType: "JSON",
-                  success: function(response){
-                    $("#loading").css("display","none");
-                    if(response.status == 200){
-                      swal(
-                        'Thank You!',
-                          response.msg,
-                          'success'
-                      )
-                      setInterval(function() {
-                      window.location.href="<?=base_url('welcome/paymentSuccess/success') . $setting_details->company_id?>";
-                      }, 2000);
-                    } else if (response.status==400)  {
-                      swal({
-                        type: 'error',
-                        title: 'Oops...',
-                        text: response.msg
-                      })
-                    }else {
-                      swal({
+                url: '<?php echo base_url('Welcome/ccPaymentProcess'); ?>',
+                type: 'POST',
+                data: {
+                    requestData: {
+                        account: $('#cc_token').val(),
+                        merchid: $('#merchid').val(),
+                    },
+                    invoice_id: invoices,
+                    merchid: $('#merchid').val(),
+                    username: $('#user').val(),
+                    password: $('#pass').val()
+                },
+                dataType: "JSON",
+                success: function(response) {
+                    console.log(JSON.stringify(response));
+
+                    $("#loading").css("display", "none");
+
+                    if (response.status == 200) {
+
+                        swal(
+                            'Thank You!',
+                            response.msg,
+                            'success'
+                        );
+                        setInterval(function() {
+
+                            window.location.href="<?= base_url('welcome/paymentSuccess/success').$setting_details->company_id ?>"; 
+
+                        }, 2000);
+
+                    } else if (response.status == 400) {
+
+                        swal({
+                            type: 'error',
+                            title: 'Oops...',
+                            text: response.msg
+                        })
+
+                    } else {
+
+                        swal({
+                            type: 'error',
+                            title: 'Oops...',
+                            text: response.msg
+                        })
+
+                    }
+                },
+                error: function(response) {
+                    console.log(response);
+                    $("#loading").css("display", "none");
+
+                    swal({
                         type: 'error',
                         title: 'Oops...',
                         text: 'Something went wrong!'
-                      })
-                    }
-                  },
-                  error: function(response) {
-                    $("#loading").css("display","none");
-                    swal({
-                      type: 'error',
-                      title: 'Oops...',
-                      text: 'Something went wrong!'
                     })
-                  }
-                });
-              break;
-              case 'error':
-                // Encountered an error while performing submission
-                swal({
-                  type: 'error',
-                  title: 'Oops...',
-                  text: resp.message
-                })
-              break;
-              case 'validation':
-                // Encountered form validation specific errors
-                console.log(resp.invalid)
-              break;
-            }
-          }
-        })
+
+                }
+            });
+            }, 1000);
+          });
     </script>
   </body>
 </html>

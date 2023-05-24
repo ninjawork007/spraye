@@ -36,7 +36,7 @@ if (!defined('BASEPATH'))
 
         
         $CI->db->from('t_estimate_price_override');
-
+        $CI->db->where('for_invoicing_only IS NULL');
         if (is_array($where_arr)) {
             $CI->db->where($where_arr);
         }                    
@@ -44,7 +44,7 @@ if (!defined('BASEPATH'))
         $CI->db->join('jobs','jobs.job_id = t_estimate_price_override.job_id','inner');
        
         $result = $CI->db->get();
-
+        
         $data = $result->result_array();
         return $data;
   }

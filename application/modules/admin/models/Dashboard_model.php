@@ -1961,6 +1961,7 @@ class Dashboard_model extends CI_Model
             $select = "
             jobs.job_id,
             customers.customer_id,
+
             `property_tbl`.`property_id`,
             CASE WHEN datediff(now(),(
 	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
@@ -2252,9 +2253,10 @@ class Dashboard_model extends CI_Model
            `property_address`, program_job_assign.`priority`, `property_type`, `property_title`, `completed_date_property`, `completed_date_property_program`,
            `technician_job_assign`.`is_job_mode`, `unassigned_Job_delete`.`unassigned_Job_delete_id`, `property_tbl`.`property_state`,
            `property_tbl`.`property_city`, `property_tbl`.`property_zip`, `customers`.`pre_service_notification`, `property_tbl`.`tags`,
-           `jobs`.`service_note`, `jobs`.`job_notes`, `customers`.`customer_status`, assign_reschedule_message, assign_table_data,  `technician_job_assign`.`technician_id`,`property_program_assign`.`property_program_date`,
-           `technician`.`user_first_name`, `technician`.`user_last_name`, `completed_date_last_service_by_type`');
-            $this->db->order_by($col, $dir);
+           `jobs`.`service_note`, `jobs`.`job_notes`, `customers`.`customer_status`,technician_job_assign.technician_id');
+            
+            //$this->db->group_by('1,2,5,6,7,8,9');
+
         }
 
 

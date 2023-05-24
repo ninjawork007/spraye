@@ -879,4 +879,39 @@ public function	getPPJOBINVdetails($where_arr = ''){
 
         return $data;
     }
+
+    public function getAllInvoiveWhereIn($search_column, $where_arr='') {       
+        $this->db->select('*,invoice_tbl.invoice_id,invoice_tbl.company_id');  
+        $this->db->from('invoice_tbl');
+        $this->db->join('customers','customers.customer_id = invoice_tbl.customer_id ','inner');
+        $this->db->join('property_tbl','property_tbl.property_id = invoice_tbl.property_id','inner');
+        $this->db->join('programs','programs.program_id = invoice_tbl.program_id','inner');     
+        $this->db->join('jobs','jobs.job_id = invoice_tbl.job_id','left');
+        
+           
+            // if (is_array($where_arr)) {
+                $this->db->where_in($search_column, $where_arr);
+            // }
+           $result = $this->db->get();
+
+        $data = $result->result();
+        return $data;    
+    }
+
+    public function getAllInvoiceSalesTaxWhereIn($search_column, $where_arr='') {
+           
+        $this->db->select('*');
+        
+        $this->db->from('invoice_sales_tax');
+
+        // if (is_array($where_arr)) {
+            $this->db->where_in($search_column, $where_arr);
+        // }
+        
+
+        $result = $this->db->get();
+
+        $data = $result->result_array();
+        return $data;
+    }
 }

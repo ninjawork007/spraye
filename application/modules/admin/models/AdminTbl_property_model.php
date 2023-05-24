@@ -65,6 +65,8 @@ class AdminTbl_property_model extends CI_Model
         $this->db->where('property_id', $property_id);
         return $this->db->update('property_tbl', $post_data);
     }
+
+    
     public function deleteProperty($wherearr) {
         if (is_array($wherearr)) {
             $this->db->where($wherearr);
@@ -161,6 +163,7 @@ class AdminTbl_property_model extends CI_Model
 				return $result->num_rows();
 		}
 	}
+    
     public function getAllCustomerProperties($customer_id) {
         $this->db->select('*');
         $this->db->from('customer_property_assign');
@@ -588,7 +591,7 @@ class AdminTbl_property_model extends CI_Model
         }
     }
 
-    public function autoStatusCheck($company_id=0){
+    public function autoStatusCheck($company_id=0, $PropId=0){
         // If a property has an estimate that has been marked "Sent" and they are not currently "Active", then they should be changed to a status of "Estimate Sent”
         $sql = "SELECT 
                     a.property_status, a.property_id, GROUP_CONCAT(b.status) as e_status
@@ -616,7 +619,30 @@ class AdminTbl_property_model extends CI_Model
             }
         }
 
-        // now we need to handle the next line of logic
+        // check for if property is set to active after a program is assigned
+        if($PropId != 0){
+            $this->db->select("property_status");
+            $this->db->from('property_tbl');
+            $this->db->where('property_id', $PropId);
+            
+            $result3 = $this->db->get();
+            $propertyStatus = $result3->result();
+
+
+            $this->db->select("program_id");
+            $this->db->from('property_program_assign');
+            $this->db->where('property_id', $PropId);
+            $programAssigned = $this->db->count_all_results();
+
+                       
+            if($propertyStatus != 1 && $programAssigned > 0){
+                $data3= array(
+                    'property_status' => 1                
+            );
+                $this->db->replace('property_tbl', $data3);
+            }
+        }
+		
         // If a property has a “Sales Call” currently scheduled to be completed, then the property status should change to “Sales Call Scheduled” ONLY FROM PROSPECT!
 
 //        $this->db->select("is_complete,job_name,technician_job_assign.property_id, property_status");

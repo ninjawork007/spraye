@@ -212,7 +212,7 @@ if ($invoice_details) {
 
   // $total_invoice_amount = array_sum($total_cost_arr) + $all_invoives_tax_amount;
   $total_invoice_amount = array_sum($total_cost_arr);
-  
+  $available_credit = $customer_details['credit_amount'];
 
 }
 

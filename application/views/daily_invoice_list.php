@@ -132,6 +132,115 @@ a {
     #6eb1fd;
     border-radius: 4px;
 }
+
+* {
+    font-family: Helvetica, Verdana, Arial, sans-serif;
+}
+
+table {
+    font-size: 13px;
+}
+
+.invoice-title h2,
+.invoice-title h3 {
+    display: inline-block;
+}
+
+.table>tbody>tr>.no-line {
+    border-top: none;
+}
+
+.table>thead>tr>.no-line {
+    border-bottom: none;
+}
+
+.table>tbody>tr>.thick-line {
+    border-top: 1px dotted;
+}
+
+.logo {
+    width: 200px;
+    height: auto;
+}
+
+.datatable-button-init-custom th {
+    background-color: <?=$setting_details->invoice_color;
+    ?> !important;
+    color: #fff;
+}
+
+.border-bottom>td,
+.border-bottom {
+    border-bottom: 1px solid <?=$setting_details->invoice_color;
+    ?>;
+}
+
+.border-bottom-blank-td>td,
+.border-bottom-blank-td {
+    border-bottom: 1px solid #ccc !important;
+
+}
+
+.border-bottom-blank-last>td,
+.border-bottom-blank-last {
+    border-bottom: 1px solid #999 !important;
+}
+
+address {
+    margin-bottom: 0 !important;
+}
+
+.blank_tr td {
+    padding: 9px !important;
+}
+
+.button-tr>td {
+    padding-top: 20px !important;
+}
+
+.default-msg>td {
+    padding-top: 30px !important;
+}
+
+.inside-tabel {
+    margin-top: 15px;
+}
+
+.default-font-color {
+    color: <?=$setting_details->invoice_color;
+    ?>;
+}
+
+.btn a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.paid_logo {
+    vertical-align: middle !important;
+    text-align: center;
+}
+
+.table-product-box>tbody>tr>td {
+    padding: 1px 5px !important;
+}
+
+.mannual>tbody>tr>td {
+    padding: 0 5px !important;
+    line-height: 1.3 !important;
+}
+
+.application_tbl {
+    background: #e5e2e3 !important;
+}
+
+.cl_50 {
+    width: 50%;
+}
+
+.page_break {
+    page-break-before: always;
+}
 </style>
 <!-- Content area -->
 <div id="daily_invoice_list" class="content invoicessss">   
@@ -162,7 +271,7 @@ a {
          <div  class="table-responsive table-spraye">
             <table  class="table datatable-button-init-custom">
                <thead>
-                  <tr>                     
+                  <tr class="first_tr">                     
                      <th>Invoice</th>
                      <th>Property</th>
                      <th>Program</th>

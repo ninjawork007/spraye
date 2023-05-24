@@ -12,6 +12,11 @@ class Customer_model extends CI_Model{
 
  
 
+      public function insert_customer($post) {
+        $query = $this->db->insert(self::PMTBL, $post);
+        return $this->db->insert_id();
+      }
+
     public function updateCustomerTbl($where, $post_data) {
 
          //$data = array('skills' => $post_data['skills']);
@@ -33,6 +38,12 @@ class Customer_model extends CI_Model{
  		return $this->db->where('customer_id',$customerID)->get('customers')->row();
  	}
 
+     public function assignProperty($post) {
+        $this->db->insert('customer_property_assign', $post);
+        $insert_id = $this->db->insert_id();
+        return  $insert_id;
+      } 
+      
 	public function getOneCustomer($where_arr = []) {
       $this->db->select('*');
       $this->db->from("customers");
@@ -70,6 +81,19 @@ class Customer_model extends CI_Model{
             return $result->num_rows();
         }
     }
+
+
+    public function getLatestCustomer($where_arr = []) {
+        $this->db->select('*');
+        $this->db->from("customers");
+        if (count($where_arr) > 0) {
+            $this->db->where($where_arr);
+        }
+        $this->db->order_by('customer_id', 'desc');
+        $result = $this->db->get();
+        $customer_obj = $result->row();
+        return $customer_obj;
+      }
 
 
 }

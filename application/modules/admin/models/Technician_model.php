@@ -473,6 +473,20 @@ class Technician_model extends CI_Model{
 
     }
 
+    public function getPropertyEmailData($wherearr) {
+        $this->db->select('first_name,last_name,property_address');
+        $this->db->from('customers,property_tbl');
+         if (is_array($wherearr)) {
+             $this->db->where($wherearr);
+         }
+         $result = $this->db->get();
+         $data = $result->row();
+ 
+         // die(print_r($this->db->last_query()));
+         return $data;   
+ 
+     }
+
     public function getAllProductDetails($wherearr='') {
  
         $this->db->select('*');

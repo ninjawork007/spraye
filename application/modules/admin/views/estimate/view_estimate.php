@@ -140,6 +140,7 @@
                         <th>Total Estimate Cost</th>
                         <th>Status</th>
                         <th>Program</th>
+                        <th>Services</th>
                         <th>Estimate Date</th>
                         <th>Sales Person</th>
                         <th>Discount/Coupon</th>
@@ -148,7 +149,6 @@
 
                     </tr>
                     </thead>
-
                 </table>
             </div>
         </div>
@@ -208,6 +208,7 @@
             {"data": "cost", "name":"Total Estimate Cost", "searchable":false, "orderable": true },
             {"data": "status_html", "name":"Status", "orderable": true, "searchable": true },
             {"data": "program_name", "name":"Program", "searchable":true, "orderable": true },
+            {"data": "service_name", "name":"Service", "searchable":true, "orderable": true },
             {"data": "estimate_created_date", "name":"Estimate Date", "searchable":true, "orderable": true },
             {"data": "user_complete_name", "name":"Sales Person","orderable": true },
             {"data": "coupon_details", "name":"Discount/Coupon","searchable":true, "orderable": true },
@@ -220,11 +221,9 @@
         },
         dom: 'l<"toolbar">frtip',
         initComplete: function(data){
-            console.log(data)
+            //console.log(data)
             $("div.toolbar")
-                //        },
-                //        },
-                .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right filter-status-estimate"><li onclick="filterSearch(4)" data-id="4" class="active"><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li onclick="filterSearch(0)" data-id="0"><a href="#"><span class="status-mark bg-warning position-left"></span> Draft</a></li><li onclick="filterSearch(1)" data-id="1"><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li onclick="filterSearch(2)" data-id="2"><a href="#"><span class="status-mark bg-till position-left"></span> Accepted</a></li><li onclick="filterSearch(5)" data-id="5"><a href="#"><span class="status-mark bg-orange position-left"></span> Declined</a></li> <li onclick="filterSearch(3)" data-id="3"><a href="#"><span class="status-mark bg-success position-left"></span> Paid</a></li>       </ul></div>&nbsp;&nbsp;<button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage">Send By Email</button>&nbsp;&nbsp;<?php if($setting_details->signwell_api_key != "") { ?><button type="submit"  disabled="disabled" data-toggle="modal" onclick="send_to_signwell()" class="btn btn-success btn-outline" id="send_signwell">Send through SignWell</button>&nbsp;&nbsp;<?php } ?><button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');
+                .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li onclick="filterSearch(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li onclick="filterSearch(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Draft</a></li><li onclick="filterSearch(1)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li onclick="filterSearch(2)" ><a href="#"><span class="status-mark bg-till position-left"></span> Accepted</a></li><li onclick="filterSearch(5)" ><a href="#"><span class="status-mark bg-orange position-left"></span> Declined</a></li>       </ul></div>&nbsp;&nbsp;<button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage">Send By Email</button>&nbsp;&nbsp;<?php if($setting_details->signwell_api_key != "") { ?><button type="submit"  disabled="disabled" data-toggle="modal" onclick="send_to_signwell()" class="btn btn-success btn-outline" id="send_signwell">Send through SignWell</button>&nbsp;&nbsp;<?php } ?><button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');
         },
         buttons:[
             {
@@ -269,7 +268,7 @@
     //        initComplete: function(){
     //
     //            $("div.toolbar")
-    //                .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li onclick="filterSearch(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li onclick="filterSearch(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Draft</a></li><li onclick="filterSearch(1)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li onclick="filterSearch(2)" ><a href="#"><span class="status-mark bg-till position-left"></span> Accepted</a></li><li onclick="filterSearch(5)" ><a href="#"><span class="status-mark bg-orange position-left"></span> Declined</a></li> <li onclick="filterSearch(3)" ><a href="#"><span class="status-mark bg-success position-left"></span> Paid</a></li>       </ul></div>&nbsp;&nbsp;<button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage">Send By Email</button>&nbsp;&nbsp;<?php //if($setting_details->signwell_api_key != "") { ?>//<button type="submit"  disabled="disabled" data-toggle="modal" onclick="send_to_signwell()" class="btn btn-success btn-outline" id="send_signwell">Send through SignWell</button>&nbsp;&nbsp;<?php //} ?>//<button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');
+    //                .html('<div class="btn-group"><button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">Filter Status <span class="caret"></span></button><ul class="dropdown-menu dropdown-menu-right"><li onclick="filterSearch(4)" ><a href="#"><span class="status-mark bg-primary position-left"></span> All</a></li><li onclick="filterSearch(0)" ><a href="#"><span class="status-mark bg-warning position-left"></span> Draft</a></li><li onclick="filterSearch(1)"  ><a href="#"><span class="status-mark bg-danger position-left"></span> Sent</a></li><li onclick="filterSearch(2)" ><a href="#"><span class="status-mark bg-till position-left"></span> Accepted</a></li><li onclick="filterSearch(5)" ><a href="#"><span class="status-mark bg-orange position-left"></span> Declined</a></li>       </ul></div>&nbsp;&nbsp;<button type="submit"  disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage">Send By Email</button>&nbsp;&nbsp;<?php //if($setting_details->signwell_api_key != "") { ?>//<button type="submit"  disabled="disabled" data-toggle="modal" onclick="send_to_signwell()" class="btn btn-success btn-outline" id="send_signwell">Send through SignWell</button>&nbsp;&nbsp;<?php //} ?>//<button type="submit"  disabled="disabled"  class="btn btn-success" id="allPrint">Print</button>&nbsp;&nbsp;<button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled >Delete</button>');
     //        },
     //
     //    });
@@ -282,7 +281,6 @@
         var estimate_id = $(this).attr('estimate_id');
         var status = $(this).val();
         $("#loading").css("display","block");
-        console.log(status);
         $.ajax({
             type: 'POST',
             url: '<?php echo base_url(); ?>admin/Estimates/changeStatus',
@@ -301,7 +299,7 @@
         url: '<?php echo base_url(); ?>admin/Estimates/get_signwell_status',
         data: {estimate_id: estimate_id},
         success: function (data) {
-            alert(data)
+            //alert(data)
             console.log(data)
             window.location.href = data;
 

@@ -134,6 +134,63 @@
   	    } ?>
         <div class="container <?php echo $page_break_class ?>">
 
+        <?php if ($index == 0 && ($basys_details || $cardconnect_details) && count($payall_data["invoice_details_all"]) > 1) { 
+                
+                ?>
+            <div class="" style="page-break-after: always">
+                <h3>All Invoice Info</h3>
+                <div id="invoicetablediv">          
+                    <div  class=" table-spraye">
+                        <table  class="table datatable-button-init-custom">
+                            <thead>
+                                <tr class="first_tr">                     
+                                <th>Invoice</th>
+                                <th>Property</th>
+                                <th>Program</th>
+                                <th>Job</th>
+                                <th>Amount</th>                     
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $total_amount = 0;
+                                
+                                foreach($payall_data["invoice_details_all"] as $value) {?>      
+                                    <tr>                     
+                                        <td><?= $value->invoice_id; ?></td>
+                                        <td><?php echo $value->property_title ?></td>
+                                        <td><?php echo $value->program_name ?></td>
+                                        <td><?php echo $value->job_name ?></td>
+                                            <?php 
+                                            $total_tax_amount = getAllSalesTaxSumByInvoice($value->invoice_id)->total_tax_amount;                        
+                                            // $amount = $value->cost+$total_tax_amount-$value->partial_payment;
+                                            $amount = floatval($value->total_amount_minus_partial)-floatval($value->partial_payment);
+                                            $total_amount = $total_amount + $amount;
+                                            ?>
+                                        <td><?= '$ '.number_format($amount,2) ?></td>
+                                    </tr>
+                                <?php  } ?>
+                                <tr>
+                                    <td colspan="3"></td>
+                                    <td  class="text-right" style="white-space: nowrap;">
+                                        <strong>Total Amount:</strong>
+                                    </td>
+                                    <td  class="text-left">
+                                        <?php echo '$ '.number_format($total_amount,2) ?>
+                                    </td>
+                                </tr>     
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">                        
+                        <div class="make-payment-btn-container" >
+                            <a href="<?= base_url("welcome/dailyPayment/").$payall_data["hashstring"]?>" id="btn-login" class="btn btn-block" style="background-color: #47a447;color: #fff" >Pay All Invoices</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
+
             <table width="100%" style="margin-bottom: 20px;">
                 <!-- START TOP FOLD -->
                 <tr id="top-fold">
@@ -427,15 +484,16 @@
 							
 									// COUPON_INVOICE
                                     $coupon_invoice = $invoice_detail->coupon_details;
-									foreach ( $coupon_invoice as $coupon_details ) { ?>
+									foreach ( $coupon_invoice as $coupon_details ) { 
+                                         ?>
                                         <tr>
                                             <td></td>
                                             <td></td>
                                             <td></td>
                                             <?php if ($coupon_details->coupon_amount_calculation == 0) {
-												echo '<td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td text-left default-font-color">'.$coupon_details->coupon_code.'</td> ';
+												echo '<td class="border-bottom-blank-td text-left default-font-color">'.$coupon_details->coupon_code.'</td><td class="border-bottom-blank-td"></td><td class="border-bottom-blank-td text-left">';
 												$discount_amm = (float) $coupon_details->coupon_amount;
-												echo "- $ " . (string) number_format($discount_amm,2);
+												echo "- $ " . (string) number_format($discount_amm,2)."</td>";
 
 												if (($invoice_total_cost - $discount_amm) < 0 ) {
 													$invoice_total_cost = 0;
@@ -721,24 +779,20 @@
                             'report'=> (isset($job->report))?$job->report: $job->report_details,
                         );
                     } else {
-                        if (! empty($job->jobs[0]['job_report'])) {
+                        if(!empty($job->jobs)) {
                             array_push($report_id, $job->jobs[0]['job_report']->report_id);
+                            $products[] = array(
+                                'job_id' => $invoice_detail->job_id,
+                                'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
+                            );
                         }
-                        $products[] = array(
-                            'job_id' => $job->job_id,
-                            'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
-                        );
+
                     }
                 }
+            if(isset($products[0]) && $products[0]["report"] != "") {
             foreach($products as $k=>$v){
+                    $product_details =  getProductByReport(array('report_id'=> $v['report']->report_id));
 
-                    //die(print_r($v['report']));
-                    if ($v['report'] !== ''){
-                        $rid = $v['report']->report_id;
-                    } else {
-                        $rid = $v['report'];
-                    }
-                    $product_details =  getProductByReport(array('report_id'=> $rid));
 				    $invoice_report_details =  $v['report'];
 
 				    if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
@@ -991,7 +1045,7 @@
 
                         <?php }
                     } else { ?>
-
+                        <?php $i = 0; ?>
 
 		                <?php if($product_details) { ?>
                             <tr>
@@ -1148,7 +1202,7 @@
 
                     <?php } ?>
                     <!-- END PRODUCT DETAILS PART -->
-                <?php } ?>                                        
+                <?php } } ?>                                        
             </table>
             <!-- END APPLICATION PRODTUCTS SECTION -->
 

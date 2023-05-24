@@ -67,6 +67,7 @@ class Welcome extends MY_Controller
         $this->load->model('../modules/admin/models/Sales_tax_model', 'SalesTax');
         $this->load->model('../modules/admin/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel');
         $this->load->model('Reports_model', 'ReportsModel');
+        $this->load->model('../modules/admin/models/Cardconnect_model', 'CardConnectModel');
 
 
 
@@ -622,14 +623,143 @@ class Welcome extends MY_Controller
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('AdminTbl_company_model', 'CompanyModel');
         $this->load->model('Job_model', 'JobModel');
-
         if ($hashstring && $hashstring != "") {
 
             $where_arr = array("hashstring" => $hashstring);
             $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
             $invoice_ids = $invoice_mini_list["invoice_ids"];
-            $all_invoice_paid = true;
+            
+            if ($invoice_ids != "") {
+                $payall_data["hashstring"] = $hashstring;
+                $company_id = $invoice_mini_list["company_id"];
 
+                $payall_data['invoice_ids'] = $invoice_ids;
+                $invoice_ids = explode(",", $invoice_ids);
+                $payall_data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+                foreach ($invoice_ids as $key => $value) {
+                    $where = array(
+                        "invoice_tbl.company_id" => $company_id,
+                        'invoice_id' => $value,
+                    );
+                    $invoice_details = $this->INV->getOneInvoive($where);
+                    if ($invoice_details->payment_status != 2) {
+                        $invoice_details->all_sales_tax = $this->INV->getAllInvoiceSalesTax(array('invoice_id' => $value));
+                        $invoice_details->report_details = $this->INV->getOneRepots(array('report_id' => $invoice_details->report_id));
+
+                        // get coupon info
+
+                        ////////////////////////////////////
+                        // START INVOICE CALCULATION COST //
+
+                        $this->load->model('../modules/admin/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
+                        $this->load->model('../modules/admin/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
+
+                        // invoice cost
+                        // $invoice_total_cost = $invoice->cost;
+
+                        // cost of all services (with price overrides) - service coupons
+                        $job_cost_total = 0;
+                        $total_coupon_amount = 0;
+                        $where = array(
+                            'property_program_job_invoice.invoice_id' => $invoice_details->invoice_id,
+                        );
+                        $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
+                        if (!empty($proprojobinv)) {
+                            foreach ($proprojobinv as $job) {
+
+                                $job_cost = $job['job_cost'];
+
+                                $job_where = array(
+                                    'job_id' => $job['job_id'],
+                                    'customer_id' => $job['customer_id'],
+                                    'property_id' => $job['property_id'],
+                                    'program_id' => $job['program_id'],
+                                );
+                                $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                                if (!empty($coupon_job_details)) {
+
+                                    foreach ($coupon_job_details as $coupon) {
+                                        $coupon_job_amm_total = 0;
+                                        $coupon_job_amm = $coupon->coupon_amount;
+                                        $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                        if ($coupon_job_calc == 0) { // flat amm
+                                            $coupon_job_amm_total = (float) $coupon_job_amm;
+                                        } else { // percentage
+                                            $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                        }
+
+                                        $job_cost = $job_cost - $coupon_job_amm_total;
+                                        $total_coupon_amount += $coupon_job_amm_total;
+
+                                        if ($job_cost < 0) {
+                                            $job_cost = 0;
+                                        }
+                                    }
+                                }
+
+                                $job_cost_total += $job_cost;
+                            }
+                        } else {
+                            $job_cost_total = $invoice_details->cost;
+                        }
+                        $invoice_total_cost = $job_cost_total;
+
+                        // check price override -- any that are not stored in just that ^^.
+
+                        // - invoice coupons
+                        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_details->invoice_id));
+                        foreach ($coupon_invoice_details as $coupon_invoice) {
+                            if (!empty($coupon_invoice)) {
+                                $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                                $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+
+                                if ($coupon_invoice_amm_calc == 0) { // flat amm
+                                    $invoice_total_cost -= (float) $coupon_invoice_amm;
+                                    $total_coupon_amount += $coupon_invoice_amm;
+                                } else { // percentage
+                                    $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                                    $invoice_total_cost -= $coupon_invoice_amm;
+                                    $total_coupon_amount += $coupon_invoice_amm;
+                                }
+                                if ($invoice_total_cost < 0) {
+                                    $invoice_total_cost = 0;
+                                }
+                            }
+                        }
+
+                        // + tax cost
+                        $invoice_total_tax = 0;
+                        $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_details->invoice_id));
+                        if (!empty($invoice_sales_tax_details)) {
+                            foreach ($invoice_sales_tax_details as $tax) {
+                                if (array_key_exists("tax_value", $tax)) {
+                                    $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
+                                    $invoice_total_tax += $tax_amm_to_add;
+                                }
+                            }
+                        }
+                        $invoice_total_cost += $invoice_total_tax;
+                        $total_tax_amount = $invoice_total_tax;
+
+                        // END TOTAL INVOICE CALCULATION COST //
+                        ////////////////////////////////////////
+
+                        $invoice_details->total_amount_minus_partial = number_format($invoice_total_cost, 2);
+
+                        $payall_data['invoice_details_all'][] = $invoice_details;
+                    }
+                }
+            } else {
+                echo "Invalid access";
+            }
+
+            // BELOW THIS LINE WAS ALREADY HERE MAKING THE PDF WORK
+            $where_arr = array("hashstring" => $hashstring);
+            $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
+            $invoice_ids = $invoice_mini_list["invoice_ids"];
+            $all_invoice_paid = true;
             if ($invoice_ids != "") {
 
                 $data["hashstring"] = $hashstring;
@@ -639,7 +769,6 @@ class Welcome extends MY_Controller
                 $invoice_ids = explode(",", $invoice_ids);
 
                 foreach ($invoice_ids as $key => $value) {
-
                     $where = array(
                         "invoice_tbl.company_id" => $company_id,
                         'invoice_id' => $value,
@@ -647,8 +776,8 @@ class Welcome extends MY_Controller
 
                     // die(print_r($value));
 
-                    $invoice_details = $this->INV->getOneInvoive($where);
-
+                    $invoice_details =  $this->INV->getOneInvoive($where);
+                    
                     $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $value));
 
                     $invoice_details->report_details = $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
@@ -821,11 +950,12 @@ class Welcome extends MY_Controller
                     'status' => 1,
                 );
                 $data['all_invoice_paid'] = $all_invoice_paid;
+                $data['payall_data'] = $payall_data;
                 $data['cardconnect_details'] = $this->CardConnect->getOneCardConnect($where_arr);
                 $data['basys_details'] = $this->CompanyModel->getOneBasysRequest($where_arr);
 
                 // die();
-
+                
                 $this->load->view('daily_multiple_pdf_invoice', $data);
                 $html = $this->output->get_output();
 
@@ -840,7 +970,8 @@ class Welcome extends MY_Controller
 
                 $companyName = str_replace(" ", "", $data['setting_details']->company_name);
                 // $companyName = str_replace(" ","",$this->session->userdata['compny_details']->company_name);
-                $customerName = $data['invoice_details'][0]->first_name . $data['invoice_details'][0]->last_name;
+                
+                $customerName = $invoice_details->first_name . $invoice_details->last_name;
                 $fileName = $companyName . "_invoice_" . $customerName . "_" . date("Y") . "_" . date("m") . "_" . date("d") . "_" . date("h") . "_" . date("i") . "_" . date("s");
                 // Output the generated PDF (1 = download and 0 = preview)
                 $this->dompdf->stream($fileName . ".pdf", array("Attachment" => 0));
@@ -1179,16 +1310,29 @@ class Welcome extends MY_Controller
 
             $result = $this->EstimateModal->updateEstimate($where, $param);
             if ($result) {
-                ##### ADDED 3/10/22 #####
+                ##### ADDED 3/1/22 #####
                 $property_status = $this->PropertyModel->updateAdminTbl($estimate_details->property_id, array('property_status' => '1'));
+                // die(print_r($this->db->last_query()));
                 ####
-                if ($estimate_details->program_price == 1) {
-
+                // if one time program invoiceing
+                if ($estimate_details->program_pricing == "1" || $estimate_details->program_pricing == 1 || $estimate_details->program_price == "1" || $estimate_details->program_price == 1) {
                     $user_id = $estimate_details->user_id;
                     $company_id = $estimate_details->company_id;
                     $customer_id = $estimate_details->customer_id;
                     $property_id = $estimate_details->property_id;
-                    $program_id = $estimate_details->program_id;
+                    $estimate_id = $estimate_id;
+                    // we need to get all of the joined programs to the estimate now
+                    $program_ids = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_id));
+                    $program_id_to_ad_hoc = $program_id_to_service_name = $program_ids_to_services = $services_from_estimate = array();
+                    foreach($program_ids as $proid) {
+                        // we need to get info for the items that are services and not programs - so we can combine those and make them into a new program
+                        if($proid->ad_hoc == "1") {
+                            $program_id_to_ad_hoc[$proid->program_id] = $proid->ad_hoc;
+                            $program_ids_to_services[$proid->program_id] = $proid->service_id;
+                            $services_from_estimate[] = $proid->service_id;
+                        }
+                    }
+                    //$program_id = $estimate_details->program_id;
                     $date = date('Y-m-d', time());
                     $date_time = date('Y-m-d H:m:s', time());
 
@@ -1198,17 +1342,30 @@ class Welcome extends MY_Controller
                     // get estimate total cost
                     $total_estimate_cost = 0;
                     $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
+                    // die(print_r($estimate_price_overide_data));
                     // echo "<pre>";
                     // print_r($estimate_price_overide_data);
                     // die();
-
+                    $invoice_total_per_program = array();
+                    $total_for_services = 0;
+                    // need to set all the keys for the above and set that to 0 so we can add to it in the loop below
+                    if($program_ids == "") {
+                        // this means we need to handle this the historic way of doing it
+                        $invoice_total_per_program[$estimate_details->program_id] = 0;
+                    } else {
+                        foreach ($estimate_price_overide_data as $es_job) {
+                            if(!in_array($es_job->program_id,array_keys($program_ids_to_services))) {
+                                $invoice_total_per_program[$es_job->program_id] = 0;
+                            }
+                        }
+                    }
                     foreach ($estimate_price_overide_data as $es_job) {
 
                         if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
                             $job_cost = $es_job->price_override;
                         } else {
 
-                            $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
+                            $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $es_job->program_id));
 
                             if (isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1) {
                                 $job_cost = $priceOverrideData->price_override;
@@ -1261,213 +1418,299 @@ class Welcome extends MY_Controller
                             'job_id' => $es_job->job_id,
                             'customer_id' => $customer_id,
                             'property_id' => $property_id,
-                            'program_id' => $program_id
+                            'program_id' => $es_job->program_id
                         );
 
                         $job_cost_w_coupon = $this->calculateServiceCouponCost($coup_job_param);
 
-                        $total_estimate_cost += $job_cost_w_coupon;
+                        @$total_estimate_cost += $job_cost_w_coupon;
+
+                        if(array_key_exists($es_job->program_id, $invoice_total_per_program)) {
+                            $invoice_total_per_program[$es_job->program_id] += $job_cost;
+                        } else {
+                            $total_for_services += $job_cost;
+                        }
+                    }
+                    // we need to take the services that we have from the estimate, combine them into ONE single program - and assign that to an invoice
+                    $bundled_program_name = '';
+                    if(count($services_from_estimate) == 1){
+                        $bundled_program_name = $this->JobModel->getOneJob(array('job_id' => $services_from_estimate[0]))->job_name.'-Standalone Service';
+                    } elseif(count($services_from_estimate) > 1){
+                        $job_names = array_map(function($s) {
+                        $r = $this->JobModel->getOneJob(array('job_id' => $s));
+                        return $r->job_name;
+                        }, $services_from_estimate);
+                        $bundled_program_name = implode('+', $job_names);
+                    }
+                    if($bundled_program_name != '') {
+                        $jobsAll = array();
+                        foreach($services_from_estimate as $service){
+                            $jobsAll = array_unique(array_merge($jobsAll,array($service)));
+                        }
+                        $programData = array();
+                        $programData['company_id'] = $company_id;
+                        $programData['user_id'] = $user_id;
+                        $programData['program_name'] = $bundled_program_name;
+                        $programData['jobs_all'] = $jobsAll;
+                        $programData['program_price'] = $estimate_details->program_pricing;
+                        if($programData['program_price'] == "") {
+                            $programData['program_price'] = $estimate_details->program_price;
+                        }
+                        $programResults = $this->createModifiedBundledProgram($programData);
+                        // now that we have created the new program we can add it to the invoice total per program array and let that handle creating the invoice
+                        $invoice_total_per_program[$programResults['program_id']] = $total_for_services;
+                        foreach($services_from_estimate as $service) {
+                            $this_service_override_numbers = $this->EstimateModal->getAllEstimatePriceOveride(array('job_id'=>$service, 'estimate_id'=>$estimate_id));
+                            // we need to create new estimate overrides with the new program ID on it for each service
+                            $service_numbers = array(
+                                'estimate_id' => $estimate_id,
+                                'customer_id' => $this_service_override_numbers[0]->customer_id,
+                                'property_id' => $this_service_override_numbers[0]->property_id,
+                                'program_id' => $programResults['program_id'],
+                                'job_id' => $this_service_override_numbers[0]->job_id,
+                                'price_override' => $this_service_override_numbers[0]->price_override,
+                                'is_price_override_set' => $this_service_override_numbers[0]->is_price_override_set,
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'for_invoicing_only' => 1
+                            );
+                            $this->EstimateModal->CreateOneEstimatePriceOverRide($service_numbers);
+                        }
                     }
 
-                    $total = $total_estimate_cost;
-
-                    // create invoice for estimate
-                    $inv_param = array(
-                        'user_id' => $user_id,
-                        'company_id' => $company_id,
-                        'customer_id' => $customer_id,
-                        'property_id' => $property_id,
-                        'invoice_date' => $date,
-                        'description' => 'Invoice From Estimate',
-                        'cost' => $total,
-                        'program_id' => $program_id,
-                        'is_created' => 1,
-                        'invoice_created' => date("Y-m-d H:i:s"),
-                    );
-                    $invoice_id = $this->INV->createOneInvoice($inv_param);
-
-                    if ($invoice_id) {
-
-                        //figure sales tax
-                        $total_tax_amount = 0;
-                        if ($setting_details->is_sales_tax == 1) {
-                            $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $property_id));
-                            if ($property_assign_tax) {
-                                foreach ($property_assign_tax as $tax_details) {
-                                    $invoice_tax_details = array(
+                    foreach($invoice_total_per_program as $program_id=>$itpp) {
+                        // create invoice for estimate
+                        $inv_param = array(
+                            'user_id' => $user_id,
+                            'company_id' => $company_id,
+                            'customer_id' => $customer_id,
+                            'property_id' => $property_id,
+                            'invoice_date' => $date,
+                            'description' => 'Invoice From Estimate',
+                            'cost' => $itpp,
+                            'program_id' => $program_id,
+                            'is_created' => 1,
+                            'invoice_created' => date("Y-m-d H:i:s"),
+                        );
+                        $invoice_id = $this->INV->createOneInvoice($inv_param);
+                        
+                        if ($invoice_id) {
+                            //figure sales tax
+                            $total_tax_amount = 0;
+                            if ($setting_details->is_sales_tax==1) {
+                                $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id'=>$property_id));
+                                if ($property_assign_tax) {
+                                    foreach ($property_assign_tax as  $tax_details) {
+                                    $invoice_tax_details =  array(
                                         'invoice_id' => $invoice_id,
                                         'tax_name' => $tax_details['tax_name'],
                                         'tax_value' => $tax_details['tax_value'],
-                                        'tax_amount' => $total * $tax_details['tax_value'] / 100
+                                        'tax_amount' => $itpp*$tax_details['tax_value']/100
                                     );
                                     $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
-                                    $total_tax_amount += $invoice_tax_details['tax_amount'];
+                                    $total_tax_amount +=  $invoice_tax_details['tax_amount'];
+                                    }
                                 }
                             }
-                        }
-
-                        //Quickbooks Invoice **
-
-                        $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
-                        $property_street = explode(',', $property_deets->property_address)[0];
-
-                        $cust_details = getOneCustomerInfo(array('customer_id' => $customer_id));
-
-                        $jobs = $this->ProgramModel->getSelectedJobs($program_id);
-
-                        foreach ($jobs as $key3 => $value3) {
-                            $job_id = $value3->job_id;
-
-                            $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
-
-                            $description = $job_details->job_name . " ";
-
-                            $QBO_description[] = $job_details->job_name;
-                            $actual_description_for_QBO[] = $job_details->job_description;
-
-                        }
-
-
-                        $inv_param['customer_email'] = $cust_details['email'];
-                        $inv_param['job_name'] = $description;
-
-                        $QBO_description = implode(', ', $QBO_description);
-                        $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
-                        $QBO_param = $inv_param;
-                        $QBO_param['property_street'] = $property_street;
-                        $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
-                        $QBO_param['job_name'] = $QBO_description;
-
-                        // Subtract global customer coupon value from QBO total before it's passed to QBO
-                        $coup_cust_param = array(
-                            'cost' => $QBO_param['cost'],
-                            'customer_id' => $customer_id
-                        );
-
-                        $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
-
-                        $QBO_param['cost'] = $cost_with_cust_coupon;
-
-
-                        $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
-
-
-                        //if quickbooks invoice then update invoice table with id
-                        if ($quickbook_invoice_id) {
-                            $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
-                        }
-
-                        $assign_program_param = array(
-                            'property_id' => $property_id,
-                            'program_id' => $program_id,
-                            'price_override' => 0,
-                            'is_price_override_set' => 0,
-                        );
-                        $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
-
-                        // where estimate jobs are stored
-                        $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
-
-                        foreach ($estimate_price_overide_data as $es_job) {
-
-                            if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
-                                $job_cost = $es_job->price_override;
+                
+                            //Quickbooks Invoice **
+                
+                            $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
+                            $property_street = explode(',', $property_deets->property_address)[0];
+                
+                            $cust_details = getOneCustomerInfo(array('customer_id' => $customer_id));
+                            $QBO_description = $actual_description_for_QBO = array();
+                            if($program_ids == "" || empty($program_ids)) {
+                                $jobs = $this->ProgramModel->getSelectedJobs($estimate_details->program_id);
+                
+                                foreach ($jobs as $key3 => $value3) {
+                                    $job_id = $value3->job_id;
+                
+                                    $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
+                
+                                    $description = $job_details->job_name . " ";
+                
+                                    $QBO_description[] = $job_details->job_name;
+                                    $actual_description_for_QBO[] = $job_details->job_description;
+                                }
                             } else {
-
-                                $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
-
-                                if ($priceOverrideData->is_price_override_set == 1) {
-                                    $job_cost = $priceOverrideData->price_override;
-                                } else {
-
-                                    //else no price overrides, then calculate job cost
-                                    $lawn_sqf = $property_details->yard_square_feet;
-                                    $job_price = $es_job->job_price;
-
-                                    //get property difficulty level
-                                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-
-                                    if (isset($property_details->difficulty_level) && $property_details->difficulty_level == 2) {
-                                        $difficulty_multiplier = $setting_details->dlmult_2;
-                                    } elseif (isset($property_details->difficulty_level) && $property_details->difficulty_level == 3) {
-                                        $difficulty_multiplier = $setting_details->dlmult_3;
-                                    } else {
-                                        $difficulty_multiplier = $setting_details->dlmult_1;
-                                    }
-
-                                    //get base fee
-                                    if (isset($es_job->base_fee_override)) {
-                                        $base_fee = $es_job->base_fee_override;
-                                    } else {
-                                        $base_fee = $setting_details->base_service_fee;
-                                    }
-
-                                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                                    //get min. service fee
-                                    if (isset($es_job->min_fee_override)) {
-                                        $min_fee = $es_job->min_fee_override;
-                                    } else {
-                                        $min_fee = $setting_details->minimum_service_fee;
-                                    }
-
-                                    // Compare cost per sf with min service fee
-                                    if ($cost_per_sqf > $min_fee) {
-                                        $job_cost = $cost_per_sqf;
-                                    } else {
-                                        $job_cost = $min_fee;
+                                foreach($program_ids as $p) {
+                                    $jobs = $this->ProgramModel->getSelectedJobs($p->program_id);
+                    
+                                    foreach ($jobs as $key3 => $value3) {
+                                        $job_id = $value3->job_id;
+                    
+                                        $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
+                    
+                                        $description = $job_details->job_name . " ";
+                    
+                                        $QBO_description[] = $job_details->job_name;
+                                        $actual_description_for_QBO[] = $job_details->job_description;
                                     }
                                 }
-
-                                // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
                             }
-                            // $total_estimate_cost += $job_cost;
-
-                            $job_id = $es_job->job_id;
-                            $where = array(
-                                'property_program_id' => $property_program_id,
-                                'customer_id' => $customer_id,
-                                'property_id' => $property_id,
-                                'program_id' => $program_id,
-                                'job_id' => $job_id,
-                                'invoice_id' => $invoice_id,
-                                'job_cost' => $job_cost,
-                                'created_at' => $date_time,
-                                'updated_at' => $date_time,
+                        
+                
+                            $inv_param['customer_email'] = $cust_details['email'];
+                            $inv_param['job_name'] = $description;
+                
+                            $QBO_description = implode(', ', $QBO_description);
+                            $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
+                            $QBO_param = $inv_param;
+                            $QBO_param['property_street'] = $property_street;
+                            $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
+                            $QBO_param['job_name'] = $QBO_description;
+                
+                            // Subtract global customer coupon value from QBO total before it's passed to QBO
+                            $coup_cust_param = array(
+                                'cost' => $QBO_param['cost'],
+                                'customer_id' => $customer_id
                             );
-                            $proprojobinv = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($where);
-
-                        }
-
-                        // get all coupon_estimates where estimateid=
-                        $coupon_estimates = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $estimate_id));
-
-                        // duplicate them for coupon_invoices using invoice_id
-                        if (!empty($coupon_estimates)) {
-                            foreach ($coupon_estimates as $coupon_estimate) {
-                                $coupon_params = array(
-                                    'coupon_id' => $coupon_estimate->coupon_id,
-                                    'invoice_id' => $invoice_id,
-                                    'coupon_code' => $coupon_estimate->coupon_code,
-                                    'coupon_amount' => $coupon_estimate->coupon_amount,
-                                    'coupon_amount_calculation' => $coupon_estimate->coupon_amount_calculation,
-                                    'coupon_type' => 0
-                                );
-                                $this->CouponModel->CreateOneCouponInvoice($coupon_params);
+                
+                            $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
+                
+                            $QBO_param['cost'] = $cost_with_cust_coupon;
+                
+                            //  die(print_r($QBO_param));
+                
+                            $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
+                
+                
+                            //if quickbooks invoice then update invoice table with id
+                            if ($quickbook_invoice_id) {
+                                $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
                             }
+                
+                            //  die(print_r($quickbook_invoice_id));
+                            
+                
+                            // where estimate jobs are stored
+                            $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id, 'program_id' => $program_id));
+                            // print_r($estimate_price_overide_data);
+                            $used_programs = array();
+                            foreach ($estimate_price_overide_data as $es_job) {
+                                $assign_program_param = array(
+                                    'property_id'           => $property_id,
+                                    'program_id'            => $es_job->program_id,
+                                    'price_override'        => 0,
+                                    'is_price_override_set' => 0,
+                                );
+                                if(!in_array($es_job->program_id, $used_programs)) {
+                                  $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
+                                }
+                                $used_programs[] = $es_job->program_id;
+                                if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
+                                    $job_cost = $es_job->price_override;
+                                } else {
+                
+                                    $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id'=>$property_id,'program_id' => $es_job->program_id));
+                        
+                                    if(isset($es_job->is_price_override_set) && $priceOverrideData->is_price_override_set == 1){
+                                        $job_cost =  $priceOverrideData->price_override;
+                                    }else{
+                
+                                        //else no price overrides, then calculate job cost
+                                        $lawn_sqf = $property_details->yard_square_feet;
+                                        $job_price = $es_job->job_price;
+                
+                                        //get property difficulty level
+                                        $setting_details = $this->CompanyModel->getOneCompany(array('company_id' =>$company_id));
+                
+                                        if(isset($property_details->difficulty_level) && $property_details->difficulty_level == 2){
+                                            $difficulty_multiplier = $setting_details->dlmult_2;
+                                        }elseif(isset($property_details->difficulty_level) && $property_details->difficulty_level == 3){
+                                            $difficulty_multiplier = $setting_details->dlmult_3;
+                                        }else{
+                                            $difficulty_multiplier = $setting_details->dlmult_1;
+                                        }
+                
+                                        //get base fee
+                                        if(isset($es_job->base_fee_override)){
+                                            $base_fee = $es_job->base_fee_override;
+                                        }else{
+                                            $base_fee = $setting_details->base_service_fee;
+                                        }
+                
+                                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier)/1000;
+                
+                                        //get min. service fee
+                                        if(isset($es_job->min_fee_override)){
+                                            $min_fee = $es_job->min_fee_override;
+                                        }else{
+                                            $min_fee = $setting_details->minimum_service_fee;
+                                        }
+                
+                                        // Compare cost per sf with min service fee
+                                        if($cost_per_sqf > $min_fee){
+                                            $job_cost = $cost_per_sqf;
+                                        }else{
+                                            $job_cost = $min_fee;
+                                        }
+                                    }
+                        
+                                    // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
+                                }
+                                // $total_estimate_cost += $job_cost;
+                
+                                $job_id = $es_job->job_id;
+                                $where = array(
+                                    'property_program_id' => $property_program_id,
+                                    'customer_id'         => $customer_id,
+                                    'property_id'         => $property_id,
+                                    'program_id'          => $es_job->program_id,
+                                    'job_id'              => $job_id,
+                                    'invoice_id'          => $invoice_id,
+                                    'job_cost'            => $job_cost,
+                                    'created_at'          => $date_time,
+                                    'updated_at'          => $date_time,
+                                );
+                                $proprojobinv = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($where);
+                
+                            }
+                            // get all coupon_estimates where estimateid=
+                            $coupon_estimates = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $estimate_id));
+                
+                            // duplicate them for coupon_invoices using invoice_id
+                            if (!empty($coupon_estimates)) {
+                                foreach($coupon_estimates as $coupon_estimate) {
+                                    $coupon_params = array(
+                                        'coupon_id' => $coupon_estimate->coupon_id,
+                                        'invoice_id' => $invoice_id,
+                                        'coupon_code' => $coupon_estimate->coupon_code,
+                                        'coupon_amount' => $coupon_estimate->coupon_amount,
+                                        'coupon_amount_calculation' => $coupon_estimate->coupon_amount_calculation,
+                                        'coupon_type' => 0
+                                    );
+                                    $this->CouponModel->CreateOneCouponInvoice($coupon_params);
+                                }
+                            }
+                
                         }
-
                     }
+
                 } else {
-                    $param = array(
-                        'program_id' => $estimate_details->program_id,
-                        'property_id' => $estimate_details->property_id,
-                    );
-                    $check = $this->EstimateModal->getOneProgramProperty($param);
-                    if ($check) {
-                        $result2 = $this->EstimateModal->updateProgramProperty(array('property_program_id' => $check->property_program_id), $param);
-                    } else {
-                        $result2 = $this->EstimateModal->assignProgramProperty($param);
+                    // we need to get all of the joined programs to the estimate now
+                    $program_ids = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_details->estimate_id));
+                    foreach($program_ids as $prid) {
+                        //assign/update property to program
+                        $param = array(
+                            'program_id'=>$prid->program_id,
+                            'property_id'=>$estimate_details->property_id
+                        );
+                    
+                        $check = $this->EstimateModal->getOneProgramProperty($param);
+                        
+                        if ($check) {
+                            $result2 = $this->EstimateModal->updateProgramProperty(array('property_program_id'=>$check->property_program_id), $param);
+                    
+                        } else {
+                            $assign_program_param = array(
+                                'property_id'           => $estimate_details->property_id,
+                                'program_id'            => $prid->program_id,
+                                'price_override'        => 0,
+                                'is_price_override_set' => 0,
+                            );
+                            $result2 = $this->EstimateModal->assignProgramProperty($assign_program_param);
+                        }
                     }
                 }
                 $data = array('status' => 200, 'subject' => 'Thank You', 'description' => 'Estimate accepted successfully');
@@ -1484,7 +1727,19 @@ class Welcome extends MY_Controller
                 $property = $this->EstimateModal->getOneProperty(array('property_id' => $estimate_details->property_id));
                 $customer_id = $this->Customer->getOnecustomerPropert(array('property_id' => $estimate_details->property_id));
                 $emaildata['customerData'] = $this->Customer->getOneCustomer(array('customer_id' => $customer_id->customer_id));
-                $emaildata['email_data_details'] = $this->EstimateModal->getProgramPropertyEmailData(array('customer_id' => $customer_id->customer_id, 'is_email' => 1, 'program_id' => $estimate_details->program_id, 'property_id' => $estimate_details->property_id));
+                $emaildata['email_data_details'] = $this->EstimateModal->getProgramPropertyEmailData(array('customer_id' => $customer_id->customer_id, 'is_email' => 1, 'property_id' => $estimate_details->property_id));
+                $joined_programs = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_details->estimate_id));
+                $program_names_array = array();
+                foreach($joined_programs as $key=>$programs) {
+                    if($programs->ad_hoc == 0) {
+                        $program_names_array[] = $programs->program_name;
+                    }
+                }
+                $emaildata['program_names'] = implode(",", $program_names_array);
+                if($emaildata['program_names'] == "") {
+                    // now we need to use the old way of doing this
+                    $emaildata['program_names'] = $estimate_details->old_program_name;
+                }
                 $where = array('company_id' => $company_id);
                 $emaildata['company_details'] = $this->CompanyModel->getOneCompany($where);
 
@@ -2979,6 +3234,136 @@ class Welcome extends MY_Controller
             $where_arr = array("hashstring" => $hashstring);
             $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
             $invoice_ids = $invoice_mini_list["invoice_ids"];
+            
+            if ($invoice_ids != "") {
+                $payall_data["hashstring"] = $hashstring;
+                $company_id = $invoice_mini_list["company_id"];
+
+                $payall_data['invoice_ids'] = $invoice_ids;
+                $invoice_ids = explode(",", $invoice_ids);
+                $payall_data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+                foreach ($invoice_ids as $key => $value) {
+                    $where = array(
+                        "invoice_tbl.company_id" => $company_id,
+                        'invoice_id' => $value,
+                    );
+                    $invoice_details = $this->INV->getOneInvoive($where);
+                    if ($invoice_details->payment_status != 2) {
+                        $invoice_details->all_sales_tax = $this->INV->getAllInvoiceSalesTax(array('invoice_id' => $value));
+                        $invoice_details->report_details = $this->INV->getOneRepots(array('report_id' => $invoice_details->report_id));
+
+                        // get coupon info
+
+                        ////////////////////////////////////
+                        // START INVOICE CALCULATION COST //
+
+                        $this->load->model('../modules/admin/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
+                        $this->load->model('../modules/admin/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
+
+                        // invoice cost
+                        // $invoice_total_cost = $invoice->cost;
+
+                        // cost of all services (with price overrides) - service coupons
+                        $job_cost_total = 0;
+                        $total_coupon_amount = 0;
+                        $where = array(
+                            'property_program_job_invoice.invoice_id' => $invoice_details->invoice_id,
+                        );
+                        $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
+                        if (!empty($proprojobinv)) {
+                            foreach ($proprojobinv as $job) {
+
+                                $job_cost = $job['job_cost'];
+
+                                $job_where = array(
+                                    'job_id' => $job['job_id'],
+                                    'customer_id' => $job['customer_id'],
+                                    'property_id' => $job['property_id'],
+                                    'program_id' => $job['program_id'],
+                                );
+                                $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                                if (!empty($coupon_job_details)) {
+
+                                    foreach ($coupon_job_details as $coupon) {
+                                        $coupon_job_amm_total = 0;
+                                        $coupon_job_amm = $coupon->coupon_amount;
+                                        $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                        if ($coupon_job_calc == 0) { // flat amm
+                                            $coupon_job_amm_total = (float) $coupon_job_amm;
+                                        } else { // percentage
+                                            $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                        }
+
+                                        $job_cost = $job_cost - $coupon_job_amm_total;
+                                        $total_coupon_amount += $coupon_job_amm_total;
+
+                                        if ($job_cost < 0) {
+                                            $job_cost = 0;
+                                        }
+                                    }
+                                }
+
+                                $job_cost_total += $job_cost;
+                            }
+                        } else {
+                            $job_cost_total = $invoice_details->cost;
+                        }
+                        $invoice_total_cost = $job_cost_total;
+
+                        // check price override -- any that are not stored in just that ^^.
+
+                        // - invoice coupons
+                        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_details->invoice_id));
+                        foreach ($coupon_invoice_details as $coupon_invoice) {
+                            if (!empty($coupon_invoice)) {
+                                $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                                $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+
+                                if ($coupon_invoice_amm_calc == 0) { // flat amm
+                                    $invoice_total_cost -= (float) $coupon_invoice_amm;
+                                    $total_coupon_amount += $coupon_invoice_amm;
+                                } else { // percentage
+                                    $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                                    $invoice_total_cost -= $coupon_invoice_amm;
+                                    $total_coupon_amount += $coupon_invoice_amm;
+                                }
+                                if ($invoice_total_cost < 0) {
+                                    $invoice_total_cost = 0;
+                                }
+                            }
+                        }
+
+                        // + tax cost
+                        $invoice_total_tax = 0;
+                        $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_details->invoice_id));
+                        if (!empty($invoice_sales_tax_details)) {
+                            foreach ($invoice_sales_tax_details as $tax) {
+                                if (array_key_exists("tax_value", $tax)) {
+                                    $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
+                                    $invoice_total_tax += $tax_amm_to_add;
+                                }
+                            }
+                        }
+                        $invoice_total_cost += $invoice_total_tax;
+                        $total_tax_amount = $invoice_total_tax;
+
+                        // END TOTAL INVOICE CALCULATION COST //
+                        ////////////////////////////////////////
+
+                        $invoice_details->total_amount_minus_partial = number_format($invoice_total_cost, 2);
+
+                        $payall_data['invoice_details_all'][] = $invoice_details;
+                    }
+                }
+            } else {
+                echo "Invalid access";
+            }
+
+            $where_arr = array("hashstring" => $hashstring);
+            $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
+            $invoice_ids = $invoice_mini_list["invoice_ids"];
             $all_invoice_paid = true;
 
             if ($invoice_ids != "") {
@@ -2998,8 +3383,9 @@ class Welcome extends MY_Controller
 
                     // die(print_r($value));
 
-                    $invoice_details = $this->INV->getOneInvoive($where);
-
+                    $invoice_details =  $this->INV->getOneInvoive($where);
+                    //var_dump($invoice_details);
+                    //exit();
                     $invoice_details->all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $value));
 
                     $invoice_details->report_details = $this->RP->getOneRepots(array('report_id' => $invoice_details->report_id));
@@ -3162,6 +3548,7 @@ class Welcome extends MY_Controller
                     $invoice_details->jobs = $jobs;
                     $invoice_details->coupon_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $value));
                     $data['invoice_details'][] = $invoice_details;
+                    
                 }
 
                 $where_company = array('company_id' => $company_id);
@@ -3172,6 +3559,7 @@ class Welcome extends MY_Controller
                     'status' => 1,
                 );
                 $data['all_invoice_paid'] = $all_invoice_paid;
+                $data['payall_data'] = $payall_data;
                 $data['cardconnect_details'] = $this->CardConnect->getOneCardConnect($where_arr);
                 $data['basys_details'] = $this->CompanyModel->getOneBasysRequest($where_arr);
 
@@ -3415,7 +3803,7 @@ class Welcome extends MY_Controller
             $invoice_mini_list = $this->INV->getInvoiceMiniListFromHashString($where_arr);
             $invoice_ids = $invoice_mini_list["invoice_ids"];
             $unpaid_invoice_ids = [];
-
+            
             if ($invoice_ids != "") {
                 $invoice_ids_list = explode(',', $invoice_ids);
                 $invoice_cost = 0;
@@ -3545,8 +3933,7 @@ class Welcome extends MY_Controller
 
                             // END TOTAL INVOICE CALCULATION COST //
                             ////////////////////////////////////////
-
-                            $total_amount_minus_partials += number_format($invoice_total_cost, 2);
+                            @$total_amount_minus_partials += number_format($invoice_total_cost, 2);
                         }
                     }
                 }
@@ -3555,12 +3942,20 @@ class Welcome extends MY_Controller
                     $data['invoice_ids'] = $invoice_ids;
                     $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
                     $data['basys_details'] = $this->CompanyModel->getOneBasysRequest(array('company_id' => $company_id, 'status' => 1));
+                    if($data['basys_details'] == NULL) {
+                        $data["cardconnect_details"] = $this->CardConnectModel->getOneCardConnect(array('company_id' => $company_id, 'status' => 1));
+                    }
+                    
                     $data['already_paid'] = $already_paid;
                     $data['total_tax_amount'] = $total_tax_amount;
                     $data['invoice_cost'] = $invoice_cost;
                     $data['partial_payment'] = $partial_payment;
                     $data['total_amount_minus_partials'] = $total_amount_minus_partials;
-                    $this->load->view('daily_basys_card_processing', $data);
+                    if($data['basys_details'] == NULL) {
+                        $this->load->view('daily_clover_card_processing', $data);
+                    } else {
+                       $this->load->view('daily_basys_card_processing', $data);
+                    }
                 } else {
                     $this->load->view('daily_basys_card_processing', $data);
                 }
@@ -3943,21 +4338,27 @@ class Welcome extends MY_Controller
         $data = $this->input->post();
         // die(print_r(json_encode($data)));
 
+        $ids_explode = explode(" ", $data['invoice_id']);
+        // die(print_r($ids_explode));
         $where = array('invoice_id' => $data['invoice_id']);
-        $invoice_details = $this->INV->getOneInvoive($where);
-        $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details->company_id));
-        $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_details->company_id, 'status' => 1));
-        $tax_details = $this->INV->getAllInvoiceSalesTax($where);
-        $customer_details = $this->Customer->getCustomerDetail($invoice_details->customer_id);
-        $property_details = $this->PropertyModel->getOneProperty(array('property_id' => $invoice_details->property_id));
+        $invoice_arr = $this->INV->getAllInvoiveWhereIn('invoice_id', $ids_explode);
+        // die(print_r($this->db->last_query()));
+        $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_arr[0]->company_id));
+        $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
+        $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_arr[0]->company_id, 'status' => 1));
+        //die($this->db->last_query());
+        $customer_details = $this->Customer->getCustomerDetail($invoice_arr[0]->customer_id);
 
-        $total_tax_amount = 0;
+
+        $invoice_amt_tax = [];
         if ($tax_details) {
-
-            $total_tax_amount = array_sum(array_column($tax_details, 'tax_amount'));
+            foreach($tax_details as $tax){
+                array_push($invoice_amt_tax, $tax['tax_amount']);
+            }
+            // die(print_r($invoice_amt_tax));
+            $total_tax_amount = array_sum($invoice_amt_tax);
+            // die(print_r($total_tax_amount));
         }
-
-        $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_details->cost + $total_tax_amount - $invoice_details->partial_payment) / 100), 2);
 
         ////////////////////////////////////
         // START INVOICE CALCULATION COST //
@@ -3968,10 +4369,9 @@ class Welcome extends MY_Controller
         // cost of all services (with price overrides) - service coupons
         $job_cost_total = 0;
         $total_coupon_amount = 0;
-        $where = array(
-            'property_program_job_invoice.invoice_id' => $data['invoice_id'],
-        );
-        $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
+        $actual_cost = [];
+
+        $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCouponWhereIn('invoice_id', $ids_explode);
         if (!empty($proprojobinv)) {
             foreach ($proprojobinv as $job) {
 
@@ -4017,7 +4417,7 @@ class Welcome extends MY_Controller
         // check price override -- any that are not stored in just that ^^.
 
         // - invoice coupons
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $data['invoice_id']));
+        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
         foreach ($coupon_invoice_details as $coupon_invoice) {
             if (!empty($coupon_invoice)) {
                 $coupon_invoice_amm = $coupon_invoice->coupon_amount;
@@ -4039,23 +4439,48 @@ class Welcome extends MY_Controller
 
         // + tax cost
         $invoice_total_tax = 0;
-        $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $data['invoice_id']));
+        $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
         if (!empty($invoice_sales_tax_details)) {
-            foreach ($invoice_sales_tax_details as $tax) {
-                if (array_key_exists("tax_value", $tax)) {
-                    $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
-                    $invoice_total_tax += $tax_amm_to_add;
-                }
+            foreach($invoice_sales_tax_details as $tax) {
+                // die(print_r($proprojobinv));
+                $tax_amm_to_add = ((float) $tax['tax_amount']);
+                array_push($actual_cost, $tax_amm_to_add);
+            }
+            array_push($actual_cost, $invoice_total_cost);
+        } else {
+            array_push($actual_cost, $invoice_total_cost);
+        }
+
+        $actual_cost = array_sum($actual_cost);
+
+        $all_payments_details = [];
+        $all_payments_details = $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $ids_explode);
+        // die(print_r($all_payments_details));
+        
+        ##### SUM ANY PAYMENT MADE ON INVOICES #####
+        $actual_payments = 0;
+        foreach($all_payments_details as $amount){
+            if(isset($amount->payment_applied)){
+                // die(print_r($amount->payment_applied));
+                $actual_payments += $amount->payment_applied;
             }
         }
-        $invoice_total_cost += $invoice_total_tax;
-        $total_tax_amount = $invoice_total_tax;
+        // die(print_r($actual_payments));
+        // $convenience_fee = 0;
+        $data['actual_total_cost_miunus_partial'] = $actual_cost - $actual_payments;
+        // die(print_r($data['actual_total_cost_miunus_partial']));
+        $data['convenience_fee'] = $setting_details->convenience_fee*($data['actual_total_cost_miunus_partial'])/100;
+        // $data['convenience_fee'] = $convenience_fee;
+        $convenience_fee = $data['convenience_fee'];
+        $data['total_tax_amount'] = $total_tax_amount;
+        // die(print_r($convenience_fee));
+        $data['total_payment_final'] = $data['actual_total_cost_miunus_partial'] + $data['convenience_fee'];
 
         // END TOTAL INVOICE CALCULATION COST //
         ////////////////////////////////////////
         //$invoice_total_cost = number_format($invoice_total_cost,2);
 
-        $total_amount = ($invoice_total_cost + $convenience_fee) - $invoice_details->partial_payment;
+        $total_amount = $data['total_payment_final'];
         // $total_amount = $invoice_details->cost + $total_tax_amount + $convenience_fee - $invoice_details->partial_payment - $total_coupon_amount;
 
         if ($total_amount < 0) {
@@ -4081,10 +4506,10 @@ class Welcome extends MY_Controller
         // $data = implode(" - ", $dataToLog);
         // $data .= PHP_EOL;
         // file_put_contents('nr_log.txt', $data, FILE_APPEND);
-
+        
         $order_id = (string) strtotime("now");
         $cc_authorize = cardConnectAuthorize($data);
-
+        
         if ($cc_authorize['status'] == 200) {
 
             if (strcmp($cc_authorize['result']->respstat, 'A') == 0) {
@@ -4109,48 +4534,149 @@ class Welcome extends MY_Controller
 
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"></div>');
 
-                if ($invoice_details->payment_status != 2) {
-                    $partial_log = $this->PartialPaymentModel->createOnePartialPayment(
-                        array(
+                foreach($invoice_arr as $index => $invoice){
+                    ////////////////////////////////////
+                    // START SINGLE INVOICE CALCULATION COST //
+                    
+                    // invoice cost
+                    // $invoice_total_cost = $invoice->cost;
+
+
+                    // cost of all services (with price overrides) - service coupons
+                    $single_invoice_job_cost_total = 0;
+                    $single_invoice_total_coupon_amount = 0;
+                    $where = array(
+                        'property_program_job_invoice.invoice_id' => $invoice->invoice_id
+                    );
+                    $single_invoice_proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
+                    if (!empty($single_invoice_proprojobinv)) {
+                        foreach($single_invoice_proprojobinv as $job) {
+
+                            $single_invoice_job_cost = $job['job_cost'];
+
+                            $job_where = array(
+                                'job_id' => $job['job_id'],
+                                'customer_id' =>$job['customer_id'],
+                                'property_id' =>$job['property_id'],
+                                'program_id' =>$job['program_id']
+                            );
+                            $single_invoice_coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                            if (!empty($single_invoice_coupon_job_details)) {
+
+                                foreach($single_invoice_coupon_job_details as $coupon) {
+                                    $single_invoice_coupon_job_amm_total = 0;
+                                    $single_invoice_coupon_job_amm = $coupon->coupon_amount;
+                                    $single_invoice_coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                    if ($single_invoice_coupon_job_calc == 0) { // flat amm
+                                        $single_invoice_coupon_job_amm_total = (float) $single_invoice_coupon_job_amm;
+                                    } else { // percentage
+                                        $single_invoice_coupon_job_amm_total = ((float) $single_invoice_coupon_job_amm / 100) * $single_invoice_job_cost;
+                                    }
+
+                                    $single_invoice_job_cost = $single_invoice_job_cost - $single_invoice_coupon_job_amm_total;
+                                    $single_invoice_total_coupon_amount += $single_invoice_coupon_job_amm_total;
+
+                                    if ($single_invoice_job_cost < 0) {
+                                        $single_invoice_job_cost = 0;
+                                    }
+                                }
+                            }
+
+                            $single_invoice_job_cost_total += $single_invoice_job_cost;
+                        }
+                    } else {
+                        $single_invoice_job_cost_total = $invoice->cost;
+                    }
+                    $single_invoice_total_cost = $single_invoice_job_cost_total;
+
+                    // check price override -- any that are not stored in just that ^^.
+
+                    // - invoice coupons
+                    $single_invoice_coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice->invoice_id));
+                    foreach ($single_invoice_coupon_invoice_details as $coupon_invoice) {
+                        if (!empty($coupon_invoice)) {
+                            $single_invoice_coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                            $single_invoice_coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+
+                            if ($single_invoice_coupon_invoice_amm_calc == 0) { // flat amm
+                                $single_invoice_total_cost -= (float) $single_invoice_coupon_invoice_amm;
+                                $single_invoice_total_coupon_amount += $single_invoice_coupon_invoice_amm;
+                            } else { // percentage
+                                $single_invoice_coupon_invoice_amm = ((float) $single_invoice_coupon_invoice_amm / 100) * $single_invoice_total_cost;
+                                $single_invoice_total_cost -= $single_invoice_coupon_invoice_amm;
+                                $single_invoice_total_coupon_amount += $single_invoice_coupon_invoice_amm;
+                            }
+                            if ($single_invoice_total_cost < 0) {
+                                $single_invoice_total_cost = 0;
+                            }
+                        }
+                    }
+
+                    // + tax cost
+                    $single_invoice_total_tax = 0;
+                    $single_invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice->invoice_id));
+                    if (!empty($single_invoice_sales_tax_details)) {
+                        foreach($single_invoice_sales_tax_details as $tax) {
+                            if (array_key_exists("tax_value", $tax)) {
+                                $single_invoice_tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $single_invoice_total_cost;
+                                $single_invoice_total_tax += $single_invoice_tax_amm_to_add;
+                            }
+                        }
+                    }
+                    $single_invoice_total_cost += $single_invoice_total_tax;
+
+                    // END SINGLE INVOICE CALCULATION COST //
+                    ////////////////////////////////////////
+                    //$invoice_total_cost = number_format($invoice_total_cost,2);
+
+                    $single_invoice_total_amount = $single_invoice_total_cost - $invoice->partial_payment;
+                    // $total_amount = $invoice_details->cost + $total_tax_amount + $convenience_fee - $invoice_details->partial_payment - $total_coupon_amount;
+                
+                
+                    if ($single_invoice_total_amount < 0) {
+                        $single_invoice_total_amount = 0;
+                    }
+                    if ($invoice_details->payment_status != 2) {
+                        $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
                             'invoice_id' => $data['invoice_id'],
                             'payment_amount' => $data['requestData']['amount'] + $invoice_details->partial_payment,
                             'payment_applied' => $data['requestData']['amount'] + $invoice_details->partial_payment,
                             'payment_datetime' => date("Y-m-d H:i:s"),
                             'payment_method' => 4,
                             'customer_id' => $invoice_details->customer_id,
-                        )
-                    );
-                    //KT and EE add status, opened_date, and sent date
-                    $updatearr = array(
-                        'payment_status' => 2,
-                        'payment_created' => date("Y-m-d H:i:s"),
-                        'payment_method' => 4,
-                        'partial_payment' => $data['requestData']['amount'] + $invoice_details->partial_payment,
-                        'clover_order_id' => $order_id,
-                        'clover_transaction_id' => $cc_authorize['result']->retref,
-                        'refund_amount_total' => 0.00
-                        ,
-                        'status' => 2,
-                        'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
-                        'sent_date' => $invoice_details->sent_date == '' ? date("Y-m-d H:i:s") : $invoice_details->sent_date
-                    );
-
-                    $this->INV->updateInvoive(array('invoice_id' => $data['invoice_id']), $updatearr);
+                        ));
+                        //KT and EE add status, opened_date, and sent date
+                        $updatearr = array(
+                            'payment_status' => 2,
+                            'payment_created' => date("Y-m-d H:i:s"),
+                            'payment_method' => 4,
+                            'partial_payment' => $data['requestData']['amount'] + $invoice_details->partial_payment,
+                            'clover_order_id' => $order_id,
+                            'clover_transaction_id' => $cc_authorize['result']->retref,
+                            'refund_amount_total' => 0.00,
+                            'status' => 2,
+                            'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
+                            'sent_date' => $invoice_details->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->sent_date
+                        );
+    
+                        $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
+                    }
+    
                 }
 
-                $company_id = $invoice_details->company_id;
+                $company_id = $invoice_arr[0]->company_id;
 
                 $where = array('company_id' => $company_id);
 
                 $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
                 $data['user_details'] = $this->CompanyModel->getOneAdminUser(array('company_id' => $company_id, 'role_id' => 1));
-                $data['customer_details'] = $customer_details;
-                // die(print_r($data['customer_details']));
 
-                $invoice_details->convenience_fee = $convenience_fee;
-                $invoice_details->tax_amount = $total_tax_amount;
+                $data['convenience_fee'] = $convenience_fee;
+                $data['tax_amount'] = isset($total_tax_amount) ? $total_tax_amount : 0.00;
 
-                $data['invoice_details'] = $invoice_details;
+                $data['invoice_details'] = $invoice_arr;
 
                 $data['actual_total_amount'] = $total_amount;
 
@@ -5678,14 +6204,25 @@ class Welcome extends MY_Controller
             // die(print_r($this->db->last_query()));
             ####
             // if one time program invoiceing
-            if ($estimate_details->program_price == 1) {
-
+            if ($estimate_details->program_pricing == "1" || $estimate_details->program_pricing == 1 || $estimate_details->program_price == "1" || $estimate_details->program_price == 1) {
+    
                 $user_id = $estimate_details->user_id;
                 $company_id = $estimate_details->company_id;
                 $customer_id = $estimate_details->customer_id;
                 $property_id = $estimate_details->property_id;
-                $program_id = $estimate_details->program_id;
-                //$estimate_id = $estimate_id;
+                //$program_id = $estimate_details->program_id;
+                $estimate_id = $estimate_id;
+                // we need to get all of the joined programs to the estimate now
+                $program_ids = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_id));
+                $program_id_to_ad_hoc = $program_id_to_service_name = $program_ids_to_services = $services_from_estimate = array();
+                foreach($program_ids as $proid) {
+                    // we need to get info for the items that are services and not programs - so we can combine those and make them into a new program
+                    if($proid->ad_hoc == "1") {
+                        $program_id_to_ad_hoc[$proid->program_id] = $proid->ad_hoc;
+                        $program_ids_to_services[$proid->program_id] = $proid->service_id;
+                        $services_from_estimate[] = $proid->service_id;
+                    }
+                }
                 $date = date('Y-m-d', time());
                 $date_time = date('Y-m-d H:m:s', time());
 
@@ -5700,14 +6237,23 @@ class Welcome extends MY_Controller
                 // print_r($estimate_price_overide_data);
                 // die();
 
+                $invoice_total_per_program = array();
+                $total_for_services = 0;
+                // need to set all the keys for the above and set that to 0 so we can add to it in the loop below
+                foreach ($estimate_price_overide_data as $es_job) {
+                    if(!in_array($es_job->program_id,array_keys($program_ids_to_services))) {
+                        $invoice_total_per_program[$es_job->program_id] = 0;
+                    }
+                }
+    
                 foreach ($estimate_price_overide_data as $es_job) {
 
                     if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
                         $job_cost = $es_job->price_override;
                     } else {
-
-                        $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
-
+    
+                        $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $es_job->program_id));
+    
                         if (isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1) {
                             $job_cost = $priceOverrideData->price_override;
                         } else {
@@ -5759,12 +6305,18 @@ class Welcome extends MY_Controller
                         'job_id' => $es_job->job_id,
                         'customer_id' => $customer_id,
                         'property_id' => $property_id,
-                        'program_id' => $program_id
+                        'program_id' => $es_job->program_id
                     );
 
                     $job_cost_w_coupon = $this->calculateServiceCouponCost($coup_job_param);
 
                     @$total_estimate_cost += $job_cost_w_coupon;
+
+                    if(array_key_exists($es_job->program_id, $invoice_total_per_program)) {
+                        $invoice_total_per_program[$es_job->program_id] += $job_cost;
+                    } else {
+                        $total_for_services += $job_cost;
+                    }
                 }
 
                 // $total_sales_tax = 0;
@@ -5777,223 +6329,272 @@ class Welcome extends MY_Controller
                 //   }
                 // }
 
-                $coup_est_param = array(
-                    'cost' => $total_estimate_cost,
-                    'estimate_id' => $estimate_id
-                );
-
-                $cost_w_est_coup = $this->calculateEstimateCouponCost($coup_est_param);
-
-                // Subtract global customer coupon value from QBO total before it's passed to QBO
-                $coup_cust_param = array(
-                    'cost' => $cost_w_est_coup,
-                    'customer_id' => $customer_id
-                );
-
-                $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
-
-
-
-
-                $jobs = $this->ProgramModel->getSelectedJobs($program_id);
-
-                $description = "";
-
-                $estimate_cost_w_coupons = $cost_with_cust_coupon;
-
-                foreach ($jobs as $key3 => $value3) {
-                    $job_id = $value3->job_id;
-
-
-
-                    $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
-
-                    $description = $job_details->job_name . " ";
-
-                    $QBO_description[] = $job_details->job_name;
-                    $actual_description_for_QBO[] = $job_details->job_description;
-
+                // we need to take the services that we have from the estimate, combine them into ONE single program - and assign that to an invoice
+                $bundled_program_name = '';
+                if(count($services_from_estimate) == 1){
+                    $bundled_program_name = $this->JobModel->getOneJob(array('job_id' => $services_from_estimate[0]))->job_name.'-Standalone Service';
+                } elseif(count($services_from_estimate) > 1){
+                    $job_names = array_map(function($s) {
+                    $r = $this->JobModel->getOneJob(array('job_id' => $s));
+                    return $r->job_name;
+                    }, $services_from_estimate);
+                    $bundled_program_name = implode('+', $job_names);
                 }
-
-                //get customer info
-                $cust_details = getOneCustomerInfo(array('customer_id' => $customer_id));
-
-                $total = $total_estimate_cost;
-
-                // create invoice for estimate
-                $inv_param = array(
-                    'user_id' => $user_id,
-                    'company_id' => $company_id,
-                    'customer_id' => $customer_id,
-                    'property_id' => $property_id,
-                    'invoice_date' => $date,
-                    'description' => 'Invoice From Estimate',
-                    'cost' => $total,
-                    'program_id' => $program_id,
-                    'is_created' => 1,
-                    'invoice_created' => date("Y-m-d H:i:s"),
-                );
-                $invoice_id = $this->INV->createOneInvoice($inv_param);
-
-                if ($invoice_id) {
-
-                    //figure sales tax
-                    $total_tax_amount = 0;
-                    if ($setting_details->is_sales_tax == 1) {
-                        $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $property_id));
-                        if ($property_assign_tax) {
-                            foreach ($property_assign_tax as $tax_details) {
-                                $invoice_tax_details = array(
+                if($bundled_program_name != '') {
+                    $jobsAll = array();
+                    foreach($services_from_estimate as $service){
+                        $jobsAll = array_unique(array_merge($jobsAll,array($service)));
+                    }
+                    $programData = array();
+                    $programData['company_id'] = $company_id;
+                    $programData['user_id'] = $user_id;
+                    $programData['program_name'] = $bundled_program_name;
+                    $programData['jobs_all'] = $jobsAll;
+                    $programData['program_price'] = $estimate_details->program_pricing;
+                    if($programData['program_price'] == "") {
+                        $programData['program_price'] = $estimate_details->program_price;
+                    }
+                    $programResults = $this->createModifiedBundledProgram($programData);
+                    // now that we have created the new program we can add it to the invoice total per program array and let that handle creating the invoice
+                    $invoice_total_per_program[$programResults['program_id']] = $total_for_services;
+                    foreach($services_from_estimate as $service) {
+                        $this_service_override_numbers = $this->EstimateModal->getAllEstimatePriceOveride(array('job_id'=>$service, 'estimate_id'=>$estimate_id));
+                        // we need to create new estimate overrides with the new program ID on it for each service
+                        $service_numbers = array(
+                            'estimate_id' => $estimate_id,
+                            'customer_id' => $this_service_override_numbers[0]->customer_id,
+                            'property_id' => $this_service_override_numbers[0]->property_id,
+                            'program_id' => $programResults['program_id'],
+                            'job_id' => $this_service_override_numbers[0]->job_id,
+                            'price_override' => $this_service_override_numbers[0]->price_override,
+                            'is_price_override_set' => $this_service_override_numbers[0]->is_price_override_set,
+                            'created_at' => date("Y-m-d H:i:s"),
+                            'for_invoicing_only' => 1
+                        );
+                        $this->EstimateModal->CreateOneEstimatePriceOverRide($service_numbers);
+                    }
+                }
+    
+                foreach($invoice_total_per_program as $program_id=>$itpp) {
+                    // create invoice for estimate
+                    $inv_param = array(
+                        'user_id' => $user_id,
+                        'company_id' => $company_id,
+                        'customer_id' => $customer_id,
+                        'property_id' => $property_id,
+                        'invoice_date' => $date,
+                        'description' => 'Invoice From Estimate',
+                        'cost' => $itpp,
+                        'program_id' => $program_id,
+                        'is_created' => 1,
+                        'invoice_created' => date("Y-m-d H:i:s"),
+                    );
+                    $invoice_id = $this->INV->createOneInvoice($inv_param);
+                    
+                    if ($invoice_id) {
+                        //figure sales tax
+                        $total_tax_amount = 0;
+                        if ($setting_details->is_sales_tax==1) {
+                            $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id'=>$property_id));
+                            if ($property_assign_tax) {
+                                foreach ($property_assign_tax as  $tax_details) {
+                                $invoice_tax_details =  array(
                                     'invoice_id' => $invoice_id,
                                     'tax_name' => $tax_details['tax_name'],
                                     'tax_value' => $tax_details['tax_value'],
-                                    'tax_amount' => $cost_with_cust_coupon * $tax_details['tax_value'] / 100,
+                                    'tax_amount' => $itpp*$tax_details['tax_value']/100
                                 );
                                 $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
-                                $total_tax_amount += $invoice_tax_details['tax_amount'];
-                            }
-                        }
-                    }
-
-                    //Quickbooks Invoice **
-
-                    $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
-                    $property_street = explode(',', $property_deets->property_address)[0];
-
-
-                    $inv_param['customer_email'] = $cust_details['email'];
-                    $inv_param['job_name'] = $description;
-
-                    $QBO_description = implode(', ', $QBO_description);
-                    $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
-                    $QBO_param = $inv_param;
-                    $QBO_param['property_street'] = $property_street;
-                    $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
-                    $QBO_param['job_name'] = $QBO_description;
-                    $QBO_param['cost'] = $cost_with_cust_coupon;
-                    $QBO_param['invoice_id'] = $invoice_id;
-
-
-                    $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
-
-                    // die(print_r($quickbook_invoice_id));
-                    //if quickbooks invoice then update invoice table with id
-                    if ($quickbook_invoice_id) {
-                        $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
-                    }
-
-                    $assign_program_param = array(
-                        'property_id' => $property_id,
-                        'program_id' => $program_id,
-                        'price_override' => 0,
-                        'is_price_override_set' => 0,
-                    );
-                    $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
-
-                    // where estimate jobs are stored
-                    $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
-                    // die(print_r($estimate_price_overide_data[0]->is_price_override_set));
-                    // print_r($estimate_price_overide_data);
-
-                    foreach ($estimate_price_overide_data as $es_job) {
-
-                        if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
-                            $job_cost = $es_job->price_override;
-                        } else {
-
-                            $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
-
-                            if ($priceOverrideData->is_price_override_set == 1) {
-                                $job_cost = $priceOverrideData->price_override;
-                            } else {
-
-                                //else no price overrides, then calculate job cost
-                                $lawn_sqf = $property_details->yard_square_feet;
-                                $job_price = $es_job->job_price;
-
-                                //get property difficulty level
-                                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-
-                                if (isset($property_details->difficulty_level) && $property_details->difficulty_level == 2) {
-                                    $difficulty_multiplier = $setting_details->dlmult_2;
-                                } elseif (isset($property_details->difficulty_level) && $property_details->difficulty_level == 3) {
-                                    $difficulty_multiplier = $setting_details->dlmult_3;
-                                } else {
-                                    $difficulty_multiplier = $setting_details->dlmult_1;
-                                }
-
-                                //get base fee
-                                if (isset($es_job->base_fee_override)) {
-                                    $base_fee = $es_job->base_fee_override;
-                                } else {
-                                    $base_fee = $setting_details->base_service_fee;
-                                }
-
-                                $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                                //get min. service fee
-                                if (isset($es_job->min_fee_override)) {
-                                    $min_fee = $es_job->min_fee_override;
-                                } else {
-                                    $min_fee = $setting_details->minimum_service_fee;
-                                }
-
-                                // Compare cost per sf with min service fee
-                                if ($cost_per_sqf > $min_fee) {
-                                    $job_cost = $cost_per_sqf;
-                                } else {
-                                    $job_cost = $min_fee;
+                                $total_tax_amount +=  $invoice_tax_details['tax_amount'];
+                
                                 }
                             }
-
-                            // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
                         }
-                        // $total_estimate_cost += $job_cost;
-
-                        $job_id = $es_job->job_id;
-                        $where = array(
-                            'property_program_id' => $property_program_id,
-                            'customer_id' => $customer_id,
-                            'property_id' => $property_id,
-                            'program_id' => $program_id,
-                            'job_id' => $job_id,
-                            'invoice_id' => $invoice_id,
-                            'job_cost' => $job_cost,
-                            'created_at' => $date_time,
-                            'updated_at' => $date_time,
+            
+                        //Quickbooks Invoice **
+            
+                        $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
+                        $property_street = explode(',', $property_deets->property_address)[0];
+            
+                        $cust_details = getOneCustomerInfo(array('customer_id' => $customer_id));
+                        $QBO_description = $actual_description_for_QBO = array();
+                        foreach($program_ids as $p) {
+                            $jobs = $this->ProgramModel->getSelectedJobs($p->program_id);
+            
+                            foreach ($jobs as $key3 => $value3) {
+                                $job_id = $value3->job_id;
+            
+                                $job_details = $this->JobModel->getOneJob(array('job_id' => $job_id));
+            
+                                $description = $job_details->job_name . " ";
+            
+                                $QBO_description[] = $job_details->job_name;
+                                $actual_description_for_QBO[] = $job_details->job_description;
+                            }
+                        }
+                    
+            
+                        $inv_param['customer_email'] = $cust_details['email'];
+                        $inv_param['job_name'] = $description;
+            
+                        $QBO_description = implode(', ', $QBO_description);
+                        $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
+                        $QBO_param = $inv_param;
+                        $QBO_param['property_street'] = $property_street;
+                        $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
+                        $QBO_param['job_name'] = $QBO_description;
+            
+                        // Subtract global customer coupon value from QBO total before it's passed to QBO
+                        $coup_cust_param = array(
+                            'cost' => $QBO_param['cost'],
+                            'customer_id' => $customer_id
                         );
-                        $proprojobinv = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($where);
-                    }
-
-                    // get all coupon_estimates where estimateid=
-                    $coupon_estimates = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $estimate_id));
-                    // die(print_r($coupon_estimates));
-                    // duplicate them for coupon_invoices using invoice_id
-                    if (!empty($coupon_estimates)) {
-                        foreach ($coupon_estimates as $coupon_estimate) {
-                            $coupon_params = array(
-                                'coupon_id' => $coupon_estimate->coupon_id,
-                                'invoice_id' => $invoice_id,
-                                'coupon_code' => $coupon_estimate->coupon_code,
-                                'coupon_amount' => $coupon_estimate->coupon_amount,
-                                'coupon_amount_calculation' => $coupon_estimate->coupon_amount_calculation,
-                                'coupon_type' => 0,
-                            );
-                            $this->CouponModel->CreateOneCouponInvoice($coupon_params);
+            
+                        $cost_with_cust_coupon = $this->calculateCustomerCouponCost($coup_cust_param);
+            
+                        $QBO_param['cost'] = $cost_with_cust_coupon;
+            
+                        //  die(print_r($QBO_param));
+            
+                        $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
+            
+            
+                        //if quickbooks invoice then update invoice table with id
+                        if ($quickbook_invoice_id) {
+                            $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
                         }
+            
+                        //  die(print_r($quickbook_invoice_id));
+                        
+            
+                        // where estimate jobs are stored
+                        $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id, 'program_id' => $program_id));
+                        // print_r($estimate_price_overide_data);
+                        $used_programs = array();
+                        foreach ($estimate_price_overide_data as $es_job) {
+                            $assign_program_param = array(
+                                'property_id'           => $property_id,
+                                'program_id'            => $es_job->program_id,
+                                'price_override'        => 0,
+                                'is_price_override_set' => 0,
+                            );
+                            if(!in_array($es_job->program_id, $used_programs)) {
+                              $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
+                            }
+                            $used_programs[] = $es_job->program_id;
+                            if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
+                                $job_cost = $es_job->price_override;
+                            } else {
+            
+                                $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id'=>$property_id,'program_id' => $es_job->program_id));
+                    
+                                if(isset($es_job->is_price_override_set) && $priceOverrideData->is_price_override_set == 1){
+                                    $job_cost =  $priceOverrideData->price_override;
+                                }else{
+            
+                                    //else no price overrides, then calculate job cost
+                                    $lawn_sqf = $property_details->yard_square_feet;
+                                    $job_price = $es_job->job_price;
+            
+                                    //get property difficulty level
+                                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' =>$company_id));
+            
+                                    if(isset($property_details->difficulty_level) && $property_details->difficulty_level == 2){
+                                        $difficulty_multiplier = $setting_details->dlmult_2;
+                                    }elseif(isset($property_details->difficulty_level) && $property_details->difficulty_level == 3){
+                                        $difficulty_multiplier = $setting_details->dlmult_3;
+                                    }else{
+                                        $difficulty_multiplier = $setting_details->dlmult_1;
+                                    }
+            
+                                    //get base fee
+                                    if(isset($es_job->base_fee_override)){
+                                        $base_fee = $es_job->base_fee_override;
+                                    }else{
+                                        $base_fee = $setting_details->base_service_fee;
+                                    }
+            
+                                    $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier)/1000;
+            
+                                    //get min. service fee
+                                    if(isset($es_job->min_fee_override)){
+                                        $min_fee = $es_job->min_fee_override;
+                                    }else{
+                                        $min_fee = $setting_details->minimum_service_fee;
+                                    }
+            
+                                    // Compare cost per sf with min service fee
+                                    if($cost_per_sqf > $min_fee){
+                                        $job_cost = $cost_per_sqf;
+                                    }else{
+                                        $job_cost = $min_fee;
+                                    }
+                                }
+                    
+                                // $job_cost = $es_job->job_price * $property_details->yard_square_feet/1000;
+                            }
+                            // $total_estimate_cost += $job_cost;
+            
+                            $job_id = $es_job->job_id;
+                            $where = array(
+                                'property_program_id' => $property_program_id,
+                                'customer_id'         => $customer_id,
+                                'property_id'         => $property_id,
+                                'program_id'          => $es_job->program_id,
+                                'job_id'              => $job_id,
+                                'invoice_id'          => $invoice_id,
+                                'job_cost'            => $job_cost,
+                                'created_at'          => $date_time,
+                                'updated_at'          => $date_time,
+                            );
+                            $proprojobinv = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($where);
+            
+                        }
+                        // get all coupon_estimates where estimateid=
+                        $coupon_estimates = $this->CouponModel->getAllCouponEstimate(array('estimate_id' => $estimate_id));
+            
+                        // duplicate them for coupon_invoices using invoice_id
+                        if (!empty($coupon_estimates)) {
+                            foreach($coupon_estimates as $coupon_estimate) {
+                                $coupon_params = array(
+                                    'coupon_id' => $coupon_estimate->coupon_id,
+                                    'invoice_id' => $invoice_id,
+                                    'coupon_code' => $coupon_estimate->coupon_code,
+                                    'coupon_amount' => $coupon_estimate->coupon_amount,
+                                    'coupon_amount_calculation' => $coupon_estimate->coupon_amount_calculation,
+                                    'coupon_type' => 0
+                                );
+                                $this->CouponModel->CreateOneCouponInvoice($coupon_params);
+                            }
+                        }
+            
                     }
                 }
 
             } else {
-                $param = array(
-                    'program_id' => $estimate_details->program_id,
-                    'property_id' => $estimate_details->property_id,
-                );
-                $check = $this->EstimateModal->getOneProgramProperty($param);
-                if ($check) {
-                    $result2 = $this->EstimateModal->updateProgramProperty(array('property_program_id' => $check->property_program_id), $param);
-                } else {
-                    $result2 = $this->EstimateModal->assignProgramProperty($param);
+                // we need to get all of the joined programs to the estimate now
+                $program_ids = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_details->estimate_id));
+                foreach($program_ids as $prid) {
+                    //assign/update property to program
+                    $param = array(
+                        'program_id'=>$prid->program_id,
+                        'property_id'=>$estimate_details->property_id
+                    );
+                
+                    $check = $this->EstimateModal->getOneProgramProperty($param);
+                    
+                    if ($check) {
+                        $result2 = $this->EstimateModal->updateProgramProperty(array('property_program_id'=>$check->property_program_id), $param);
+                
+                    } else {
+                        $assign_program_param = array(
+                            'property_id'           => $estimate_details->property_id,
+                            'program_id'            => $prid->program_id,
+                            'price_override'        => 0,
+                            'is_price_override_set' => 0,
+                        );
+                        $result2 = $this->EstimateModal->assignProgramProperty($assign_program_param);
+                    }
                 }
             }
         }
@@ -6028,8 +6629,8 @@ class Welcome extends MY_Controller
         $all_companies = $this->CompanyModel->getCompanyListSubscribedMonthlyStatement();
         // die(print_r($all_companies));
         $all_customers = [];
-        foreach ($all_companies as $key => $value) {
-            //   fwrite($file, 'Company: '.$value->company_id. '\n');
+        foreach ($all_companies as $key => $value){
+         //   fwrite($file, 'Company: '.$value->company_id. '\n');
             //$invoiceAgeReport = $this->invoiceAgeReport($value->company_id);
             $aux = $this->ReportsModel->ajaxDataForInvoiceAgeReport($value->company_id);
             if (!empty($aux))
@@ -6049,7 +6650,7 @@ class Welcome extends MY_Controller
             $resp = $this->INV->sendMonthlyInvoice($value, $email);
             //echo $resp;
             $this->load->clear_vars();
-            // echo '<br>';
+           // echo '<br>';
 
 
         }
@@ -6507,6 +7108,39 @@ class Welcome extends MY_Controller
             }
         }
         return $data;
+    }
+
+
+    public function createModifiedBundledProgram($data)
+    {
+        //create new ad_hoc program based on selected program id
+            $newProgram = array(
+                'user_id' => $data['user_id'],
+                'company_id' => $data['company_id'],
+                'program_name' => $data['program_name'],
+                'program_price' => $data['program_price'],
+                'ad_hoc' => 1
+        );
+
+        $program_id = $this->ProgramModel->insert_program($newProgram);
+
+        $program_jobs = $data['jobs_all'];
+        foreach($program_jobs as $pj) {
+            //Assign jobs to program
+            $programJob = array(
+                'program_id' => $program_id,
+                'job_id' => $pj,
+                'priority' =>1
+            );
+            $programJobAssignResult = $this->ProgramModel->assignProgramJobs($programJob);
+        }
+
+        $returnData = array(
+            'program_id' => $program_id,
+            'programjob_assign_result' => $programJobAssignResult
+        );
+        // die(print_r($returnData));
+        return $returnData;
     }
 
 
