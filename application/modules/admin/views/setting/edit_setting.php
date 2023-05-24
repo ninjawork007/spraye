@@ -1083,6 +1083,59 @@ line-height: normal;
                 <fieldset class="content-group">
                     <legend class="text-bold">Mass Email Settings
                     </legend>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">SMTP Host</label>
+                                <?php
+                                $smtp_host_ex =  explode("://", $company_email_details->mass_smtp_host);
+                                ?>
+                                <div class="col-lg-9">
+                                    <div class="row">
+                                        <div class="col-lg-3">
+                                            <select class="form-control" name="mass_smtp_host_type">
+                                                <option value="tls://" <?php if ($smtp_host_ex[0] . '://' == "tls://") { ?> selected <?php } ?>>
+                                                    tls://</option>
+                                                <option value="ssl://" <?php if ($smtp_host_ex[0] . '://' == "ssl://") { ?> selected <?php } ?>>
+                                                    ssl://</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-lg-9">
+                                            <input type="text" class="form-control" name="mass_smtp_host" placeholder="Host" value="<?= array_key_exists(1, $smtp_host_ex) ? $smtp_host_ex[1] : '' ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">SMTP Port</label>
+                                <div class="col-lg-9">
+                                    <input type="text" class="form-control" name="mass_smtp_port" placeholder="Port" value="<?= $company_email_details->mass_smtp_port ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">SMTP Username</label>
+                                <div class="col-lg-9">
+                                    <input type="text" class="form-control" name="mass_smtp_username" placeholder="SMTP Username" value="<?= $company_email_details->mass_smtp_username ?>">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label col-lg-3">SMTP Password</label>
+                                <div class="col-lg-9">
+                                    <input type="password" class="form-control" name="mass_smtp_password" placeholder="SMTP Password" value="<?= $company_email_details->mass_smtp_password ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">

@@ -10223,7 +10223,7 @@ class Reports extends MY_Controller {
                 $body = str_replace('{PROGRAMM_NAME}', implode(", ", $AllProgrammNames), $body);
 
                 if(count($AllProgrammNames) > 0){
-                    Send_Mail_dynamic(
+                    Send_Mail_dynamic_mass(
                         $company_email_details,
                         $CustomerDetails->email,
                         array(

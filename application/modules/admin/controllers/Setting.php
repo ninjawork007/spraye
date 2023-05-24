@@ -1279,6 +1279,10 @@ class Setting extends MY_Controller
         } else {
             $param = array(
                 'mass_email_id' => $data['mass_email_id'],
+                'mass_smtp_host' => $data['mass_smtp_host_type'].$data['mass_smtp_host'],
+                'mass_smtp_port' => $data['mass_smtp_port'],
+                'mass_smtp_username' => $data['mass_smtp_username'],
+                'mass_smtp_password' => $data['mass_smtp_password'],
                 'updated_at' => date('Y-m-d H:i:s')
             );
             $where = array('company_id' => $this->session->userdata['company_id']);
