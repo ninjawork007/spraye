@@ -153,6 +153,7 @@ class Invoice_model extends CI_Model{
 
         $this->db->from('invoice_tbl');
 
+
         $this->db->where(array('customer_id' => $customer_id, 'status !=' => 0, 'payment_status !=' => 2, 'is_archived' => 0));
 
         $data = $this->db->get();
@@ -161,7 +162,8 @@ class Invoice_model extends CI_Model{
         
         // die(print_r($result));
 
-        if(!empty($result)){            
+        if(!empty($result)){
+
             
             foreach($result as $res){
 
@@ -170,6 +172,8 @@ class Invoice_model extends CI_Model{
                 $this->db->where(array('invoice_id' => $res->unpaid_invoice));
                 $coup_data = $this->db->get();
                 $coupons = $coup_data->result();
+
+                $coupon_value = 0;
 
                 $this->db->select('tax_value');
                 $this->db->from('invoice_sales_tax');
@@ -185,21 +189,22 @@ class Invoice_model extends CI_Model{
                     foreach($coupons as $coupon){
                         if($coupon->coupon_amount){
                             if($coupon->coupon_amount_calculation){
-                                $coupon_value = $res->unpaid_amount * ($coupon->coupon_amount * .01);
-                                $res->unpaid_amount -= $coupon_value; 
+                                $coupon_value += $res->cost * ($coupon->coupon_amount * .01);
                             } else {
-                                $coupon_value = $coupon->coupon_amount;
-                                $res->unpaid_amount -= $coupon_value; 
+                                $coupon_value += $coupon->coupon_amount;
+
                             }
                         }
                     }
 
-                    
+                    $res->unpaid_amount -= $coupon_value; 
+
                 }
 
                 if(!empty($taxes)){
                     foreach($taxes as $tax){
-                        $tax_value += $res->unpaid_amount * ($tax->tax_value * .01);
+                        $tax_value += $res->cost * ($tax->tax_value * .01);
+
                     }
 
                     $res->unpaid_amount += $tax_value;
@@ -225,6 +230,7 @@ class Invoice_model extends CI_Model{
 
         $this->db->from('invoice_tbl');
 
+
         $this->db->where(array('invoice_id' => $invoice_id, 'is_archived' => 0 ));
 
         $data = $this->db->get();
@@ -247,29 +253,33 @@ class Invoice_model extends CI_Model{
         $coupons = $coup_data->result();
 
         $tax_value = 0;
+
+        $coupon_value = 0;
+
         $result->unpaid_amount = $result->cost;
 
-        
 
         if(!empty($coupons)){
             foreach($coupons as $coupon){
                 if($coupon->coupon_amount){
                     if($coupon->coupon_amount_calculation){
-                        $coupon_value = $result->unpaid_amount * ($coupon->coupon_amount * .01);
-                        $result->unpaid_amount -= $coupon_value; 
+                        $coupon_value += $result->cost * ($coupon->coupon_amount * .01);
                     } else {
-                        $coupon_value = $coupon->coupon_amount;
-                        $result->unpaid_amount -= $coupon_value; 
+                        $coupon_value += $coupon->coupon_amount;
+
                     }
                 }
             }
 
-            
+            $result->unpaid_amount -= $coupon_value; 
         }
-        
+
+                               
+
         if(!empty($taxes)){
             foreach($taxes as $tax){
-                $tax_value += $result->unpaid_amount * ($tax->tax_value * .01);
+                $tax_value += $result->cost * ($tax->tax_value * .01);
+
             }
 
             $result->unpaid_amount += $tax_value;

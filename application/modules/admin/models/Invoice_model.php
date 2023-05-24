@@ -778,12 +778,11 @@ class Invoice_model extends CI_Model{
     }
 	public function getAllInvoicesReport($where_arr = '') {
 
-        $this->db->select('invoice_tbl.*,invoice_sales_tax.tax_name,invoice_sales_tax.tax_value,invoice_sales_tax.tax_amount,property_tbl.property_area, users.user_first_name, users.user_last_name');
+        $this->db->select('invoice_tbl.*,invoice_sales_tax.tax_name,invoice_sales_tax.tax_value,invoice_sales_tax.tax_amount,property_tbl.property_area');
 
         $this->db->from(self::INVTBL);
         $this->db->join('invoice_sales_tax', 'invoice_tbl.invoice_id = invoice_sales_tax.invoice_id', 'left');
 		$this->db->join('property_tbl', 'invoice_tbl.property_id = property_tbl.property_id', 'left');
-        $this->db->join('users', 'invoice_tbl.credit_given_user = users.id', 'left');
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
@@ -811,8 +810,11 @@ class Invoice_model extends CI_Model{
         } else {
             return;
         }
-    }
 
+        // if(isset($data) && !empty($data)){ die(print_r($data)); }
+
+
+    }
     public function getLateFee($invoice_id){
         $sql = "SELECT 
                     IF(apply_late_fee
@@ -1319,23 +1321,33 @@ class Invoice_model extends CI_Model{
         return !empty($result) ? $result : false;
     }
 
-    public function getUnpaidInvoices($customer_id){
+    public function getUnpaidInvoices($customer_id=0){
         $this->db->select('invoice_id as unpaid_invoice, cost, partial_payment as paid_already');
+
         $this->db->from('invoice_tbl');
+
+
         $this->db->where(array('customer_id' => $customer_id, 'status !=' => 0, 'payment_status !=' => 2, 'is_archived' => 0));
+
         $data = $this->db->get();
-        $result = $data->result();
-        if(!empty($result)){
+        
+        $result = $data->result();        
+
+        if(!empty($result)){            
+            
             foreach($result as $res){
+
                 $this->db->select('coupon_amount_calculation, coupon_amount');
                 $this->db->from('coupon_invoice');
-                $this->db->where(array('invoice_id' => $res->unpaid_invoice));
+                $this->db->where('invoice_id', $res->unpaid_invoice);
                 $coup_data = $this->db->get();
                 $coupons = $coup_data->result();
 
+                $coupon_value = 0;
+
                 $this->db->select('tax_value');
                 $this->db->from('invoice_sales_tax');
-                $this->db->where(array('invoice_id' => $res->unpaid_invoice));
+                $this->db->where('invoice_id', $res->unpaid_invoice);
                 $tax_data = $this->db->get();
                 $taxes = $tax_data->result();
 
@@ -1347,32 +1359,35 @@ class Invoice_model extends CI_Model{
                     foreach($coupons as $coupon){
                         if($coupon->coupon_amount){
                             if($coupon->coupon_amount_calculation){
-                                $coupon_value = $res->unpaid_amount * ($coupon->coupon_amount * .01);
-                                $res->unpaid_amount -= $coupon_value; 
+                                $coupon_value += $res->cost * ($coupon->coupon_amount * .01);
                             } else {
-                                $coupon_value = $coupon->coupon_amount;
-                                $res->unpaid_amount -= $coupon_value; 
+                                $coupon_value += $coupon->coupon_amount;
+
                             }
                         }
                     }
+
+                    $res->unpaid_amount -= $coupon_value; 
+
                 }
 
                 if(!empty($taxes)){
                     foreach($taxes as $tax){
-                        $tax_value += $res->unpaid_amount * ($tax->tax_value * .01);
-                    }
-                    $res->unpaid_amount += $tax_value;
-                }
+                        $tax_value += $res->cost * ($tax->tax_value * .01);
 
-                $res->unpaid_amount -= $res->paid_already;
-                if ($res->unpaid_amount <= 0){
-                    $res->unpaid_amount = 0;
+                    }
+
+                    $res->unpaid_amount += $tax_value;
                 }
 
                 $res->unpaid_amount = number_format($res->unpaid_amount, 2, '.', '');
             }
         }
+
+        
+        // die(print_r($result));
         return $result;
+
     }
 
     public function getUnpaidInvoiceById($invoice_id){
@@ -1380,6 +1395,7 @@ class Invoice_model extends CI_Model{
         $this->db->select('invoice_id as unpaid_invoice, cost, partial_payment as paid_already');
 
         $this->db->from('invoice_tbl');
+
 
         $this->db->where(array('invoice_id' => $invoice_id, 'is_archived' => 0 ));
 
@@ -1403,27 +1419,31 @@ class Invoice_model extends CI_Model{
 
         $tax_value = 0;
 
+        $coupon_value = 0;
+
         $result->unpaid_amount = $result->cost;
 
         if(!empty($coupons)){
             foreach($coupons as $coupon){
                 if($coupon->coupon_amount){
                     if($coupon->coupon_amount_calculation){
-                        $coupon_value = $result->unpaid_amount * ($coupon->coupon_amount * .01);
-                        $result->unpaid_amount -= $coupon_value; 
+                        $coupon_value += $result->cost * ($coupon->coupon_amount * .01);
                     } else {
-                        $coupon_value = $coupon->coupon_amount;
-                        $result->unpaid_amount -= $coupon_value; 
+                        $coupon_value += $coupon->coupon_amount;
+
                     }
                 }
             }
 
-            
+            $result->unpaid_amount -= $coupon_value; 
         }
-        
+
+                               
+
         if(!empty($taxes)){
             foreach($taxes as $tax){
-                $tax_value += $result->unpaid_amount * ($tax->tax_value * .01);
+                $tax_value += $result->cost * ($tax->tax_value * .01);
+
             }
 
             $result->unpaid_amount += $tax_value;

@@ -180,5 +180,22 @@ EOD;
         $data = $result->result();
         return $data;
     }
+
+    public function getAllInvoiceSalesTaxWhereIn($search_column, $where_arr='') {
+           
+        $this->db->select('*');
+        
+        $this->db->from(self::INTX);
+
+        // if (is_array($where_arr)) {
+            $this->db->where_in($search_column, $where_arr);
+        // }
+        
+
+        $result = $this->db->get();
+
+        $data = $result->result_array();
+        return $data;
+    }
 }
  

@@ -380,6 +380,7 @@ abstract class REST_Controller extends MY_Controller {
      */
     public function __construct($config = 'rest')
     {
+        
         parent::__construct();
 
         $this->preflight_checks();
@@ -494,7 +495,7 @@ abstract class REST_Controller extends MY_Controller {
 
         //get header vars
         $this->_head_args = $this->input->request_headers();
-
+        //print_r($this->input->request_headers());
         // Merge both for one mega-args variable
         $this->_args = array_merge(
             $this->_get_args,
@@ -515,7 +516,7 @@ abstract class REST_Controller extends MY_Controller {
 
         // Extend this function to apply additional checking early on in the process
         $this->early_checks();
-
+        
         // Load DB if its enabled
         if ($this->config->item('rest_database_group') && ($this->config->item('rest_enable_keys') || $this->config->item('rest_enable_logging')))
         {
@@ -527,7 +528,7 @@ abstract class REST_Controller extends MY_Controller {
         {
             $this->rest->db = $this->db;
         }
-
+        
         // Check if there is a specific auth type for the current class/method
         // _auth_override_check could exit so we need $this->rest->db initialized before
         $this->auth_override = $this->_auth_override_check();
@@ -548,12 +549,13 @@ abstract class REST_Controller extends MY_Controller {
                     $this->config->item('rest_message_field_name') => $this->lang->line('text_rest_ajax_only')
                 ], self::HTTP_NOT_ACCEPTABLE);
         }
-
+        
         // When there is no specific override for the current class/method, use the default auth value set in the config
         if ($this->auth_override === FALSE &&
             (! ($this->config->item('rest_enable_keys') && $this->_allow === TRUE) ||
             ($this->config->item('allow_auth_and_keys') === TRUE && $this->_allow === TRUE)))
         {
+            
             $rest_auth = strtolower($this->config->item('rest_auth'));
             switch ($rest_auth)
             {
@@ -572,6 +574,8 @@ abstract class REST_Controller extends MY_Controller {
                 $this->_check_whitelist_auth();
             }
         }
+
+        
     }
 
     /**
@@ -626,6 +630,8 @@ abstract class REST_Controller extends MY_Controller {
      */
     public function _remap($object_called, $arguments = [])
     {
+        
+        
         // Should we answer if not over SSL?
         if ($this->config->item('force_https') && $this->request->ssl === FALSE)
         {
@@ -652,10 +658,10 @@ abstract class REST_Controller extends MY_Controller {
 
         // Use keys for this method?
         $use_key = ! (isset($this->methods[$controller_method]['key']) && $this->methods[$controller_method]['key'] === FALSE);
-
+        
         // They provided a key, but it wasn't valid, so get them out of here
         if ($this->config->item('rest_enable_keys') && $use_key && $this->_allow === FALSE)
-        {
+        {            
             if ($this->config->item('rest_enable_logging') && $log_method)
             {
                 $this->_log_request();
@@ -751,7 +757,9 @@ abstract class REST_Controller extends MY_Controller {
         // Call the controller method and passed arguments
         try
         {
+            
             if ($this->is_valid_request) {
+                
                 call_user_func_array([$this, $controller_method], $arguments);
             }
         }
@@ -765,6 +773,7 @@ abstract class REST_Controller extends MY_Controller {
                 $_error = &load_class('Exceptions', 'core');
                 $_error->show_exception($ex);
         }
+        
     }
 
     /**
@@ -1031,7 +1040,7 @@ abstract class REST_Controller extends MY_Controller {
     {
         // Get the api key name variable set in the rest config file
         $api_key_variable = $this->config->item('rest_key_name');
-
+        
         // Work out the name of the SERVER entry based on config
         $key_name = 'HTTP_' . strtoupper(str_replace('-', '_', $api_key_variable));
 
@@ -1043,6 +1052,7 @@ abstract class REST_Controller extends MY_Controller {
         // Find the key from server or arguments
         if (($key = isset($this->_args[$api_key_variable]) ? $this->_args[$api_key_variable] : $this->input->server($key_name)))
         {
+            
             if ( ! ($row = $this->rest->db->where($this->config->item('rest_key_column'), $key)->get($this->config->item('rest_keys_table'))->row()))
             {
                 return FALSE;
@@ -1988,6 +1998,7 @@ abstract class REST_Controller extends MY_Controller {
      */
     protected function _prepare_basic_auth()
     {
+        
         // If whitelist is enabled it has the first chance to kick them out
         if ($this->config->item('rest_ip_whitelist_enabled'))
         {
@@ -2138,6 +2149,7 @@ abstract class REST_Controller extends MY_Controller {
      */
     protected function _force_login($nonce = '')
     {
+        
         $rest_auth = $this->config->item('rest_auth');
         $rest_realm = $this->config->item('rest_realm');
         if (strtolower($rest_auth) === 'basic')
@@ -2153,16 +2165,18 @@ abstract class REST_Controller extends MY_Controller {
                 .'", qop="auth", nonce="'.$nonce
                 .'", opaque="' . md5($rest_realm).'"');
         }
-
+        
         if ($this->config->item('strict_api_and_auth') === true) {
+            
             $this->is_valid_request = false;
         }
 
         // Display an error response
-        $this->response([
+        /*$this->response([
                 $this->config->item('rest_status_field_name') => FALSE,
                 $this->config->item('rest_message_field_name') => $this->lang->line('text_rest_unauthorized')
             ], self::HTTP_UNAUTHORIZED);
+            */
     }
 
     /**

@@ -758,9 +758,7 @@
         <?php
         $products = array();
         $report_id = [];
-//        if (!is_array($invoice_details)){
-//            $invoice_details = array($invoice_details);
-//        }
+
         if (isset($invoice_details) && is_array($invoice_details) && !empty($invoice_details) ) {
             foreach($invoice_details as $job){
 
@@ -775,6 +773,7 @@
                 }
             }
         } else {
+            //die(print_r($invoice_details->jobs));
             $job = $invoice_details->jobs[0];
             if ($invoice_details->report_id != 0) {
                 array_push($report_id, $invoice_details->report_id);
@@ -795,10 +794,14 @@
         // Check if the invoice has a report, if it does, print last section.
         if ($invoice_details->report_id != 0 ){
 
+            //echo print_r($products);
             foreach($products as $k=>$v){
+                //die(print_r($v));
                 $i=0;
 
                 $product_details =  getProductByReport(array('report_id'=>$v['report']->report_id));
+                //die($this->db->last_query());
+
                 $invoice_report_details =  $v['report'];
 
                     if ( $invoice_report_details && ($setting_details->is_wind_speed || $setting_details->is_wind_direction || $setting_details->is_temperature || $setting_details->is_applicator_name || $setting_details->is_applicator_number || $setting_details->is_applicator_phone || $setting_details->is_property_address || $setting_details->is_property_size || $setting_details->is_date || $setting_details->is_time )) {
@@ -913,6 +916,7 @@
                                                 $ingredientarr[] =  $value2->active_ingredient.' : '.$value2->percent_active_ingredient.' % ';
                                             }
                                         }
+
 
 //                                        $estimated_chemical_used =estimateOfPesticideUsed($product_details_value,$invoice_details->yard_square_feet);
                                         $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;
@@ -1065,6 +1069,7 @@
                                     $ingredientarr[] =  $value2->active_ingredient.' : '.$value2->percent_active_ingredient.' % ';
                                 }
                             }
+
 
 //                                    $estimated_chemical_used = $product_details_value->amount_of_mixture_applied;
                                     $estimated_chemical_used = $product_details_value->estimate_of_pesticide_used;

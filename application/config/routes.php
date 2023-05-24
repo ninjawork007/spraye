@@ -58,6 +58,9 @@ $route['customers'] = 'customers/dashboard'; // Example
 // custom routing
 $route['welcome/openedInvoicePixel?(:any)'] = 'welcome/openedInvoicePixel';
 
+//$route['api/webhook'] = 'api/webhook_post';
+
+
 $route['sendCustomerInvoices'] = 'welcome/sendCustomerInvoices';
 $route['sendCustomerInvoicesMonthly'] = 'welcome/sendCustomerInvoicesMonthly';
 
@@ -77,3 +80,5 @@ $route['api/example/users/(:num)(\.)([a-zA-Z0-9_-]+)(.*)'] = 'api/example/users/
 $route['backend/items'] = 'api/items';
 $route['backend/purchases'] = 'api/purchases';
 
+
+$route['api/on-note-due-date'] = 'api/on_note_due_date';

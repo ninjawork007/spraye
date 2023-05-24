@@ -104,7 +104,22 @@ class Property_program_job_invoice_model extends CI_Model{
         }
     }
 
-    
+    public function getPropertyProgramJobInvoiceCouponWhereIn($search_column, $where_arr='') {
+        $this->db->select('*');
+        $this->db->from('property_program_job_invoice');
+        // $this->db->join('coupon_job', 'property_program_job_invoice.job_id = coupon_job.job_id AND property_program_job_invoice.program_id = coupon_job.program_id AND property_program_job_invoice.property_id = coupon_job.property_id AND property_program_job_invoice.customer_id = coupon_job.customer_id', 'left');
+        // if (is_array($where_arr)) {
+            $this->db->where_in($search_column, $where_arr);
+            //var_dump($where_arr);
+        // }
+        $this->db->order_by('property_program_job_invoice.job_id','desc');
+        $result = $this->db->get();
+		$data = $result->result_array();
+        //die(print_r($this->db->last_query()));
+		 //die(print_r($data));
+
+        return $data;
+    }
 
 }
  

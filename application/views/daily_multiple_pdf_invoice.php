@@ -113,6 +113,24 @@
         .page_break {
             page-break-before: always;
         }
+
+        .toolbar {
+        float: left;
+        padding-left: 5px;
+        }
+        .dataTables_filter {
+        /*text-align: center !important;*/
+        margin-left: 60px !important;
+        }
+        
+        .Invoices .dataTables_filter input {
+            margin-left: 11px !important;
+            margin-top: 8px !important;
+            margin-bottom: 5px !important;
+        }
+        .tablemodal > tbody > tr > td, .tablemodal > tbody > tr > th, .tablemodal > tfoot > tr > td, .tablemodal > tfoot > tr > th, .tablemodal > thead > tr > td, .tablemodal > thead > tr > th {
+        border-top: 1px solid #ddd;
+        }
         </style>
     </head>
 
@@ -130,18 +148,64 @@
             $page_break_class = "page_break";
         } ?>
         <div class="container <?php echo $page_break_class ?>">
-
-            <?php if ($index == 0 && ($basys_details || $cardconnect_details) && !$all_invoice_paid) { 
+            
+            <?php if ($index == 0 && ($basys_details || $cardconnect_details) && count($payall_data["invoice_details_all"]) > 1) { 
                 
                 ?>
-            <div style="padding-left:45%">
-                <button class="btn btn-success">
-                    <a href="<?= base_url('Welcome/dailyInvoiceList/') . $hashstring  ?>" target="_blank">Pay Now
-                    </a>
-                </button>
+            <div class="" style="page-break-after: always">
+                <h3>All Invoice Info</h3>
+                <div id="invoicetablediv">          
+                    <div  class=" table-spraye">
+                        <table  class="table datatable-button-init-custom">
+                            <thead>
+                                <tr class="first_tr">                     
+                                <th>Invoice</th>
+                                <th>Property</th>
+                                <th>Program</th>
+                                <th>Job</th>
+                                <th>Amount</th>                     
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $total_amount = 0;
+                                
+                                foreach($payall_data["invoice_details_all"] as $value) {?>      
+                                    <tr>                     
+                                        <td><?= $value->invoice_id; ?></td>
+                                        <td><?php echo $value->property_title ?></td>
+                                        <td><?php echo $value->program_name ?></td>
+                                        <td><?php echo $value->job_name ?></td>
+                                            <?php 
+                                            $total_tax_amount = getAllSalesTaxSumByInvoice($value->invoice_id)->total_tax_amount;                        
+                                            // $amount = $value->cost+$total_tax_amount-$value->partial_payment;
+                                            $amount = floatval($value->total_amount_minus_partial)-floatval($value->partial_payment);
+                                            $total_amount = $total_amount + $amount;
+                                            ?>
+                                        <td><?= '$ '.number_format($amount,2) ?></td>
+                                    </tr>
+                                <?php  } ?>
+                                <tr>
+                                    <td colspan="3"></td>
+                                    <td  class="text-right" style="white-space: nowrap;">
+                                        <strong>Total Amount:</strong>
+                                    </td>
+                                    <td  class="text-left">
+                                        <?php echo '$ '.number_format($total_amount,2) ?>
+                                    </td>
+                                </tr>     
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">                        
+                        <div class="make-payment-btn-container" >
+                            <a href="<?= base_url("welcome/dailyPayment/").$payall_data["hashstring"]?>" id="btn-login" class="btn btn-block" style="background-color: #47a447;color: #fff" >Pay All Invoices</a>
+                        </div>
+                    </div>
+                </div>
             </div>
             <?php } ?>
-            <table width="100%" style="margin-bottom: 20px;">
+            <table width="100%" style="margin-top: 35px; margin-bottom: 20px;">
                 <tr>
                     <td valign="top">
                         <address>
@@ -346,7 +410,6 @@
                             <?php
                                             $discount_amm = (float) $job['coupon_job_amm'];
                                             echo "- $" . (string) number_format($discount_amm, 2);
-
                                             if (($total_job_cost - $discount_amm) < 0) {
                                                 $total_job_cost = 0;
                                             } else {
@@ -475,7 +538,7 @@
 
                                 if ($invoice_detail->all_sales_tax) {
                                     foreach ($invoice_detail->all_sales_tax  as  $invoice_sales_tax_details) {
-                                        $total_tax_amount +=  $invoice_sales_tax_details['tax_amount']; ?>
+                                        $total_tax_amount +=  number_format(($invoice_sales_tax_details['tax_value']/100) * $invoice_total_cost,2); ?>
                                 <tr>
                                     <td></td>
                                     <td></td>
@@ -483,15 +546,9 @@
                                         <?= 'Sales Tax: ' . $invoice_sales_tax_details['tax_name'] . ' (' . floatval($invoice_sales_tax_details['tax_value']) . '%) '  ?>
                                     </td>
                                     <td class="border-bottom-blank-td text-right">$
-
-                                        <?php
-                                        if (floatval($invoice_sales_tax_details['tax_amount']) <= 1)
-                                            echo number_format(floatval($invoice_sales_tax_details['tax_amount'])*$total_inv_line_costs,2);
-                                        else
-                                            echo $invoice_sales_tax_details['tax_amount'];
-                                            ?>
+                                        <?= number_format(($invoice_sales_tax_details['tax_value']/100) * $invoice_total_cost,2);  ?>
                                     </td>
-										<?php $invoice_total_cost += $invoice_sales_tax_details['tax_amount']; ?>
+										<?php $invoice_total_cost += ($invoice_sales_tax_details['tax_value']/100) * $invoice_total_cost; ?>
                                 </tr>
                                 <?php }
                                 } ?>
@@ -667,8 +724,8 @@
                     } else {
                         array_push($report_id, $job->jobs[0]['job_report']->report_id);
                         $products[] = array(
-                            'job_id' => $job->job_id,
-                            'report' => isset($job->jobs[0]['job_report']) ? $job->jobs[0]['job_report'] : '',
+                            'job_id' => $job['job_id'],
+                            'report' => isset($job['job_report']) ? $job['job_report'] : '',
                         );
                     }
                 }

@@ -43,7 +43,7 @@ function cardConnectAuthorize($data = array())
     $mid = $data['merchid'];
     $url = CARDCONNECT_URL . 'auth';
     $auth = base64_encode($data['username'] . ':' . $data['password']);
-
+    
     $curl = curl_init();
     curl_setopt($curl, CURLOPT_POST, 1);
     curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data['requestData']));

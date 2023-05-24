@@ -87,7 +87,7 @@ class Reports_tech_model extends CI_Model{
         //$this->db->join('invoice_tbl','invoice_tbl.job_id = technician_job_assign.job_id and technician_job_assign.property_id = invoice_tbl.property_id and technician_job_assign.program_id = invoice_tbl.program_id','left');
 
         //$this->db->where('report.company_id',$this->session->userdata['company_id']);
-        $this->db->where('technician_job_assign.company_id',$this->session->userdata['company_id']);
+        $this->db->where('technician_job_assign.company_id',$this->session->userdata['spraye_technician_login']->company_id);
         $this->db->where('technician_job_assign.property_id',$property_id);
 
 

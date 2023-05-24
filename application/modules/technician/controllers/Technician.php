@@ -436,10 +436,8 @@ class Technician extends MY_Controller
         echo $this->db->last_query();
     }
 
-    public function jobDetails($property_id)
-    {
-
-        $where = array('company_id' => $this->session->userdata['company_id']);
+    public function jobDetails($property_id) {
+        $where = array('company_id' => $this->session->userdata['spraye_technician_login']->company_id);
         $data['product_details'] = $this->ProductModel->get_all_product($where);
         //die(print_r($data['product_details']));
         $isTech = (isset($this->session->userdata['spraye_technician_login'])) ? 1 : 0;
@@ -2673,6 +2671,7 @@ class Technician extends MY_Controller
                                     }
                                     $invoice_details = $this->INV->getOneInvoive(array('invoice_id' => $invoice_id));
 
+
                                     // die(print_r($invoice_details));
 
                                     //$data->invoice_details = $invoice_details;
@@ -2848,14 +2847,17 @@ class Technician extends MY_Controller
 
             if ($return_data['error'] == false) {
 
-//        //webhook_trigger
-//        $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
-//        if($user_info->webhook_service_completed){
-//            $this->load->model('api/Webhook');
-//            $webhook_data = ['service_name' => $report_data['program_name'], 'customer_email' =>  $customer_details->email];
-//            $response = $this->Webhook->callTrigger($user_info->webhook_service_completed, $webhook_data);
-//        }
-//        //end of webhook
+          
+
+        //webhook_trigger
+        $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+        if($user_info->webhook_service_completed){
+            $this->load->model('api/Webhook');
+            $webhook_data = ['property_id' => $data->property_id, 'property_name' => $report_data['property_title'], 'property_address' => $report_data['property_address'], 'property_square_footage' => $report_data['yard_square_feet'], 'program_id' => $report_data['program_id'], 'service_name' => $report_data['program_name'], 'customer_email' =>  $customer_details['email'], 'customer_name' => $customer_details['first_name'] . " " . $customer_details['last_name'], 'address' =>  $customer_details['billing_street'] . " " . $customer_details['billing_city'] . ", " . $customer_details['billing_state'] . " " . $customer_details['billing_zipcode'], 'phone' =>  $customer_details['phone']];
+            $response = $this->Webhook->callTrigger($user_info->webhook_service_completed, $webhook_data);
+        }
+        //end of webhook
+
 
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Service </strong> completed successfully</div>');
                 echo json_encode($return_data);
@@ -4765,6 +4767,7 @@ class Technician extends MY_Controller
                     $customer_id = $invoice_details->customer_id;
                     $customer_info = $this->CustomerModel->getCustomerDetail($customer_id);
                     $credit_amount = $customer_info['credit_amount'];
+
                     $paid_already = $invoice_details->partial_payment;
 
                     if (!empty($unpaid)) {
@@ -5280,7 +5283,7 @@ class Technician extends MY_Controller
 
         $invoice_ids = explode(",", $invoice_ids);
 
-
+        $update_arr = array();
         foreach ($invoice_ids as $key => $value) {
 
             $where = array(
@@ -5405,7 +5408,8 @@ class Technician extends MY_Controller
         // Render the HTML as PDF
         $this->dompdf->render();
         $companyName = str_replace(" ", "", $this->session->userdata['compny_details']->company_name);
-        $customerName = $data['invoice_details'][0]->first_name . $data['invoice_details'][0]->last_name;
+        //var_dump($data['invoice_details']);
+        $customerName = $data['invoice_details']->first_name . $data['invoice_details']->last_name;
         $fileName = $companyName . "_invoice_" . $customerName . "_" . date("Y") . "_" . date("m") . "_" . date("d") . "_" . date("h") . "_" . date("i") . "_" . date("s");
         // Output the generated PDF (1 = download and 0 = preview)
         $this->dompdf->stream($fileName . ".pdf", array("Attachment" => 0));

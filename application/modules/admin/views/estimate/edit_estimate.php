@@ -106,6 +106,7 @@
       <div class="panel-body">
          <b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
          <form class="form-horizontal" action="<?= base_url('admin/Estimates/editEstimateData/').$estimate_details->estimate_id  ?>" method="post" name="addestimate" enctype="multipart/form-data" >
+            <input type='hidden' id='program_pricing' name='program_pricing' val='<?php echo $estimate_details->program_pricing; ?>' />
             <fieldset class="content-group">
                <?php if($estimate_details->signwell_id != "" && $signwell_object->message != "Not found" && $setting_details->signwell_api_key != "") { ?>
                   <div class="row ">
@@ -243,28 +244,28 @@
               
                <div class="row invoice-form">
 
-
-
                    <div class="col-md-6">
                      <div class="form-group">
                         <label class="control-label col-lg-3">Program Name</label>
-                        <div class="col-lg-9 search_sel">
-                           <select class="bootstrap-select form-control" data-live-search="true" name="program_id" id="select_program_id">
-                              <option value="" >Select any program </option>
-                              <?php 
+                        <div class="col-lg-9 multi-select-full">
+                           <select class="multiselect-select-all-filtering-edit form-control" multiple="multiple" name="program_id_array[]" id="program_list">
+                              <?php
+                                $joined_program_id_array = $services_tied_to_program = array();
+                                foreach($joined_programs as $jp) {
+                                    $joined_program_id_array[] = $jp->program_id;
+                                    $services_tied_to_program[] = $jp->service_id;
+                                }
                                  if (!empty($program_details)) {
                                    foreach ($program_details as $key => $value) {
                                   
-                                    if ($estimate_details->program_id==$value->program_id) {
+                                    if (in_array($value->program_id, $joined_program_id_array)) {
                                     
 										 echo '<option value="'.$value->program_id.'" selected >'.$value->program_name.'</option>';
                                     } else {
                                       if($value->ad_hoc != 1){
 										  echo '<option value="'.$value->program_id.'" >'.$value->program_name.'</option>'; 
 									   }
-                                    }    
-
-                                    
+                                    }
                                    }
                                  }
                                  
@@ -288,15 +289,16 @@
                <div class="col-md-6">
 					  <div class="form-group" id="service_select">
                      <label class="control-label col-lg-3">Add Service</label>
-                     <div class="col-lg-9 search_sel">
-                        <select class="bootstrap-select form-control" data-live-search="true" name="standalone_job_id" id="select_service_id" >
-                           <option value="" >Select any Service </option>
+                     <div class="col-lg-9 multi-select-full">
+                        <select class="multiselect-select-all-filtering-edit form-control" multiple="multiple" name="standalone_job_id_array[]" id="service_list" >
                            <?php 
                               if (!empty($service_details)) {
                                  foreach ($service_details as $key => $value) {
-                                    
-                                    echo '<option value="'.$value->job_id.'"  >'.$value->job_name.'</option>';
-                                    
+                                    if(in_array($value->job_id, $services_tied_to_program)) {
+                                        echo '<option value="'.$value->job_id.'" selected >'.$value->job_name.'</option>';
+                                    } else {
+                                        echo '<option value="'.$value->job_id.'"  >'.$value->job_name.'</option>';
+                                    }
                                  }
                               }
                               
@@ -454,23 +456,24 @@
                                 
                                 <?php if($price_override_details) { foreach ($price_override_details as $key => $value) {
 
-
-                                              $keyIds[] = array(
-                                                'job_id' => $value->job_id, 
-                                                'price_override' => $value->price_override,
-                                                'is_price_override_set'  => $value->is_price_override_set,
-
-                                              );  
-
-
-                                              
-                                              $price_override = (isset($value->is_price_override_set) && $value->is_price_override_set == 1) ? floatval($value->price_override) : '' ;  
+                                   
+                                                $keyIds[] = array(
+                                                    'job_id' => $value->job_id, 
+                                                    'price_override' => $value->price_override,
+                                                    'is_price_override_set'  => $value->is_price_override_set,
+                                                    'program_id' => $value->program_id
+                                                );  
 
 
-                                  echo    '<tr id="tridjob'.$value->job_id.'">'.
-                                                '<td>'.$value->job_name.'</td>'.
-                                                 '<td> <input type="number" min="0" name="tmp'.$value->job_id.'" value="'.$price_override.'"  class="inpcl form-control" job_id="'.$value->job_id.'"  ></td>'.  
-                                           '</tr>'
+                                                
+                                                $price_override = (isset($value->is_price_override_set) && $value->is_price_override_set == 1) ? floatval($value->price_override) : '' ;  
+
+
+                                    echo    '<tr id="tridjob'.$value->job_id.'">'.
+                                                    '<td>'.$value->job_name.'</td>'.
+                                                    '<td> <input type="number" min="0" name="tmp'.$value->job_id.'" value="'.$price_override.'"  class="inpcl form-control" job_id="'.$value->job_id.'" program_id="'.$value->program_id.'" ></td>'.  
+                                            '</tr>'
+                                    
                                 ?> 
 
 
@@ -616,6 +619,189 @@ $(document).ready(function(){
        };
       $('#coupon_id_order_array').val(JSON.stringify( couponSelectedValues ));
     });
+    
+    $("#program_list").multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        enableHTML : true,
+        templates: {
+            filter: '<li class="multiselect-item multiselect-filter"><i class="icon-search4"></i> <input class="form-control" type="text"></li>'
+        },
+        onInitialized: function(select, container) {
+           $(".styled, .multiselect-container input").uniform({ radioClass: 'checker'});
+        },
+        optionLabel: function(element) {
+          if ($(element).attr('title')) {
+
+                return $(element).html() + '<br><small class="text-muted">( ' + $(element).attr('title') + ' )</small>';
+
+            }  else {
+                return $(element).html();
+
+            }
+        },
+        onSelectAll: function() {
+            $.uniform.update();
+        },
+        onChange: function(element, checked) {
+            // need to get all of the IDs now since there may be more than one program
+            var program_ids = $('#program_list option:selected');
+            var selected_programs = [];
+            var selected_services = [];
+            $(program_ids).each(function(index, brand){
+                selected_programs.push($(this).val());
+            });
+
+            keyIds = [];
+            var items = [];
+            var service_id = $('select#service_list option:selected');
+            //var service_name = $('select#service_list option:selected').text();
+            $(service_id).each(function(index, brand){
+                selected_services[$(this).val()] = $(this)[0].innerHTML;
+            });
+            // alert(customer_id);
+            $('.priceoverridetbody').html('');
+            $.ajax({
+                type: "POST", 
+                url: "<?= base_url('admin/Estimates/getAllServicesByProgramMultiple')  ?>",
+                data: {program_ids : selected_programs }, 
+                dataType: 'JSON', 
+            }).done(function(response){
+                if (response.status==200) {
+                    if(service_id != ''){
+                        Object.keys(selected_services).forEach(key => {
+                            keyIds.push({'job_id' : key, 'price_override' : 0,'is_price_override_set':null}); 
+                        
+                            items.push('<tr id="tridjob'+key+'">'+
+                                '<td>'+selected_services[key]+'</td>'+
+                                '<td> <input type="number" min="0" name="tmp'+key+'"  class="inpcl form-control" job_id="'+key+'"  ></td>'+                    
+                                '</tr>'
+                            );
+                        });
+                    }
+                    
+                    $.each( response.result, function( key, val ) {
+                        keyIds.push({'job_id' : val[0].job_id, 'price_override' : 0,'is_price_override_set':null, 'program_id':val[0].program_id});
+
+                        items.push( '<tr id="tridjob'+val[0].job_id+'">'+
+                            '<td>'+val[0].job_name+'</td>'+
+                            '<td> <input type="number" min="0" name="tmp'+val[0].job_id+'"  class="inpcl form-control" job_id="'+val[0].job_id+'"  ></td>'+                    
+                            '</tr>'
+                        );
+                    });            
+                    $('.priceoverridetbody').html(items.join( "" ));
+                }else if(service_id != ''){
+                    
+                    Object.keys(selected_services).forEach(key => {
+                        keyIds.push({'job_id' : key, 'price_override' : 0,'is_price_override_set':null}); 
+                    
+                        items.push('<tr id="tridjob'+key+'">'+
+                            '<td>'+selected_services[key]+'</td>'+
+                            '<td> <input type="number" min="0" name="tmp'+key+'"  class="inpcl form-control" job_id="'+key+'"  ></td>'+                    
+                            '</tr>'
+                        );
+                    });
+                    
+                    $('.priceoverridetbody').html(items.join( "" ));
+                } else {
+                    $('.priceoverridetbody').html('<tr><td colspan="2" style="text-align:center" >No records found</td></tr>');
+                } 
+
+                $('#assign_job_ids2').val(JSON.stringify(keyIds));
+            });
+        }
+    });
+
+    $("#service_list").multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        enableHTML : true,
+        templates: {
+            filter: '<li class="multiselect-item multiselect-filter"><i class="icon-search4"></i> <input class="form-control" type="text"></li>'
+        },
+        onInitialized: function(select, container) {
+           $(".styled, .multiselect-container input").uniform({ radioClass: 'checker'});
+        },
+        optionLabel: function(element) {
+          if ($(element).attr('title')) {
+
+                return $(element).html() + '<br><small class="text-muted">( ' + $(element).attr('title') + ' )</small>';
+
+            }  else {
+                return $(element).html();
+
+            }
+        },
+        onSelectAll: function() {
+            $.uniform.update();
+        },
+        onChange: function(element, checked) {
+            // need to get all of the IDs now since there may be more than one program
+            var program_ids = $('#program_list option:selected');
+            var selected_programs = [];
+            var selected_services = [];
+            $(program_ids).each(function(index, brand){
+                selected_programs.push($(this).val());
+            });
+
+            keyIds = [];
+            var items = [];
+            var service_id = $('select#service_list option:selected');
+            //var service_name = $('select#service_list option:selected').text();
+            $(service_id).each(function(index, brand){
+                selected_services[$(this).val()] = $(this)[0].innerHTML;
+            });
+            // alert(customer_id);
+            $('.priceoverridetbody').html('');
+            $.ajax({
+                type: "POST", 
+                url: "<?= base_url('admin/Estimates/getAllServicesByProgramMultiple')  ?>",
+                data: {program_ids : selected_programs }, 
+                dataType: 'JSON', 
+            }).done(function(response){
+                if (response.status==200) {
+                    if(service_id != ''){
+                        Object.keys(selected_services).forEach(key => {
+                            keyIds.push({'job_id' : key, 'price_override' : 0,'is_price_override_set':null}); 
+                        
+                            items.push('<tr id="tridjob'+key+'">'+
+                                '<td>'+selected_services[key]+'</td>'+
+                                '<td> <input type="number" min="0" name="tmp'+key+'"  class="inpcl form-control" job_id="'+key+'"  ></td>'+                    
+                                '</tr>'
+                            );
+                        });
+                    }
+                    
+                    $.each( response.result, function( key, val ) {
+                        keyIds.push({'job_id' : val[0].job_id, 'price_override' : 0,'is_price_override_set':null, 'program_id':val[0].program_id});
+
+                        items.push( '<tr id="tridjob'+val[0].job_id+'">'+
+                            '<td>'+val[0].job_name+'</td>'+
+                            '<td> <input type="number" min="0" name="tmp'+val[0].job_id+'"  class="inpcl form-control" job_id="'+val[0].job_id+'"  ></td>'+                    
+                            '</tr>'
+                        );
+                    });            
+                    $('.priceoverridetbody').html(items.join( "" ));
+                }else if(service_id != ''){
+                    
+                    keyIds.push({'job_id' : service_id, 'price_override' : 0,'is_price_override_set':null}); 
+                    
+                    items.push( '<tr id="tridjob'+service_id+'">'+
+                        '<td>'+service_name+'</td>'+
+                        '<td> <input type="number" min="0" name="tmp'+service_id+'"  class="inpcl form-control" job_id="'+service_id+'"  ></td>'+                    
+                        '</tr>' );
+                    
+                    $('.priceoverridetbody').html(items.join( "" ));
+                } else {
+                    $('.priceoverridetbody').html('<tr><td colspan="2" style="text-align:center" >No records found</td></tr>');
+                } 
+
+                $('#assign_job_ids2').val(JSON.stringify(keyIds));
+            });
+        }
+    });
 });
 
 // ADD COUPON TO LIST
@@ -758,66 +944,6 @@ function rearrangetable2() {
             });
 
     }
-
-
-
-  $("#select_program_id").change(function(){
-      var program_id = $(this).val();
-      keyIds = [];
-      var items = [];
-	  var service_id = $('select#select_service_id').val();
-	  var service_name = $('select#select_service_id option:selected').text();
-      // alert(customer_id);
-      $('.priceoverridetbody').html('');
-       $.ajax({
-            type: "POST", 
-            url: "<?= base_url('admin/Estimates/getAllServicesByProgram')  ?>",
-            data: {program_id : program_id }, 
-            dataType: 'JSON', 
-        }).done(function(response){
-
-            if (response.status==200) {
-				if(service_id != ''){
-		   			
-		   		
-					keyIds.push({'job_id' : service_id, 'price_override' : 0,'is_price_override_set':null}); 
-		   		
-					items.push( '<tr id="tridjob'+service_id+'">'+
-							   '<td>'+service_name+'</td>'+
-							   '<td> <input type="number" min="0" name="tmp'+service_id+'"  class="inpcl form-control" job_id="'+service_id+'"  ></td>'+                    
-							   '</tr>' );
-               
-	   			}
-             
-              $.each( response.result, function( key, val ) {
- 
-                keyIds.push({'job_id' : val.job_id, 'price_override' : 0,'is_price_override_set':null});                 
-
-                items.push( '<tr id="tridjob'+val.job_id+'">'+
-                    '<td>'+val.job_name+'</td>'+
-                    '<td> <input type="number" min="0" name="tmp'+val.job_id+'"  class="inpcl form-control" job_id="'+val.job_id+'"  ></td>'+                    
-                    '</tr>' );
-               });            
-              $('.priceoverridetbody').html(items.join( "" ));
-			}else if(service_id != ''){
-		   		
-				keyIds.push({'job_id' : service_id, 'price_override' : 0,'is_price_override_set':null}); 
-		   		
-				items.push( '<tr id="tridjob'+service_id+'">'+
-                    '<td>'+service_name+'</td>'+
-                    '<td> <input type="number" min="0" name="tmp'+service_id+'"  class="inpcl form-control" job_id="'+service_id+'"  ></td>'+                    
-                    '</tr>' );
-				
-               $('.priceoverridetbody').html(items.join( "" ));
-            } else {
-              $('.priceoverridetbody').html('<tr><td colspan="2" style="text-align:center" >No records found</td></tr>');
-            } 
-
-           $('#assign_job_ids2').val(JSON.stringify(keyIds));
-
-        });
-
-    });
 
 
    $(document).on("input",".inpcl",function() { 

@@ -685,5 +685,24 @@ class AdminTbl_customer_model extends CI_Model{
 
 
 
+
+    public function getCompanyForCustomer($custId){
+		$this->db->select('company_id');
+		$this->db->from('customers');
+
+		$this->db->where('customer_id', $custId);
+
+		$result = $this->db->get();
+
+		if ($result->num_rows() > 0) {
+				$data = $result->result();
+				return $data;
+		}
+		else {
+				return $result->num_rows();
+		}
+	}
+
+
 }
  

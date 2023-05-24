@@ -372,5 +372,23 @@ class AdminTbl_coupon_model extends CI_Model{
         return $a = $this->db->affected_rows();
     }
 
+    public function getAllCouponInvoiceWhereIn($search_column, $where_arr='') {
+           
+        $this->db->select('coupon_invoice.*, invoice_tbl.cost, invoice_tbl.partial_payment');
+        
+        $this->db->from("coupon_invoice");
+        $this->db->join('invoice_tbl','invoice_tbl.invoice_id = coupon_invoice.invoice_id','left');
+        // if (is_array($where_arr)) {
+             $this->db->where_in($search_column, $where_arr);
+        // }
+        
+        $this->db->order_by('coupon_type','desc');
+        $this->db->order_by('coupon_amount_calculation','desc');
+        $result = $this->db->get();
+
+        $data = $result->result();
+        return $data;
+    }
+
 }
  

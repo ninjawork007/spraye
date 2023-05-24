@@ -276,18 +276,33 @@
                     </td>
                     <td align="left" width="40%">
 
-                        <?php switch ($estimate_details->program_price) {
-                            case 1:
-                                echo 'One-Time Project Invoicing';
-                                break;
-                            case 2:
-                                echo 'Invoiced at Job Completion';
-                                break;
-                            case 3:
-                                echo 'Manual Billing';
-                                break;
-
-                        }?>
+                        <?php 
+                            if($estimate_details->program_pricing != "" && $estimate_details->program_pricing != "0") {
+                                switch ($estimate_details->program_pricing) {
+                                    case 1:
+                                        echo 'One-Time Project Invoicing';
+                                        break;
+                                    case 2:
+                                        echo 'Invoiced at Job Completion';
+                                        break;
+                                    case 3:
+                                        echo 'Manual Billing';
+                                        break;
+                                }
+                            } else {
+                                switch ($estimate_details->program_price) {
+                                    case 1:
+                                        echo 'One-Time Project Invoicing';
+                                        break;
+                                    case 2:
+                                        echo 'Invoiced at Job Completion';
+                                        break;
+                                    case 3:
+                                        echo 'Manual Billing';
+                                        break;
+                                }
+                            }
+                        ?>
 
                     </td>
 
