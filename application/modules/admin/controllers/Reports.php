@@ -10089,11 +10089,6 @@ class Reports extends MY_Controller {
 
         $data['report_details'] = $report_data;
 
-        echo '<pre>';
-        print_r($_POST);
-        print_r($data);
-        die;
-
 		if(is_array($data['report_details']) && count($data['report_details']) > 0){
             if($this->input->post('SendButtonEmail') == 3){
     			$delimiter = ",";
