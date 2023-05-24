@@ -9880,6 +9880,8 @@ class Reports extends MY_Controller {
 
 	}
 	public function downloadMarketingCustomerDataReport(){
+        echo '<pre>';
+        print_r($_POST);
 		$company_id = $this->session->userdata['company_id'];
         $filters_array = array();
         $filters_array["sources"] = $this->input->post('sources_multi');
@@ -10087,6 +10089,9 @@ class Reports extends MY_Controller {
         }
 
         $data['report_details'] = $report_data;
+
+        print_r($data);
+        die;
 
 		if(is_array($data['report_details']) && count($data['report_details']) > 0){
             if($this->input->post('SendButtonEmail') == 3){
