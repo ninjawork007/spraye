@@ -10131,8 +10131,6 @@ class Reports extends MY_Controller {
                     "email_subject" => $_POST['email_subject'],
                     "status" => 0
                 );
-                echo "Enter Draft";
-                die;
                 $this->MassEmailModel->saveMassEmailData($Data);
                 redirect("admin/reports/marketingCustomerDataReport");
             }
@@ -10152,9 +10150,6 @@ class Reports extends MY_Controller {
                     "send_date" => date("Y-m-d")
                 );
                 $ModelID = $this->MassEmailModel->saveMassEmailData($Data);
-                echo "Enter Send";
-                echo $ModelID;
-                die;
                 $this->sendMassEmail($ModelID);
                 
                 redirect("admin/reports/marketingCustomerDataReport");
