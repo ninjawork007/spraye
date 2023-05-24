@@ -10132,6 +10132,7 @@ class Reports extends MY_Controller {
                     "status" => 0
                 );
                 echo "Enter Draft";
+                die;
                 $this->MassEmailModel->saveMassEmailData($Data);
                 redirect("admin/reports/marketingCustomerDataReport");
             }
