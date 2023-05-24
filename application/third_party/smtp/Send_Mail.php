@@ -195,46 +195,29 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 
 	require_once 'class.phpmailer.php';
 	$from_name = $company_data["name"];
-	$from_email = "no-reply@spraye.io";
+	$from_email = $smtparray['mass_email_id'];
 	$reply_name = $company_data["name"];
 	$reply_email = $company_data["email"];
 
-
-	//$from_email = 'spraye@contentexecutive.com';
-	//$to = 'blance@blayzer.com';
-	//$reply_email     = 'spraye@contentexecutive.com';
-
-
 	$mail = new PHPMailer();
-	$mail->IsSMTP(true); // use SMTP
+	$mail->IsSMTP(true);
 	$mail->IsHTML(true);
-	//$mail->SMTPDebug = 2; //Alternative to above constant
-	$mail->SMTPAuth = true; // enable SMTP authentication
+	$mail->SMTPAuth = true;
 
-	if (isset($smtparray['smtp_host']) && $smtparray['smtp_host'] != '' && $smtparray['smtp_username'] != 'no-reply@spraye.io') {
-		//$to = 'blance@blayzer.com';
-
+	if (isset($smtparray['mass_smtp_host']) && $smtparray['mass_smtp_host'] != '' && $smtparray['mass_smtp_port'] != '') {
 		$from_email = $company_data["email"];
 
-		if (strstr($smtparray['smtp_host'], 'tls://'))
+		if (strstr($smtparray['mass_smtp_host'], 'tls://'))
 			$mail->SMTPSecure = 'tls';
 
-		$mail->Host = str_replace('tls://', '', $smtparray['smtp_host']); // Amazon SES server, note "tls://" protocol
-		$mail->Port = $smtparray['smtp_port']; // set the SMTP port
-		$mail->Username = $smtparray['smtp_username']; //"canopus.testing";  // SMTP  username
-		$mail->Password = $smtparray['smtp_password']; //"canopus123";  // SMTP password
-
-
-
-		//$mail->Host       = "tls://email-smtp.us-east-2.amazonaws.com"; // Amazon SES server, note "tls://" protocol
-		//$mail->Port       = 465;                    // set the SMTP port
-		//$mail->Username   = "AKIA6CNNS7BW4V6LYBHB";//"canopus.testing";  // SMTP  username
-		//$mail->Password   = "BCtKUE8mJxXV+IY1C6Pm6AozI5kUFbnHbuDl1t0m18+/";//"canopus123";  // SMTP password
+		$mail->Host = str_replace('tls://', '', $smtparray['mass_smtp_host']);
+		$mail->Port = $smtparray['mass_smtp_port'];
+		$mail->Username = $smtparray['mass_smtp_username'];
+		$mail->Password = $smtparray['mass_smtp_password'];
 		$mail->FromName = $from_name;
 		$mail->SetFrom($from_email, $from_name);
 		$mail->ClearReplyTos();
 		$mail->AddReplyTo($reply_email, $reply_name);
-		//$mail->AddEmbeddedImage('https://www.mail-signatures.com/articles/wp-content/themes/emailsignatures/images/twitter-35x35.gif', 'pic-twitter', 'twitter.jpg ');
 		$mail->Subject = $subject;
 		$mail->MsgHTML($body);
 		if ($file) {
@@ -249,8 +232,6 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			}
 		}
 		$res = $mail->Send();
-
-
 		if ($res) {
 			$errorLog = fopen($_SERVER['DOCUMENT_ROOT'] . '/logemail_' . date("m-d-Y") . '.csv', 'a');
 			fwrite($errorLog, $from_email . "," . $to . "," . $subject . "," . @$smtparray['smtp_host'] . "," . date("m-d-Y H:i:s") . ",Passed\n");
@@ -264,17 +245,7 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			fclose($errorLog);
 			return array('status' => false, 'message' => $mail->ErrorInfo);
 		}
-
-
 	} else {
-
-		/*$mail->Host       = "tls://email-smtp.us-east-2.amazonaws.com"; // Amazon SES server, note "tls://" protocol
-		$mail->Port       = 465;                    // set the SMTP port
-		$mail->Username   = "AKIA6CNNS7BW4V6LYBHB";//"canopus.testing";  // SMTP  username
-		$mail->Password   = "BCtKUE8mJxXV+IY1C6Pm6AozI5kUFbnHbuDl1t0m18+/";//"canopus123";  // SMTP password
-		*/
-
-
 		if (isset($company_data["email"])) {
 			$reply_email = $company_data["email"];
 		}
