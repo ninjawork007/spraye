@@ -9917,9 +9917,6 @@ class Reports extends MY_Controller {
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['customers'] = $this->CustomerModel->get_all_customer_marketing(array('company_id'=>$this->session->userdata['company_id']));
 
-        echo '<pre>';
-        print_r($data['customers']);
-        
         $source = [];
         foreach($data['user_details'] as $user){
             $source = (object) array(
@@ -10092,10 +10089,6 @@ class Reports extends MY_Controller {
 
         $data['report_details'] = $report_data;
 
-        echo '<pre>';
-        print_r($data);
-        die;
-
 		if(is_array($data['report_details']) && count($data['report_details']) > 0){
             if($this->input->post('SendButtonEmail') == 3){
     			$delimiter = ",";
@@ -10138,6 +10131,7 @@ class Reports extends MY_Controller {
                     "email_subject" => $_POST['email_subject'],
                     "status" => 0
                 );
+                echo "Enter Draft";
                 $this->MassEmailModel->saveMassEmailData($Data);
                 redirect("admin/reports/marketingCustomerDataReport");
             }
@@ -10157,6 +10151,9 @@ class Reports extends MY_Controller {
                     "send_date" => date("Y-m-d")
                 );
                 $ModelID = $this->MassEmailModel->saveMassEmailData($Data);
+                echo "Enter Send";
+                echo $ModelID;
+                die;
                 $this->sendMassEmail($ModelID);
                 
                 redirect("admin/reports/marketingCustomerDataReport");
