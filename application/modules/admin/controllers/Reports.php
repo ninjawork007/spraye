@@ -9880,8 +9880,6 @@ class Reports extends MY_Controller {
 
 	}
 	public function downloadMarketingCustomerDataReport(){
-        echo '<pre>';
-        print_r($_POST);
 		$company_id = $this->session->userdata['company_id'];
         $filters_array = array();
         $filters_array["sources"] = $this->input->post('sources_multi');
@@ -9918,6 +9916,10 @@ class Reports extends MY_Controller {
 		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['customers'] = $this->CustomerModel->get_all_customer_marketing(array('company_id'=>$this->session->userdata['company_id']));
+
+        echo '<pre>';
+        print_r($data['customers']);
+        
         $source = [];
         foreach($data['user_details'] as $user){
             $source = (object) array(
@@ -10090,6 +10092,7 @@ class Reports extends MY_Controller {
 
         $data['report_details'] = $report_data;
 
+        echo '<pre>';
         print_r($data);
         die;
 
