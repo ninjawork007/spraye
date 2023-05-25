@@ -9564,7 +9564,56 @@ class Reports extends MY_Controller {
 	public function ajaxDataForMarketingCustomerDataReport(){
 		$company_id = $this->session->userdata['company_id'];
         // making arrays to set up any filters brought in
-        $filters_array = array("sources"=>explode(',',$this->input->post('sources_multi')));
+
+        $filters_array = array();
+        $filters_array['sources'] = array();
+        $filters_array["tags_multi"] = array();
+        $filters_array["service_areas_multi"] = array();
+        $filters_array["preservice_notifications_multi"] = array();
+        $filters_array["zip_codes_multi"] = array();
+        $filters_array["cancel_reasons_multi"] = array();
+        $filters_array["outstanding_services_multi"] = array();
+        $MultiplePrograms = array();
+        $ExcludedPrograms = array();
+
+
+        if($this->input->post('sources_multi') != "null"){
+            $filters_array['sources'] = explode(',', $this->input->post('sources_multi'));
+        }
+
+        if($this->input->post('tags_multi') != "null"){
+            $filters_array["tags_multi"] = explode(',', $this->input->post('tags_multi'));
+        }
+
+        if($this->input->post('service_areas_multi') != "null"){
+            $filters_array["service_areas_multi"] = explode(',', $this->input->post('service_areas_multi'));
+        }
+
+        if($this->input->post('preservice_notifications_multi') != "null"){
+            $filters_array["preservice_notifications_multi"] = explode(',', $this->input->post('preservice_notifications_multi'));
+        }
+        
+        if($this->input->post('zip_codes_multi') != "null"){
+            $filters_array["zip_codes_multi"] = explode(',', $this->input->post('zip_codes_multi'));
+        }
+
+        if($this->input->post('cancel_reasons_multi') != "null"){
+            $filters_array["cancel_reasons_multi"] = explode(',', $this->input->post('cancel_reasons_multi'));
+        }
+
+        if($this->input->post('outstanding_services_multi') != "null"){
+            $filters_array["outstanding_services_multi"] = explode(',', $this->input->post('outstanding_services_multi'));
+        }
+
+        if($this->input->post('programs_multi') != "null"){
+            $MultiplePrograms = explode(',', $this->input->post('programs_multi'));
+        }
+
+        if($this->input->post("customerExclude") != "null"){
+            $ExcludedPrograms = explode(",", $this->input->post("customerExclude"));
+        }
+
+
         $filters_array["lead_start_date_start"] = $this->input->post('lead_start_date_start');
         $filters_array["lead_start_date_end"] = $this->input->post('lead_start_date_end');
         $filters_array["revenue_total_start"] = $this->input->post('revenue_total_start');
@@ -9579,15 +9628,9 @@ class Reports extends MY_Controller {
         
         $filters_array["cancelation_date_start"] = $this->input->post('cancelation_date_start');
         $filters_array["cancelation_date_end"] = $this->input->post('cancelation_date_end');
-        $filters_array["tags_multi"] = explode(',', $this->input->post('tags_multi'));
         $filters_array["last_date_program_start"] = $this->input->post('last_date_program_start');
         $filters_array["last_date_program_end"] = $this->input->post('last_date_program_end');
-        $filters_array["service_areas_multi"] = explode(',', $this->input->post('service_areas_multi'));
         $filters_array["res_or_com"] = $this->input->post('res_or_com');
-        $filters_array["preservice_notifications_multi"] = explode(',', $this->input->post('preservice_notifications_multi'));
-        $filters_array["zip_codes_multi"] = explode(',', $this->input->post('zip_codes_multi'));
-        $filters_array["cancel_reasons_multi"] = explode(',', $this->input->post('cancel_reasons_multi'));
-        $filters_array["outstanding_services_multi"] = explode(',', $this->input->post('outstanding_services_multi'));
         $filters_array["customer_status"] = $this->input->post('customer_status');
         $filters_array["estimate_accpeted"] = $this->input->post('estimate_accpeted');
         $filters_array["all_tags"] = $this->input->post('all_tags');
@@ -9601,14 +9644,13 @@ class Reports extends MY_Controller {
 
         $HowManyServiceCompleted = $this->input->post('serviceCompleted');
         $HowManyServiceCompletedEnd = $this->input->post('serviceCompletedEnd');
-        $MultiplePrograms = explode(',', $this->input->post('programs_multi'));
 
-        $ExcludedPrograms = explode(",", $this->input->post("customerExclude"));
-
+        $CustomerDataFilterArray['company_id'] = $this->session->userdata['company_id'];
+        $CustomerDataFilterArray["customer_status"] = $this->input->post('customer_status');
         
 		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
-        $data['customers'] = $this->CustomerModel->get_all_customer_marketing(array('company_id'=>$this->session->userdata['company_id']));
+        $data['customers'] = $this->CustomerModel->get_all_customer_marketing($CustomerDataFilterArray);
         $source = [];
         foreach($data['user_details'] as $user){
             $source = (object) array(
@@ -9716,11 +9758,11 @@ class Reports extends MY_Controller {
                     }
                 }
             }
-            
+
             if(count($properties_still_going) > 0 || $filters_set == false) {
                 foreach($properties_still_going as $psg) {
                     $use_this_property = true;
-                    if($filters_array["outstanding_services_multi"][0] != 'null') {
+                    if(count($filters_array["outstanding_services_multi"]) > 0) {
                         $still_in_use = $this->RP->get_outstanding_service_properties($filters_array);
                         foreach($still_in_use as $siu) {
                             if($siu->property_id == $psg[0]->property_id) {
@@ -9877,47 +9919,95 @@ class Reports extends MY_Controller {
         
 		$data['report_details'] = $report_data;
 		$body =  $this->load->view('admin/report/ajax_marketing_customer_data_report', $data, false);
-
 	}
+
+
 	public function downloadMarketingCustomerDataReport(){
 		$company_id = $this->session->userdata['company_id'];
         $filters_array = array();
-        $filters_array["sources"] = $this->input->post('sources_multi');
+        $filters_array["sources"] = array();
+        $filters_array["tags_multi"] = array();
+        $filters_array["service_areas_multi"] = array();
+        $filters_array["preservice_notifications_multi"] = array();
+        $filters_array["zip_codes_multi"] = array();
+        $filters_array["cancel_reasons_multi"] = array();
+        $filters_array["outstanding_services_multi"] = array();
+        $MultiplePrograms = array();
+        $ExcludedPrograms = array();
+
+        if($this->input->post('sources_multi') != ""){
+            $filters_array["sources"] = $this->input->post('sources_multi');
+        }
+
+        if($this->input->post('tags_multi') != ""){
+            $filters_array["tags_multi"] = $this->input->post('tags_multi');
+        }
+
+        if($this->input->post('service_areas_multi') != ""){
+            $filters_array["service_areas_multi"] = $this->input->post('service_areas_multi');
+        }
+
+        if($this->input->post('preservice_notifications_multi') != ""){
+            $filters_array["preservice_notifications_multi"] = $this->input->post('preservice_notifications_multi');
+        }
+
+        if($this->input->post('zip_codes_multi') != ""){
+            $filters_array["zip_codes_multi"] = $this->input->post('zip_codes_multi');
+        }
+
+        if($this->input->post('cancel_reasons_multi') != ""){
+            $filters_array["cancel_reasons_multi"] = $this->input->post('cancel_reasons_multi');
+        }
+
+        if($this->input->post('outstanding_services_multi') != ""){
+            $filters_array["outstanding_services_multi"] = $this->input->post('outstanding_services_multi');
+        }
+
+        if($this->input->post('programs_multi') != ""){
+            $MultiplePrograms = $this->input->post('programs_multi');
+        }
+
+        if($this->input->post("customerExclude") != ""){
+            $ExcludedPrograms = $this->input->post("customerExclude");
+        }
+
+
         $filters_array["lead_start_date_start"] = $this->input->post('lead_start_date_start');
         $filters_array["lead_start_date_end"] = $this->input->post('lead_start_date_end');
         $filters_array["revenue_total_start"] = $this->input->post('revenue_total_start');
         $filters_array["revenue_total_end"] = $this->input->post('revenue_total_end');
         $filters_array["sale_start_date_start"] = $this->input->post('sale_start_date_start');
         $filters_array["sale_start_date_end"] = $this->input->post('sale_start_date_end');
-        // we need to see if we need to set the end date or not
         if($filters_array["sale_start_date_end"] != "" && $filters_array["sale_start_date_start"] == "") {
             $date_company_created_at = $this->RP->get_company_created_at_date($this->session->userdata['company_id']);
             $filters_array["sale_start_date_start"] = $date_company_created_at->created_at;
         }
-        $filters_array["programs_multi"] = $this->input->post('programs_multi');
+        
         $filters_array["cancelation_date_start"] = $this->input->post('cancelation_date_start');
         $filters_array["cancelation_date_end"] = $this->input->post('cancelation_date_end');
-        $filters_array["tags_multi"] = $this->input->post('tags_multi');
         $filters_array["last_date_program_start"] = $this->input->post('last_date_program_start');
         $filters_array["last_date_program_end"] = $this->input->post('last_date_program_end');
-        $filters_array["service_areas_multi"] = $this->input->post('service_areas_multi');
         $filters_array["res_or_com"] = $this->input->post('res_or_com');
-        $filters_array["preservice_notifications_multi"] = $this->input->post('preservice_notifications_multi');
-        $filters_array["zip_codes_multi"] = $this->input->post('zip_codes_multi');
-        $filters_array["cancel_reasons_multi"] = $this->input->post('cancel_reasons_multi');
-        $filters_array["outstanding_services_multi"] = $this->input->post('outstanding_services_multi');
         $filters_array["customer_status"] = $this->input->post('customer_status');
         $filters_array["estimate_accpeted"] = $this->input->post('estimate_accpeted');
         $filters_array["all_tags"] = $this->input->post('all_tags');
         $filters_array["all_programs"] = $this->input->post('all_programs');
         $filters_array["all_pre_service"] = $this->input->post('all_pre_service');
         $filters_array["all_outstanding"] = $this->input->post('all_outstanding');
+        $filters_array["front_yard_grass"] = $this->input->post('front_yard_grass');
+        $filters_array["back_yard_grass"] = $this->input->post('back_yard_grass');
+        $filters_array["total_yard_grass"] = $this->input->post('total_yard_grass');
+        $HowManyServiceCompleted = $this->input->post('serviceCompleted');
+        $HowManyServiceCompletedEnd = $this->input->post('serviceCompletedEnd');
         
-		$data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
+        $CustomerDataFilterArray['company_id'] = $this->session->userdata['company_id'];
+        $CustomerDataFilterArray["customer_status"] = $this->input->post('customer_status');
+        
+        $data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
-        $data['customers'] = $this->CustomerModel->get_all_customer_marketing(array('company_id'=>$this->session->userdata['company_id']));
-
+        $data['customers'] = $this->CustomerModel->get_all_customer_marketing($CustomerDataFilterArray);
         $source = [];
+
         foreach($data['user_details'] as $user){
             $source = (object) array(
                 'source_name' => $user->user_first_name.' '.$user->user_last_name,
@@ -9926,23 +10016,97 @@ class Reports extends MY_Controller {
             ) ;
             array_push( $data['source_list'], $source);
         }
-		#not seeing specific role for sales rep so getting all users 
-		$report_data = array();
+        #not seeing specific role for sales rep so getting all users 
+        $report_data = array();
         foreach($data['customers'] as $customer) {
+            $IsContine = true;
+
+            if($HowManyServiceCompleted != ""){
+                $IdString = "property_program_assign.program_id IN (";
+                foreach($MultiplePrograms as $TcID){
+                    $IdString .= "'".$TcID."',";
+                }
+                $IdString = substr($IdString, 0, -1);
+                $IdString .= ")";
+
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
+
+                $TotalServiceCompleted = 0;
+
+                foreach($ServicesByCustomer as $SBC){
+                    if($SBC->is_job_mode == 1){
+                        $TotalServiceCompleted++;
+                    }
+                }
+
+                if($TotalServiceCompleted >= $HowManyServiceCompleted && $TotalServiceCompleted <= $HowManyServiceCompletedEnd){
+                    $IsContine = false;
+                }
+            }
+
+            if($HowManyServiceCompleted != "" && $IsContine){
+                continue;
+            }
+
+            $IsContine = true;
+            if(count($ExcludedPrograms) > 0){
+                $IdString = "property_program_assign.program_id IN (";
+                foreach($ExcludedPrograms as $TcID){
+                    $IdString .= "'".$TcID."',";
+                }
+                $IdString = substr($IdString, 0, -1);
+                $IdString .= ")";
+
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
+
+                if(count($ServicesByCustomer) > 0){
+                    $IsContine = false;
+                }
+            }
+
+            if(count($ExcludedPrograms) > 0 && !$IsContine){
+                continue;
+            }
+
+            if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
+                $ExploseSoldService = $this->input->post('serviceSoldNotNow');
+                $ServiceSoldShowCustomer = 0;
+
+                foreach($ExploseSoldService as $ESS){
+                    $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id, 'jobs.job_id' => $ESS, "job_assign_date >=" => $this->input->post('ServiceSoldNotNowStart'), "job_assign_date <=" => $this->input->post('ServiceSoldNotNowEnd')));
+                    if(count($ServicesByCustomer) == 0){
+                        $ServiceSoldShowCustomer = 1;
+                    }
+                }
+                if($ServiceSoldShowCustomer == 0){
+                    continue;
+                }
+            }
+
+            //var_dump(memory_get_usage());
             $data['customer_properties_data'] = $this->PropertyModel->getAllCustomerPropertiesMarketing($customer->customer_id);
             // this needs to be set to blank at the top of every customer loop
             $properties_still_going = array();
+
+            $filters_array['programs_multi'] = array();
+            if($this->input->post('programs_multi') != ""){
+                $filters_array['programs_multi'] = $this->input->post('programs_multi');
+            }
+
             foreach($data['customer_properties_data'] as $props) {                   
                 $properties_still_going[] = $this->RP->find_property_from_filter(array('filters'=>$filters_array, 'prop_id'=>$props->property_id));
             }
 
+            unset($data['customer_properties_data']);
             // the above line is sometimes adding a blank array to the array of properties, we need to get rid of those to see if the customer still needs to be shown
             $properties_still_going = array_filter($properties_still_going);
+
             $invocies_for_this_customer = array();
             $lot_size = $revenue = $revenue_ytd = $annual_per_1000 = $lot_size_for_1000_calc = $projected_annual_total = 0;
             $invoices_to_be_checked = $ids_already_checked = array();
             $got_rid_of_all_properties = true;
             $filters_set = false;
+
             foreach($filters_array as $fa) {
                 if(is_array($fa)) {
                     if($fa[0] != "null" && $fa[0] != "" && $fa[0] != null && $fa[0] != "false" && $fa[0] != false ) {
@@ -9955,11 +10119,13 @@ class Reports extends MY_Controller {
                 }
             }
             
-            if(!empty($properties_still_going) || $filters_set == false) {
+
+            if(count($properties_still_going) > 0 || $filters_set == false) {
                 foreach($properties_still_going as $psg) {
                     $use_this_property = true;
-                    if($filters_array["outstanding_services_multi"][0] != 'null') {
+                    if(count($filters_array["outstanding_services_multi"]) > 0) {
                         $still_in_use = $this->RP->get_outstanding_service_properties($filters_array);
+
                         foreach($still_in_use as $siu) {
                             if($siu->property_id == $psg[0]->property_id) {
                                 $got_rid_of_all_properties = false;
@@ -10005,6 +10171,7 @@ class Reports extends MY_Controller {
                                                 }
                                             }
                                         }
+                                        unset($ii);
                                         unset($invoice_info);
                                     }
                                 }
@@ -10013,6 +10180,9 @@ class Reports extends MY_Controller {
                         }
                         unset($invoices_to_be_checked);
                     }
+
+
+                    unset($all_program_ids);
                     $lot_size_for_1000_calc = $lot_size_for_1000_calc + $psg[0]->yard_square_feet;
                     $rev_per_1000_calc = $lot_size_for_1000_calc / 1000;
                     if($rev_per_1000_calc != 0) {
@@ -10057,20 +10227,19 @@ class Reports extends MY_Controller {
                 foreach($projected_annual as $pa) {
                     $projected_annual_total = $projected_annual_total + ($pa->partial_payment - $pa->refund_amount_total);
                 }
+                unset($projected_annual);
                 if($this->input->post('projected_annual_revenue_start') != "" && floatval($this->input->post('projected_annual_revenue_start')) > $projected_annual_total) {
                     continue;
                 }
                 if($this->input->post('projected_annual_revenue_end') != "" && floatval($this->input->post('projected_annual_revenue_end')) < $projected_annual_total) {
                     continue;
                 }
-                
-                if($revenue == 0) {
-                    // this means that all of the properties were skipped (usually based on the outstanding services) so we don't need this user
-                    //continue; commented out on 9/14 as they said they were missing data but really it was just 0 revenue
-                }
+
                 $customer_phone = '('.substr($customer->phone, 0, 3).') '.substr($customer->phone, 3, 3).'-'.substr($customer->phone,6);
                 $customer_work_phone = '('.substr($customer->work_phone, 0, 3).') '.substr($customer->work_phone, 3, 3).'-'.substr($customer->work_phone,6);
+
                 $report_data[$customer->customer_id] = array(
+                    'customer_number_link'=> $customer->customer_id,
                     'first_name'=> $customer->first_name,
                     'last_name'=> $customer->last_name,
                     'email'=> $customer->email,
@@ -10084,7 +10253,7 @@ class Reports extends MY_Controller {
                     'lot_size' => $lot_size,
                     'annual_revenue_per_1000' => $annual_per_1000
                 );
-            } 
+            }
         }
 
         $data['report_details'] = $report_data;
@@ -10120,8 +10289,8 @@ class Reports extends MY_Controller {
             }
             if($this->input->post('SendButtonEmail') == 2){
                 $CustomerArray = array();
-                foreach($data["customers"] as $CusDat){
-                    $CustomerArray[] = $CusDat->customer_id;
+                foreach($report_data as $CusDat){
+                    $CustomerArray[] = $CusDat['customer_number_link'];
                 }
                 $Data = array(
                     "company_id" => $company_id,
@@ -10137,8 +10306,8 @@ class Reports extends MY_Controller {
 
             if($this->input->post('SendButtonEmail') == 1){
                 $CustomerArray = array();
-                foreach($data["customers"] as $CusDat){
-                    $CustomerArray[] = $CusDat->customer_id;
+                foreach($report_data as $CusDat){
+                    $CustomerArray[] = $CusDat['customer_number_link'];
                 }
                 $Data = array(
                     "company_id" => $company_id,

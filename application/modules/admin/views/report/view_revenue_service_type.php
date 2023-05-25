@@ -72,6 +72,7 @@
 			</thead>
 			<tbody>
 				<?php
+				$GrandTotal = 0;
 				foreach ($Services as $Index => $ServiceName) {
 					$ServiceTypeName = "";
 					if($Index == 0 || $Index == ""){
@@ -80,16 +81,24 @@
 						$Serv = $this->db->select('*')->from("service_type_tbl")->where(array("service_type_id" => $Index))->get()->row();
 						$ServiceTypeName = $Serv->service_type_name;
 					}
+
+					$GrandTotal += $ServiceName;
 				?>
 				<tr>
 					<td><?php echo date("01/01/Y") . " TO " . date("m/d/Y") ?></td>
 					<td><?php echo $ServiceTypeName ?></td>
-					<td><?php echo $ServiceName ?></td>
+					<td align="right">$<?php echo number_format($ServiceName, 2) ?></td>
 				</tr>
 				<?php
 				}
 				?>
 			</tbody>
+			<tfoot>
+				<tr>
+					<td align="right" colspan="2"><b>Grand Total</b></td>
+					<td align="right">$<?php echo number_format($GrandTotal, 2) ?></td>
+				</tr>
+			</tfoot>
 		</table>
 	</div>
 </div>
