@@ -65,7 +65,7 @@
 
                <li class="<?= $active_sidebar == "estimatenav" ? "active" : "" ?>"><a href="<?php echo base_url('admin/Estimates');?>"><i class="icon-pencil"></i> <span>Estimates</span></a></li>
 
-               <li class="<?= $active_sidebar == "email_marketing" ? "active" : "" ?>"><a href="<?php echo base_url('admin/reports/emailMarketing');?>"><i class="icon-envelop3"></i> <span>Email Marketing</span></a></li>
+               <li class="<?= $active_sidebar == "email_marketing" ? "active" : "" ?>"><a href="<?php echo base_url('admin/reports/emailMarketing');?>"><i class="icon-envelop3"></i> <span>Email<br>Marketing  <span class="label bg-primary">beta</span></span></a></li>
 
                
 

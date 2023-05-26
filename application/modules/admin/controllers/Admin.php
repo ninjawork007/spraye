@@ -5136,6 +5136,7 @@ class Admin extends MY_Controller
         //die(print_r($data['customerData']));
         $data['servicelist'] = $this->JobModel->getJobList($where);
         $data['all_services'] = $this->DashboardModel->getCustomerAllServicesWithSalesRep(array('jobs.company_id' => $company_id, 'property_tbl.company_id' => $company_id, 'customers.customer_id' => $customerID));
+        $data['CompaniesUser'] = $this->Administrator->getAllAdmin($where);
 
         foreach ($data['all_services'] as $all_services) {
             $cost = 0;

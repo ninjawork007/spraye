@@ -14,7 +14,7 @@
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
 </div>
 
-<div class="p-15 pull-right">
+<div class="p-15">
 	<a href="<?php echo base_url() ?>/admin/reports/marketingCustomerDataReport" target="_blank"><button type="button" class="btn btn-info"><i class="icon-envelop3 position-left"></i> Send New Email</button></a>
 </div>
 <div class="clearfix"></div>

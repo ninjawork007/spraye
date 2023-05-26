@@ -1756,6 +1756,7 @@ class Welcome extends MY_Controller
                                 'program_id'            => $prid->program_id,
                                 'price_override'        => 0,
                                 'is_price_override_set' => 0,
+                                'sale_date' => date("Y-m-d")
                             );
                             $result2 = $this->EstimateModal->assignProgramProperty($assign_program_param);
                         }
@@ -6451,100 +6452,8 @@ class Welcome extends MY_Controller
                                     'tax_amount' => $itpp*$tax_details['tax_value']/100
                                 );
                                 $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
-                                $total_tax_amount += $invoice_tax_details['tax_amount'];
-                            }
-                        }
-                    }
-
-                    //Quickbooks Invoice **
-
-                    $property_deets = $this->PropertyModel->getOnePropertyDetail($inv_param['property_id']);
-                    $property_street = explode(',', $property_deets->property_address)[0];
-
-
-                    $inv_param['customer_email'] = $cust_details['email'];
-                    $inv_param['job_name'] = $description;
-
-                    $QBO_description = implode(', ', $QBO_description);
-                    $actual_description_for_QBO = implode(', ', $actual_description_for_QBO);
-                    $QBO_param = $inv_param;
-                    $QBO_param['property_street'] = $property_street;
-                    $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
-                    $QBO_param['job_name'] = $QBO_description;
-                    $QBO_param['cost'] = $cost_with_cust_coupon;
-                    $QBO_param['invoice_id'] = $invoice_id;
-
-
-                    $quickbook_invoice_id = $this->QuickBookInv($QBO_param);
-
-                    // die(print_r($quickbook_invoice_id));
-                    //if quickbooks invoice then update invoice table with id
-                    if ($quickbook_invoice_id) {
-                        $invoice_id = $this->INV->updateInvoive(array('invoice_id' => $invoice_id), array('quickbook_invoice_id' => $quickbook_invoice_id));
-                    }
-
-                    $assign_program_param = array(
-                        'property_id' => $property_id,
-                        'program_id' => $program_id,
-                        'price_override' => 0,
-                        'is_price_override_set' => 0,
-                        'sale_date' => date("Y-m-d")
-                    );
-                    $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
-
-                    // where estimate jobs are stored
-                    $estimate_price_overide_data = $this->EstimateModal->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
-                    // die(print_r($estimate_price_overide_data[0]->is_price_override_set));
-                    // print_r($estimate_price_overide_data);
-
-                    foreach ($estimate_price_overide_data as $es_job) {
-
-                        if (isset($es_job->is_price_override_set) && !empty($es_job->is_price_override_set)) {
-                            $job_cost = $es_job->price_override;
-                        } else {
-
-                            $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
-
-                            if ($priceOverrideData->is_price_override_set == 1) {
-                                $job_cost = $priceOverrideData->price_override;
-                            } else {
-
-                                //else no price overrides, then calculate job cost
-                                $lawn_sqf = $property_details->yard_square_feet;
-                                $job_price = $es_job->job_price;
-
-                                //get property difficulty level
-                                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-
-                                if (isset($property_details->difficulty_level) && $property_details->difficulty_level == 2) {
-                                    $difficulty_multiplier = $setting_details->dlmult_2;
-                                } elseif (isset($property_details->difficulty_level) && $property_details->difficulty_level == 3) {
-                                    $difficulty_multiplier = $setting_details->dlmult_3;
-                                } else {
-                                    $difficulty_multiplier = $setting_details->dlmult_1;
-                                }
-
-                                //get base fee
-                                if (isset($es_job->base_fee_override)) {
-                                    $base_fee = $es_job->base_fee_override;
-                                } else {
-                                    $base_fee = $setting_details->base_service_fee;
-                                }
-
-                                $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                                //get min. service fee
-                                if (isset($es_job->min_fee_override)) {
-                                    $min_fee = $es_job->min_fee_override;
-                                } else {
-                                    $min_fee = $setting_details->minimum_service_fee;
-                                }
-
-                                // Compare cost per sf with min service fee
-                                if ($cost_per_sqf > $min_fee) {
-                                    $job_cost = $cost_per_sqf;
-                                } else {
-                                    $job_cost = $min_fee;
+                                $total_tax_amount +=  $invoice_tax_details['tax_amount'];
+                
                                 }
                             }
                         }
@@ -6615,6 +6524,7 @@ class Welcome extends MY_Controller
                                 'program_id'            => $es_job->program_id,
                                 'price_override'        => 0,
                                 'is_price_override_set' => 0,
+                                'sale_date' => date("Y-m-d")
                             );
                             if(!in_array($es_job->program_id, $used_programs)) {
                               $property_program_id = $this->PropertyModel->assignProgram($assign_program_param);
@@ -6730,6 +6640,7 @@ class Welcome extends MY_Controller
                             'program_id'            => $prid->program_id,
                             'price_override'        => 0,
                             'is_price_override_set' => 0,
+                            'sale_date' => date("Y-m-d")
                         );
                         $result2 = $this->EstimateModal->assignProgramProperty($assign_program_param);
                     }
