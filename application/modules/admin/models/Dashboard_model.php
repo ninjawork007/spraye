@@ -85,6 +85,32 @@ class Dashboard_model extends CI_Model
         return $data;
     }
 
+    public function getCustomerAllServicesForReportMaketing($where_arr = '', $ExcludeProgram) {
+        $this->db->select("
+            jobs.job_id,
+            is_job_mode
+        ", FALSE);
+        $this->db->from('jobs');
+        $this->db->join('program_job_assign','program_job_assign.job_id =jobs.job_id','inner');
+        $this->db->join('property_program_assign','property_program_assign.program_id = program_job_assign.program_id','inner');
+        $this->db->join('property_tbl','property_tbl.property_id = property_program_assign.property_id','inner');
+        $this->db->join('programs','programs.program_id = property_program_assign.program_id','inner');
+        $this->db->join('customer_property_assign','customer_property_assign.property_id = property_program_assign.property_id ','inner');
+        $this->db->join('customers','customer_property_assign.customer_id = customers.customer_id ','inner');
+        $this->db->join('technician_job_assign', 'jobs.job_id = technician_job_assign.job_id AND customers.customer_id = technician_job_assign.customer_id AND programs.program_id = technician_job_assign.program_id AND property_tbl.property_id = technician_job_assign.property_id', 'left');
+
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+
+        $this->db->where($ExcludeProgram);
+
+        $result = $this->db->get();
+        $data = $result->result();
+        //die(print_r($this->db->last_query()));
+        return $data;
+    }
+
     public function getAssignTechnicianDisplay($where_arr = '', $where_in = array())
     {
         $this->db->select("technician_job_assign_id,invoice_id,first_name,last_name,program_name,customers.customer_id,category_area_name,is_job_mode,job_name,user_first_name,user_last_name,job_assign_date,property_address,property_title,technician_id");

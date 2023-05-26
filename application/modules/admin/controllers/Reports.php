@@ -9669,7 +9669,7 @@ class Reports extends MY_Controller {
                 $IdString = substr($IdString, 0, -1);
                 $IdString .= ")";
 
-                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReportMaketing(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
 
                 if(count($ServicesByCustomer) > 0){
                     $IsContine = false;
