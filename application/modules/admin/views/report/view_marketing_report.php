@@ -433,7 +433,7 @@ opacity: 1;
 
                                     <div class="form-group multi-select-full">
                                         <label>
-                                            Programms
+                                            Programs
                                             <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title='Please select the program(s) that you would like to be dynamically inserted into the email for the "Program Name" dynamic field which will then list those programs in the email for anyone on the list that was enrolled in that program.'> <i class=" icon-info22 tooltip-icon"></i></span>
                                         </label>
                                         <select class="multiselect-select-all-filtering form-control" name="MassProgramms[]" multiple="multiple" style='white-space: break-spaces;'>
