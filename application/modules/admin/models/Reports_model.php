@@ -1008,9 +1008,6 @@ class Reports_model extends CI_Model{
                 $this->db->where_in('program_job_assign.job_id', $filters_array['filters']['outstanding_services_multi']);
             }
             */
-            if($filters_array['filters']['customer_status'] != '') {
-                $this->db->where_in('customers.customer_status', $filters_array['filters']['customer_status']);
-            }
 
             $this->db->group_by('property_tbl.property_id');
             $result = $this->db->get();
@@ -1095,10 +1092,6 @@ class Reports_model extends CI_Model{
     public function get_outstanding_service_properties($filters_array) {
         $this->db->select('property_id');
         $this->db->from('property_program_job_invoice');
-
-        echo '<pre>';
-        print_r($filters_array);
-        die;
         
         if($filters_array['all_outstanding'] == "true" || $filters_array["all_outstanding"] == "on") {
             $this->db->where_in('job_id', $filters_array['outstanding_services_multi']);

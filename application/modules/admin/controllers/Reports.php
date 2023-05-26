@@ -9603,12 +9603,20 @@ class Reports extends MY_Controller {
         $HowManyServiceCompletedEnd = $this->input->post('serviceCompletedEnd');
         $MultiplePrograms = explode(',', $this->input->post('programs_multi'));
 
-        $ExcludedPrograms = explode(",", $this->input->post("customerExclude"));
+        $ExcludedPrograms = array();
+        if($this->input->post("customerExclude") != "null"){
+            $ExcludedPrograms = explode(",", $this->input->post("customerExclude"));
+        }
 
+        $CustomerDataFilterArray['company_id'] = $this->session->userdata['company_id'];
+        if($this->input->post('customer_status') != ""){
+            $CustomerDataFilterArray["customer_status"] = $this->input->post('customer_status');
+        }
         
         $data['user_details'] = $this->Administrator->getAllAdminMarketing(array('company_id' => $this->session->userdata['company_id']));
         $data['source_list'] = $this->SourceModel->getAllSourceMarketing(array('company_id' => $this->session->userdata['company_id']));
-        $data['customers'] = $this->CustomerModel->get_all_customer_marketing(array('company_id'=>$this->session->userdata['company_id']));
+        $data['customers'] = $this->CustomerModel->get_all_customer_marketing($CustomerDataFilterArray);
+
         $source = [];
         foreach($data['user_details'] as $user){
             $source = (object) array(
@@ -9618,9 +9626,12 @@ class Reports extends MY_Controller {
             ) ;
             array_push( $data['source_list'], $source);
         }
+
         #not seeing specific role for sales rep so getting all users 
         $report_data = array();
         foreach($data['customers'] as $customer) {
+            
+
             $IsContine = true;
             if($HowManyServiceCompleted != ""){
                 $IdString = "property_program_assign.program_id IN (";
@@ -9705,6 +9716,8 @@ class Reports extends MY_Controller {
             $got_rid_of_all_properties = true;
             $filters_set = false;
 
+
+
             foreach($filters_array as $fa) {
                 if(is_array($fa)) {
                     if($fa[0] != "null" && $fa[0] != "" && $fa[0] != null && $fa[0] != "false" && $fa[0] != false ) {
@@ -9787,10 +9800,13 @@ class Reports extends MY_Controller {
                     $lot_size = $lot_size + $psg[0]->yard_square_feet;
                 }
                 
+
                 
                 if($got_rid_of_all_properties == true && $filters_set == true) {
                     continue;
                 }
+
+                
                 // if they set the YTD revenue, annual revenue, projected, or lot size we need to skip this person if they dont fall into that range
                 if(($this->input->post('ytd_revenue_start') != "" && floatval($this->input->post('ytd_revenue_start')) > $revenue_ytd)) {
                     continue;
@@ -9853,6 +9869,7 @@ class Reports extends MY_Controller {
                     'annual_revenue_per_1000' => $annual_per_1000
                 );
             }
+
             unset($properties_still_going);
             unset($invocies_for_this_customer);
             unset($lot_size);
@@ -9874,7 +9891,7 @@ class Reports extends MY_Controller {
             unset($customer_work_phone);
             unset($customer_number_link);
         }
-        
+
         $data['report_details'] = $report_data;
         $body =  $this->load->view('admin/report/ajax_marketing_customer_data_report', $data, false);
     }
