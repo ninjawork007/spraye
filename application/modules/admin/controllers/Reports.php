@@ -9651,7 +9651,7 @@ class Reports extends MY_Controller {
                     }
                 }
 
-                if($TotalServiceCompleted >= $HowManyServiceCompleted && $TotalServiceCompleted <= $HowManyServiceCompletedEnd){
+                if($HowManyServiceCompleted >= $TotalServiceCompleted  && $HowManyServiceCompletedEnd <= $TotalServiceCompleted){
                     $IsContine = false;
                 }
             }
