@@ -360,7 +360,7 @@
                               Existing route
                               </label>
                               <label class="radio-inline">
-                              <input type="radio" name="changerouteview" class="primary-assign styled" value="2" >
+                              <input type="radio" name="changerouteview" class="primary-assign styled" value="2" id="create-new-route">
                               Create a new route
                               </label>
                            </div>
@@ -981,6 +981,14 @@
 
         $("#technician_id").trigger("change");
    });
+   // for assign job
+   $( "#create-new-route" ).click(function() {
+      technician_id = $( "#technician_id").val();
+      jobAssignDate =$('#jobAssignDate').val();
+      route_select_id = 'route_select';
+      routeMange(technician_id,jobAssignDate,route_select_id);
+   });
+
 
    //  for multiple edit assign job
    function routeMange(technician_id,jobAssignDate,route_select_id,selected_id='') {

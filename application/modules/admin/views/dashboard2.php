@@ -731,7 +731,7 @@
                                     <div class="progress-bar" role="progressbar" style="width: <?= ($value->total*100)/$value->total_area   ?>% " aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
                                  </div>
                               </td>
-                              <td class="text-muted ft-txt"><?= ($value->total) ?> / <?= ($value->total_area) ?> -sq.-ft</td>
+                              <td class=" ft-txt"><?= ($value->total) ?> / <?= ($value->total_area) ?> -sq.-ft</td>
                            </tr>
                            <?php } } else { ?>
                            <tr>
@@ -870,7 +870,7 @@
    
                percent =  (parseInt(val.total)*100)/parseInt(val.total_area);  
    
-               $('.scorebody').append('<tr>  <td> '+val.user_first_name+' '+val.user_last_name+' <td> <div class="progress"> <div class="progress-bar" role="progressbar" style="width: '+percent+'%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>   </div>  </td> <td class="text-muted ft-txt">'+parseInt(val.total)+' / '+parseInt(val.total_area)+' -sq.-ft</td>  </tr>')
+               $('.scorebody').append('<tr>  <td> '+val.user_first_name+' '+val.user_last_name+' <td> <div class="progress"> <div class="progress-bar" role="progressbar" style="width: '+percent+'%" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>   </div>  </td> <td class=" ft-txt">'+parseInt(val.total)+' / '+parseInt(val.total_area)+' -sq.-ft</td>  </tr>')
                  
               });
            } else {

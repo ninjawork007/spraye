@@ -469,10 +469,12 @@ line-height: normal;
             <form class="form-horizontal form2" action="<?= base_url('admin/setting/updateEmailAutomated') ?>" method="post" name="automatedemail" enctype="multipart/form-data">
                 <fieldset class="content-group">
                     <legend class="text-bold">Automated Emails & Text Messaging</legend>
+                    <span >Note: You can include customer information on the email by using custom variables. The following data is available to use:  {SERVICE_NAME} {PROGRAM_NAME} {PROPERTY_NAME} {PROPERTY_ADDRESS} {SERVICE_NOTES} {SERVICE_DESCRIPTION} {SERVICE_DATE}  </span>
+                    <br><br>
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label class="control-label col-lg-3">Service Scheduled
+                                <label class="control-label col-lg-3">Service Scheduled <span data-popup="tooltip-custom" title="You can include customer information on the email by using custom variables. The following data is available to use:  {SERVICE_NAME} {PROGRAM_NAME} {PROPERTY_NAME} {PROPERTY_ADDRESS} {SERVICE_NOTES} {SERVICE_DESCRIPTION} {SERVICE_DATE}" data-placement="top"> <i class=" icon-info22 tooltip-icon"></i> </span>
                                     <span class="message_type">(email message)</span>
                                     <label class="togglebutton" style="font-size:13px">
                                         Off&nbsp;<input name="job_sheduled_status" type="checkbox" class="switchery-service-scheduled" <?php echo $company_email_details->job_sheduled_status == 1 ? 'checked' : '';  ?>>&nbsp;On
@@ -509,7 +511,8 @@ line-height: normal;
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label class="control-label col-lg-3">Rescheduled Service <span class="message_type">(email message)</span>
+                                <label class="control-label col-lg-3">Rescheduled Service  <span data-popup="tooltip-custom" title="You can include customer information on the email by using custom variables. The following data is available to use:  {SERVICE_NAME} {PROGRAM_NAME} {PROPERTY_NAME} {PROPERTY_ADDRESS} {SERVICE_NOTES} {SERVICE_DESCRIPTION} {SERVICE_DATE}" data-placement="top"> <i class=" icon-info22 tooltip-icon"></i> </span>
+                                    <span class="message_type">(email message)</span>
 
                                     <label class="togglebutton" style="font-size:13px">
                                         Off&nbsp;<input name="job_sheduled_skipped_status" type="checkbox" class="switchery-service-skipped" <?php echo $company_email_details->job_sheduled_skipped_status == 1 ? 'checked' : '';  ?>>&nbsp;On
@@ -548,7 +551,7 @@ line-height: normal;
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label class="control-label col-lg-3" id="one_day_prior">1 Day Prior To Scheduled Date
+                                <label class="control-label col-lg-3" id="one_day_prior">1 Day Prior To Scheduled Date <span data-popup="tooltip-custom" title="You can include customer information on the email by using custom variables. The following data is available to use:  {SERVICE_NAME} {PROGRAM_NAME} {PROPERTY_NAME} {PROPERTY_ADDRESS} {SERVICE_NOTES} {SERVICE_DESCRIPTION} {SERVICE_DATE}" data-placement="top"> <i class=" icon-info22 tooltip-icon"></i> </span>
                                     <span class="message_type">(email message)</span>
                                     <label class="togglebutton" style="font-size:13px">
                                         Off&nbsp;<input name="one_day_prior_status" type="checkbox" class="switchery-service-prior" <?php echo $company_email_details->one_day_prior_status == 1 ? 'checked' : '';  ?>>&nbsp;On
@@ -584,7 +587,7 @@ line-height: normal;
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <label class="control-label col-lg-3">Service Completion
+                                <label class="control-label col-lg-3">Service Completion <span data-popup="tooltip-custom" title="You can include customer information on the email by using custom variables. The following data is available to use:  {SERVICE_NAME} {PROGRAM_NAME} {PROPERTY_NAME} {PROPERTY_ADDRESS} {SERVICE_NOTES} {SERVICE_DESCRIPTION} {SERVICE_DATE}" data-placement="top"> <i class=" icon-info22 tooltip-icon"></i> </span>
                                     <span class="message_type">(email message)</span>
                                     <label class="togglebutton" style="font-size:13px">
                                         Off&nbsp;<input name="job_completion_status" type="checkbox" class="switchery-service-complete" <?php echo $company_email_details->job_completion_status == 1 ? 'checked' : '';  ?>>&nbsp;On

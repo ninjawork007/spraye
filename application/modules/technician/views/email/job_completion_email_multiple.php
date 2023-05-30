@@ -212,14 +212,17 @@
                           }
 							                     
                           $html6  = str_replace("{ADDITIONAL_INFO}",$additional_info,$html5);
-                 
-						
 
-						
+
+
+
                          $html7  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> :'.$customer_data['property_address'].'<br>',$html6);
 
+                         $html8  = str_replace("{PROPERTY_NAME}",'<b>Property Name</b>: '.$property_data->property_title.'<br>',$html7);
+                         $html9  = str_replace("{SERVICE_DESCRIPTION}",'<b>Service Description</b>: '.$job_details->job_description.'<br>',$html8);
+                         $html10  = str_replace("{SERVICE_NOTES}",'<b>Service Notes</b>: '.$job_details->job_notes.'<br>',$html9);
 							
-                         $body .= $html7.'<br><br>';
+                         $body .= $html10.'<br><br>';
 							
 						}
 							$body .= '<a href="'.base_url('welcome/unSubscibeEmail/').$customer_data['customer_id'].'" target="_blank" >Unsubscribe</a>';

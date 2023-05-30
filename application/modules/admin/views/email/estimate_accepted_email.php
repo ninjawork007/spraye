@@ -45,7 +45,17 @@
                          
                          //$html2  = str_replace("{SERVICE_NAME}",'<b>Service</b> :'.$email_data_details->job_name.'<br>',$html);
 
-                         $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$program_names.'<br>',$html);
+                         if(empty($program_names)){
+                            $program_names = "None";
+                        }
+                        if(empty($service_names)){
+                            $service_names = "None";
+                        }
+
+                         $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$program_names.'<br><br>' . '<p><b>Service</b> : '.$service_names.'</p><br>',$html);
+
+                         //$html6  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$program_names.'<br>',$html);
+                         //$html3  = str_replace("{SERVICE_NAME}",'<b>Service</b> : '. $service_names .'<br>',$html6);
                         
                          $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$email_data_details->property_address.'<br>',$html3);
 

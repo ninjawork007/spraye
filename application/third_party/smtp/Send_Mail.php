@@ -180,7 +180,7 @@ function Send_Mail_dynamic($smtparray = array(), $to, $company_data, $body, $sub
 		if ($httpcode == 202) {
 			return array('status' => true, 'message' => 'Email send succefully');
 		} else {
-			return array('status' => false, 'message' => print_r($res));
+            //return array('status' => false, 'message' => print_r($res));
 		}
 	}
 }

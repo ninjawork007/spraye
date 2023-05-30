@@ -561,7 +561,7 @@
                               Existing route
                               </label>
                               <label class="radio-inline">
-                              <input type="radio" name="changerouteview" class="primary-assign styled" value="2" >
+                              <input type="radio" name="changerouteview" class="primary-assign styled" value="2" id="create-new-route" >
                               Create a new route
                               </label>
                            </div>
@@ -591,6 +591,7 @@
                <input type="hidden" name="group_id" id="group_id" >
                <input type="hidden" name="group_id_new" id="group_id_new">
                <div class="modal-footer">
+                   <button type="button" class="btn btn-info" id="mileage" style="display: none;">Get mileage & drive time</button>
                   <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
                   <button type="submit"  class="btn btn-primary" id="job_assign_bt">Save</button>
                </div>
@@ -598,6 +599,37 @@
          </form>
       </div>
    </div>
+</div>
+<!-- /primary modal -->
+<!-- Primary modal -->
+<div id="modal_mileage" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-light">Mileage Information</h6>
+                <button type="button" class="close text-light modal-mileage-dismiss">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mileageInfo">Mileage</label>
+                            <p id="mileageInfo" class="form-control-static"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="driveTimeInfo">Drive Time</label>
+                            <p id="driveTimeInfo" class="form-control-static"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-mileage-dismiss" >Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 <!-- /primary modal -->
 <!---  Add Filter Criteria template --->
@@ -612,6 +644,9 @@
 </script>
 
 <script language="javascript" type="text/javascript">
+   $(".modal-mileage-dismiss").click(function() {
+       $("#modal_mileage").modal('hide');
+   })
    $("#select_all").change(function(){  //"select all" change
 
       var status = this.checked; // "select all" checked status
@@ -845,6 +880,138 @@
 
 
 $(document).ready(function() {
+
+    $( "#mileage" ).click(function(event) {
+        event.stopPropagation();
+        event.preventDefault();
+        let route_id = $("#route_select").val();
+        let strLocations = $("#route_select option").filter(":selected").data('row-locations');
+        let locations = [];
+        if (strLocations) {
+            let arrLocations = strLocations.split(';');
+
+            for (i = 0; i < arrLocations.length; i++)
+            {
+                if (arrLocations[i] !== '')
+                {
+                    let address = arrLocations[i].split(':');
+
+                    locations.push({
+                        property_address: address[0],
+                        property_latitude: address[1],
+                        property_longitude: address[2]
+                    });
+                }
+            }
+        }
+
+        $('#unassigntbl tbody input:checked').each(function() {
+            let address = $(this).data('address').split(':');
+            locations.push({
+                property_address: address[0],
+                property_latitude: address[1],
+                property_longitude: address[2]
+            });
+        });
+
+        let technician_id = $("#technician_id").val();
+        Swal.fire({
+            title: 'Please Wait !',
+            html: 'Getting mileage information for you...',// add html attribute if you want or remove
+            allowOutsideClick: false,
+            onBeforeOpen: () => {
+                Swal.showLoading()
+            },
+        });
+        $.ajax({
+            type: "POST",
+            url: "<?= base_url('admin/getMileageAndDriveTimeForRoute') ?>",
+            data: {technician_id : technician_id , locations :  JSON.stringify(locations) },
+            dataType : "json",
+        }).done(function(data){
+
+            if (data.length===0) {
+                $('#'+route_select_id).append('<option value="">No route found</option>');
+            } else {
+                post_BasicOptimizeStops(data);
+            }
+            // Swal.close();
+        });
+    });
+
+    // post json data and get a json response
+    function postit(url, options) {
+        // extend options
+        var poptions = jQuery.extend({}, {
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            error: function (jqXHR, exception) {
+                var msg = '';
+                if (jqXHR.status === 0) {
+                    msg = 'Not connect.\n Verify Network.';
+                } else if (jqXHR.status === 404) {
+                    msg = 'Requested page not found. [404]';
+                } else if (jqXHR.status === 500) {
+                    msg = 'Internal Server Error [500].';
+                } else if (exception === 'parsererror') {
+                    msg = 'Requested JSON parse failed.';
+                } else if (exception === 'timeout') {
+                    msg = 'Time out error.';
+                } else if (exception === 'abort') {
+                    msg = 'Ajax request aborted.';
+                } else {
+                    msg = 'Uncaught Error.\n' + jqXHR.responseText;
+                }
+                $('#postProduct').html(msg);
+            },
+
+        }, options);
+
+        // send it along
+        return $.ajax(poptions);
+    }
+
+    function post_BasicOptimizeStops(request) {
+        var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+        postit(resturl + 'POSTOptimize', {
+            data: JSON.stringify(request),
+            success: function(data) {
+                let mileage = kmToMiles(data.Route.DriveDistance).toFixed(2);
+                let driveTime =  formatTime(data.Route.DriveTime);
+                $('#mileageInfo').text(mileage + ' miles');
+                $('#driveTimeInfo').text(driveTime);
+                $('#modal_mileage').modal('show');
+                console.log(data)
+                var resp = JSON.stringify(data, null, '\t');
+                console.log(resp);
+                Swal.close();
+            },
+            error: function(err) {
+                Swal.close();
+                $('#loading').css('display', 'none');
+                $('#result').text(JSON.stringify(err, null, '\t'));
+            }
+        });
+    }
+
+    function kmToMiles(km) {
+        return km / 1.60934;
+    }
+
+    function formatTime(seconds) {
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var remainingSeconds = seconds % 60;
+
+        var formattedTime = hours.toString().padStart(2, '0') + ':' +
+            minutes.toString().padStart(2, '0') + ':' +
+            remainingSeconds.toString().padStart(2, '0');
+
+        return formattedTime;
+    }
+
     $(".service-due-filter").find(".btn-group").css("width", "100%");
     //$("#loading").css("display","block");
       // Setup - add a text input to each footer cell
@@ -1400,42 +1567,73 @@ $(document).ready(function() {
       routeMange(technician_id,jobAssignDate,route_select_id);
    });
 
+   // for assign job
+   $( "#create-new-route" ).click(function() {
+       technician_id = $( "#technician_id").val();
+       jobAssignDate =$('#jobAssignDate').val();
+       route_select_id = 'route_select';
+       routeMangeNewRoute(technician_id,jobAssignDate,route_select_id);
+   });
+
      $( "#jobAssignDate" ).change(function() {
 
         $("#technician_id").trigger("change");
    });
 
    //  for multiple edit assign job
-   function routeMange(technician_id,jobAssignDate,route_select_id,selected_id='') {
-
-      $('#'+route_select_id).html('');
-      if (technician_id!='' && jobAssignDate!='' ){
-
-           $.ajax({
-              type: "POST",
-              url: "<?= base_url('admin/getTexhnicianRoute') ?>",
-              data: {technician_id : technician_id , job_assign_date : jobAssignDate },
-              dataType : "json",
-           }).done(function(data){
-
-           if (data.length===0) {
-             $('#'+route_select_id).append('<option value="">No route found</option>');
-           } else {
-           $.each(data, function( index, value ){
-
-                if (value.route_id==selected_id) {
-                   selected = 'selected';
-                  }else {
-           selected = '';
-                  }
-
-
-                 $('#'+route_select_id).append('<option value="'+value.route_id+'" '+selected+' >'+value.route_name+'</option>');
-               });
-           }
+   function routeMange(technician_id, jobAssignDate, route_select_id, selected_id = '') {
+       $('#' + route_select_id).html('');
+       if (technician_id != '' && jobAssignDate != '') {
+           Swal.fire({
+               title: 'Please Wait !',
+               html: "Checking technician's active routes...",// add html attribute if you want or remove
+               allowOutsideClick: false,
+               onBeforeOpen: () => {
+                   Swal.showLoading()
+               },
            });
-      }
+           $.ajax({
+               type: "POST",
+               url: "<?= base_url('admin/getTexhnicianRoute') ?>",
+               data: {
+                   technician_id: technician_id,
+                   job_assign_date: jobAssignDate
+               },
+               dataType: "json",
+           }).done(function(data) {
+               if (data.length === 0) {
+                   $('#' + route_select_id).append('<option value="">No route found</option>');
+                   $('#mileage').hide();
+               } else {
+                   $.each(data, function(index, value) {
+                       if (value.route_id == selected_id) {
+                           selected = 'selected';
+                       } else {
+                           selected = '';
+                       }
+                       let locations = '';
+                       for(i = 0; i < value.locations.length; i++)
+                       {
+                           locations += value.locations[i].property_address+':'+value.locations[i].property_latitude+':'+value.locations[i].property_longitude+';';
+                       }
+                       $('#'+route_select_id).append('<option data-row-locations="'+locations+'" value="'+value.route_id+'" '+selected+' >'+value.route_name+'</option>');
+                       $('#mileage').show();
+                   });
+               }
+               Swal.close();
+           });
 
+           if($("#create-new-route").is(":checked"))
+               $('#mileage').show();
+       }
+   }
+
+   function routeMangeNewRoute(technician_id,jobAssignDate,route_select_id)
+   {
+       $('#' + route_select_id).html('');
+       if (technician_id != '' && jobAssignDate != '') {
+           $('#mileage').show();
+       }
    }
 
 

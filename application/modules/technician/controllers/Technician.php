@@ -1607,13 +1607,17 @@ class Technician extends MY_Controller
     {
         $sendEmail = [];
         //die(print_r($data));
-        if (!empty($data) && !empty($report_details)) {
-            $tech_job_assign_details = $this->Tech->getOneJobAssign(array('technician_job_assign_id' => $data->technician_job_assign_id));
-            if (!empty($tech_job_assign_details)) {
-                $emaildata['email_data_details'] = $data;
-                $emaildata['report_details'] = $report_details;
-                $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $tech_job_assign_details->company_id));
-                $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $tech_job_assign_details->company_id));
+        if(!empty($data) && !empty($report_details)){
+            $tech_job_assign_details = $this->Tech->getOneJobAssign(array('technician_job_assign_id'=>$data->technician_job_assign_id));
+            if(!empty($tech_job_assign_details)){
+                $emaildata['email_data_details'] =  $data;
+                $emaildata['report_details'] =  $report_details;
+                $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' =>$tech_job_assign_details->company_id));
+
+                $emaildata['property_data'] = $this->PropertyModel->getOneProperty(array('property_id'=>$tech_job_assign_details->property_id));
+                $emaildata['job_details'] = $job_details = $this->JobModel->getOneJob(array('job_id' => $tech_job_assign_details->job_id));
+
+                $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' =>$tech_job_assign_details->company_id));
 
 
                 #check if customer billing type is Group Billing
@@ -1650,7 +1654,6 @@ class Technician extends MY_Controller
                 }
                 //var_dump($emaildata);
                 $body = $this->load->view('email/job_completion_email', $emaildata, true);
-                // die($body);
                 $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $tech_job_assign_details->company_id, 'is_smtp' => 1));
                 if (!$company_email_details) {
                     $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
@@ -2295,8 +2298,8 @@ class Technician extends MY_Controller
 
                                     // Declare array to be passed to coupon calculatiuon function
                                     $coup_inv_param = array(
-                                        'cost' => $QBO_param->cost,
-                                        'invoice_id' => $invoice_details->invoice_id
+                                        'cost' => (is_object($QBO_param))?$QBO_param->cost:-1,
+                                        'invoice_id' => (is_object($invoice_details))?$invoice_details->invoice_id:-1
                                     );
 
                                     // Assign value of calculation function to new variable
@@ -3715,6 +3718,7 @@ class Technician extends MY_Controller
     public function jobResceduleEmail($technician_job_assign_id, $data = array())
     {
         $tech_job_assign_details = $this->Tech->getOneJobAssign(array('technician_job_assign_id' => $technician_job_assign_id));
+
         //die(print_r($tech_job_assign_details->pre_service_notification));
         $pre_service_notification_email = 0;
         $pre_service_notification_text = 0;
@@ -3726,12 +3730,15 @@ class Technician extends MY_Controller
             //die("Yes, it has a preservice notification to send an email");
             $pre_service_notification_text = 1;
         }
+        //die(print_r($tech_job_assign_details));
         if (!empty($tech_job_assign_details)) {
             $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $tech_job_assign_details->company_id));
             $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $tech_job_assign_details->company_id));
             $emaildata['property_address'] = $tech_job_assign_details->property_address;
             $emaildata['job_name'] = $tech_job_assign_details->job_name;
             $emaildata['reschedule_reason'] = $tech_job_assign_details->reschedule_message;
+            $emaildata['property_details'] = $this->PropertyModel->getOneProperty(array('property_id' => $tech_job_assign_details->property_id));
+            $emaildata['job_details'] = $this->JobModel->getOneJob(array('job_id' => $tech_job_assign_details->job_id));
 
 
             #check if customer billing type is Group Billing
@@ -3756,17 +3763,16 @@ class Technician extends MY_Controller
                     'group_billing' => 0,
                 );
             }
-
-
+            //die(print_r($emaildata));
             $body = $this->load->view('email/job_skipped_email', $emaildata, true);
-
             //$body  = $this->load->view('email/reschedule_email', $emaildata, true);
             $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $tech_job_assign_details->company_id, 'is_smtp' => 1));
-            $company_email_details = false;
+            //$company_email_details = false;
             if (!$company_email_details) {
                 $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
             }
             if ($emaildata['company_email_details']->job_sheduled_skipped_status == 1 && $emaildata['contactData']['email_opt_in'] == 1 && $pre_service_notification_email) {
+
                 #send email to customer
                 $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['contactData']['email'], array("name" => $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $body, 'Service Rescheduled');
                 #send email to admin
@@ -3787,6 +3793,7 @@ class Technician extends MY_Controller
 
     public function rescheduleJobMultiple($technician_job_assign_ids)
     {
+
         if (isset($technician_job_assign_ids)) {
             $technician_job_assign_array = explode(',', trim($technician_job_assign_ids));
 
@@ -4065,7 +4072,6 @@ class Technician extends MY_Controller
                                     $invoice_tax_details = array(
                                         'invoice_id' => $invoice_id,
                                         'tax_name' => $g_i_t['tax_name'],
-                                        'tax_value' => $g_i_t['tax_value'],
                                         'tax_value' => $g_i_t['tax_value'],
                                         'tax_amount' => $total_cost * $g_i_t['tax_value'] / 100
                                     );

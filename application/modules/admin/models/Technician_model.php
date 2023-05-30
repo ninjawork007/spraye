@@ -459,6 +459,22 @@ class Technician_model extends CI_Model{
         
     }
 
+    public function getRoutsLocationsByRoute($where_arr){
+
+        $this->db->select('property_tbl.property_address,property_tbl.property_latitude,property_tbl.property_longitude');
+        $this->db->from(self::TJATBL);
+        $this->db->join('route',"route.route_id=technician_job_assign.route_id","inner");
+        $this->db->join('property_tbl',"property_tbl.property_id=technician_job_assign.property_id","inner");
+        $this->db->where($where_arr);
+        $this->db->group_by('technician_job_assign.route_id');
+        $result = $this->db->get();
+        $data = $result->result_array();
+        return $data;
+
+
+
+    }
+
 	public function getProgramPropertyEmailData($wherearr) {
        $this->db->select('first_name,last_name,program_name,property_address');
        $this->db->from('customers,programs,property_tbl');

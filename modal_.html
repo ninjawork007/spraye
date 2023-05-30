@@ -1,0 +1,92 @@
+var map;
+function loadMap() {
+map = new Microsoft.Maps.Map(document.getElementById('routeMap'), {});
+}
+var showmap = true;
+$('#routeMap').show();
+var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+function post_BasicOptimizeStops() {
+var requestStr = $('#postTestRequest').val();
+var request = JSON.parse(requestStr);
+//clear
+$('#result').text('');
+$('#get_url').text('');
+$('#geturl').hide();
+map.entities.clear();
+postit(resturl + 'POSTOptimize', {
+data: JSON.stringify(request),
+success: function(data) {
+$('#jsonresult').show();
+console.log(data)
+var resp = JSON.stringify(data, null, '\t');
+console.log(resp);
+// let mileage = data.Route.DriveDistance.toFixed(2);
+// let driveTime = new Date(data.Route.DriveTime * 1000).toISOString().slice(11, 19);
+// $('#mileageInfo').text(mileage + ' ' + data.Route.DriveDistanceUnit);
+// $('#driveTimeInfo').text(driveTime);
+// $('#modal_mileage').modal('show');
+// $('#modal_mileage').modal('show');
+//process results
+if (showmap) {
+renderMap(data);
+} else {
+//show json results
+$('#loading').css('display', 'none');
+$('#result').text(resp);
+}
+},
+error: function(err) {
+$('#loading').css('display', 'none');
+$('#result').text(JSON.stringify(err, null, '\t'));
+}
+});
+}
+
+function kmToMiles(km) {
+return km / 1.60934;
+}
+
+function formatTime(seconds) {
+var hours = Math.floor(seconds / 3600);
+var minutes = Math.floor((seconds % 3600) / 60);
+var remainingSeconds = seconds % 60;
+
+var formattedTime = hours.toString().padStart(2, '0') + ':' +
+minutes.toString().padStart(2, '0') + ':' +
+remainingSeconds.toString().padStart(2, '0');
+
+return formattedTime;
+}
+
+function post_BasicOptimizeStopsMileageInfo() {
+var requestStr = $('#postTestRequest').val();
+var request = JSON.parse(requestStr);
+
+postit(resturl + 'POSTOptimize', {
+data: JSON.stringify(request),
+success: function(data) {
+let mileage = kmToMiles(data.Route.DriveDistance).toFixed(2);
+let driveTime = formatTime(data.Route.DriveTime);
+$('#mileageInfo').text(mileage + ' miles');
+$('#driveTimeInfo').text(driveTime);
+$('#modal_mileage').modal('show');
+},
+error: function(err) {
+$('#loading').css('display', 'none');
+$('#result').text(JSON.stringify(err, null, '\t'));
+}
+});
+}
+var routeJobCount =
+<?= $routeJobCount; ?>;
+var currentStepCount = 0;
+// $(function() {
+// if( currentStepCount != routeJobCount ) {
+// console.log('Switching Buttons...');
+// $('#start_inspection').get(0).parentElement.parentElement.hide();
+// $('#next-stop-btn').get(0).parentElement.parentElement.show();
+// $('#start_vehicle_issue').get(0).parentElement.parentElement.hide();
+// $('#finish-day-btn').get(0).parentElement.parentElement.show();
+// console.log('Buttons Switched!');
+// }
+// });

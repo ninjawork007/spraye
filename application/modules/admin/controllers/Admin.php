@@ -1037,10 +1037,11 @@ class Admin extends MY_Controller
                 $asapHighligth = 0;
                 if ($value->asap == 1)
                     $asapHighligth = 1;
-                if ($IsCustomerInHold == 0) {  //print_r($data);die();
-                    $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox map' />";
-                } else {
-                    $data[$i]['checkbox'] = "<input title='Customer Account On Hold' data-row-asap='$asapHighligth' name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox customer_in_hold' />";
+                if($IsCustomerInHold==0){  //print_r($data);die();
+                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-address='$value->property_address:$value->property_latitude:$value->property_longitude' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox map' />";
+                }
+                else {
+                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-address='$value->property_address:$value->property_latitude:$value->property_longitude' data-row-asap='$asapHighligth' name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$prop_id' class='myCheckBox customer_in_hold' />";
                 }
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' class='myCheckBox map' />";
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' value='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' data-iter=$i class='myCheckBox' />";
@@ -3372,12 +3373,80 @@ class Admin extends MY_Controller
 
         $result = $this->Tech->getNumberOfRoute($where_arr);
         if ($result) {
-            $return_array = $result;
+            
+            foreach($result as $key => &$res)
+            {
+                $locations = [];
+                $properties = $this->Tech->getRoutsLocationsByRoute(array('technician_job_assign.route_id'=>$res['route_id']));
+
+                if ($properties) {
+                    foreach($properties as $property)
+                    {
+                        $locations[] = [
+                            'property_address' => $property['property_address'],
+                            'property_latitude' => $property['property_latitude'],
+                            'property_longitude' => $property['property_longitude'],
+                        ];
+                    }
+                }
+                $result[$key]['locations'] = $locations;
+            }
+            $return_array  = $result;
+
         } else {
             $return_array = array();
         }
 
         echo json_encode($return_array);
+    }
+
+    public function getMileageAndDriveTimeForRoute()
+    {
+        $data = $this->input->post();
+
+        $locations = [];
+        if (isset($data['locations'])) {
+            $locations = json_decode($data['locations'], true);
+        }
+
+        $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id'=> $this->session->userdata['company_id']));
+
+        $data['currentaddress'] = $data['setting_details']->start_location;
+        $data['currentlat'] =  $data['setting_details']->start_location_lat;
+        $data['currentlong'] = $data['setting_details']->start_location_long;
+        $alldata = array();
+        $Locations = array();
+        $statLocation = array(
+            'Name' => $data['setting_details']->start_location,
+            'Latitude' => $data['setting_details']->start_location_lat,
+            'Longitude' => $data['setting_details']->start_location_long
+        );
+        $endLocation = array(
+            'Name' => $data['setting_details']->end_location,
+            'Latitude' => $data['setting_details']->end_location_lat,
+            'Longitude' => $data['setting_details']->end_location_long
+        );
+        if (!empty($locations)) {
+            foreach ($locations as $key => $value) {
+                $Locations[$key]['Name'] = $value['property_address'];
+                $Locations[$key]['Latitude'] = $value['property_latitude'];
+                $Locations[$key]['Longitude'] = $value['property_longitude'];
+            }
+            array_unshift($Locations, $statLocation);
+            array_push($Locations, $endLocation);
+        }
+        $OptimizeParameters = array(
+            "AppId" => RootAppId,
+            "OptimizeType" => "distance",
+            "RouteType" => "realroadcar",
+            "Avoid" => "none",
+            "Departure" => "2020-05-23T17:00:00"
+        );
+        $alldata['Locations'] = $Locations;
+        $alldata['OptimizeParameters'] = $OptimizeParameters;
+
+        echo json_encode($alldata);
+
     }
 
 
@@ -3433,11 +3502,6 @@ class Admin extends MY_Controller
         ini_set('memory_limit', '-1');
 
         $data = $this->input->post();
-
-        // $data['group_id'] = $data['group_id_new'];
-
-        // print_r($data);
-        // die();
 
         if (!empty($data['group_id_new'])) {
             $route_id = $this->manageRoute($data);
@@ -3496,6 +3560,9 @@ class Admin extends MY_Controller
                     if ($result) {
                         #email/text section
                         $tech_job_assign = $this->DashboardModel->getOneAssignTechnician(array('technician_job_assign_id' => $result));
+
+                        $emaildata['job_details'] = $this->JobModel->getOneJob(array('job_id' => $tech_job_assign->job_id));
+
                         $emaildata['customerData'] = $this->CustomerModel->getOneCustomer(array('customer_id' => $param['customer_id']));
                         $customer = $emaildata['customerData'];
                         $pre_service_notification_email = 0;
@@ -3511,9 +3578,10 @@ class Admin extends MY_Controller
                         //die(print_r($customer));
                         #check customer billing type
                         $checkGroupBilling = $this->CustomerModel->checkGroupBilling($tech_job_assign->customer_id);
+                        $emaildata['propertyData'] = $this->PropertyModel->getOneProperty(array('property_id' => $tech_job_assign->property_id));
+
                         #if customer billing type = group billing, then we notify the property level contact info
                         if (isset($checkGroupBilling) && $checkGroupBilling == "true") {
-                            $emaildata['propertyData'] = $this->PropertyModel->getOneProperty(array('property_id' => $tech_job_assign->property_id));
                             $emaildata['contactData'] = $this->PropertyModel->getGroupBillingByProperty($tech_job_assign->property_id);
                             $emaildata['program_name'] = $tech_job_assign->program_name;
                             $emaildata['job_name'] = $tech_job_assign->job_name;
@@ -3575,8 +3643,8 @@ class Admin extends MY_Controller
                                     if (!$company_email_details) {
                                         $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
                                     }
-
                                     $res = Send_Mail_dynamic($company_email_details, $emaildata['customerData']->email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), $body, 'Service is scheduled', $emaildata['customerData']->secondary_email);
+                                    //die(print_r($body));
                                 }
                             }
                         }
@@ -4165,7 +4233,6 @@ class Admin extends MY_Controller
                                             $total_estimate_cost = 0;
                                             $company_id = $this->session->userdata['company_id'];
                                             $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-                                            $property_details = $this->PropertyModel->getOneProperty(array('property_id' => $property_id));
                                             $estimate_price_overide_data = $this->EstimateModel->getAllEstimatePriceOveridewJob(array('estimate_id' => $estimate_id));
                                             $num_services_in_estimate = 0;
 
@@ -4501,10 +4568,7 @@ class Admin extends MY_Controller
 
                     //print_r($assigned_data);
                 }
-                // die(print_r($tech_job_assigned_total));
-                // die(print_r($tech_assigned_jobs));
-                //$log = "Assigned Successfully\n";
-                //fwrite($errorLog,$log);
+
                 echo json_encode(array('status' => 200, 'msg' => 'Assigned Successfully ', 'route_id' => $data['route_select'], 'technician_assigned' => $tech_assigned_jobs));
             } else {
                 //$log = "Already exists specific time in this date please change time\n";
@@ -4520,9 +4584,6 @@ class Admin extends MY_Controller
 
         }
 
-        // $log = "------------------------\n";
-        //fwrite($errorLog,$log);
-        // fclose($errorLog);
     }
 
     public function updateInvoiceByPPJOBINV($invoice_id)
@@ -13937,10 +13998,11 @@ class Admin extends MY_Controller
                 if ($value->asap == 1)
                     $asapHighligth = 1;
 
-                if ($IsCustomerInHold == 0) {  //print_r($data);die();
-                    $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox map' />";
-                } else {
-                    $data[$i]['checkbox'] = "<input title='Customer Account On Hold' data-row-asap='$asapHighligth'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox customer_in_hold' />";
+                if($IsCustomerInHold==0){  //print_r($data);die();
+                $data[$i]['checkbox'] ="<input  name='group_id' type='checkbox' data-address='$value->property_address:$value->property_latitude:$value->property_longitude' data-row-asap='$asapHighligth' data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox map' />";
+                }
+                else {
+                $data[$i]['checkbox'] ="<input title='Customer Account On Hold' data-address='$value->property_address:$value->property_latitude:$value->property_longitude' data-row-asap='$asapHighligth'  name='group_id' type='checkbox'  disabled data-row-job-mode='$concat_is_rescheduled' id='$i' value='$i' data-realvalue='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' class='myCheckBox customer_in_hold' />";
                 }
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' id=' $i ' value='$i' class='myCheckBox map' />";
                 // $data[$i]['checkbox'] = "<input  name='group_id' type='checkbox' data-row-job-mode='$concat_is_rescheduled' value='$value->customer_id:$value->job_id:$value->program_id:$value->property_id' data-iter=$i class='myCheckBox' />";

@@ -2590,16 +2590,35 @@ public function addEstimateData($data = null, $bulk_call = false, $job_id_to_pro
             $emaildata['accepted_date'] = date("Y-m-d H:i:s");
             $joined_programs = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_details->estimate_id));
             $program_names_array = array();
+            $service_names_array = array();
             foreach($joined_programs as $key=>$programs) {
                 if($programs->ad_hoc == 0) {
                     $program_names_array[] = $programs->program_name;
+                }else{
+                    //add services to email
+                    $where_arr = array('job_id' => $programs->service_id); 
+                    $jobs = $this->JobModel->getJobList($where_arr);
+
+                    foreach($jobs as $key=>$job) {
+                        $service_names_array[] = $job->job_name;
+                    }
                 }
             }
-            $emaildata['program_names'] = implode(",", $program_names_array);
+            $emaildata['program_names'] = implode(", ", $program_names_array);
             if($emaildata['program_names'] == "") {
                 // now we need to use the old way of doing this
                 $emaildata['program_names'] = $estimate_details->old_program_name;
             }
+
+
+            $emaildata['service_names'] = implode(", ", $service_names_array);
+
+
+
+
+
+
+
             $where['is_smtp'] = 1;
             $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where);
     
@@ -3686,6 +3705,7 @@ public function addEstimateData($data = null, $bulk_call = false, $job_id_to_pro
             $estimate_id =  $in_ct[0];
             $customer_id =  $in_ct[1];
             $data['customer_details'] = $this->CustomerModel->getOneCustomerDetail($customer_id);
+
             
             $pdf_link = base_url('welcome/pdfEstimateSignWell/').base64_encode($estimate_id);
             
@@ -3748,6 +3768,12 @@ public function addEstimateData($data = null, $bulk_call = false, $job_id_to_pro
                 $error_message .= $response_object->message;
 
                 
+            }
+            if ($error_message == ''){
+                //Update estimate info to mark as sent.
+                $where = array('estimate_id' => $estimate_id);
+                $param = array('status' => 1, 'estimate_update' => date("Y-m-d H:i:s"));
+                $this->EstimateModal->updateEstimate($where, $param);
             }
             echo json_encode($status_array);
 		  }
