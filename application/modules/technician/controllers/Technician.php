@@ -9009,6 +9009,8 @@ class Technician extends MY_Controller
         $invoice_data['job_id'] = -5;
         $invoice_data['status'] = 0;
         $invoice_data['is_credit'] = 1;
+        $invoice_data['credit_amount'] = $data['credit_amount'];
+        $invoice_data['responsible_party'] = implode(",", $data['responsible_party']);
         $invoice_data['is_archived'] = 1;
         $invoice_data['invoice_date'] = $invoice_data['invoice_created'] = date("Y-m-d H:i:s");
         $invoice_data['is_created'] = 1;
