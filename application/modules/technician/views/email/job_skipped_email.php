@@ -323,7 +323,11 @@
 
 											 $html5  = str_replace("{RESCHEDULE_REASON}",'<b>Reschedule Reason</b> : '.$reschedule_reason.'<br>',$html4);
 
-											 echo $html5;
+                                             $html6  = str_replace("{PROPERTY_NAME}",'<b>Property Name</b>: '.$property_details->property_title.'<br>',$html5);
+                                             $html7  = str_replace("{SERVICE_DESCRIPTION}",'<b>Service Description</b>: '.$job_details->job_description.'<br>',$html6);
+                                             $html8  = str_replace("{SERVICE_NOTES}",'<b>Service Notes</b>: '.$job_details->job_notes.'<br>',$html7);
+
+                                          echo $html8;
 
 											?>
 										</tr>

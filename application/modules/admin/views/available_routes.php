@@ -647,60 +647,60 @@
 <script>
 
 
-   $(document).ready(function () {
+   $(document).ready(function() {
 
 
       // Setup - add a text input to each footer cell
-      $('#unassigntbl tfoot td').each(function () {
+      $('#unassigntbl tfoot td').each( function () {
          var title = $(this).text();
-         if (title == 'TECHNICIAN JOB ASSIGN ID' || title == 'TECH NAME' || title == 'ROUTE NAME' || title == 'ADDRESS' || title == 'PROPERTY TYPE') {
-            $(this).html('<input type="text" class="form-control dtatableInput" placeholder="' + title + '" />');
-         } else if (title == 'NOTIFY CUSTOMER') { //Adding select option for service due filter
-            $(this).html('<select class="form-control dtatableInput call_ahead_select" placeholder="' + title + '" ><option value="0" class="default-option">Call Ahead</option><option value="1">Call</option><option value="4">Text</option></select>');
+         if (title=='TECHNICIAN JOB ASSIGN ID' || title=='TECH NAME' || title=='ROUTE NAME' || title=='ADDRESS' || title=='PROPERTY TYPE' ) {
+            $(this).html( '<input type="text" class="form-control dtatableInput" placeholder="'+title+'" />' );
+         }else if(title=='NOTIFY CUSTOMER' ){ //Adding select option for service due filter
+            $(this).html( '<select class="form-control dtatableInput" placeholder="'+title+'" ><option value="0" class="default-option">Call Ahead</option><option value="1">Call</option><option value="4">Text</option></select>' );
          } else {
             $(this).addClass('noSpacingInput');
          }
-      });
+      } );
 
       // DataTable
-      var table = $('#unassigntbl').DataTable({
-         "aLengthMenu": [[10, 20, 50, 100, 200, 500], [10, 20, 50, 100, 200, 500]],
+      var table =  $('#unassigntbl').DataTable({
+         "aLengthMenu": [[10,20,50,100,200,500],[10,20,50,100,200,500]],
          "processing": true,
          "serverSide": true,
-         "paging": true,
-         "pageLength":<?= $this->session->userdata('compny_details')->default_display_length ?>,
-         "order": [[1, "asc"]],
-         "ajax": {
-            "url": "<?= base_url('admin/ajaxGetRoutes/') ?>", // GET Assigned Routes
+         "paging":true,
+         "pageLength":<?= $this ->session->userdata('compny_details')-> default_display_length?>,
+         "order":[[1,"asc"]],
+         "ajax":{
+            "url": "<?= base_url('admin/ajaxGetRoutes/')?>", // GET Assigned Routes
             "dataType": "json",
             "type": "POST",
-            "data": {
-               '<?php echo $this->security->get_csrf_token_name(); ?>': '<?php echo $this->security->get_csrf_hash(); ?>'
+            "data":{
+               '<?php echo $this->security->get_csrf_token_name(); ?>' : '<?php echo $this->security->get_csrf_hash(); ?>'
             }
          },
-         "deferRender": false,
+         "deferRender":false,
          "columnDefs": [
-            { "targets": [0], "checkboxes": { "selectRow": true, "stateSave": true } },
+            {"targets": [0], "checkboxes":{"selectRow":true,"stateSave": true}},
          ],
-         "select": "multi",
+         "select":"multi",
          "columns": [
-            { "data": "checkbox", "checkboxes": true, "stateSave": true, "searchable": false, "orderable": false },
-            { "data": "technician_job_assign_id", "name": "Technician Job Assign ID", "searchable": true, "orderable": true },
-            { "data": "tech_name", "name": "Technician", "searchable": true, "orderable": true },
+            {"data": "checkbox", "checkboxes":true, "stateSave":true, "searchable":false, "orderable":false},
+            {"data": "technician_job_assign_id", "name":"Technician Job Assign ID", "searchable":true, "orderable": true },
+            {"data": "tech_name", "name":"Technician", "searchable":true, "orderable": true },
             //   {"data": "tech_name", "name":"Technician Last Name", "searchable":true, "orderable": true },
-            { "data": "route_id", "name": "Route ID", "searchable": true, "orderable": true },
-            { "data": "route_name", "name": "Route Name", "orderable": true },
-            { "data": "yard_square_feet", "name": "Square Feet", "orderable": true },
-            { "data": "job_assign_date", "name": "Job Assign Date", "orderable": true },
-            { "data": "property_title", "name": "Property Name", "orderable": true },
-            { "data": "property_address", "name": "Address", "searchable": true, "orderable": true },
-            { "data": "property_type", "name": "Property Type", "orderable": true },
-            { "data": "pre_service_notification", "name": "Notify Customer", "orderable": true, "searchable": true },
-            { "data": "property_notes", "name": "Property Notes", "orderable": true },
-            { "data": "front_yard_grass", "name": "Front Yard Grass", "orderable": true },
-            { "data": "front_yard_square_ft", "name": "Square Ft.", "orderable": true },
-            { "data": "back_yard_grass", "name": "Back Yard Grass", "orderable": true },
-            { "data": "back_yard_square_ft", "name": "Square Ft.", "orderable": true },
+            {"data": "route_id", "name":"Route ID", "searchable":true, "orderable": true },
+            {"data": "route_name", "name":"Route Name", "orderable": true },
+            {"data": "yard_square_feet", "name":"Square Feet", "orderable": true },
+            {"data": "job_assign_date", "name":"Job Assign Date", "orderable": true },
+            {"data": "property_title", "name":"Property Name", "orderable": true },
+            {"data": "property_address", "name":"Address", "searchable":true, "orderable": true },
+            {"data": "property_type", "name":"Property Type", "orderable": true },
+            {"data": "pre_service_notification", "name":"Notify Customer", "orderable": true, "searchable": true },
+            {"data": "property_notes", "name":"Property Notes", "orderable": true },
+            {"data": "front_yard_grass", "name":"Front Yard Grass", "orderable": true },
+            {"data": "front_yard_square_ft", "name":"Square Ft.", "orderable": true},
+            {"data": "back_yard_grass", "name":"Back Yard Grass", "orderable": true},
+            {"data": "back_yard_square_ft", "name":"Square Ft.", "orderable": true},
             // {"data": "action", "name":"Action", "orderable": false}
          ],
          language: {
@@ -709,28 +709,28 @@
             paginate: { 'first': 'First', 'last': 'Last', 'next': '&rarr;', 'previous': '&larr;' }
          },
          sDom: 'l<"toolbar">rtip',
-         initComplete: function () {
+         initComplete: function(){
 
             $("div.toolbar")
-               .html('');
+                .html('');
             var r = $('#unassigntbl tfoot td');
             $("div.toolbar")
-               .append('<span class="tmpspan" >Filter: </span>');
+                .append('<span class="tmpspan" >Filter: </span>');
             $("div.toolbar")
-               .append(r);
+                .append(r);
 
             // $("#unassigntbl_filter label").after('<button disabled="disabled" id="multiple-delete-id" class="ml-5 btn btn-danger unassigned-services-element">Delete Services</button>');
 
             // Connect the filter inputs to filter data
-            $('#tech_assign_id_filter').on('input', function () { // Technician Job Assign ID
+            $('#tech_assign_id_filter').on('input', function() { // Technician Job Assign ID
                var filter_input_val = this.querySelector('input').value;
-               table.columns(1).search(filter_input_val).draw();
+               table.columns( 1 ).search( filter_input_val ).draw();
             });
 
             // Connect the filter inputs to filter data
-            $('#technician_name_filter').on('input', function () { // Technician Name
+            $('#technician_name_filter').on('input', function() { // Technician Name
                var filter_input_val = this.querySelector('input').value;
-               table.columns(2).search(filter_input_val).draw();
+               table.columns( 2 ).search( filter_input_val ).draw();
             });
 
             // Connect the filter inputs to filter data
@@ -746,32 +746,32 @@
             // });
 
             // Connect the filter inputs to filter data
-            $('#route_name_filter').on('input', function () { // ROUTE NAME
+            $('#route_name_filter').on('input', function() { // ROUTE NAME
                var filter_input_val = this.querySelector('input').value;
-               table.columns(4).search(filter_input_val).draw();
+               table.columns( 4 ).search( filter_input_val ).draw();
             });
 
             // Connect the filter inputs to filter data
-            $('#address_filter').on('input', function () { // ADDRESS
+            $('#address_filter').on('input', function() { // ADDRESS
                var filter_input_val = this.querySelector('input').value;
-               table.columns(8).search(filter_input_val).draw();
+               table.columns( 8 ).search( filter_input_val ).draw();
             });
 
             // Connect the filter inputs to filter data
-            $('#property_type_filter').on('input', function () { // PROPERTY TYPE
+            $('#property_type_filter').on('input', function() { // PROPERTY TYPE
                var filter_input_val = this.querySelector('input').value;
-               table.columns(9).search(filter_input_val).draw();
+               table.columns( 9 ).search( filter_input_val ).draw();
             });
 
             // Connect the filter inputs to filter data
-            $('#property_type_filter').on('input', function () { // PROPERTY TYPE
+            $('#property_type_filter').on('input', function() { // PROPERTY TYPE
                var filter_input_val = this.querySelector('input').value;
-               table.columns(9).search(filter_input_val).draw();
+               table.columns( 9 ).search( filter_input_val ).draw();
             });
 
-            $('#notify_filter').on('change', function () {
+            $('#notify_filter').on('change', function(){
                var filter_input_val = this.querySelector('select').value;
-               table.columns(10).search(filter_input_val).draw();
+               table.columns( 10 ).search( filter_input_val ).draw();
             })
 
             // BLUE ROWS for rescheduled on page load
@@ -783,30 +783,30 @@
             //});
 
             // CALCULATE total square feet
-            $('.myCheckBox').change(function () {
+            $('.myCheckBox').change(function(){
 
                var sqftTotal = 0;
-               $('#unassigntbl tbody input:checked').each(function () {
+               $('#unassigntbl tbody input:checked').each(function() {
                   sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(5).html());
                });
                $('#totalSqFt').val(sqftTotal);
 
                //uncheck "select all", if one of the listed checkbox item is unchecked
-               if (this.checked == false) { //if this item is unchecked
+               if(this.checked == false){ //if this item is unchecked
                   $("#select_all")[0].checked = false; //change "select all" checked status to false
                }
 
                //check "select all" if all checkbox items are checked
-               if ($('.myCheckBox:checked').length == $('.myCheckBox').length) {
+               if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
                   $("#select_all")[0].checked = true; //change "select all" checked status to true
                }
             });
 
             // FIRE EVERYTIME AFTER TABLE HAS RENDERED
-            table.on('draw', function () {
+            table.on( 'draw', function () {
 
                // BLUE ROWS for rescheduled on ajax table refresh
-               $('.myCheckBox').each(function () {
+               $('.myCheckBox').each(function() {
                   var row_job_mode = $(this).data('row-job-mode');
                   if (row_job_mode == 2) {
                      $(this).parent().parent().addClass('rescheduled_row');
@@ -814,49 +814,49 @@
                });
 
                // CALCULATE total square feet on ajax table refresh
-               $('.myCheckBox').change(function () {
+               $('.myCheckBox').change(function(){
 
                   var sqftTotal = 0;
-                  $('#unassigntbl tbody input:checked').each(function () {
+                  $('#unassigntbl tbody input:checked').each(function() {
                      sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(4).html());
                   });
                   $('#totalSqFt').val(sqftTotal);
 
                   //uncheck "select all", if one of the listed checkbox item is unchecked
-                  if (this.checked == false) { //if this item is unchecked
+                  if(this.checked == false){ //if this item is unchecked
                      $("#select_all")[0].checked = false; //change "select all" checked status to false
                   }
 
                   //check "select all" if all checkbox items are checked
-                  if ($('.myCheckBox:checked').length == $('.myCheckBox').length) {
+                  if ($('.myCheckBox:checked').length == $('.myCheckBox').length ){
                      $("#select_all")[0].checked = true; //change "select all" checked status to true
                   }
                });
-            });
+            } );
 
          },
-         buttons: [
+         buttons:[
             {
                extend: 'colvis',
                text: '<i class="icon-grid3"></i> <span class="caret"></span>',
                className: 'btn bg-indigo-400 btn-icon',
-               columns: [1, 2, 3, 4, 5, 6, 7],
+               columns: [1,2,3,4,5,6,7],
             },
          ],
       });
    });
 
    $('input[name=changeview]').click(function () {
-      $("#loading").css("display", "block");
+      $("#loading").css("display","block");
       var url = '';
       var sectionType = "";
-      if ($(this).prop("checked") == true) {
+      if($(this).prop("checked") == true){
          $('.archived-services-element').addClass('hidden');
          $('.unassigned-services-element').removeClass('hidden');
          url = "<?= base_url('admin/assignJobs?ajax-call=true') ?>";
          sectionType = "unassigned_services";
       }
-      else if ($(this).prop("checked") == false) {
+      else if($(this).prop("checked") == false){
          $('.archived-services-element').removeClass('hidden');
          $('.unassigned-services-element').addClass('hidden');
          url = "<?= base_url('admin/archivedJobs') ?>";
@@ -867,14 +867,14 @@
          type: "GET",
          url: url,
          dataType: 'json'
-      }).done(function (data) {
-         $("#loading").css("display", "none");
-         if (data.status == 200) {
+      }).done(function(data){
+         $("#loading").css("display","none");
+         if (data.status==200) {
             console.log(data.records);
-            if (data.records.length > 0) {
-               $.each(data.records, function (i, datarecord) {
+            if(data.records.length > 0) {
+               $.each(data.records, function(i,datarecord){
                   var rowNode = [];
-                  rowNode.push("<input  name='group_id' type='checkbox'  value='" + datarecord.customer_id + ":" + datarecord.job_id + ":" + datarecord.program_id + ":" + datarecord.property_id + "' class='myCheckBox' />");
+                  rowNode.push("<input  name='group_id' type='checkbox'  value='"+datarecord.customer_id+":"+datarecord.job_id+":"+datarecord.program_id+":"+datarecord.property_id+"' class='myCheckBox' />");
                   rowNode.push(datarecord.technician_job_assign_id);
                   rowNode.push(datarecord.tech_name);
                   // rowNode.push(datarecord.user_last_name);
@@ -902,10 +902,10 @@
                   rowNode.push(datarecord.front_yard_square_feet);
                   rowNode.push(datarecord.back_yard_grass);
                   rowNode.push(datarecord.back_yard_square_feet);
-                  if (sectionType == "unassigned_services") {
-                     rowNode.push("<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='confirm_delete_unassign_job button-next' grd_ids='" + datarecord.customer_id + ":" + datarecord.job_id + ":" + datarecord.program_id + ":" + datarecord.property_id + "'><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li></ul>");
+                  if(sectionType == "unassigned_services") {
+                     rowNode.push("<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='confirm_delete_unassign_job button-next' grd_ids='"+datarecord.customer_id+":"+datarecord.job_id+":"+datarecord.program_id+":"+datarecord.property_id+"'><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li></ul>");
                   } else {
-                     rowNode.push("<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='confirm_restore_unassign_job button-next' grd_ids='" + datarecord.customer_id + ":" + datarecord.job_id + ":" + datarecord.program_id + ":" + datarecord.property_id + "'><i class='icon-undo position-center' style='color: #9a9797;'></i></a></li></ul>");
+                     rowNode.push("<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='confirm_restore_unassign_job button-next' grd_ids='"+datarecord.customer_id+":"+datarecord.job_id+":"+datarecord.program_id+":"+datarecord.property_id+"'><i class='icon-undo position-center' style='color: #9a9797;'></i></a></li></ul>");
                   }
                   table.row.add(rowNode).draw();
                });
@@ -931,25 +931,25 @@
 
    $('.primary-assign').click(function () {
 
-      if ($(this).val() == 1) {
-         $('#route_input').css('display', 'none');
-         $('#route_select').css('display', 'block');
+      if($(this).val() == 1){
+         $('#route_input').css('display','none');
+         $('#route_select').css('display','block');
       }
 
-      else if ($(this).val() == 2) {
-         $('#route_input').css('display', 'block');
-         $('#route_select').css('display', 'none');
+      else if($(this).val() == 2){
+         $('#route_input').css('display','block');
+         $('#route_select').css('display','none');
       }
 
    });
 
 
-   $(document).on("click", "#changespecifictime", function (e) {
-      if ($(this).prop("checked") == true) {
-         $('#specific_time_input').css('display', 'block');
+   $(document).on("click","#changespecifictime", function (e) {
+      if($(this).prop("checked") == true){
+         $('#specific_time_input').css('display','block');
       }
-      else if ($(this).prop("checked") == false) {
-         $('#specific_time_input').css('display', 'none');
+      else if($(this).prop("checked") == false){
+         $('#specific_time_input').css('display','none');
       }
 
    });

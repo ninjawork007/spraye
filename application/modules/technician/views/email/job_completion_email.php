@@ -265,15 +265,18 @@
          $html8  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b>: '.$email_data_details->property_address.'<br>',$html7);
 
 
+        $html9  = str_replace("{PROPERTY_NAME}",'<b>Property Name</b>: '.$property_data->property_title.'<br>',$html8);
+        $html10  = str_replace("{SERVICE_DESCRIPTION}",'<b>Service Description</b>: '.$job_details->job_description.'<br>',$html9);
+        $html11  = str_replace("{SERVICE_NOTES}",'<b>Service Notes</b>: '.$job_details->job_notes.'<br>',$html10);
 
 
         if(isset($email_data_details->billing_type) && $email_data_details->billing_type ==1){
-            $html8 .='<a href="'.base_url('welcome/unsubscribePropertyEmail/').$contactData['contact_id'].'" target="_blank" >Unsubscribe</a>';
+            $html11 .='<a href="'.base_url('welcome/unsubscribePropertyEmail/').$contactData['contact_id'].'" target="_blank" >Unsubscribe</a>';
         }else{
-            $html8 .='<a href="'.base_url('welcome/unSubscibeEmail/').$contactData['contact_id'].'" target="_blank" >Unsubscribe</a>';
+            $html11 .='<a href="'.base_url('welcome/unSubscibeEmail/').$contactData['contact_id'].'" target="_blank" >Unsubscribe</a>';
         }
 
-         echo $html8;
+         echo $html11;
 
         ?>
     </div>

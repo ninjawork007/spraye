@@ -86,7 +86,7 @@ defined('EXIT__AUTO_MAX') or define('EXIT__AUTO_MAX', 125); // highest automatic
 // define('GoogleMapKey','AIzaSyAsn6KGL3R5IaZBQnVr5LowBTG9s19cRrc');
 define('GoogleMapKey','AIzaSyBH7pmiDU016Cg76ffpkYQWcFQ4NaAC2VI');
 define('RootAppId','5df095d632834faf9445b944d04121a2');
-define('BingMAp','AtzFrQsruznA-qMUoFg0sjmusWARhhxX3FwYb3Q4ho0vsbSjnmLsET6gjcVPaKeM');
+define('BingMAp','AusNH-mOLZgId1FGX6xmkZnFJRaZlx-Fp4B3bSY4aY6tb__SFL1qBpzaqyDw1t_o');
 //define('DarkApiKey','13d9f0513ccb7401868029c05ea94b31');
 define('openweathermap','e63b7b4d048293e6eaf9c1a7fe54ac73');
 // DARK SKY API is no longer in use - so WeatherKit stuff is being added 4/11/23

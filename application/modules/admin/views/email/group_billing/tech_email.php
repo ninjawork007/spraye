@@ -49,9 +49,15 @@
 
                          $html5  = str_replace("{SCHEDULE_DATE}",'<b>Date</b> :'.$assign_date.'<br>',$html4);
 
-                         $html5 .='<a href="'.base_url('welcome/unsubscribePropertyEmail/').$contactData['group_billing_id'].'" target="_blank" >Unsubscribe</a>';
+                         $html6  = str_replace("{PROPERTY_NAME}",'<b>Property Name</b>: '.$propertyData->property_title.'<br>',$html5);
 
-                         echo $html5;
+                         $html7  = str_replace("{SERVICE_DESCRIPTION}",'<b>Service Description</b>: '.$job_details->job_description.'<br>',$html6);
+
+                         $html8  = str_replace("{SERVICE_NOTES}",'<b>Service Notes</b>: '.$job_details->job_notes.'<br>',$html7);
+
+                         $html8 .='<a href="'.base_url('welcome/unSubscibeEmail/').$customerData->customer_id.'" target="_blank" >Unsubscribe</a>';
+
+                         echo $html8;
 
                         ?>
                 

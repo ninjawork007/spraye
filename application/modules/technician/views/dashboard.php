@@ -98,6 +98,37 @@
         background-color: transparent;
     }
 </style>
+<!-- Primary modal -->
+<div id="modal_mileage" class="modal fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-light">Mileage Information</h6>
+                <button type="button" class="close text-light" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="mileageInfo">Mileage</label>
+                            <p id="mileageInfo" class="form-control-static"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="driveTimeInfo">Drive Time</label>
+                            <p id="driveTimeInfo" class="form-control-static"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /primary modal -->
 <?php
 $alldata = array();
 $Locations = array();
@@ -184,11 +215,18 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                     } else {
                         $activeclass = '';
                     }
-                    echo '<div class="col-lg-12 col-md-12 col-sm-12">
-                  <div class="tecnician-btn">
-                   <a class="btn-technician ' . $activeclass . '" href="' . base_url() . 'technician/dashboard/' . $value['route_id'] . '" >' . $value['route_name'] . '</a>
-                   </div>
-                 </div>';
+                    echo  '
+                    <div class="col-lg-10 col-md-10 col-sm-10">
+                        <div class="tecnician-btn">
+                            <a class="btn-technician '.$activeclass.'" href="'. base_url().'technician/dashboard/'.$value['route_id'].'" >'.$value['route_name'].'</a>
+                        </div>
+                    </div>';
+                        echo  '
+                    <div class="col-lg-2 col-md-2 col-sm-2">
+                        <div class="tecnician-btn">
+                            <a class="btn-technician '.$activeclass.'" onclick="showMileageInfo()" >Get Mileage</a>
+                        </div>
+                    </div>';
                 }
             }
             ?>
@@ -901,7 +939,11 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 
 
 <script>
-    $('#vehicle_inspection_report').on('submit', function () {
+    function showMileageInfo()
+    {
+        post_BasicOptimizeStopsMileageInfo();
+    }
+    $('#vehicle_inspection_report').on('submit', function() {
         event.preventDefault();
         let formData = $($('#vehicle_inspection_report')[0]).serialize();
         $.ajax({
@@ -919,19 +961,18 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 $(subMessage).append(message);
                 $('#start_inspection').parent().parent().hide();
                 $('#start-day-btn').parent().parent().show();
-                setTimeout(function () {
-                    $(subMessage).hide();
-                    $(subMessage).empty();
+                setTimeout(function() {
+                $(subMessage).hide();
+                $(subMessage).empty();
                 }, 5000);
                 // $('#start-day-btn').parent().parent().show();
                 // document.getElementById('start-day-btn').click();
             },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                console.log("Status: " + textStatus);
-                console.log("Error: " + errorThrown);
-            }
+            error: function(XMLHttpRequest, textStatus, errorThrown) { 
+                console.log("Status: " + textStatus); 
+                console.log("Error: " + errorThrown); 
+            }   
         });
-
     });
     $('.vehicle_issue').on('click', function () {
         console.log('Vehicle Issue btn clicked');
@@ -973,46 +1014,84 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
         }
     }
     var map;
-
     function loadMap() {
-        map = new Microsoft.Maps.Map(document.getElementById('routeMap'), {});
+    map = new Microsoft.Maps.Map(document.getElementById('routeMap'), {});
     }
-
     var showmap = true;
     $('#routeMap').show();
     var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
-
     function post_BasicOptimizeStops() {
+    var requestStr = $('#postTestRequest').val();
+    var request = JSON.parse(requestStr);
+    //clear
+    $('#result').text('');
+    $('#get_url').text('');
+    $('#geturl').hide();
+    map.entities.clear();
+    postit(resturl + 'POSTOptimize', {
+        data: JSON.stringify(request),
+        success: function(data) {
+        $('#jsonresult').show();
+        console.log(data)
+        var resp = JSON.stringify(data, null, '\t');
+        console.log(resp);
+            // let mileage = data.Route.DriveDistance.toFixed(2);
+            // let driveTime =  new Date(data.Route.DriveTime * 1000).toISOString().slice(11, 19);
+            // $('#mileageInfo').text(mileage + ' ' + data.Route.DriveDistanceUnit);
+            // $('#driveTimeInfo').text(driveTime);
+            // $('#modal_mileage').modal('show');
+            // $('#modal_mileage').modal('show');
+        //process results
+        if (showmap) {
+            renderMap(data);
+        } else {
+            //show json results
+            $('#loading').css('display', 'none');
+            $('#result').text(resp);
+        }
+        },
+        error: function(err) {
+        $('#loading').css('display', 'none');
+        $('#result').text(JSON.stringify(err, null, '\t'));
+        }
+    });
+    }
+
+    function kmToMiles(km) {
+        return km / 1.60934;
+    }
+
+    function formatTime(seconds) {
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var remainingSeconds = seconds % 60;
+
+        var formattedTime = hours.toString().padStart(2, '0') + ':' +
+            minutes.toString().padStart(2, '0') + ':' +
+            remainingSeconds.toString().padStart(2, '0');
+
+        return formattedTime;
+    }
+
+    function post_BasicOptimizeStopsMileageInfo() {
         var requestStr = $('#postTestRequest').val();
         var request = JSON.parse(requestStr);
-        //clear
-        $('#result').text('');
-        $('#get_url').text('');
-        $('#geturl').hide();
-        map.entities.clear();
+
         postit(resturl + 'POSTOptimize', {
             data: JSON.stringify(request),
-            success: function (data) {
-                $('#jsonresult').show();
-                console.log(data)
-                var resp = JSON.stringify(data, null, '\t');
-                console.log(resp);
-                //process results
-                if (showmap) {
-                    renderMap(data);
-                } else {
-                    //show json results
-                    $('#loading').css('display', 'none');
-                    $('#result').text(resp);
-                }
+            success: function(data) {
+                let mileage = kmToMiles(data.Route.DriveDistance).toFixed(2);
+                let driveTime =  formatTime(data.Route.DriveTime);
+                $('#mileageInfo').text(mileage + ' miles');
+                $('#driveTimeInfo').text(driveTime);
+                $('#modal_mileage').modal('show');
             },
-            error: function (err) {
+            error: function(err) {
                 $('#loading').css('display', 'none');
                 $('#result').text(JSON.stringify(err, null, '\t'));
             }
         });
     }
-
     var routeJobCount = <?= $routeJobCount; ?>;
     var currentStepCount = 0;
     // $(function() {

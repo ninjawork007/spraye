@@ -437,7 +437,7 @@ class Dashboard_model extends CI_Model
                             break;
 
                         case '1':
-                            $this->db->or_where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL)");
+                            $this->db->or_where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL OR (datediff(now(),completed_date_property_program) >= (programs.program_schedule_window -5) AND datediff(now(),completed_date_property_program) < (programs.program_schedule_window + 5)))");
                             break;
 
                         default:
@@ -1018,7 +1018,17 @@ class Dashboard_model extends CI_Model
                             (
                                 SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
                             )
-                        ) IS NULL OR programs.program_schedule_window IS NULL)");
+                        ) IS NULL OR programs.program_schedule_window IS NULL OR (datediff(now(),
+                            (
+                                SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
+                            )
+                        ) >= (programs.program_schedule_window - 5)
+                        AND datediff(now(),
+                            (
+                                SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
+                            )
+                        ) < (programs.program_schedule_window + 5)
+                    ))");
                             break;
 
                         default:
@@ -1921,7 +1931,7 @@ class Dashboard_model extends CI_Model
                         break;
 
                     case '1':
-                        $this->db->where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL)");
+                        $this->db->where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL OR (datediff(now(),completed_date_property_program) >= (programs.program_schedule_window -5) AND datediff(now(),completed_date_property_program) < (programs.program_schedule_window + 5)))");
                         break;
 
                     default:
@@ -2258,7 +2268,18 @@ class Dashboard_model extends CI_Model
                             (
                                 SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
                             )
-                        ) IS NULL OR programs.program_schedule_window IS NULL)");
+                        ) IS NULL OR programs.program_schedule_window IS NULL OR 
+                        (datediff(now(),
+                        (
+                            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
+                        )
+                    ) >= (programs.program_schedule_window - 5)
+                        AND datediff(now(),
+                        (
+                            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
+                        )
+                    ) < (programs.program_schedule_window + 5)
+                    ))");
                             break;
 
                         default:
@@ -2304,7 +2325,7 @@ class Dashboard_model extends CI_Model
            `jobs`.`service_note`, `jobs`.`job_notes`, `customers`.`customer_status`,technician_job_assign.technician_id');
             
             //$this->db->group_by('1,2,5,6,7,8,9');
-
+            $this->db->order_by($col,$dir);
         }
 
 
@@ -2485,7 +2506,7 @@ class Dashboard_model extends CI_Model
                         break;
 
                     case '1':
-                        $this->db->where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL)");
+                        $this->db->where("(datediff(now(),completed_date_property_program) IS NULL OR programs.program_schedule_window IS NULL OR (datediff(now(),completed_date_property_program) >= (programs.program_schedule_window -5) AND datediff(now(),completed_date_property_program) < (programs.program_schedule_window + 5)))");
                         break;
 
                     default:

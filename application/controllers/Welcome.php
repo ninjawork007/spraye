@@ -1777,14 +1777,30 @@ class Welcome extends MY_Controller
                 $customer_id = $this->Customer->getOnecustomerPropert(array('property_id' => $estimate_details->property_id));
                 $emaildata['customerData'] = $this->Customer->getOneCustomer(array('customer_id' => $customer_id->customer_id));
                 $emaildata['email_data_details'] = $this->EstimateModal->getProgramPropertyEmailData(array('customer_id' => $customer_id->customer_id, 'is_email' => 1, 'property_id' => $estimate_details->property_id));
+                
+                $this->load->model('Job_model', 'JobModel');
+                
                 $joined_programs = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $estimate_details->estimate_id));
                 $program_names_array = array();
+                $service_names_array = array();
                 foreach($joined_programs as $key=>$programs) {
                     if($programs->ad_hoc == 0) {
                         $program_names_array[] = $programs->program_name;
+                    }else{
+                        //add services to email
+                        $where_arr = array('job_id' => $programs->service_id); 
+                        $jobs = $this->JobModel->getJobList($where_arr);
+    
+                        foreach($jobs as $key=>$job) {
+                            $service_names_array[] = $job->job_name;
+                        }
                     }
                 }
-                $emaildata['program_names'] = implode(",", $program_names_array);
+                $emaildata['program_names'] = implode(", ", $program_names_array);
+
+                $emaildata['service_names'] = implode(", ", $service_names_array);
+
+
                 if($emaildata['program_names'] == "") {
                     // now we need to use the old way of doing this
                     $emaildata['program_names'] = $estimate_details->old_program_name;
@@ -1803,6 +1819,10 @@ class Welcome extends MY_Controller
                 if (!$company_email_details) {
                     $company_email_details = $this->CompanyModel->getOneDefaultEmailArray();
                 }
+
+
+
+
 
                 $body = $this->load->view('estimate_accepted_mail', $emaildata, true);
                 $emaildata['is_admin_email'] = 1;
@@ -3226,15 +3246,20 @@ class Welcome extends MY_Controller
                         $email_opt_in = $groupBillingDetails['email_opt_in'];
                         $data['group_billing'] = 1;
                     }
+                    //die(print_r($customer_data));
                     $company_email_details['one_day_prior'] = str_replace('{CUSTOMER_NAME}', $data['customer_details']->first_name . ' ' . $data['customer_details']->last_name, $company_email_details['one_day_prior']);
                     $company_email_details['one_day_prior'] = str_replace('{SERVICE_NAME}', $customer_data[0]['job_name'], $company_email_details['one_day_prior']);
                     $company_email_details['one_day_prior'] = str_replace('{PROGRAM_NAME}', $customer_data[0]['program_name'], $company_email_details['one_day_prior']);
                     $company_email_details['one_day_prior'] = str_replace('{PROPERTY_ADDRESS}', $customer_data[0]['property_address'], $company_email_details['one_day_prior']);
                     $company_email_details['one_day_prior'] = str_replace('{SCHEDULE_DATE}', $customer_data[0]['job_assign_date'], $company_email_details['one_day_prior']);
+                    $company_email_details['one_day_prior'] = str_replace('{PROPERTY_NAME}', $customer_data[0]['property_title'], $company_email_details['one_day_prior']);
+                    $company_email_details['one_day_prior'] = str_replace('{SERVICE_DESCRIPTION}', $customer_data[0]['job_description'], $company_email_details['one_day_prior']);
+                    $company_email_details['one_day_prior'] = str_replace('{SERVICE_NOTES}', $customer_data[0]['job_notes'], $company_email_details['one_day_prior']);
 
                     $data['company_email_details'] = $company_email_details['one_day_prior'];
 
                     $body = $this->load->view('job_reminder', $data, true);
+                    //die(print_r($body));
                     $res = array();
                     //if($company_id == 1){ FOR TESTING
                     //    $res =   Send_Mail_dynamic($company_email_details, 'support@blayzer.com', array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'Scheduled Reminder Details - '.$customer_data[0]['job_assign_date']);
@@ -3249,10 +3274,10 @@ class Welcome extends MY_Controller
                         $text_res = Send_Text_dynamic($data['customer_details']->phone, $company_email_details['one_day_prior_text'], 'Scheduled Reminder');
                     }
 
-                    if ($i < 5) {
+                    //if ($i < 5) {
                         //$res =   Send_Mail_dynamic($company_email_details, "blance@blayzer.com", array("name" => $data['setting_details']->company_name, "email" => $data['setting_details']->company_email),  $body, 'Scheduled Reminder Details - '.$customer_data[0]['job_assign_date']);
 
-                    }
+                    //}
                     echo "emailing... ";
                     if (isset($res['status']) && $res['status'] == 1) {
 

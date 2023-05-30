@@ -311,7 +311,7 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 		if ($httpcode == 202) {
 			return array('status' => true, 'message' => 'Email send succefully');
 		} else {
-			return array('status' => false, 'message' => print_r($res));
+            //return array('status' => false, 'message' => print_r($res));
 		}
 	}
 }

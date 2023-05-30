@@ -1,0 +1,54 @@
+var map;
+
+function loadMap() {
+map = new Microsoft.Maps.Map(document.getElementById('routeMap'), {});
+}
+
+var showmap = true;
+$('#routeMap').show();
+var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+
+function post_BasicOptimizeStops() {
+var requestStr = $('#postTestRequest').val();
+var request = JSON.parse(requestStr);
+//clear
+$('#result').text('');
+$('#get_url').text('');
+$('#geturl').hide();
+map.entities.clear();
+postit(resturl + 'POSTOptimize', {
+data: JSON.stringify(request),
+success: function (data) {
+$('#jsonresult').show();
+console.log(data)
+var resp = JSON.stringify(data, null, '\t');
+console.log(resp);
+//process results
+if (showmap) {
+renderMap(data);
+} else {
+//show json results
+$('#loading').css('display', 'none');
+$('#result').text(resp);
+}
+},
+error: function (err) {
+$('#loading').css('display', 'none');
+$('#result').text(JSON.stringify(err, null, '\t'));
+}
+});
+}
+
+var routeJobCount =
+<?= $routeJobCount; ?>;
+var currentStepCount = 0;
+// $(function() {
+// if( currentStepCount != routeJobCount ) {
+// console.log('Switching Buttons...');
+// $('#start_inspection').get(0).parentElement.parentElement.hide();
+// $('#next-stop-btn').get(0).parentElement.parentElement.show();
+// $('#start_vehicle_issue').get(0).parentElement.parentElement.hide();
+// $('#finish-day-btn').get(0).parentElement.parentElement.show();
+// console.log('Buttons Switched!');
+// }
+// });

@@ -124,5 +124,22 @@ class Job_model extends CI_Model{
     }
  
 
+
+    public function getJobList($where_arr = '') {
+    	$this->db->select('job_id,job_name');
+		$this->db->from(self::JBRBL);
+		if (is_array($where_arr)) {
+		  $this->db->where($where_arr);
+		}
+		$result = $this->db->get();
+		if ($result->num_rows() > 0) {
+		  $data = $result->result();
+		  return $data;
+		} else {
+		  return $result->num_rows();
+		}
+  }
+
+  
 }
  
