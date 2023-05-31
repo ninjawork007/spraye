@@ -232,6 +232,7 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			}
 		}
 		$res = $mail->Send();
+		
 		if ($res) {
 			$errorLog = fopen($_SERVER['DOCUMENT_ROOT'] . '/logemail_' . date("m-d-Y") . '.csv', 'a');
 			fwrite($errorLog, $from_email . "," . $to . "," . $subject . "," . @$smtparray['smtp_host'] . "," . date("m-d-Y H:i:s") . ",Passed\n");

@@ -10289,10 +10289,16 @@ class Reports extends MY_Controller {
                 foreach($report_data as $CusDat){
                     $CustomerArray[] = $CusDat['customer_number_link'];
                 }
+
+                $Programs = array();
+                if($_POST['MassProgramms'] != ""){
+                    $Programs = $_POST['MassProgramms'];
+                }
+
                 $Data = array(
                     "company_id" => $company_id,
                     "cusotmer_id" => implode(",", $CustomerArray),
-                    "programmes_id" => implode(",", $_POST['MassProgramms']),
+                    "programmes_id" => implode(",", $Programs),
                     "mail_text" => $_POST['mailText'],
                     "email_subject" => $_POST['email_subject'],
                     "status" => 0
@@ -10306,10 +10312,16 @@ class Reports extends MY_Controller {
                 foreach($report_data as $CusDat){
                     $CustomerArray[] = $CusDat['customer_number_link'];
                 }
+
+                $Programs = array();
+                if($_POST['MassProgramms'] != ""){
+                    $Programs = $_POST['MassProgramms'];
+                }
+
                 $Data = array(
                     "company_id" => $company_id,
                     "cusotmer_id" => implode(",", $CustomerArray),
-                    "programmes_id" => implode(",", $_POST['MassProgramms']),
+                    "programmes_id" => implode(",", $Programs),
                     "mail_text" => $_POST['mailText'],
                     "email_subject" => $_POST['email_subject'],
                     "status" => 1,
@@ -10317,7 +10329,6 @@ class Reports extends MY_Controller {
                 );
                 $ModelID = $this->MassEmailModel->saveMassEmailData($Data);
                 $this->sendMassEmail($ModelID);
-                
                 redirect("admin/reports/marketingCustomerDataReport");
             }
 
@@ -10348,7 +10359,8 @@ class Reports extends MY_Controller {
 	}
 
     public function sendMassEmail($ModelID){
-        $Data = $ModelID = $this->MassEmailModel->getMassEmailData(array("id" => $ModelID));
+        $Data = $this->MassEmailModel->getMassEmailData(array("id" => $ModelID));
+        $Data = $Data[0];
         $CustomerArray = explode(",", $Data->cusotmer_id);
         $ProgrammArray = explode(",", $Data->programmes_id);
 
