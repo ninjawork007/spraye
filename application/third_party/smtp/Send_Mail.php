@@ -205,8 +205,6 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 	$mail->SMTPAuth = true;
 
 	if (isset($smtparray['mass_smtp_host']) && $smtparray['mass_smtp_host'] != '' && $smtparray['mass_smtp_port'] != '') {
-		$from_email = $company_data["email"];
-
 		if (strstr($smtparray['mass_smtp_host'], 'tls://'))
 			$mail->SMTPSecure = 'tls';
 
