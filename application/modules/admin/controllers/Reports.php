@@ -10328,7 +10328,9 @@ class Reports extends MY_Controller {
                     "send_date" => date("Y-m-d")
                 );
                 $ModelID = $this->MassEmailModel->saveMassEmailData($Data);
-                $this->sendMassEmail($ModelID);
+                echo $this->sendMassEmail($ModelID);
+                die;
+
                 redirect("admin/reports/marketingCustomerDataReport");
             }
 
@@ -10371,6 +10373,9 @@ class Reports extends MY_Controller {
             $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
         }
 
+        echo '<pre>';
+        print_r($CustomerArray);
+
         foreach($CustomerArray as $CusData){
             $CustomerDetails = $this->CustomerModel->getOneCustomerDetail($CusData);
             if($CustomerDetails->email != ""){
@@ -10399,6 +10404,8 @@ class Reports extends MY_Controller {
                 }
 
                 $body = str_replace('{PROGRAM_NAME}', implode(", ", $AllProgrammNames), $body);
+
+                print_r($AllProgrammNames);
 
                 if(count($AllProgrammNames) > 0){
                     Send_Mail_dynamic_mass(
