@@ -230,10 +230,6 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			}
 		}
 		$res = $mail->Send();
-
-		echo '<pre>';
-		print_r($mail);
-		die;
 		
 		if ($res) {
 			$errorLog = fopen($_SERVER['DOCUMENT_ROOT'] . '/logemail_' . date("m-d-Y") . '.csv', 'a');
