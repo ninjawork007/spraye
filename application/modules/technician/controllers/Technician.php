@@ -1,47 +1,29 @@
 <?php
-
 defined('BASEPATH') or exit('No direct script access allowed');
-
 require_once APPPATH . '/third_party/geoplugin/geoplugin.class.php';
-
 require_once APPPATH . '/third_party/smtp/Send_Mail.php';
-
 require_once APPPATH . '/third_party/sms/Send_Text.php';
-
 require FCPATH . 'vendor/autoload.php';
 
 
 use QuickBooksOnline\API\Core\ServiceContext;
-
 use QuickBooksOnline\API\DataService\DataService;
-
 use QuickBooksOnline\API\PlatformService\PlatformService;
-
 use QuickBooksOnline\API\Core\Http\Serialization\XmlObjectSerializer;
-
 use QuickBooksOnline\API\Facades\Customer;
-
 use QuickBooksOnline\API\Core\OAuth\OAuth2\OAuth2LoginHelper;
-
 use QuickBooksOnline\API\Facades\Invoice;
-
 use QuickBooksOnline\API\Facades\Payment;
 
 
 class Technician extends MY_Controller
 {
 
-    public function __construct()
-    {
-
-
+    public function __construct(){
         parent::__construct();
-
-
+        
         if (!$this->session->userdata('spraye_technician_login')) {
-
             return redirect('technician/auth');
-
         }
 
         $this->load->library('parser');
@@ -118,8 +100,7 @@ class Technician extends MY_Controller
         $this->load->model('AdminTbl_tags_model', 'TagsModel');
         $this->load->model('AdminTbl_product_model', 'ProductModel');
         $this->load->model('../modules/admin/models/payment_invoice_logs_model', 'PartialPaymentModel');
-
-
+        $this->load->model('Payment_logs_model', 'PaymentLogModel');
     }
 
     public function timecheck($value = '')
@@ -4781,7 +4762,19 @@ class Technician extends MY_Controller
                         $invoice_amount = $unpaid->unpaid_amount;
                         //   die(print_r($invoice_amount));
                         if ($credit_amount >= $invoice_amount) {
-                            // die(print_r($credit_amount));
+                            
+                            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                            $time = $date->format('Y-m-d H:i:s');
+
+                            $result = $this->PaymentLogModel->createLogRecord(array(
+                                'invoice_id' => $unpaid->unpaid_invoice,
+                                'user_id' => $this->session->userdata['id'],
+                                'amount' => $invoice_amount,
+                                'action' => "Credit Added",
+                                'created_at' => $time,
+                            ));
+
                             $result = $this->INV->createOnePartialPayment(array(
                                 'invoice_id' => $unpaid->unpaid_invoice,
                                 'payment_amount' => $invoice_amount,
@@ -4802,6 +4795,19 @@ class Technician extends MY_Controller
                             //mark this invoice as paid
                             $this->INV->updateInvoive(['invoice_id' => $unpaid->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'partial_payment' => $invoice_amount + $paid_already, 'payment_created' => date('Y-m-d H:i:s'), 'opened_date' => date('Y-m-d H:i:s'), 'sent_date' => date('Y-m-d H:i:s')]);
                         } else if ($credit_amount > 0 && $invoice_amount > 0) {
+
+                            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                            $time = $date->format('Y-m-d H:i:s');
+                            
+                            $result = $this->PaymentLogModel->createLogRecord(array(
+                                'invoice_id' => $unpaid->unpaid_invoice,
+                                'user_id' => $this->session->userdata['id'],
+                                'amount' => $credit_amount,
+                                'action' => "Credit Added",
+                                'created_at' => $time,
+                            ));
+
                             $result = $this->INV->createOnePartialPayment(array(
                                 'invoice_id' => $unpaid->unpaid_invoice,
                                 'payment_amount' => $credit_amount,
@@ -9067,6 +9073,19 @@ class Technician extends MY_Controller
                 if ($credit_amount >= $invoice_amount && $invoice_amount > 0) {
                     $inv_details = $this->INV->getOneInvoice(['invoice_id' => $invoice->unpaid_invoice]);
                     $partial_already_paid = $inv_details->partial_payment;
+
+                    $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                    $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                    $time = $date->format('Y-m-d H:i:s');
+                    
+                    $result = $this->PaymentLogModel->createLogRecord(array(
+                        'invoice_id' => $invoice->unpaid_invoice,
+                        'user_id' => $this->session->userdata['id'],
+                        'amount' => $invoice_amount,
+                        'action' => "Credit Added",
+                        'created_at' => $time,
+                    ));
+
                     $result = $this->INV->createOnePartialPayment(array(
                         'invoice_id' => $invoice->unpaid_invoice,
                         'payment_amount' => $invoice_amount,
@@ -9094,6 +9113,19 @@ class Technician extends MY_Controller
                 } else if ($credit_amount > 0 && $invoice_amount > 0) {
                     $inv_details = $this->INV->getOneInvoice(['invoice_id' => $invoice->unpaid_invoice]);
                     $partial_already_paid = $inv_details->partial_payment;
+
+                    $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                    $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                    $time = $date->format('Y-m-d H:i:s');
+                    
+                    $result = $this->PaymentLogModel->createLogRecord(array(
+                        'invoice_id' => $invoice->unpaid_invoice,
+                        'user_id' => $this->session->userdata['id'],
+                        'amount' => $credit_amount,
+                        'action' => "Credit Added",
+                        'created_at' => $time,
+                    ));
+
                     $result = $this->INV->createOnePartialPayment(array(
                         'invoice_id' => $invoice->unpaid_invoice,
                         'payment_amount' => $credit_amount,
@@ -9115,6 +9147,20 @@ class Technician extends MY_Controller
             //update customers.credit_amount adjusted credit_amount balance
             $this->INV->addCreditPayment($customer_id, $credit_amount, $data['payment_type']);
             //update partial payment
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+            
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                'amount' => $data['credit_amount'],
+                'action' => "Credit Added",
+                'created_at' => $time,
+            ));
+
+
             $result = $this->INV->createOnePartialPayment(array(
                 'invoice_id' => $invoice_id,
                 'payment_amount' => $data['credit_amount'],
@@ -9130,6 +9176,20 @@ class Technician extends MY_Controller
         } else {
             $this->INV->addCreditPayment($customer_id, $credit_amount, $data['payment_type']);
             //update partial payment
+
+            $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+            $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+            $time = $date->format('Y-m-d H:i:s');
+            
+            $result = $this->PaymentLogModel->createLogRecord(array(
+                'invoice_id' => $invoice_id,
+                'user_id' => $this->session->userdata['id'],
+                'amount' => $data['credit_amount'],
+                'action' => "Credit Added",
+                'created_at' => $time,
+            ));
+
+            
             $result = $this->INV->createOnePartialPayment(array(
                 'invoice_id' => $invoice_id,
                 'payment_amount' => $data['credit_amount'],
