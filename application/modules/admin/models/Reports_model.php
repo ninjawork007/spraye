@@ -209,6 +209,7 @@ class Reports_model extends CI_Model{
       // $this->db->join("technician_job_assign","technician_job_assign.program_id = t_estimate.program_id","inner");
       $this->db->join("jobs","jobs.job_id = technician_job_assign.job_id","left");
       $this->db->join("users","users.id = t_estimate.sales_rep","left");
+      $this->db->join("property_program_assign","property_program_assign.program_id = t_estimate.program_id","left");
 
       $this->db->where('technician_job_assign.company_id',$this->session->userdata['company_id']);
       // $this->db->where('t_estimate.status',2);
@@ -248,15 +249,15 @@ class Reports_model extends CI_Model{
         }
 
        if(!empty($params['search']['estimate_created_date_to']) && empty($params['search']['estimate_created_date_from']) ){
-          $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_to']);
+          $this->db->where('property_program_assign.sale_date >=',$params['search']['estimate_created_date_to']);
        }
        else if(empty($params['search']['estimate_created_date_to']) && !empty($params['search']['estimate_created_date_from']) ){
-          $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_from']);
+          $this->db->where('property_program_assign.sale_date <=',$params['search']['estimate_created_date_from']);
        }
 
        else if(!empty($params['search']['estimate_created_date_to']) && !empty($params['search']['estimate_created_date_from']) ){
-          $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_to']);
-          $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_from']);
+          $this->db->where('property_program_assign.sale_date >=',$params['search']['estimate_created_date_to']);
+          $this->db->where('property_program_assign.sale_date <=',$params['search']['estimate_created_date_from']);
        }
 		
 

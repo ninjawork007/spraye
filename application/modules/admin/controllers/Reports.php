@@ -7648,7 +7648,7 @@ class Reports extends MY_Controller {
         $report_data['total_sales_revenue'] = number_format($total_sales_revenue,2);
 		$data['report_details'] = $report_data;
 		$page["active_sidebar"] = "cancelReport";
-		$page["page_name"] = 'Cancel Summary';
+		$page["page_name"] = 'Canceled Properties Report';
 		$page["page_content"] = $this->load->view("admin/report/view_cancel_report", $data, TRUE);
 		$this->layout->superAdminTemplateTable($page);
   	}

@@ -86,7 +86,7 @@
                      <a href="#"><span>Sales</span></a>
                      <ul>
                         <li class="<?= $active_sidebar == "cancelService" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelService');?>" >Cancel Details Report</a></li>
-                        <li class="<?= $active_sidebar == "cancelReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelReport');?>">Cancel Summary</a></li>
+                        <li class="<?= $active_sidebar == "cancelReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelReport');?>">Canceled Properties Report</a></li>
                         <li class="<?= $active_sidebar == "pipelineSummary" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/salesPipelineSummary') ?>"   >Sales Pipeline Summary Report (real time)</a></li>
                         <li>
                            <a href="#"><span>Sales Summary</span></a>

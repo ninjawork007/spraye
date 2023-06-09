@@ -51,7 +51,7 @@
 							if($Data->status == 0){
 							?>
 							<li style="display: inline; padding-right: 10px;">
-								<a href="<?php echo base_url() ?>/admin/MassEmail/ResendEmail?id=<?php echo $Data->id ?>" class="confirm_delete button-next"><i class="icon-envelop3 position-center" style="color: #9a9797;"></i></a>
+								<a href="<?php echo base_url() ?>/admin/MassEmail/ResendEmail?id=<?php echo $Data->id ?>" class="confirm_send button-next"><i class="icon-envelop3 position-center" style="color: #9a9797;"></i></a>
 							</li>
 								<?php
 							}
@@ -80,6 +80,27 @@
 		swal({
 			title: 'Are you sure?',
 			text: "You won't be able to recover this !",
+			type: 'warning',
+			showCancelButton: true,
+			confirmButtonColor: '#009402',
+			cancelButtonColor: '#d33',
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		}).then((result) => {
+			if (result.value) {
+				window.location = url;
+			}
+		})
+	});
+
+
+
+	$('.confirm_send').click(function(e){
+		e.preventDefault();
+		var url = $(this).attr('href');
+		swal({
+			title: 'Are you sure?',
+			text: "Are you sure to send emails?",
 			type: 'warning',
 			showCancelButton: true,
 			confirmButtonColor: '#009402',
