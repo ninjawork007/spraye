@@ -25,6 +25,7 @@
 		<table class="table datatable-button-print-basic">
 			<thead>
 				<tr>
+					<th>Name</th>
 					<th>Subject</th>
 					<th>Sent Date</th>
 					<th>Status</th>
@@ -36,6 +37,7 @@
 				foreach($EmailList as $Index => $Data) {
 				?>
 				<tr>
+					<td><?php echo $Data->email_name?></td>
 					<td><?php echo $Data->email_subject?></td>
 					<td>
 						<?php 

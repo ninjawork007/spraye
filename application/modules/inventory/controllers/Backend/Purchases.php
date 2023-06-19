@@ -135,6 +135,8 @@ class Purchases extends MY_Controller{
 		
 		// $discount = round($data['subtotal'] * $data['discount'] / 100, 2);
 
+		$data['shipping_method_1'] = $data['shipping_method_1'];
+		$data['fob'] = $data['fob'];
 		$data['grand_total'] = $data['subtotal'];
 		$data['grand_total'] = round($data['grand_total'] - $discount, 2);
 		$data['grand_total'] = round($data['grand_total'] + $data['freight'], 2);

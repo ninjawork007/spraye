@@ -617,11 +617,12 @@ class Estimate_model extends CI_Model{
     }
 
     public function getAllEstimateDetails($where_arr = array()){
-        $this->db->select('* ');
+        $this->db->select('*, service_type_tbl.service_type_name');
         $this->db->from(self::EST);
 
         $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
         $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
+        $this->db->join('service_type_tbl','service_type_tbl.service_type_id=jobs.service_type_id','left');
 
         $this->db->where($where_arr);
         $result = $this->db->get();
@@ -636,6 +637,7 @@ class Estimate_model extends CI_Model{
         $this->db->from(self::EST);
         $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
         $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
+        $this->db->join('service_type_tbl','service_type_tbl.service_type_id=jobs.service_type_id','left');
         $this->db->where('t_estimate.company_id',$this->session->userdata['company_id']);
         
         if (array_key_exists("where_condition",$params)) {

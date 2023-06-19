@@ -422,6 +422,11 @@ opacity: 1;
                                 </div>
                                 <div class="modal-body">
                                     <div class="form-group multi-select-full">
+                                        <label>Email Name</label>
+                                        <input type="text" name="email_name" class="form-control">
+                                    </div>
+
+                                    <div class="form-group multi-select-full">
                                         <label>Email Subject</label>
                                         <input type="text" name="email_subject" class="form-control">
                                     </div>

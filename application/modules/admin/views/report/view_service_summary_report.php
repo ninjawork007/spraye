@@ -151,7 +151,8 @@
 							<table  class="table datatable-colvis-state" style="border: 1px solid #6eb0fe; border-radius: 12px;"  id="total-new-estimates-table">
 								<thead>  
 									<tr>
-										<th>Service123</th>
+										<th>Service</th>
+										<th>Service Type</th>
 										<th>Estimates Created</th>
 										<th>Estimate Close Rate</th>
 										<th>Revenue Close Rate</th>
@@ -160,22 +161,20 @@
 								<tbody id="new_estimates_tbody">
 									<?php 
 										if (!empty($service_summary)) {
-										// $total_estimates = 0;
 										$closed_rate_total = 0;
 										$closed_rate_amt = 0;
-
-										foreach ($service_summary as $value) { 
+										foreach ($service_summary as $value){
 									?>
 
 									<tr>
 										<td ><?= $value['job_name'] ?></td>
+										<td ><?= $value['service_type_name'] ?></td>
 										<td><?= $value['total_estimates'] ?></td>
 										<td><?= (number_format((($value['accepted']/max(($value['accepted']+$value['declined']),1))) ,2)*100) ?>%</td>
 										<td><?= (number_format((($value['accepted_total']/max(($value['accepted_total']+$value['declined_total']),1))) ,2)*100) ?>%</td>
 									
 									</tr>
 									<?php
-										// $total_estimates += $value['total_estimates'];
 										$closed_rate_total += (number_format((($value['accepted']/max(($value['accepted']+$value['declined']),1))) ,2)*100);
 										$closed_rate_amt += (number_format((($value['accepted_total']/max(($value['accepted_total']+$value['declined_total']),1))) ,2)*100);
 										}
@@ -185,9 +184,9 @@
 
 									<tr>
 										<td> No record found </td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
 									</tr>
 
 									<?php }  ?>

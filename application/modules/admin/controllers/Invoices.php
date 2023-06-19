@@ -5292,11 +5292,21 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             $invoice_id = $data['invoice_id'];
             
                             if(!empty($unpaid)){
-
                                   $invoice_amount  = $unpaid->unpaid_amount;
-                                //   die(print_r($invoice_amount));
                                   if($credit_amount >= $invoice_amount){
-                                    // die(print_r($credit_amount));
+
+                                    $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                                    $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                                    $time = $date->format('Y-m-d H:i:s');
+
+                                    $result = $this->PaymentLogModel->createLogRecord(array(
+                                        'invoice_id' => $unpaid->unpaid_invoice,
+                                        'user_id' => $this->session->userdata['id'],
+                                        'amount' => $invoice_amount,
+                                        'action' => "Payment made from credit amount",
+                                        'created_at' => $time,
+                                    ));
+
                                     $result = $this->INV->createOnePartialPayment(array(
                                                   'invoice_id' => $unpaid->unpaid_invoice,
                                                   'payment_amount' => $invoice_amount,
@@ -5309,15 +5319,25 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                                                   'customer_id' => $customer_id,
                                               ));
             
-                                    // die(print_r($result));
-                                    
-            
                                     //mark this invoice as paid
                                     $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'partial_payment' => $invoice_amount, 'payment_created' => date('Y-m-d H:i:s')]);
                                 
                                     $credit_amount -= $invoice_amount;
                                 
                                 } else if($credit_amount > 0 && $invoice_amount > 0){
+
+                                    $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                                    $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                                    $time = $date->format('Y-m-d H:i:s');
+
+                                    $result = $this->PaymentLogModel->createLogRecord(array(
+                                        'invoice_id' => $unpaid->unpaid_invoice,
+                                        'user_id' => $this->session->userdata['id'],
+                                        'amount' => $credit_amount,
+                                        'action' => "Payment made from credit amount",
+                                        'created_at' => $time,
+                                    ));
+
                                     $result = $this->INV->createOnePartialPayment(array(
                                         'invoice_id' => $unpaid->unpaid_invoice,
                                         'payment_amount' => $credit_amount,
@@ -5329,9 +5349,6 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                                         'payment_note' => "Payment made from credit amount {$credit_amount}",
                                         'customer_id' => $customer_id,
                                     ));
-            
-                                    // die(print_r($result));
-                                    
             
                                     //mark this invoice as paid
                                     $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 1, 'payment_status' => 1, 'partial_payment' => $credit_amount, 'payment_created' => date('Y-m-d H:i:s')]);  
@@ -5424,9 +5441,20 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                 if(!empty($unpaid)){
                       $invoice_amount  = $unpaid->unpaid_amount;
-                    //   die(print_r($invoice_amount));
                       if($credit_amount >= $invoice_amount){
-                        // die(print_r($credit_amount));
+
+                        $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                        $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                        $time = $date->format('Y-m-d H:i:s');
+
+                        $result = $this->PaymentLogModel->createLogRecord(array(
+                            'invoice_id' => $unpaid->unpaid_invoice,
+                            'user_id' => $this->session->userdata['id'],
+                            'amount' => $invoice_amount,
+                            'action' => "Payment made from credit amount",
+                            'created_at' => $time,
+                        ));
+
                         $result = $this->INV->createOnePartialPayment(array(
                                       'invoice_id' => $unpaid->unpaid_invoice,
                                       'payment_amount' => $invoice_amount,
@@ -5439,15 +5467,24 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                                       'customer_id' => $customer_id,
                                   ));
 
-                        // die(print_r($result));
-                        
-
                         //mark this invoice as paid
                         $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 2, 'payment_status' => 2, 'partial_payment' => $invoice_amount, 'payment_created' => date('Y-m-d H:i:s')]);
                     
                         $credit_amount -= $invoice_amount;
 
                     } else if($credit_amount > 0 && $invoice_amount > 0){
+                        $CompanyData = $this->CompanyModel->getOneCompany(array('company_id' =>$this->session->userdata['company_id']));
+                        $date = new DateTime("now", new DateTimeZone($CompanyData->time_zone));
+                        $time = $date->format('Y-m-d H:i:s');
+
+                        $result = $this->PaymentLogModel->createLogRecord(array(
+                            'invoice_id' => $unpaid->unpaid_invoice,
+                            'user_id' => $this->session->userdata['id'],
+                            'amount' => $credit_amount,
+                            'action' => "Payment made from credit amount",
+                            'created_at' => $time,
+                        ));
+                        
                         $result = $this->INV->createOnePartialPayment(array(
                             'invoice_id' => $unpaid->unpaid_invoice,
                             'payment_amount' => $credit_amount,
@@ -5459,9 +5496,6 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             'payment_note' => "Payment made from credit amount {$credit_amount}",
                             'customer_id' => $customer_id,
                         ));
-
-                        // die(print_r($result));
-                        
 
                         //mark this invoice as paid
                         $this->INV->updateInvoive(['invoice_id'=> $unpaid->unpaid_invoice], ['status' => 1, 'payment_status' => 1, 'partial_payment' => $credit_amount, 'payment_created' => date('Y-m-d H:i:s')]);  

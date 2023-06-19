@@ -3,7 +3,8 @@
     border-radius: 12px;" id="total-new-estimates-table">    
     <thead>  
       <tr>
-        <th>Service123</th>
+        <th>Service</th>
+        <th>Service Type</th>
         <th>Estimates Created</th>
         <th>Estimate Close Rate</th>
         <th>Revenue Close Rate</th>
@@ -29,6 +30,7 @@
 
       <tr>
         <td ><?= $value['job_name'] ?></td>
+        <td ><?= $value['service_type_name'] ?></td>
         <td><?= $value['total_estimates_1'] ?></td>
         <td><?= (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100) ?>%</td>
         <td><?= (number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2)*100) ?>%</td>

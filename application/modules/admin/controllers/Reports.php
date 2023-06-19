@@ -5136,7 +5136,6 @@ class Reports extends MY_Controller {
         $data['jobs'] = $this->JobModel->getAllJob(array('jobs.company_id' =>$this->session->userdata['company_id']));
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
         $data['SavedFilter'] = $this->ServiceSummarySaveModel->getTechSavedReport(array("user_id" => $this->session->userdata['id']));
-        // die(print_r($data['jobs']));
 
         $data['program_details'] = $this->ProgramModel->get_all_program($where_arr);
         $data['service_details'] = $this->JobModel->getJobList($where_arr);
@@ -5150,10 +5149,11 @@ class Reports extends MY_Controller {
         
         $service_summary = [];
         foreach($data['estimates'] as $service){
+            $service_summary[$service->job_id]['service_type_name'] = $service->service_type_name;
+
             if(is_array($service_summary) && array_key_exists($service->job_id, $service_summary)){
-                
+                $service_summary[$service->job_id]['job_name'] = $service->job_name;
                 $estimate_cost = $service->job_price;
-               
                 $service_summary[$service->job_id]['total_estimates'] += 1;
                 if(isset($service->status) && $service->status == 2){
                     $service_summary[$service->job_id]['accepted'] += 1 ;
@@ -5170,9 +5170,7 @@ class Reports extends MY_Controller {
 
                 }
             } else {
-                
                 $service_summary[$service->job_id]['job_name'] = $service->job_name;
-                
                 $service_summary[$service->job_id]['total_estimates'] = 1;
                 $total_cost = $service->job_price;
               
@@ -5289,13 +5287,13 @@ class Reports extends MY_Controller {
         $service_summary_1 = [];
         // if($data['sales_summary_1']){
         if($data['estimates_1']){
-
             foreach($data['estimates_1'] as $service_1){
+                $service_summary_1[$service_1->job_id]['service_type_name'] = $service_1->service_type_name;
                 if(is_array($service_summary_1) && array_key_exists($service_1->job_id, $service_summary_1)){
-                    
+                    $service_summary_1[$service_1->job_id]['job_id'] = $service_1->job_id;
+                    $service_summary_1[$service_1->job_id]['job_name'] = $service_1->job_name;
+
                     $estimate_cost = $service_1->job_price;
-                   
-                    
                     $service_summary_1[$service_1->job_id]['total_estimates'] += 1;
                     if(isset($service_1->status) && $service_1->status == 2){
                         $service_summary_1[$service_1->job_id]['accepted'] += 1 ;
@@ -5350,8 +5348,11 @@ class Reports extends MY_Controller {
         if($data['estimates_2']){
 
             foreach($data['estimates_2'] as $service){
+                $service_summary_2[$service->job_id]['service_type_name'] = $service->service_type_name;
                 if(is_array($service_summary_2) && array_key_exists($service->job_id, $service_summary_2)){
-                    
+                    $service_summary_2[$service->job_id]['job_id'] = $service->job_id;
+                    $service_summary_2[$service->job_id]['job_name'] = $service->job_name;
+
                     $estimate_cost = $service->job_price;
                    
                     $service_summary_2[$service->job_id]['total_estimates'] += 1;
@@ -5413,6 +5414,7 @@ class Reports extends MY_Controller {
                         $report_result = array(
                             'job_id' => $rSummary1['job_id'],
                             'job_name' => $rSummary1['job_name'],
+                            'service_type_name' => $rSummary1['service_type_name'],
                             'total_estimates_1' => $rSummary1['total_estimates'],
                             'accepted_1' => $rSummary1['accepted'],
                             'declined_1' => $rSummary1['declined'],
@@ -5435,6 +5437,7 @@ class Reports extends MY_Controller {
                 $report_result = array(
                     'job_id' => $rSummary1['job_id'],
                     'job_name' => $rSummary1['job_name'],
+                    'service_type_name' => $rSummary1['service_type_name'],
                     'total_estimates_1' => $rSummary1['total_estimates'],
                     'accepted_1' => $rSummary1['accepted'],
                     'declined_1' => $rSummary1['declined'],
@@ -5449,12 +5452,10 @@ class Reports extends MY_Controller {
                 array_push($report_results, $report_result );
             }
         }
-        // die(print_r($report_results));
+
         $data['report_results'] = $report_results;
         $body =  $this->load->view('admin/report/ajax_service_summary_report', $data, false);
-
         echo $body;
-
     }
    
     #### accepted estimates
@@ -10300,6 +10301,7 @@ class Reports extends MY_Controller {
                     "cusotmer_id" => implode(",", $CustomerArray),
                     "programmes_id" => implode(",", $Programs),
                     "mail_text" => $_POST['mailText'],
+                    "email_name" => $_POST['email_name'],
                     "email_subject" => $_POST['email_subject'],
                     "status" => 0
                 );
@@ -10323,6 +10325,7 @@ class Reports extends MY_Controller {
                     "cusotmer_id" => implode(",", $CustomerArray),
                     "programmes_id" => implode(",", $Programs),
                     "mail_text" => $_POST['mailText'],
+                    "email_name" => $_POST['email_name'],
                     "email_subject" => $_POST['email_subject'],
                     "status" => 1,
                     "send_date" => date("Y-m-d")
