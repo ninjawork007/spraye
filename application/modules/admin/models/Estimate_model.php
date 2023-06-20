@@ -728,6 +728,10 @@ class Estimate_model extends CI_Model{
         if(!empty($params['search']['job_id'])){    
            $this->db->where("(`jobs.job_id` LIKE '%".$params['search']['job_id']."%' )");
         }
+
+        if(!empty($params['search']['service_type'])){    
+           $this->db->where("service_type_tbl.service_type_id", $params['search']['service_type']);
+        }
         
         if(!empty($params['search']['customer_name'])){    
            $this->db->where("(`first_name` LIKE '%".$params['search']['customer_name']."%' OR `last_name` LIKE '%".$params['search']['customer_name']."%')");

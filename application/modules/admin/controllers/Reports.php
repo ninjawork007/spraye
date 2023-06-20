@@ -73,6 +73,7 @@ class Reports extends MY_Controller {
         $this->load->model('Save_sales_pipeline_filter_model', 'SaveSalesPipelineFilterModel');
         $this->load->model('Payment_invoice_logs_model', 'PartialPaymentModel');
         $this->load->model('MassEmailModel', 'MassEmailModel');
+        $this->load->model('Service_type_model', 'ServiceTypeModel');
     }
 
 
@@ -5132,6 +5133,9 @@ class Reports extends MY_Controller {
         //get the posts data
         
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
+        
+        $data['service_types'] = $this->ServiceTypeModel->getAllServiceType($where_arr);
+
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where_arr);
         $data['jobs'] = $this->JobModel->getAllJob(array('jobs.company_id' =>$this->session->userdata['company_id']));
         $data['users'] = $this->Administrator->getAllAdmin($where_arr);
@@ -5209,7 +5213,6 @@ class Reports extends MY_Controller {
         $page["page_name"] = 'Service Summary Report';
         $page["page_content"] = $this->load->view("admin/report/view_service_summary_report", $data, TRUE);
         $this->layout->superAdminReportTemplateTable($page);
-
     }
    
     ## ajax data for Service Summary Report
@@ -5241,8 +5244,13 @@ class Reports extends MY_Controller {
         if(!empty($date_range_date_to)){
             $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
         }
-         if(!empty($date_range_date_from)){
+
+        if(!empty($date_range_date_from)){
             $conditions_1['search']['date_range_date_from'] = $date_range_date_from;
+        }
+
+        if(!empty($this->input->post('service_type'))){
+            $conditions_1['search']['service_type'] = $this->input->post('service_type');
         }
         
         $conditions_2 = array();
@@ -5269,6 +5277,10 @@ class Reports extends MY_Controller {
          if(!empty($comparision_range_date_from)){
             $conditions_2['search']['comparision_range_date_from'] = $comparision_range_date_from;
         }
+
+        if(!empty($this->input->post('service_type'))){
+            $conditions_2['search']['service_type'] = $this->input->post('service_type');
+        }
         
          //get posts data
        
@@ -5285,6 +5297,7 @@ class Reports extends MY_Controller {
         // die(print_r($data['total_estimates_2']));
        
         $service_summary_1 = [];
+
         // if($data['sales_summary_1']){
         if($data['estimates_1']){
             foreach($data['estimates_1'] as $service_1){
@@ -5487,6 +5500,10 @@ class Reports extends MY_Controller {
          if(!empty($date_range_date_from)){
             $conditions_1['search']['date_range_date_from'] = $date_range_date_from;
         }
+
+        if(!empty($this->input->post('service_type'))){
+            $conditions_1['search']['service_type'] = $this->input->post('service_type');
+        }
         
         $conditions_2 = array();
         
@@ -5505,6 +5522,10 @@ class Reports extends MY_Controller {
         }
          if(!empty($comparision_range_date_from)){
             $conditions_2['search']['comparision_range_date_from'] = $comparision_range_date_from;
+        }
+
+        if(!empty($this->input->post('service_type'))){
+            $conditions_2['search']['service_type'] = $this->input->post('service_type');
         }
         
          //get posts data
@@ -5735,6 +5756,10 @@ class Reports extends MY_Controller {
          if(!empty($date_range_date_from)){
             $conditions_1['search']['date_range_date_from'] = $date_range_date_from;
         }
+
+        if(!empty($this->input->post('service_type'))){
+            $conditions_1['search']['service_type'] = $this->input->post('service_type');
+        }
         
         $conditions_2 = array();
         
@@ -5754,6 +5779,10 @@ class Reports extends MY_Controller {
         }
          if(!empty($comparision_range_date_from)){
             $conditions_2['search']['comparision_range_date_from'] = $comparision_range_date_from;
+        }
+
+        if(!empty($this->input->post('service_type'))){
+            $conditions_2['search']['service_type'] = $this->input->post('service_type');
         }
         
          //get posts data
@@ -10010,6 +10039,8 @@ class Reports extends MY_Controller {
         #not seeing specific role for sales rep so getting all users 
         $report_data = array();
         foreach($data['customers'] as $customer) {
+            
+
             $IsContine = true;
             if($HowManyServiceCompleted != ""){
                 $IdString = "property_program_assign.program_id IN (";
@@ -10029,7 +10060,10 @@ class Reports extends MY_Controller {
                     }
                 }
 
-                if($TotalServiceCompleted >= $HowManyServiceCompleted && $TotalServiceCompleted <= $HowManyServiceCompletedEnd){
+                $HowManyServiceCompleted = (int)$HowManyServiceCompleted;
+                $HowManyServiceCompletedEnd = (int)$HowManyServiceCompletedEnd;
+
+                if($TotalServiceCompleted >= $HowManyServiceCompleted && $TotalServiceCompleted >= $HowManyServiceCompletedEnd){
                     $IsContine = false;
                 }
             }
@@ -10057,8 +10091,6 @@ class Reports extends MY_Controller {
             if(count($ExcludedPrograms) > 0 && !$IsContine){
                 continue;
             }
-
-
 
 
             if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
@@ -10236,8 +10268,9 @@ class Reports extends MY_Controller {
                 }
                 $customer_phone = '('.substr($customer->phone, 0, 3).') '.substr($customer->phone, 3, 3).'-'.substr($customer->phone,6);
                 $customer_work_phone = '('.substr($customer->work_phone, 0, 3).') '.substr($customer->work_phone, 3, 3).'-'.substr($customer->work_phone,6);
+                $customer_number_link = "<a href='".base_url("admin/editCustomer/").$customer->customer_id."'>".$customer->customer_id."</a>";
                 $report_data[$customer->customer_id] = array(
-                    'customer_number_link'=> $customer->customer_id,
+                    'customer_number_link'=> $customer_number_link,
                     'first_name'=> $customer->first_name,
                     'last_name'=> $customer->last_name,
                     'email'=> $customer->email,

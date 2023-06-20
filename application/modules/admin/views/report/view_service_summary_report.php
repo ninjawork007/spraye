@@ -18,118 +18,112 @@
   padding: 5px;
 }
 </style>
-<div class="content">
-  <div class="panel panel-flat">
-    <div class="panel-body">
-      <b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
-	<div class="panel panel-body" style="background-color:#ededed;" >
-		<form id="serchform-new" action="<?= base_url('admin/reports/downloadServiceSummaryCsv') ?>" method="post">            
-			<div class="row">
-				<div class="col-md-4">
 
-					<?php
-	                $SelectedProgramms = array();
-	                if(isset($SavedFilter['id'])){
-	                  $SelectedSalesRep = explode(",", $SavedFilter["service_name"]);
-	                }
-	                ?>
+
+<div class="content">
+	<div class="panel panel-flat">
+		<div class="panel-body">
+			<b><?php if($this->session->flashdata()): echo $this->session->flashdata('message'); endif; ?></b>
+
+			<div class="panel panel-body" style="background-color:#ededed;">
+				<form id="serchform-new" action="<?= base_url('admin/reports/downloadServiceSummaryCsv') ?>" method="post">            
 					<div class="row">
-						<div class="form-group multi-select-full">
+						<div class="col-md-4 multi-select-full">
+							<?php
+							$SelectedProgramms = array();
+							if(isset($SavedFilter['id'])){
+								$SelectedSalesRep = explode(",", $SavedFilter["service_name"]);
+							}
+							?>
+
 							<label>Service</label>
 							<select id="job_name" name="job_name[]" multiple class="multiselect-select-all-filtering">
 								<?php if ($service_details) {
-				                    foreach ($service_details as $user) { ?>
-				                      <option <?php if(in_array($user->job_id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->job_id ?>> <?= $user->job_name ?> </option>
-				                  <?php } } ?>
-							</select>
-								
+									foreach ($service_details as $user) { ?>
+										<option <?php if(in_array($user->job_id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->job_id ?>> <?= $user->job_name ?> </option>
+									<?php } } ?>
 							</select>
 						</div>
+
+						<div class="col-md-4">
+							<label>Date Range Start</label>
+							<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
+						</div>
+						<div class="col-md-4">
+							<label>Date Range End</label>
+							<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
+						</div>
 					</div>
-					<?php
-	                $SelectedProgramms = array();
-	                if(isset($SavedFilter['id'])){
-	                  $SelectedSalesRep = explode(",", $SavedFilter["program_ids"]);
-	                }
-	                ?>
-					<div class="row">
-						<div class="form-group multi-select-full">
+
+					<div class="row" style="margin-top: 10px">
+						<?php
+						$SelectedProgramms = array();
+						if(isset($SavedFilter['id'])){
+							$SelectedSalesRep = explode(",", $SavedFilter["program_ids"]);
+						}
+						?>
+
+						<div class="col-md-4 multi-select-full">
 							<label>Program</label>
 							<select id="program_ids" name="program_ids[]" multiple class="multiselect-select-all-filtering" placeholder="Select Rep">
 								<?php if ($program_details) {
-				                    foreach ($program_details as $user) { ?>
-				                      <option <?php if(in_array($user->program_id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->program_id ?>> <?= $user->program_name ?> </option>
-				                  <?php } } ?>
-							</select>
-								
+									foreach ($program_details as $user) { ?>
+										<option <?php if(in_array($user->program_id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->program_id ?>> <?= $user->program_name ?> </option>
+									<?php } } ?>
 							</select>
 						</div>
-					</div>
-					<div class="row">
-						<div class="form-group multi-select-full">
-			                <?php
-			                $SelectedSalesRep = array();
-			                if(isset($SavedFilter['id'])){
-			                  $SelectedSalesRep = explode(",", $SavedFilter["techniciean_ids"]);
-			                }
-			                ?>
-			                <label>Sales Rep</label>
-			                <select id="sales_rep_id" name="sales_rep_id[]" multiple class="multiselect-select-all-filtering" placeholder="Select Rep">
-			                   <?php if ($users) {
-			                    foreach ($users as $user) { ?>
-			                      <option <?php if(in_array($user->id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->id ?>> <?= $user->user_first_name . " " . $user->user_last_name ?> </option>
-			                  <?php } } ?>
-			                  </select>
-			              </div>
-					</div>
-				</div>
-				<div class="col-md-8">
-					<div class="row">
-						<div class="row">
-							<div class="col-md-6">
-								<div class="form-group">
-								<label>Date Range Start</label>
-								<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
-								</div>
-							</div>
 
-							<div class="col-md-6">
-								<div class="form-group">
-									<label>Date Range End</label>
-									<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
-								</div>
-							</div>
+						<div class="col-md-4">
+							<label>Comparison Range Start</label>
+							<input type="date" id="comparision_range_date_to" name="comparision_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["compare_start_date"] ?>">
 						</div>
-						<div class="row">
-							<div class="col-md-6">
-								<div class="form-group">
-									<label>Comparison Range Start</label>
-									<input type="date" id="comparision_range_date_to" name="comparision_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["compare_start_date"] ?>">
-								</div>
-							</div>
 
-							<div class="col-md-6">
-								<div class="form-group">
-									<label>Comparison Range End</label>
-									<input type="date" id="comparision_range_date_from" name="comparision_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["compare_end_date"] ?>">
-								</div>
-							</div>
+						<div class="col-md-4">
+							<label>Comparison Range End</label>
+							<input type="date" id="comparision_range_date_from" name="comparision_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["compare_end_date"] ?>">
 						</div>
 					</div>
-				</div>
-				
-				
+
+					<div class="row" style="margin-top: 10px">
+						<div class="col-md-4 multi-select-full">
+							<?php
+							$SelectedSalesRep = array();
+							if(isset($SavedFilter['id'])){
+								$SelectedSalesRep = explode(",", $SavedFilter["techniciean_ids"]);
+							}
+							?>
+							<label>Sales Rep</label>
+							<select id="sales_rep_id" name="sales_rep_id[]" multiple class="multiselect-select-all-filtering" placeholder="Select Rep">
+								<?php if ($users) {
+									foreach ($users as $user) { ?>
+										<option <?php if(in_array($user->id, $SelectedSalesRep)) { echo 'selected'; } ?> value=<?= $user->id ?>> <?= $user->user_first_name . " " . $user->user_last_name ?> </option>
+									<?php } } ?>
+			        </select>
+			      </div>
+			      <div class="col-md-4">
+			      	<label>Service Type</label>
+			      	<select id="service_type" name="service_type" class="form-control" style="background: #FFF" placeholder="Service Type">
+			      		<option value="">All</option>
+			      		<?php
+			      		foreach ($service_types as $user) { ?>
+			      			<option <?php if($user->service_type_id == $SavedFilter['service_type']) { echo 'selected'; } ?> value=<?= $user->service_type_id ?>> <?= $user->service_type_name ?> </option>
+			      		<?php } ?>
+			      	</select>
+			      </div>
+			    </div>
+
+			    <div class="text-center" style="margin-top: 15px;">
+			    	<button type="button" class="btn btn-success" onClick="searchFilterNew()" ><i class="icon-search4 position-left"></i> Search</button>
+			    	<button type="button" class="btn btn-primary" onClick="resetFormNew()" ><i class="icon-reset position-left"></i> Reset</button>
+			    	<button type="submit" class="btn btn-info"  ><i class="icon-file-download position-left"></i> CSV Download</button>
+			    	<button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-file-text2 position-left"></i> Save Search</button>
+			    </div>
+			  </form>
 			</div>
 
-			<div class="text-center">
-			<button type="button" class="btn btn-success" onClick="searchFilterNew()" ><i class="icon-search4 position-left"></i> Search</button>
-			<button type="button" class="btn btn-primary" onClick="resetFormNew()" ><i class="icon-reset position-left"></i> Reset</button>
-			<button type="submit" class="btn btn-info"  ><i class="icon-file-download position-left"></i> CSV Download</button>
-			<button type="button" class="btn btn-success" onClick="saveSearchFilter()" ><i class="icon-file-text2 position-left"></i> Save Search</button>
-			</div>
-		</form>
-	</div>
-	<div class="tabbable">
+
+
+			<div class="tabbable">
 		<ul class="nav nav-tabs nav-tabs-solid nav-justified">
 			<li class="liquick <?php echo $active_nav_link == '0' ? 'active' : ''  ?> "><a href="#highlighted-justified-tab0" data-toggle="tab">Total New Estimates</a></li>
 			<li class="lione <?php echo $active_nav_link == '1' ? 'active' : ''  ?> "><a href="#highlighted-justified-tab1" data-toggle="tab">Total Accepted Estimates</a></li>
@@ -391,16 +385,17 @@ function searchFilterNew() {
     var sales_rep_id = $('#serchform-new #sales_rep_id').val();
     var date_range_date_to = $('#serchform-new #date_range_date_to').val();
     var date_range_date_from = $('#serchform-new #date_range_date_from').val();
-	var comparision_range_date_to = $('#serchform-new #comparision_range_date_to').val();
+    var comparision_range_date_to = $('#serchform-new #comparision_range_date_to').val();
     var comparision_range_date_from = $('#serchform-new #comparision_range_date_from').val();
     var program_ids = $("#program_ids").val();
+    var service_type = $("#service_type").val();
 
     $('.loading').css("display", "block");
    $('#postListNew').html('');
     $.ajax({
         type: 'POST',
-        url: '<?php echo base_url(); ?>admin/reports/ajaxServiceSummaryDataNew/', ///// CHECK URL
-        data:'job_name='+job_name+'&sales_rep_id='+sales_rep_id+'&date_range_date_to='+date_range_date_to+'&date_range_date_from='+date_range_date_from+'&comparision_range_date_to='+comparision_range_date_to+'&comparision_range_date_from='+comparision_range_date_from+"&program_ids="+program_ids,
+        url: '<?php echo base_url(); ?>admin/reports/ajaxServiceSummaryDataNew/',
+        data:'job_name='+job_name+'&sales_rep_id='+sales_rep_id+'&date_range_date_to='+date_range_date_to+'&date_range_date_from='+date_range_date_from+'&comparision_range_date_to='+comparision_range_date_to+'&comparision_range_date_from='+comparision_range_date_from+"&program_ids="+program_ids+"&service_type="+service_type,
         
         success: function (html) {
             $(".loading").css("display", "none");
@@ -413,8 +408,8 @@ function searchFilterNew() {
    $('#postListAccepted').html('');
     $.ajax({
         type: 'POST',
-        url: '<?php echo base_url(); ?>admin/reports/ajaxServiceSummaryDataAccepted/', ///// CHECK URL
-        data:'job_name='+job_name+'&sales_rep_id='+sales_rep_id+'&date_range_date_to='+date_range_date_to+'&date_range_date_from='+date_range_date_from+'&comparision_range_date_to='+comparision_range_date_to+'&comparision_range_date_from='+comparision_range_date_from+"&program_ids="+program_ids,
+        url: '<?php echo base_url(); ?>admin/reports/ajaxServiceSummaryDataAccepted/',
+        data:'job_name='+job_name+'&sales_rep_id='+sales_rep_id+'&date_range_date_to='+date_range_date_to+'&date_range_date_from='+date_range_date_from+'&comparision_range_date_to='+comparision_range_date_to+'&comparision_range_date_from='+comparision_range_date_from+"&program_ids="+program_ids+"&service_type="+service_type,
         
         success: function (html) {
             $(".loading_2").css("display", "none");
@@ -428,7 +423,7 @@ function searchFilterNew() {
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxServiceSummaryDataDeclined/', ///// CHECK URL
-        data:'job_name='+job_name+'&sales_rep_id='+sales_rep_id+'&date_range_date_to='+date_range_date_to+'&date_range_date_from='+date_range_date_from+'&comparision_range_date_to='+comparision_range_date_to+'&comparision_range_date_from='+comparision_range_date_from+"&program_ids="+program_ids,
+        data:'job_name='+job_name+'&sales_rep_id='+sales_rep_id+'&date_range_date_to='+date_range_date_to+'&date_range_date_from='+date_range_date_from+'&comparision_range_date_to='+comparision_range_date_to+'&comparision_range_date_from='+comparision_range_date_from+"&program_ids="+program_ids+"&service_type="+service_type,
         
         success: function (html) {
             $(".loading_3").css("display", "none");
@@ -538,11 +533,12 @@ function saveSearchFilter(){
     var compare_end_date = $('#comparision_range_date_from').val();
     var service_name = $('#job_name').val();
     var program_ids = $("#program_ids").val();
+    var service_type = $("#service_type").val();
 
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/saveServiceSummaryFilters',
-        data:'techniciean_ids='+technician_id+'&start_date='+start_date+'&end_date='+end_date+'&compare_start_date='+compare_start_date+'&compare_end_date='+compare_end_date+'&service_name='+service_name+"&program_ids="+program_ids,
+        data:'techniciean_ids='+technician_id+'&start_date='+start_date+'&end_date='+end_date+'&compare_start_date='+compare_start_date+'&compare_end_date='+compare_end_date+'&service_name='+service_name+"&program_ids="+program_ids+"&service_type="+service_type,
 
         success: function (resp) {
             swal('Save','Filter Saved Successfully ','success')
