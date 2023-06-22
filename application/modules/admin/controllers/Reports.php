@@ -9660,8 +9660,6 @@ class Reports extends MY_Controller {
         #not seeing specific role for sales rep so getting all users 
         $report_data = array();
         foreach($data['customers'] as $customer) {
-            
-
             $IsContine = true;
             if($HowManyServiceCompleted != ""){
                 $IdString = "property_program_assign.program_id IN (";
@@ -9931,8 +9929,6 @@ class Reports extends MY_Controller {
 
 	public function downloadMarketingCustomerDataReport(){
 		$company_id = $this->session->userdata['company_id'];
-        // making arrays to set up any filters brought in
-
         $filters_array = array();
         if(!isset($_POST['sources_multi'])){
             $_POST['sources_multi'][] = "null";
@@ -10036,11 +10032,10 @@ class Reports extends MY_Controller {
             array_push( $data['source_list'], $source);
         }
 
+        
         #not seeing specific role for sales rep so getting all users 
         $report_data = array();
         foreach($data['customers'] as $customer) {
-            
-
             $IsContine = true;
             if($HowManyServiceCompleted != ""){
                 $IdString = "property_program_assign.program_id IN (";
@@ -10081,7 +10076,7 @@ class Reports extends MY_Controller {
                 $IdString = substr($IdString, 0, -1);
                 $IdString .= ")";
 
-                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReport(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
+                $ServicesByCustomer = $this->DashboardModel->getCustomerAllServicesForReportMaketing(array('property_tbl.company_id' => $company_id, "customers.customer_id" => $customer->customer_id), $IdString);
 
                 if(count($ServicesByCustomer) > 0){
                     $IsContine = false;
@@ -10094,7 +10089,7 @@ class Reports extends MY_Controller {
 
 
             if($this->input->post('serviceSoldNotNow') != "" && $this->input->post('serviceSoldNotNow') != "null"){
-                $ExploseSoldService = explode(",", $this->input->post('serviceSoldNotNow'));
+                $ExploseSoldService = $this->input->post('serviceSoldNotNow');
                 $ServiceSoldShowCustomer = 0;
 
                 foreach($ExploseSoldService as $ESS){
@@ -10112,11 +10107,7 @@ class Reports extends MY_Controller {
             $data['customer_properties_data'] = $this->PropertyModel->getAllCustomerPropertiesMarketing($customer->customer_id);
             // this needs to be set to blank at the top of every customer loop
             $properties_still_going = array();
-            
-            if(!isset($_POST['programs_multi'])){
-                $_POST['programs_multi'][] = "null";
-            }
-            $filters_array['programs_multi'] = $_POST['programs_multi'];
+            $filters_array['programs_multi'] = $this->input->post('programs_multi');
 
             foreach($data['customer_properties_data'] as $props) {                   
                 $properties_still_going[] = $this->RP->find_property_from_filter(array('filters'=>$filters_array, 'prop_id'=>$props->property_id));
@@ -10270,7 +10261,7 @@ class Reports extends MY_Controller {
                 $customer_work_phone = '('.substr($customer->work_phone, 0, 3).') '.substr($customer->work_phone, 3, 3).'-'.substr($customer->work_phone,6);
                 $customer_number_link = "<a href='".base_url("admin/editCustomer/").$customer->customer_id."'>".$customer->customer_id."</a>";
                 $report_data[$customer->customer_id] = array(
-                    'customer_number_link'=> $customer_number_link,
+                    'customer_number_link'=> $customer->customer_id,
                     'first_name'=> $customer->first_name,
                     'last_name'=> $customer->last_name,
                     'email'=> $customer->email,
@@ -10285,6 +10276,27 @@ class Reports extends MY_Controller {
                     'annual_revenue_per_1000' => $annual_per_1000
                 );
             }
+
+            unset($properties_still_going);
+            unset($invocies_for_this_customer);
+            unset($lot_size);
+            unset($revenue);
+            unset($revenue_ytd);
+            unset($annual_per_1000);
+            unset($lot_size_for_1000_calc);
+            unset($projected_annual_total);
+            unset($invoices_to_be_checked);
+            unset($ids_already_checked);
+            unset($got_rid_of_all_properties);
+            unset($filters_set);
+            unset($use_this_property);
+            unset($all_program_ids);
+            unset($invoices_to_be_checked_comma);
+            unset($invoice_info);
+            unset($projected_annual);
+            unset($customer_phone);
+            unset($customer_work_phone);
+            unset($customer_number_link);
         }
 
         $data['report_details'] = $report_data;
@@ -10371,27 +10383,7 @@ class Reports extends MY_Controller {
         } else {
              $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
              redirect("admin/reports/marketingCustomerDataReport");
-        }  
-        unset($properties_still_going);
-        unset($invocies_for_this_customer);
-        unset($lot_size);
-        unset($revenue);
-        unset($revenue_ytd);
-        unset($annual_per_1000);
-        unset($lot_size_for_1000_calc);
-        unset($projected_annual_total);
-        unset($invoices_to_be_checked);
-        unset($ids_already_checked);
-        unset($got_rid_of_all_properties);
-        unset($filters_set);
-        unset($use_this_property);
-        unset($all_program_ids);
-        unset($invoices_to_be_checked_comma);
-        unset($invoice_info);
-        unset($projected_annual);
-        unset($customer_phone);
-        unset($customer_work_phone);
-        unset($customer_number_link);
+        }
 	}
 
     public function sendMassEmail($ModelID){
