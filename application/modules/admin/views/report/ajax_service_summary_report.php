@@ -75,7 +75,7 @@
       ?>
 
       <tr>
-        <td><b>TOTALS</b>
+        <td colspan="2"><b>TOTALS</b>
         <span
 
 											data-popup="tooltip-custom"

@@ -5553,8 +5553,10 @@ class Reports extends MY_Controller {
            #### ACCEPTED SUMMARY CONDITION #1 ####
         $accepted_summary_1 = [];
         if($data['estimates_1']){
-
             foreach($data['estimates_1'] as $accepted_1){
+                $accepted_summary_1[$accepted_1->job_id]['service_type_name'] = $accepted_1->service_type_name;
+                $accepted_summary_1[$accepted_1->job_id]['job_name'] = $accepted_1->job_name;
+
                 if(is_array($accepted_summary_1) && array_key_exists($accepted_1->job_id, $accepted_summary_1)){
                     
                     $estimate_cost = $accepted_1->job_price;
@@ -5607,7 +5609,6 @@ class Reports extends MY_Controller {
                 }
                 
             }
-
             
         }
         ### ACCEPTED SUMMARY CONDITION #1 ###
@@ -5616,6 +5617,8 @@ class Reports extends MY_Controller {
         if($data['estimates_2']){
 
             foreach($data['estimates_2'] as $accepted_2){
+                $accepted_summary_2[$accepted_2->job_id]['service_type_name'] = $accepted_2->service_type_name;
+                $accepted_summary_2[$accepted_2->job_id]['job_name'] = $accepted_2->job_name;
                 if(is_array($accepted_summary_2) && array_key_exists($accepted_2->job_id, $accepted_summary_2)){
                    
                     $estimate_cost = $accepted_2->job_price;
@@ -5683,6 +5686,7 @@ class Reports extends MY_Controller {
                         $accepted_result = array(
                             'job_id' => $aSummary1['job_id'],
                             'job_name' => $aSummary1['job_name'],
+                            'service_type_name' => $aSummary1['service_type_name'],
                             'total_estimates_1' => $aSummary1['total_estimates'],
                             'accepted_1' => $aSummary1['accepted'],
                             'declined_1' => $aSummary1['declined'],
@@ -5705,6 +5709,7 @@ class Reports extends MY_Controller {
                 $accepted_result = array(
                     'job_id' => $aSummary1['job_id'],
                     'job_name' => $aSummary1['job_name'],
+                    'service_type_name' => $aSummary1['service_type_name'],
                     'total_estimates_1' => $aSummary1['total_estimates'],
                     'accepted_1' => $aSummary1['accepted'],
                     'declined_1' => $aSummary1['declined'],
@@ -5719,12 +5724,9 @@ class Reports extends MY_Controller {
                 array_push($accepted_results, $accepted_result );
             }
         }
-        // die(print_r($accepted_results));
         $data['accepted_results'] = $accepted_results;
         $body =  $this->load->view('admin/report/ajax_service_summary_report_accepted', $data, false);
-
         echo $body;
-
     }
      
     #### declined estimates
@@ -5803,6 +5805,9 @@ class Reports extends MY_Controller {
            if($data['estimates_1']){
 
             foreach($data['estimates_1'] as $declined_1){
+                $declined_summary_1[$declined_1->job_id]['job_name'] = $declined_1->job_name;
+                $declined_summary_1[$declined_1->job_id]['service_type_name'] = $declined_1->service_type_name;
+
                 if(is_array($declined_summary_1) && array_key_exists($declined_1->job_id, $declined_summary_1)){
                     
                     $estimate_cost = $declined_1->job_price;
@@ -5862,6 +5867,9 @@ class Reports extends MY_Controller {
         if($data['estimates_2']){
 
             foreach($data['estimates_2'] as $declined_2){
+                $declined_summary_2[$declined_2->job_id]['job_name'] = $declined_2->job_name;
+                $declined_summary_2[$declined_2->job_id]['service_type_name'] = $declined_2->service_type_name;
+
                 if(is_array($declined_summary_2) && array_key_exists($declined_2->job_id, $declined_summary_2)){
                     
                     $estimate_cost = $declined_2->job_price;
@@ -5929,6 +5937,7 @@ class Reports extends MY_Controller {
                         $declined_result = array(
                             'job_id' => $dSummary1['job_id'],
                             'job_name' => $dSummary1['job_name'],
+                            'service_type_name' => $dSummary1['service_type_name'],
                             'total_estimates_1' => $dSummary1['total_estimates'],
                             'accepted_1' => $dSummary1['accepted'],
                             'declined_1' => $dSummary1['declined'],
@@ -5949,6 +5958,7 @@ class Reports extends MY_Controller {
                 $declined_result = array(
                     'job_id' => $dSummary1['job_id'],
                     'job_name' => $dSummary1['job_name'],
+                    'service_type_name' => $dSummary1['service_type_name'],
                     'total_estimates_1' => $dSummary1['total_estimates'],
                     'accepted_1' => $dSummary1['accepted'],
                     'declined_1' => $dSummary1['declined'],
@@ -10401,6 +10411,7 @@ class Reports extends MY_Controller {
 
         foreach($CustomerArray as $CusData){
             $CustomerDetails = $this->CustomerModel->getOneCustomerDetail($CusData);
+            
             if($CustomerDetails->email != ""){
                 $body = str_replace('{CUSTOMER_FIRST_NAME}', $CustomerDetails->first_name, $body);
                 $body = str_replace('{CUSTOMER_LAST_NAME}', $CustomerDetails->last_name, $body);
@@ -10441,6 +10452,7 @@ class Reports extends MY_Controller {
                         $CustomerDetails->secondary_email
                     );
                 }
+                $body = $Data->mail_text;
             }
         }
     }

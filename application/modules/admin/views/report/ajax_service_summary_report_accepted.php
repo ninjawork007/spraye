@@ -3,7 +3,8 @@
     border-radius: 12px;" id="total-accepted-estimates-table">    
     <thead>  
       <tr>
-        <th>Service1</th>
+        <th>Service</th>
+        <th>Service Type</th>
         <th>Estimates Accepted</th>
         <th>Estimate Close Rate</th>
         <th>Revenue Close Rate</th>
@@ -29,6 +30,7 @@
 
       <tr>
         <td ><?= $value['job_name'] ?></td>
+        <td ><?= $value['service_type_name'] ?></td>
         <td><?= $value['accepted_1'] ?></td>
         <td><?= (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100) ?>%</td>
         <td><?= (number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2) *100) ?>%</td>
@@ -72,7 +74,7 @@
           
       ?>
       <tr>
-        <td><b>TOTALS</b>
+        <td colspan="2"><b>TOTALS</b>
         <span data-popup="tooltip-custom" data-toggle="tooltip" title="The total shown is the total number of estimates created and not total number of services." data-placement="right"> <i class=" icon-info22 tooltip-icon"></i>
 
 											</span>

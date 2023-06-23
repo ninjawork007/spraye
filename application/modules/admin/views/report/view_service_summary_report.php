@@ -188,7 +188,7 @@
 								</tbody>
                                 <tfoot>
                                     <tr>
-										<td><b>TOTALS</b><span data-popup="tooltip-custom" title="The total shown is the total number of estimates created and not totaln number of services." data-placement="right"> <i class=" icon-info22 tooltip-icon"></i> </span>
+										<td colspan="2"><b>TOTALS</b><span data-popup="tooltip-custom" title="The total shown is the total number of estimates created and not totaln number of services." data-placement="right"> <i class=" icon-info22 tooltip-icon"></i> </span>
 										</td>
 										<td><b><?= (isset($total_open_estimate)?$total_open_estimate:0) ?></b></td>
 										<td><b><?= (isset($closed_rate_total)?number_format($closed_rate_total/count($service_summary)):0) ?>%</b></td>
@@ -217,6 +217,7 @@
 								<thead>  
 									<tr>
 										<th>Service</th>
+										<th>Service Type</th>
 										<th>Estimates Accepted</th>
 										<th>Estimate Close Rate</th>
 										<th>Revenue Close Rate</th>
@@ -234,6 +235,7 @@
 
 									<tr>
 										<td ><?= $value['job_name'] ?></td>
+										<td ><?= $value['service_type_name'] ?></td>
 									<td><?= $value['accepted'] ?></td>
 									<td><?= (number_format((($value['accepted']/max(($value['accepted']+$value['declined']),1))) ,2)*100) ?>%</td>
 									<td><?= (number_format((($value['accepted_total']/max(($value['accepted_total']+$value['declined_total']),1))) ,2)*100) ?>%</td>
@@ -260,7 +262,7 @@
 								</tbody>
                                 <tfoot>
                                     <tr>
-										<td>
+										<td colspan="2">
 											<b>TOTALS</b>
 											<span
 
@@ -297,6 +299,7 @@
 								<thead>  
 									<tr>
 										<th>Service</th>
+										<th>Service Type</th>
 										<th>Estimates Declined</th>
 										<th>Estimate Close Rate</th>
 										<th>Revenue Close Rate</th>
@@ -315,6 +318,7 @@
 
 									<tr>
 										<td ><?= $value['job_name'] ?></td>
+										<td ><?= $value['service_type_name'] ?></td>
 									<td><?= $value['declined'] ?></td>
 									<td><?= (number_format((($value['accepted']/max(($value['accepted']+$value['declined']),1))) ,2)*100) ?>%</td>
 									<td> <?= (number_format((($value['accepted_total']/max(($value['accepted_total']+$value['declined_total']),1))) ,2)*100) ?>%</td>
@@ -340,7 +344,7 @@
 								</tbody>
                                 <tfoot>
                                     <tr>
-										<td><b>TOTALS</b>
+										<td colspan="2"><b>TOTALS</b>
 											<span
 
 											data-popup="tooltip-custom"
