@@ -159,26 +159,63 @@
         color: #5bc0de;
     }
 
-.btn-primary.btn-outline:hover,
-.btn-success.btn-outline:hover,
-.btn-info.btn-outline:hover,
-.btn-warning.btn-outline:hover,
-.btn-danger.btn-outline:hover {
-    color: #fff;
-}
+    .btn-primary.btn-outline:hover,
+    .btn-success.btn-outline:hover,
+    .btn-info.btn-outline:hover,
+    .btn-warning.btn-outline:hover,
+    .btn-danger.btn-outline:hover {
+        color: #fff;
+    }
 
-.multiselect-container input[type=checkbox] {
-    left: 12px !important;
-}
+    .multiselect-container input[type=checkbox] {
+        left: 12px !important;
+    }
 
-.btn-warning.btn-outline {
+    .btn-warning.btn-outline {
         color: #f0ad4e;
     }
+
     .btn-danger.btn-outline {
         color: #d9534f;
     }
 
+    td.property_program_assigned {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+        cursor: pointer;
+    }
+    td.property_program_assigned:hover {
+        white-space: normal;
+    }
 
+    td .btn-group {
+        width: 100%;
+    }
+    td .btn-default {
+        height: 36px;
+    }
+    #program_assigned_operator:hover::before {
+        content: attr(title);
+        position: absolute;
+        top: 0.5em;
+        background-color: #000;
+        color: #fff;
+        padding: 0.25em;
+        border-radius: 4px;
+        font-size: 0.8em;
+        width: max-content;
+    }
+    .require_all_checkbox {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 999 !important;
+        background-color: #ccc !important;
+    }
+    td.multi-select-full .multiselect-container {
+        padding-top: 0px !important;
+    }
     @media (min-width: 769px) {
         .form-horizontal .control-label[class*=col-sm-] {
             padding-top: 0;
@@ -199,13 +236,13 @@
             <h5 class="panel-title">
                 <div class="form-group">
                     <a href="<?= base_url('admin/Estimates') ?>" id="save" class="btn btn-success"><i
-                                class=" icon-arrow-left7"> </i> Back to All Estimates</a>
+                            class=" icon-arrow-left7"> </i> Back to All Estimates</a>
 
                     <a href="<?= base_url('admin/addCustomer') ?>" id="save" class="btn btn-primary"><i
-                                class="fa fa-plus"> </i>Add Customer</a>
+                            class="fa fa-plus"> </i>Add Customer</a>
 
                     <a href="<?= base_url('admin/addProperty') ?>" id="save" class="btn btn-primary"><i
-                                class="fa fa-plus"> </i>Add Property</a>
+                            class="fa fa-plus"> </i>Add Property</a>
 
                 </div>
             </h5>
@@ -220,30 +257,46 @@
                     <table id="search-inputs" class="table">
                         <tr>
                             <td>
-                                <input type="text" class="column_filter form-control" id="col_7_filter" data-column="7"
+                                <input type="text" class="column_filter form-control" id="col_8_filter" data-column="8"
                                        placeholder="Zip Code" size="5">
                             </td>
                             <td>
-                                <input type="text" class="column_filter form-control" id="col_8_filter" data-column="8"
+                                <input type="text" class="column_filter form-control" id="col_9_filter" data-column="9"
                                        placeholder="City">
-                            </td>
-                            <td>
-                                <input type="text" class="column_filter form-control" id="col_5_filter" data-column="5"
-                                       placeholder="Property Type">
-                            </td>
-                            <!-- <td>
-                              <input type="text" class="column_filter form-control" id="col_9_filter" data-column="9" placeholder="Assigned Program">
-                            </td> -->
-                            <td>
-                                <input type="text" class="column_filter form-control" id="col_4_filter" data-column="4"
-                                       placeholder="Service Area">
                             </td>
                             <td>
                                 <input type="text" class="column_filter form-control" id="col_3_filter" data-column="3"
                                        placeholder="Customer Name">
                             </td>
+                            <td class="multi-select-full">
+                                <select class="column_filter form-control"
+                                        data-column="4"
+                                        multiple="multiple"
+                                        name="program_assigned" id="program_assigned"
+                                        data-placeholder="Select Programs">
+                                    <option value="">Require All?</option>
+                                    <?php foreach ($programlist as $program) : ?>
+                                        <option value="<?= $program->program_id ?>"><?= $program->program_name ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+<!--                            <td>-->
+<!--                                <select class="column_filter form-control"-->
+<!--                                        name="program_assigned_operator" id="program_assigned_operator">-->
+<!--                                    <option value="0">Any of the programs</option>-->
+<!--                                    <option value="1">Require All</option>-->
+<!--                                </select>-->
+<!--                            </td>-->
                             <td>
-                                <input type="text" class="column_filter form-control" id="col_9_filter" data-column="9"
+                                <input type="text" class="column_filter form-control" id="col_5_filter" data-column="5"
+                                       placeholder="Service Area">
+                            </td>
+                            <td>
+                                <input type="text" class="column_filter form-control" id="col_6_filter" data-column="6"
+                                       placeholder="Property Type">
+                            </td>
+                            <td>
+                                <input type="text" class="column_filter form-control" id="col_10_filter" data-column="10"
                                        placeholder="Property Status">
                             </td>
                         </tr>
@@ -257,6 +310,7 @@
                             <th>Property Title</th>
                             <th>Address</th>
                             <th id="col_custName_filter">Customer Name</th>
+                            <th>Program Assigned</th>
                             <th id="col_serviceArea_filter">Service Area</th>
                             <th id="col_propType_filter">Property Type</th>
                             <th>Price Override</th>
@@ -273,10 +327,10 @@
                         if (!empty($propertylist)) {
                             foreach ($propertylist as $p) {
                                 ?>
-                                <tr>
+                                <tr class="<?= $customer_id_chosen === $p->customer_id ? 'selected' : '' ?>">
                                     <td>
                                         <input type="checkbox" name="property_id" value="<?= $p->property_id ?>"
-                                               <?= $customer_id_chosen === $p->customer_id ? 'checked' : '' ?>
+                                            <?= $customer_id_chosen === $p->customer_id ? 'checked' : '' ?>
                                                class="row_select"/>
                                     </td>
                                     <td>
@@ -287,6 +341,9 @@
                                     </td>
                                     <td>
                                         <?= $p->last_name . ", " . $p->first_name ?>
+                                    </td>
+                                    <td class="property_program_assigned">
+                                        <?= $p->program_assigned ?>
                                     </td>
                                     <td>
                                         <?= $p->category_area_name ?? 'N/A' ?>
@@ -328,8 +385,9 @@
                 </div>
             </div>
 
-            <form id="submit_form" action="<?= base_url('admin/Estimates/addBulkEstimateData') ?>" method="post" name="" enctype="multipart/form-data">
-                <input type='hidden' id='program_pricing' name='program_pricing' />
+            <form id="submit_form" action="<?= base_url('admin/Estimates/addBulkEstimateData') ?>" method="post" name=""
+                  enctype="multipart/form-data">
+                <input type='hidden' id='program_pricing' name='program_pricing'/>
                 <div class="row invoice-form">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -396,8 +454,8 @@
                         <div class="form-group">
                             <label class="control-label col-lg-3">Select Program(s)</label>
                             <div class="multi-select-full col-lg-9">
-                                <select class="multiselect-select-all-filtering form-control" multiple="multiple" name="program_id_array[]" id="program_list">
-                                    <option value="">Select Pricing First</option>
+                                <select class="multiselect-select-all-filtering form-control" multiple="multiple"
+                                        name="program_id_array[]" id="program_list" data-placeholder="Select Pricing First">
                                 </select>
                             </div>
                             <!-- <textarea   name="joblistarray" id="assign_job_ids2" style="display: none;" >[]</textarea> -->
@@ -429,7 +487,8 @@
                                     foreach ($users as $value) :
 
                                         ?>
-                                        <option value="<?= $value->id ?>" <?php echo $this->session->userdata['id'] == $value->id ? 'selected' : '' ?>><?= $value->user_first_name . ' ' . $value->user_last_name ?></option>
+                                        <option
+                                            value="<?= $value->id ?>" <?php echo $this->session->userdata['id'] == $value->id ? 'selected' : '' ?>><?= $value->user_first_name . ' ' . $value->user_last_name ?></option>
                                     <?php
 
                                     endforeach
@@ -484,7 +543,7 @@
                                             <!--  <option value="$value->product_id"> $value->product_name</option> -->
 
                                             <option value="<?= $value->job_id ?>"
-                                                <?php if (in_array($value->job_id, $selectedjoblist)) { ?>selected <?php } ?>> <?= $value->job_name ?>
+                                                    <?php if (in_array($value->job_id, $selectedjoblist)) { ?>selected <?php } ?>> <?= $value->job_name ?>
                                             </option>
 
                                         <?php }
@@ -548,11 +607,11 @@
                         <div class="row">
                             <div class="col-lg-4 ">
                                 <button type="submit" class="btn btn-success" id="save_draft">Save as Draft <i
-                                            class="icon-arrow-right14 position-right"></i></button>
+                                        class="icon-arrow-right14 position-right"></i></button>
                             </div>
                             <div class="col-lg-4 ">
                                 <button type="" class="btn btn-success" id="submit_estimate">Submit & Send<i
-                                            class="icon-arrow-right14 position-right"></i></button>
+                                        class="icon-arrow-right14 position-right"></i></button>
                             </div>
                             <?php if ($setting_details->signwell_api_key != "") { ?>
                                 <div class="col-lg-4">
@@ -584,8 +643,42 @@
     /** Global END **/
 
 
-
-
+    $(document).ready(function() {
+        $('#program_assigned').multiselect({
+            buttonText: function(options, select) {
+                var selectedOptions = options.filter(':not([value=""])'); // Filter out the option with an empty value
+                var selectedValues = selectedOptions.map(function() {
+                    return $(this).text();
+                }).get();
+                if (selectedValues.length === 0) {
+                    return 'Select Programs'; // Default text when no valid options are selected
+                } else if (selectedValues.length > 3) {
+                    return selectedValues.length + ' Options Selected';
+                } else {
+                    return selectedValues.join(', '); // Concatenate the selected option texts
+                }
+            },
+            includeSelectAllOption: false,
+            enableCaseInsensitiveFiltering: true,
+            enableHTML : true,
+            templates: {
+                filter: '<li class="multiselect-item multiselect-filter"><i class="icon-search4"></i> <input class="form-control" type="text"></li>'
+            },
+            optionLabel: function(element) {
+                if ($(element).attr('title')) {
+                    return $(element).html() + '<br><small class="text-muted">( ' + $(element).attr('title') + ' )</small>';
+                } else {
+                    return $(element).html();
+                }
+            },
+            optionClass: function(element) {
+                let value = $(element).val();
+                if (value === '') {
+                    return 'require_all_checkbox';
+                }
+            }
+        });
+    })
 
     function filterColumn(i) {
         let val = $('#col_' + i + '_filter').val();
@@ -765,12 +858,16 @@
                     "orderable": false,
                 },
                 {
-                    "targets": [7, 8, 9],
+                    "targets": [4],
+                    "orderable": false
+                },
+                {
+                    "targets": [8, 9, 10],
                     "visible": false,
                     "searchable": true
                 },
                 {
-                    "targets": [10, 11],
+                    "targets": [11, 12],
                     "visible": false,
                     "searchable": false
                 }
@@ -863,6 +960,27 @@
         $('input.column_filter').on('keyup click', function () {
             filterColumn($(this).attr('data-column'));
         });
+        $('#program_assigned, #program_assigned_operator').on('change', function () {
+            let program_assigned_el = document.getElementById("program_assigned");
+            let selectedPrograms = Array.from(program_assigned_el.selectedOptions).filter(option => !!option.value).map(option => option.text);
+
+            if ($('.require_all_checkbox input').is(':checked')) {
+                /// search on multiple selections by AND operator
+                // Build the search string with multiple terms using AND operator
+                let searchTerms = selectedPrograms.map(program => `(?=.*${program})`).join('');
+
+                // Apply the filtering based on selected programs
+                $('#dataTable_propList').DataTable().column($('#program_assigned').data('column')).search(
+                    searchTerms, true, false, true
+                ).draw();
+            } else {
+                /// search on multiple selections by OR operator
+                $('#dataTable_propList').DataTable().column($('#program_assigned').data('column')).search(
+                    selectedPrograms.join('|'), true, false
+                ).draw();
+            }
+
+        });
         $('#row_select_all').on('click', function (e) {
             // propTable.columns(0).nodes()[0].map(cell => cell.children[0]).forEach(check => check.checked = this.checked);
             let checkSelects = propTable.columns(0).nodes()[0].map(cell => cell.children[0]);
@@ -926,13 +1044,16 @@
             buildListArray();
             priceOverrideRedraw();
         }
+
+        // for customer id chosen trigger set property data array
+        buildPropertyDataArray();
     });
 
-    $('#program_price').change(function() {
+    $('#program_price').change(function () {
         val = $(this).val();
         $("#program_pricing").val(val);
         list = '';
-        if(val == 0) {
+        if (val == 0) {
             list = '<option value="choose">Select Pricing First</option>';
             $('#program_list').html(list);
             $('#program_list').multiselect('rebuild');
@@ -941,9 +1062,9 @@
             $.ajax({
                 type: "POST",
                 url: "<?= base_url('admin/Estimates/getAllProgramsByPricingForSelect')  ?>",
-                data: {pricing : val }, 
-                dataType: 'JSON', 
-            }).done(function(response){
+                data: {pricing: val},
+                dataType: 'JSON',
+            }).done(function (response) {
                 $('#program_list').html(response.data);
                 $('#program_list').multiselect('rebuild');
             });
@@ -1013,8 +1134,8 @@
         propertyDataArray = selectedProperties.map((p) => {
             let tmpP = {
                 property_id: p[0].replace(/\D/g, ''),
-                customer_id: p[10],
-                customer_email: p[11]
+                customer_id: p[11],
+                customer_email: p[12]
             }
             return tmpP;
         });

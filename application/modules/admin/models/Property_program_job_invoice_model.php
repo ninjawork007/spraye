@@ -31,7 +31,7 @@ class Property_program_job_invoice_model extends CI_Model{
         $data = $result->row();
         return $data;
     }
-    public function getPropertyProgramJobInvoiceCoupon($where_arr='', $where_in='') {
+    public function getPropertyProgramJobInvoiceCoupon($where_arr='', $where_in='', $get_job_count = false, $invoice_id = '') {
         $this->db->select('*');
         $this->db->from('property_program_job_invoice');
         // $this->db->join('coupon_job', 'property_program_job_invoice.job_id = coupon_job.job_id AND property_program_job_invoice.program_id = coupon_job.program_id AND property_program_job_invoice.property_id = coupon_job.property_id AND property_program_job_invoice.customer_id = coupon_job.customer_id', 'left');
@@ -45,6 +45,14 @@ class Property_program_job_invoice_model extends CI_Model{
         $result = $this->db->get();
 		$data = $result->result_array();
 		 //die(print_r($data));
+        if($get_job_count == true) {
+            $this->db->select('job_id');
+            $this->db->from('technician_job_assign');
+            $this->db->where("invoice_id = '".$invoice_id."'");
+            $result2 = $this->db->get();
+		    $count = count($result2->result_array());
+            $data['total_job_count'] = $count;
+        }
 
         return $data;
     }

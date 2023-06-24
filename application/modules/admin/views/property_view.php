@@ -457,7 +457,7 @@ var markers_array = [];
             {"data": "checkbox", "checkboxes":true, "stateSave":true, "searchable":false, "orderable":false},
             {"data": "property_name", "name":"Property Name", "orderable": true, "searchable": true },
             {"data": "property_address", "name":"Affress", "searchable":true, "orderable": true },
-            {"data": "program_text_for_display", "name":"Program", "orderable": true, "searchable": true },
+            {"data": "program_display", "name":"Program", "orderable": true, "searchable": true },
             {"data": "customer_name", "name":"Customer", "searchable":true, "orderable": true },
             {"data": "property_status", "name":"Status", "searchable":true, "orderable": true },
             {"data": "action", "name":"Action", "orderable": false }
@@ -1015,6 +1015,27 @@ var markers_array = [];
         //// NEED TO FORMAT FOR MULTIPLE PROPERTIES ////
         var serviceId = $('#selected_job_id').val();
         var serviceName = $('#selected_job_id option:selected').text();
+        var programPrice = $('select#add_service_program_price').val();
+
+        $('#add_service_program_price').parent().children('.error').remove();
+        $('#selected_job_id').parent().children('.error').remove();
+
+        if (programPrice == '')
+        {
+            var error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+            var el = $('#add_service_program_price').parent().append(error_label);
+        }
+
+        if (serviceId == '')
+        {
+            var error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+            var el = $('#selected_job_id').parent().append(error_label);
+        }
+
+        if (programPrice == '' || serviceId == '')
+        {
+            return;
+        }
 
         var post = [];
         $('div#price_override_modal input').each(function(n){
@@ -1022,7 +1043,6 @@ var markers_array = [];
             var propertyName = $(this).data('propname');
             var programName = serviceName + "- Standalone";
             var priceOverride = $(this).val();
-            var programPrice = $('select#add_service_program_price').val();
             
             if (priceOverride == '') {
                 var price_override_set = 0;
@@ -1046,7 +1066,6 @@ var markers_array = [];
         });
         //post = JSON.stringify(post);
         //post = JSON.parse(post);
-        //console.log(post);
         $.ajax({
 
             type: 'POST',
@@ -1055,29 +1074,25 @@ var markers_array = [];
             dataType: "JSON",
             success: function (data){
                 console.log(data)
-
             }
 
             }).done(function(data){
-                $('#modal_add_service').modal('hide');
-                $('div#price_override_modal').empty();
-                    if (data.status=="success") {
-                        
-                        swal(
+                if (data.status=="success") {
+                    $('#modal_add_service').modal('hide');
+                    $('div#price_override_modal').empty();
+                    swal(
                         'Success!',
                         'Service Added Successfully',
                         'success'
                     )
-                    
-                        
+                } else {
 
-                    } else {
-                        swal({
-                            type: 'error',
-                            title: 'Oops...',
-                            text: 'Something went wrong!'
-                        })
-                    }
+                    swal({
+                        type: 'error',
+                        title: 'Oops...',
+                        text: 'Please select a service and a pricing method'
+                    })
+                }
             });
     });
 

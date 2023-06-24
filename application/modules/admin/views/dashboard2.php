@@ -400,7 +400,7 @@
                         <div class="panel">
                            <div class="panel-body">
                               <h5 class="no-margin" >Outstanding Invoices</h5>
-                              <div class="text-muted text-size-small text-success">$<?= $OutstandingInvoiceCost ?> </div>
+                              <div class="text-muted text-size-small text-success">$<span id='outstanding_invoice_cost'></span> </div>
                            </div>
                         </div>
                      
@@ -952,6 +952,15 @@ $( document ).ready(function() {
     updateDashboardValue(
         "<?= base_url('admin/summarystatistics/getCompletedJobCount/month') ?>"
         ,"#completed-services-value");
+
+    $.ajax({
+        type: "GET",
+        url: "<?php echo base_url('admin/getOutstandingInvoiceCost/'); ?>",
+        success: function (response) {
+            total = Number(response).toFixed();
+            $("#outstanding_invoice_cost").html(parseInt(total).toLocaleString());
+        }
+    });
 
 });
 

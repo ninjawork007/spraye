@@ -55,20 +55,49 @@ class AdminTbl_property_model extends CI_Model
     
     //check if tag exists already. if so skip. else insert.  
     if($row['tags'] != null){
-        $tagsArray = explode(",", $row['tags']);
-        if ( in_array($post_data['tag'], $tagsArray) ) 
-        {
-            //skip
-        } else {
-            array_push($tagsArray, $post_data['tag']);
-            $newTags = implode(",", $tagsArray);
+       
+        if(strpos($row['tags'], ',') !== false){
+            $tagsArray = explode(",", $row['tags']);
+            if ( in_array($post_data['tags'], $tagsArray) ) 
+            {
+                return true;
+                //skip
+            } else {
+                array_push($tagsArray, $post_data['tags']);
+                $newTags = implode(",", $tagsArray);
 
-            $data = array(
-                'tags' => $newTags
-            );
-                        
-            $this->db->where('property_id', $property_id);
-            return $this->db->update('property_tbl', $data);
+                $data = array(
+                    'tags' => $newTags
+                );
+                            
+                $this->db->where('property_id', $property_id);
+                return $this->db->update('property_tbl', $data);
+            }
+        }else{       
+            
+            $temp = array();
+            $temp[] = $row['tags'];
+
+            if ( in_array($post_data['tags'], $temp) ) 
+            {
+                return true;
+                //skip
+            } else{
+
+               
+                $temp[] = $post_data['tags'];
+                
+
+                $newTags = implode(",", $temp);
+
+                $data = array(
+                    'tags' => "$newTags"
+                );
+                            
+                $this->db->where('property_id', $property_id);
+                return $this->db->update('property_tbl', $data); 
+            }           
+    
         }
 
     }else{
@@ -298,9 +327,15 @@ public function getAllCustomerProperties($customer_id) {
   public function getTagsListZap($where_arr=''){
     $this->db->select('id,tags_title');
     $this->db->from('tags');
+
+    if($where_arr){
+        $this->db->like('tags_title', $where_arr['tags_title'], 'after');
+        $this->db->where('company_id', $where_arr['company_id']);
+    }
+/* 
     if (is_array($where_arr)) {
             $this->db->where($where_arr);
-    }
+    } */
     //$this->db->or_where('company_id',0);
     $result = $this->db->get();
     if ($result->num_rows() > 0) {

@@ -763,14 +763,33 @@ $('form[name="addService"] button[type="submit"]').on('click', function(e){
 //// NEED TO FORMAT FOR MULTIPLE PROPERTIES ////
 	var serviceId = $('#selected_job_id').val();
 	var serviceName = $('#selected_job_id option:selected').text();
-	
+	var programPrice = $('select#add_service_program_price').val();
+  $('#add_service_program_price').parent().children('.error').remove();
+  $('#selected_job_id').parent().children('.error').remove();
+
+  if (programPrice == '')
+  {
+      var error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+      var el = $('#add_service_program_price').parent().append(error_label);
+  }
+
+  if (serviceId == '')
+  {
+      var error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+      var el = $('#selected_job_id').parent().append(error_label);
+  }
+
+  if (programPrice == '' || serviceId == '')
+  {
+      return;
+  }
 	var post = [];
 	$('div#price_override_modal input').each(function(n){
 		var propertyId = $(this).data('propid');
 		var propertyName = $(this).data('propname');
 		var programName = serviceName + "- Standalone";
 		var priceOverride = $(this).val();
-		var programPrice = $('select#add_service_program_price').val();
+		
 		
     if (priceOverride == '') {
       var price_override_set = 0;
@@ -807,25 +826,21 @@ $('form[name="addService"] button[type="submit"]').on('click', function(e){
 		  }
 
 		 }).done(function(data){
-			$('#modal_add_service').modal('hide');
-			$('div#price_override_modal').empty();
-                  if (data.status=="success") {
-					 
-                    swal(
-                       'Success!',
-                       'Service Added Successfully',
-                       'success'
-                   )
-                   
-                     
-
-                  } else {
-                    swal({
-                         type: 'error',
-                         title: 'Oops...',
-                         text: 'Something went wrong!'
-                     })
-                  }
+			if (data.status=="success") {
+          $('#modal_add_service').modal('hide');
+          $('div#price_override_modal').empty();
+          swal(
+              'Success!',
+              'Service Added Successfully',
+              'success'
+          )
+      } else {
+          swal({
+              type: 'error',
+              title: 'Oops...',
+              text: 'Please select a service and a pricing method'
+          })
+      }
           });
 	
 });

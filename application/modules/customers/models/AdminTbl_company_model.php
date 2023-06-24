@@ -7,45 +7,55 @@
  */
 
 
-class AdminTbl_company_model extends CI_Model{
-    const ST="t_company";
+class AdminTbl_company_model extends CI_Model
+{
+    const ST = "t_company";
 
-    public function getOneCompany($where){
+    public function getOneCompany($where)
+    {
         return $this->db->where($where)->get(self::ST)->row();
     }
-    public function updateCompany($where,$post_data) {
-      $this->db->where($where);
-      $this->db->update(self::ST,$post_data);
-	//die(print_r($this->db->last_query())); 
-	  return $this->db->affected_rows();
-      
+
+    public function updateCompany($where, $post_data)
+    {
+        $this->db->where($where);
+        $this->db->update(self::ST, $post_data);
+        //die(print_r($this->db->last_query()));
+        return $this->db->affected_rows();
+
 
     }
-	public function getPaymentTerms($where) {
-		$this->db->select('payment_terms');
+
+    public function getPaymentTerms($where)
+    {
+        $this->db->select('payment_terms');
         $this->db->from('t_company');
-    	$this->db->where($where);
-     	$result = $this->db->get();
+        $this->db->where($where);
+        $result = $this->db->get();
         $data = $result->row();
         return $data;
 
-    } 
-	public function getOneBasysRequest($where_arr = '') {
-           
+    }
+
+    public function getOneBasysRequest($where_arr = '')
+    {
+
         $this->db->select('*');
-        
+
         $this->db->from('t_basys_request');
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
-        
+
         $result = $this->db->get();
 
         $data = $result->row();
         return $data;
     }
-	public function getOneAdminUser($where_arr = '') {       
+
+    public function getOneAdminUser($where_arr = '')
+    {
         $this->db->select('*');
         $this->db->from('users');
         if (is_array($where_arr)) {
@@ -56,15 +66,19 @@ class AdminTbl_company_model extends CI_Model{
         $data = $result->row();
         return $data;
     }
-	 public function getOneCompanyEmailArray($where){
+
+    public function getOneCompanyEmailArray($where)
+    {
         return $this->db->where($where)->get('t_company_email_setting')->row_array();
     }
 
-    public function getOneDefaultEmailArray(){
-            return $this->db->get('t_superadmin')->row_array();
-   }
+    public function getOneDefaultEmailArray()
+    {
+        return $this->db->get('t_superadmin')->row_array();
+    }
 
-    public function getAllCustomersToSendMonthlyStatement(){
+    public function getAllCustomersToSendMonthlyStatement()
+    {
 //        $query = $this->db->query("call getSuscriptedCompaniesToMonthlyInvoiceStatement()");
 //        //$result = $query->result();
 //        $query->next_result(); //Needed because stored proceedure was excecuted.

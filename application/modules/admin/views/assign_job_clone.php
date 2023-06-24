@@ -244,6 +244,14 @@
                                                     <input placeholder="" id="totalSqFt" type="text"  size="15">
                                                 </div>
                                             </div>
+                                            <div class="row">
+                                                <div class="col-md-3" style="text-align:right;">
+                                                    <label for="appllicationCost">Application Cost</label>
+                                                </div>
+                                                <div class="col-md-3"style="text-align:right;">
+                                                    <input placeholder="" id="totalApplicationCost" type="text"  size="15">
+                                                </div>
+                                            </div>
                                         
                                     </div>
                                     <button type="submit" disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage" style="margin-left:15px;">
@@ -335,6 +343,7 @@
 								 <th>Tags</th>
 								 <th>ASAP Reason</th>
                                  <th>Available Days</th>
+                                 <th>Hold Until Date</th>
                                  <th>Action</th>
                               </tr>
                            </thead>
@@ -359,6 +368,7 @@
                                  <td></td>
                                  <td></td>
 								 <td id="tag_filter"></td>
+								 <td></td>
 								 <td></td>
                                  <td></td>
                                  <td></td>
@@ -662,6 +672,17 @@
 
       }
 
+   var costTotal = 0;
+   $('.myCheckBox').each(function() { //iterate all listed checkbox items
+       this.checked = status;
+       if ($(this).is(':checked')) {
+            let cost = $(this).data('cost');
+            if (cost)
+                costTotal = costTotal + parseFloat(cost);
+        }
+   });
+   $('#totalApplicationCost').val(costTotal.toFixed(2));
+
 	var sqftTotal = 0;	
 	$('.myCheckBox').each(function(){ //iterate all listed checkbox items	
 		var has_customer_in_hold=$(this).hasClass("customer_in_hold");	
@@ -708,7 +729,15 @@
            sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
        });
        $('#totalSqFt').val(sqftTotal);
-
+       var costTotal = 0;
+       $('#unassigntbl tbody input:checked').each(function() { //iterate all listed checkbox items
+           if ($(this).is(':checked')) {
+               let cost = $(this).data('cost');
+               if (cost)
+                   costTotal = costTotal + parseFloat(cost);
+           }
+       });
+       $('#totalApplicationCost').val(costTotal.toFixed(2));
        let applicationSqft = 0;
        let tmpAddressArray = [];
        $('#unassigntbl tbody input:checked').each(function() {
@@ -1046,7 +1075,7 @@ $(document).ready(function() {
        "processing": true,
 		   "serverSide": true,
 		   "paging":true,
-		   "pageLength":<?= $this ->session->userdata('compny_details')-> default_display_length?>,
+		   "pageLength":<?= $this ->session->userdata('compny_details')->default_display_length ?>,
 		   "order":[[1,"asc"]],
            "deferLoading": 0,
 		   "ajax":{
@@ -1085,6 +1114,7 @@ $(document).ready(function() {
 			{"data": "tags", "name":"Tags", "orderable": true},
 			{"data": "asap_reason", "name":"Asap Reason", "orderable": true},
             {"data": "available_days", "name":"Available Days", "orderable": false},
+            {"data": "hold_until_date", "name":"Hold Until Date", "orderable": false},
             {"data": "action", "name":"Action", "orderable": false},
             {"data": "program_services", "name":"Tags", "orderable": false, "visible": false},
 		       ],
@@ -1242,6 +1272,17 @@ $(document).ready(function() {
             });
             $('#totalSqFt').val(sqftTotal);
 
+            var costTotal = 0;
+
+            $('#unassigntbl tbody input:checked').each(function() { //iterate all listed checkbox items
+                if ($(this).is(':checked')) {
+                    let cost = $(this).data('cost');
+                    if (cost)
+                        costTotal = costTotal + parseFloat(cost);
+                }
+            });
+            $('#totalApplicationCost').val(costTotal.toFixed(2));
+
             let applicationSqft = 0;
             let tmpAddressArray = [];
             $('#unassigntbl tbody input:checked').each(function() {
@@ -1314,13 +1355,14 @@ $(document).ready(function() {
 
         $('#applicationSqFt').val('');
         $('#totalSqFt').val('');
+        $('#totalApplicationCost').val('');
 
         let val = $("#services_multi_filter").val();
         table.columns( 2 ).search( val );
         val = $("#service-area-filter").val();
         table.columns( 15 ).search( val );
         let multi_service_val = $("#program_services_multi_filter").val();
-        table.columns( 22 ).search( multi_service_val.toString() );
+        table.columns( 23 ).search( multi_service_val.toString() );
 
         let service_statuses_filter_filter = $("#sdfilter").val();
         table.columns( 11 ).search( service_statuses_filter_filter.toString() );

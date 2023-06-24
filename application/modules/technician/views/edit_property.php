@@ -1210,7 +1210,25 @@
     var programName = serviceName + "- Standalone";
     var programPrice = $('select#add_service_program_price').val();
     var priceOverride = $('input[name="add_job_price_override"]').val();
+    $('#add_service_program_price').parent().children('.error').remove();
+    $('#selected_job_id').parent().children('.error').remove();
 
+    if (programPrice == '')
+    {
+        var error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+        var el = $('#add_service_program_price').parent().append(error_label);
+    }
+
+    if (serviceId == '')
+    {
+        var error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+        var el = $('#selected_job_id').parent().append(error_label);
+    }
+
+    if (programPrice == '' || serviceId == '')
+    {
+        return;
+    }
     if (priceOverride > 0) {
       var price_override_set = 1;
     } else {
@@ -1241,23 +1259,19 @@
       }
 
     }).done(function(data) {
-      $('#modal_add_service').modal('hide');
-      if (data.status == "success") {
-
-        swal(
-          'Success!',
-          'Service Added Successfully',
-          'success'
-        )
-
-
-
+      if (data.status=="success") {
+          $('#modal_add_service').modal('hide');
+          swal(
+              'Success!',
+              'Service Added Successfully',
+              'success'
+          )
       } else {
-        swal({
-          type: 'error',
-          title: 'Oops...',
-          text: 'Something went wrong!'
-        })
+          swal({
+              type: 'error',
+              title: 'Oops...',
+              text: 'Please select a service and a pricing method'
+          })
       }
     });
 

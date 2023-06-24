@@ -441,7 +441,7 @@ class Invoice_model extends CI_Model{
 
     public function getAllInvoiveForQuick($where_arr='') {
 
-        $this->db->select('*,invoice_tbl.company_id');
+        $this->db->select('*,invoice_tbl.company_id, programs.program_price, technician_job_assign.is_complete');
 
         $this->db->from('invoice_tbl');
 
@@ -450,6 +450,10 @@ class Invoice_model extends CI_Model{
         $this->db->join('property_tbl','property_tbl.property_id = invoice_tbl.property_id','inner');
 
         $this->db->join('jobs','jobs.job_id = invoice_tbl.job_id','left');
+
+        $this->db->join('programs', 'programs.program_id = invoice_tbl.program_id', 'left');
+
+        $this->db->join('technician_job_assign', 'technician_job_assign.invoice_id = invoice_tbl.invoice_id', 'left');
 
         if (is_array($where_arr)) {
 
@@ -460,6 +464,14 @@ class Invoice_model extends CI_Model{
         $result = $this->db->get();
 
         $data = $result->result_array();
+
+        foreach($data as $dat){
+            if($dat->program_price == 2 && !$dat->is_complete){
+                unset($dat);
+            }
+        }
+
+        // die(print_r($this->db->last_query()));
 
         return $data;
 

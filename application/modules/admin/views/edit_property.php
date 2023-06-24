@@ -3736,66 +3736,132 @@ function reintlizeMultiselectprogramPriceOver() {
                     }
 
                 }
+        $('#assign_program_ids2').val(JSON.stringify(keyIds));
+
+    });
+
+    $('form[name="addService"] button[type="submit"]').on('click', function (e) {
+
+        e.preventDefault();
+
+        
+        
+        var serviceId = $('#selected_job_id').val();
+
+        var propertyId = $('input[name="add_service_property_id"]').val();
+
+        var serviceName = $('#selected_job_id option:selected').text();
+
+        var propertyName = $('input[name="property_title"]').val();
+
+        var programName = serviceName + "- Standalone";
+
+        var programPrice = $('select#add_service_program_price').val();
+
+        var priceOverride = $('input[name="add_job_price_override"]').val();
+
+        $('#add_service_program_price').parent().children('.error').remove();
+        $('#selected_job_id').parent().children('.error').remove();
 
 
+        if (programPrice == '')
+        {
+            var error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+            var el = $('#add_service_program_price').parent().append(error_label);
+        }
+
+        if (serviceId == '')
+        {
+            var error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+            var el = $('#selected_job_id').parent().append(error_label);
+        }
+
+        if (programPrice == '' || serviceId == '')
+        {
+            return;
+        }
+
+        if (priceOverride > 0) {
+
+            var price_override_set = 1;
+
+        } else {
+
+            var price_override_set = 0;
+
+        }
+
+        var post = [];
+
+        var property = {
+
+            service_id: serviceId,
+
+            property_id: propertyId,
+
+            program_name: programName,
+
+            program_price: programPrice,
+
+            price_override: priceOverride,
+
+            is_price_override_set: price_override_set
+
+        }
+
+        post.push(property);
 
 
+        $.ajax({
 
 
-            } else {
+            type: 'POST',
 
+            url: "<?= base_url('admin/job/addJobToProperty') ?>",
 
+            data: {
 
-                var id = $(option).val();
+                post
 
-                var optionValueRemove = $(option).val();
+            },
 
-                var optionTextRemove = $(option).text();
+            dataType: "JSON",
 
-
-
-                selectedValues.splice($.inArray(optionValueRemove, selectedValues), 1);
-
-
-
-                selectedTexts.splice($.inArray(optionTextRemove, selectedTexts), 1);
-
-
-
-                keyIds = $.grep(keyIds, function(e) {
-
-                    return e.program_id != optionValueRemove;
-
-                });
-
-
-
-                $("#trid" + id).remove();
-
-
-
-                // $('#assign_program_ids').val(selectedValues);
-
-
-
-
-
-                $('#assign_program_ids2').val(JSON.stringify(keyIds));
-
+            success: function (data) {
 
 
             }
 
+
+        }).done(function (data) {
+
+            $('#modal_add_service').modal('hide');
+
+            if (data.status == "success") {
+                swal(
+                    'Success!',
+
+                    'Service Added Successfully',
+
+                    'success'
+                ).then(function () {
+                    location.reload();
+                });
+            } else {
+                var id = $(option).val();
+                var optionValueRemove = $(option).val();
+                var optionTextRemove = $(option).text();
+                selectedValues.splice($.inArray(optionValueRemove, selectedValues), 1);
+                selectedTexts.splice($.inArray(optionTextRemove, selectedTexts), 1);
+                keyIds = $.grep(keyIds, function(e) {
+                    return e.program_id != optionValueRemove;
+                });
+                $("#trid" + id).remove();
+                $('#assign_program_ids2').val(JSON.stringify(keyIds));
+            }
         }
-
     });
-
 }
-
-
-
-
-
 
 
 

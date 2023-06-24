@@ -73,6 +73,7 @@ class AdminTbl_customer_model extends CI_Model{
 		}
 	}
 
+
 	public function getCustomerEmails($where_arr = '') {           
 		$this->db->select('email');
 		$this->db->from(self::PMTBL);
@@ -94,7 +95,29 @@ class AdminTbl_customer_model extends CI_Model{
 		return $data;
 	}
 
-
+	public function formatStatus($status)
+	{
+		switch($status)
+		{
+			case 1:
+				return "Active";
+			case 2:
+				return "Hold";
+			case 3:
+				return "Estimate";
+			case 4:
+				return "Sales Call Scheduled";
+			case 5:
+				return "Estimate Sent";
+			case 6:
+				return "Estimate Declined";
+			case 7:
+				return "Prospect";
+			default:
+				return "Non-Active";
+		}
+	}
+	
 	public function get_all_customer_ID_customerList($where_arr = '') {           
 		$this->db->select('customer_id, first_name, last_name, phone, home_phone, work_phone, email, billing_street, customer_status');
 			$this->db->from(self::PMTBL);
@@ -151,6 +174,23 @@ class AdminTbl_customer_model extends CI_Model{
 		}
 		$result = $this->db->get();
 		return $result->num_rows();
+	}
+
+	public function getNumberOfCustomersByStatus($where_arr = '') {
+		$this->db->select('COUNT(customer_id) as total_customer,
+		COUNT(DISTINCT CASE WHEN customer_status = 1 THEN customer_id END) active_customer,
+		COUNT(DISTINCT CASE WHEN customer_status = 2 THEN customer_id END) hold_customer,
+		COUNT(DISTINCT CASE WHEN customer_status = 4 THEN customer_id END) sales_call_scheduled,
+		COUNT(DISTINCT CASE WHEN customer_status = 5 THEN customer_id END) estimate_sent,
+		COUNT(DISTINCT CASE WHEN customer_status = 6 THEN customer_id END) estimate_declined,
+		COUNT(DISTINCT CASE WHEN customer_status = 7 THEN customer_id END) prospect,
+		COUNT(DISTINCT CASE WHEN customer_status = 0 THEN customer_id END) non_active_customer');
+		$this->db->from(self::PMTBL);
+		if (is_array($where_arr)) {
+				$this->db->where($where_arr);
+		}
+		$result = $this->db->get();
+		return $result->result();
 	}
 	public function updateAdminTbl($customerid, $post_data) {
 		$this->db->where('customer_id',$customerid);
@@ -302,7 +342,7 @@ class AdminTbl_customer_model extends CI_Model{
 
 
 	public function getAllpropertyExt($where_arr = '', $customer_id = '') {
-		$this->db->select('*');
+            $this->db->select('property_tbl.*, customers.*, category_property_area.*, programs.*, GROUP_CONCAT(programs.program_name SEPARATOR "; ") as program_assigned');
 		$this->db->from('property_tbl');
 		if (is_array($where_arr)) {
 				$this->db->where($where_arr);
@@ -310,13 +350,18 @@ class AdminTbl_customer_model extends CI_Model{
 		$this->db->join('customer_property_assign','property_tbl.property_id=customer_property_assign.property_id','inner');
 		$this->db->join('customers','customer_property_assign.customer_id=customers.customer_id','inner');
 		$this->db->join('category_property_area', 'property_tbl.property_area=category_property_area.property_area_cat_id', 'left');
+		$this->db->join('property_program_assign', 'property_program_assign.property_id=property_tbl.property_id', 'left');
+		$this->db->join('programs', 'programs.program_id=property_program_assign.program_id', 'left');
         if (!empty($customer_id)) {
             $this->db->order_by("FIELD(customers.customer_id, '$customer_id') DESC");
         }
+        $this->db->group_by('property_tbl.property_id');
 		$result = $this->db->get();
+		
 		$data = $result->result();
 		return $data;
 	}
+
 	public function getAllCustomerByPropert($where_arr = '') {
 		$this->db->select('*');
 		$this->db->from('customer_property_assign');

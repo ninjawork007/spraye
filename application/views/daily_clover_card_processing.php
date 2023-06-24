@@ -22,6 +22,13 @@
         <!-- Add tokenizer.js file to head -->
         <script language="javascript" src="<?=BASYS_URL?>tokenizer/tokenizer.js"></script>
         <script src="<?=base_url()?>/assets/popup/js/sweetalert2.all.js"></script>
+        <script language="JavaScript">
+        window.addEventListener('message', function(event) {
+            var token = JSON.parse(event.data);
+            var mytoken = document.getElementById('cc_token');
+            mytoken.value = token.message;
+        });
+        </script>
         <!-- /theme JS files -->
         <style type="text/css">
           .login_new{
@@ -115,11 +122,7 @@ if ($invoice_cost > 0) {
                     </span> -->
                     <input type="hidden" name="merchid" id="merchid"
                         value="<?php echo $cardconnect_details->merchant_id ?>">
-                    <input type="hidden" name="user" id="user"
-                        value="<?php echo $cardconnect_details->username ?>">
-                    <input type="hidden" name="pass" id="pass"
-                        value="<?php echo decryptPassword($cardconnect_details->password) ?>">
-
+                    <input type="hidden" name="invoiceid" id="invoiceid" value="<?php echo str_replace(',',' ',$invoice_ids) ?>">
                     </form>
                 </div>
 
@@ -156,7 +159,7 @@ if ($invoice_cost > 0) {
                             $string_ids = str_replace(',',' ',$invoice_ids);
                             ?>
 
-                    <input type="hidden"  name="invoices[]" value="<?php $string_ids ?>">
+                    <input type="hidden"  name="invoices_array[]" value="<?php $string_ids ?>">
                   </div>
                   <?php if ($convenience_fee != 0) {?>
                   <span class="text-center no-margin" >
@@ -200,7 +203,7 @@ if ($invoice_cost > 0) {
             var invoices = '<?= $string_ids ?>';
             setTimeout(function(){
                 $.ajax({
-                url: '<?php echo base_url('Welcome/ccPaymentProcess'); ?>',
+                url: '<?php echo base_url('welcome/ccPaymentProcess/clover'); ?>',
                 type: 'POST',
                 data: {
                     requestData: {
@@ -208,9 +211,7 @@ if ($invoice_cost > 0) {
                         merchid: $('#merchid').val(),
                     },
                     invoice_id: invoices,
-                    merchid: $('#merchid').val(),
-                    username: $('#user').val(),
-                    password: $('#pass').val()
+                    merchid: $('#merchid').val()
                 },
                 dataType: "JSON",
                 success: function(response) {

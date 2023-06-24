@@ -11,10 +11,24 @@ class Program_job_assigned_customer_property_model extends CI_Model{
 
     const PJACPM = 'program_job_assigned_customer_property';
 
-    public function createProgramJobAssignedCustomerProperty($post)
+    public function createOrUpdateProgramJobAssignedCustomerProperty($post)
     {
-        $query = $this->db->insert(self::PJACPM, $post);
-        return $this->db->insert_id();
+        $isExistedData = $post;
+        unset($isExistedData['reason']);
+        unset($isExistedData['hold_until_date']);
+        $result = $this->db->select('*')
+                 ->from('program_job_assigned_customer_property')
+                 ->where($isExistedData)
+                 ->get();
+        $data = $result->result();
+        if ($data) {
+            $this->db->where($isExistedData);
+            $this->db->update(self::PJACPM, $post);
+            return $this->db->affected_rows();
+        } else {
+            $this->db->insert(self::PJACPM, $post);
+            return $this->db->insert_id();
+        }
     }
 
     public function getIsAsap($where){
@@ -23,10 +37,30 @@ class Program_job_assigned_customer_property_model extends CI_Model{
         $this->db->where($where);
         $result = $this->db->get();
         $data = $result->result();
-        if($data){
+        if ($data && isset($data[0]) && !empty($data[0]->reason)) {
             return 1;
         }
         return 0;
     }
+
+    public function update($where, $update)
+    {
+        $this->db->where($where);
+        $this->db->update(self::PJACPM, $update);
+        return $this->db->affected_rows();
+    }
+
+    public function delete($where)
+    {
+        if (is_array($where)) {
+            $this->db->where($where);
+            $this->db->delete(self::PJACPM);
+
+            return $this->db->affected_rows();
+        }
+        return false;
+    }
+
+
 
 }

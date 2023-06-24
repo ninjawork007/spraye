@@ -1607,6 +1607,7 @@ class Welcome extends MY_Controller
                             $QBO_param['property_street'] = $property_street;
                             $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
                             $QBO_param['job_name'] = $QBO_description;
+                            $QBO_param['invoice_id_for_db_checking'] = $invoice_id;
                 
                             // Subtract global customer coupon value from QBO total before it's passed to QBO
                             $coup_cust_param = array(
@@ -3164,6 +3165,9 @@ class Welcome extends MY_Controller
 
     public function sendCustomerReminders()
     {
+        ini_set('memory_limit', '-1');
+        ini_set('max_input_time', '1800');
+        ini_set('max_execution_time', '1800');
         // Test this function with the url below:
         //https://emerald-dev3.blayzer.com/welcome/sendCustomerReminders
         // Mail should send link with date and customerId.
@@ -4580,10 +4584,11 @@ class Welcome extends MY_Controller
         // file_put_contents('nr_log.txt', $data, FILE_APPEND);
         
         $order_id = (string) strtotime("now");
+        //var_dump($data);
         $cc_authorize = cardConnectAuthorize($data);
-        
         if ($cc_authorize['status'] == 200) {
-
+            //var_dump($cc_authorize['result']);
+            //exit(); 
             if (strcmp($cc_authorize['result']->respstat, 'A') == 0) {
 
                 $cap = array(
@@ -4601,6 +4606,8 @@ class Welcome extends MY_Controller
                 );
 
                 $captured = cardConnectCapture($cap);
+                //var_dump($captured);
+                //exit();
 
                 // die(print_r(json_encode($captured)));
 
@@ -4710,27 +4717,27 @@ class Welcome extends MY_Controller
                     if ($single_invoice_total_amount < 0) {
                         $single_invoice_total_amount = 0;
                     }
-                    if ($invoice_details->payment_status != 2) {
+                    if ($invoice->payment_status != 2) {
                         $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
                             'invoice_id' => $data['invoice_id'],
-                            'payment_amount' => $data['requestData']['amount'] + $invoice_details->partial_payment,
-                            'payment_applied' => $data['requestData']['amount'] + $invoice_details->partial_payment,
+                            'payment_amount' => $data['requestData']['amount'] + $invoice->partial_payment,
+                            'payment_applied' => $data['requestData']['amount'] + $invoice->partial_payment,
                             'payment_datetime' => date("Y-m-d H:i:s"),
                             'payment_method' => 4,
-                            'customer_id' => $invoice_details->customer_id,
+                            'customer_id' => $invoice->customer_id,
                         ));
                         //KT and EE add status, opened_date, and sent date
                         $updatearr = array(
                             'payment_status' => 2,
                             'payment_created' => date("Y-m-d H:i:s"),
                             'payment_method' => 4,
-                            'partial_payment' => $data['requestData']['amount'] + $invoice_details->partial_payment,
+                            'partial_payment' => $data['requestData']['amount'] + $invoice->partial_payment,
                             'clover_order_id' => $order_id,
                             'clover_transaction_id' => $cc_authorize['result']->retref,
                             'refund_amount_total' => 0.00,
                             'status' => 2,
-                            'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
-                            'sent_date' => $invoice_details->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->sent_date
+                            'opened_date' => $invoice->opened_date == '' ? date("Y-m-d H:i:s") : $invoice->opened_date,
+                            'sent_date' => $invoice->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice->sent_date
                         );
     
                         $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
@@ -6026,13 +6033,28 @@ class Welcome extends MY_Controller
 
             $details = getVisIpAddr();
 
-            $all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $param['invoice_id']));
+            $all_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $param['invoice_id_for_db_checking']));
+
+            $all_invoice_coupons = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $param['invoice_id_for_db_checking']));
 
             $description = 'Service Name: ' . $param['job_name'] . '. Service Description: ' . $param['actual_description_for_QBO'] . '. Service Address: ' . $param['property_street'] . '.';
 
+            // we need to remove the coupon amount from the cost going in for the invoice
+            $amount = $param['cost'];
+            foreach($all_invoice_coupons as $aic) {
+                if($aic->coupon_amount_calculation == "0") {
+                    // flat amount removed from total
+                    $amount = $amount - intval($aic->coupon_amount);
+                } else {
+                    // percent needs to be removed from the amount
+                    $amount_to_subtract = $amount * (intval($aic->coupon_amount) / 100);
+                    $amount = $amount - $amount_to_subtract;
+                }
+            }
+            
             $line_ar[] = array(
                 "Description" => $description,
-                "Amount" => $param['cost'],
+                "Amount" => $amount,
                 "DetailType" => "SalesItemLineDetail",
                 "SalesItemLineDetail" => array(
                     "TaxCodeRef" => array(
@@ -6047,7 +6069,7 @@ class Welcome extends MY_Controller
                 foreach ($all_sales_tax as $key => $value) {
                     $line_ar[] = array(
                         "Description" => 'Sales Tax: ' . $value['tax_name'] . ' (' . floatval($value['tax_value']) . '%) ',
-                        "Amount" => $value['tax_amount'],
+                        "Amount" => ($amount * ($value['tax_value'] / 100)),
                         "DetailType" => "SalesItemLineDetail",
                         "SalesItemLineDetail" => array(
                             "TaxCodeRef" => array(
@@ -6515,6 +6537,7 @@ class Welcome extends MY_Controller
                         $QBO_param['property_street'] = $property_street;
                         $QBO_param['actual_description_for_QBO'] = $actual_description_for_QBO;
                         $QBO_param['job_name'] = $QBO_description;
+                        $QBO_param['invoice_id_for_db_checking'] = $invoice_id;
             
                         // Subtract global customer coupon value from QBO total before it's passed to QBO
                         $coup_cust_param = array(
