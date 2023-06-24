@@ -2328,7 +2328,7 @@
 
                     <button type="submit" id="saveaddress" class="btn btn-success">Save <i
 
-                                class="icon-arrow-right14 position-right"></i></button>
+                            class="icon-arrow-right14 position-right"></i></button>
 
                 </div>
 
@@ -4183,7 +4183,8 @@
 
         e.preventDefault();
 
-
+        
+        
         var serviceId = $('#selected_job_id').val();
 
         var propertyId = $('input[name="add_service_property_id"]').val();
@@ -4198,6 +4199,26 @@
 
         var priceOverride = $('input[name="add_job_price_override"]').val();
 
+        $('#add_service_program_price').parent().children('.error').remove();
+        $('#selected_job_id').parent().children('.error').remove();
+
+
+        if (programPrice == '')
+        {
+            var error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+            var el = $('#add_service_program_price').parent().append(error_label);
+        }
+
+        if (serviceId == '')
+        {
+            var error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+            var el = $('#selected_job_id').parent().append(error_label);
+        }
+
+        if (programPrice == '' || serviceId == '')
+        {
+            return;
+        }
 
         if (priceOverride > 0) {
 
@@ -4256,8 +4277,6 @@
             $('#modal_add_service').modal('hide');
 
             if (data.status == "success") {
-
-
                 swal(
                     'Success!',
 

@@ -118,6 +118,7 @@ class Technician extends MY_Controller
         $this->load->model('AdminTbl_tags_model', 'TagsModel');
         $this->load->model('AdminTbl_product_model', 'ProductModel');
         $this->load->model('../modules/admin/models/payment_invoice_logs_model', 'PartialPaymentModel');
+        $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
 
 
     }
@@ -146,19 +147,12 @@ class Technician extends MY_Controller
         //Get all COMPLETED services assigned to logged Tech user for "today" where job
 
         $where_arr_check = array(
-
             'technician_job_assign.technician_id' => $this->session->userdata['spraye_technician_login']->user_id,
-
-            'job_assign_date' => date("Y-m-d"),
-
             'is_job_mode' => 1,
-
             'is_complete' => 1
-
         );
-
-
         $job_assign_details_check = $this->Tech->getAllJobAssignCheck($where_arr_check);
+
         $data['job_assign_details_check'] = $job_assign_details_check;
 
         //if this Tech user has completed services "today" then assign current address
@@ -194,13 +188,8 @@ class Technician extends MY_Controller
         //Get all routes for incomplete services assigned to logged Tech for "today"
 
         $where_arr = array(
-
             'technician_job_assign.technician_id' => $this->session->userdata['spraye_technician_login']->user_id,
-
-            'technician_job_assign.job_assign_date' => date("Y-m-d"),
-
             'is_job_mode' => 0,
-
         );
 
 
@@ -261,11 +250,6 @@ class Technician extends MY_Controller
 
         }
 
-
-        // die(print_r($job_assign_details));
-
-        $data['job_assign_details'] = $job_assign_details;
-
         $data['job_assign_details'] = $job_assign_details;
 
         $driver_id = $this->session->userdata['spraye_technician_login']->id;
@@ -284,8 +268,6 @@ class Technician extends MY_Controller
 
     public function dashboardJsonData($route_id = '')
     {
-
-
         $OptimizedStops = $this->input->post('OptimizedStops');
 
         array_shift($OptimizedStops);
@@ -298,33 +280,19 @@ class Technician extends MY_Controller
         //get routes for incomplete services assigned to logged tech and scheduled for "today"
 
         $where_arr = array(
-
             'technician_job_assign.technician_id' => $this->session->userdata['spraye_technician_login']->user_id,
-
-            'technician_job_assign.job_assign_date' => date("Y-m-d"),
-
             'is_job_mode' => 0,
-
         );
-
 
         $data['routeDetails'] = $this->Tech->getRoutsByJobAssign($where_arr);
 
-
         if ($route_id == '') {
-
             if ($data['routeDetails']) {
-
                 $where_arr['route_id'] = $data['routeDetails'][0]['route_id'];
-
             }
-
         } else {
-
             $where_arr['route_id'] = $route_id;
-
         }
-
 
         $job_assign_details_array = $this->Tech->getAllJobAssign($where_arr);
         if (!empty($job_assign_details_array)) {
@@ -357,8 +325,9 @@ class Technician extends MY_Controller
 
 
                 $res = $this->searchForAddress($value, $job_assign_details_array);
-
-
+                $services = $res['services'];
+                $res = $res['stop_point'];
+                $res['value']['job_label_stop'] = implode(", ", $services);
                 $tmp[] = $res['value'];
 
                 unset($job_assign_details_array[$res['key']]);
@@ -376,13 +345,12 @@ class Technician extends MY_Controller
 
     }
 
-
     function searchForAddress($id, $array)
     {
-
         // var_dump($id);
 
-
+        $stopPoint = array();
+        $services = array();
         foreach ($array as $key => $val) {
 
             // echo $val['property_address'];
@@ -415,16 +383,15 @@ class Technician extends MY_Controller
 
 
             if ($val['property_address'] == $id) {
-
                 // echo "<br>t<br>";
-
-                return array('key' => $key, 'value' => $array[$key]);
-
+                $services[] = $val['job_name'];
+                if (empty($stopPoint))
+                    $stopPoint = array('key' => $key, 'value' => $array[$key]);
             }
 
         }
 
-        return null;
+        return array("stop_point" => $stopPoint, "services" => $services);
 
 
     }
@@ -436,7 +403,8 @@ class Technician extends MY_Controller
         echo $this->db->last_query();
     }
 
-    public function jobDetails($property_id) {
+    public function jobDetails($property_id)
+    {
         $where = array('company_id' => $this->session->userdata['spraye_technician_login']->company_id);
         $data['product_details'] = $this->ProductModel->get_all_product($where);
         //die(print_r($data['product_details']));
@@ -446,11 +414,9 @@ class Technician extends MY_Controller
         $data['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['spraye_technician_login']->company_id));
         $where_arr_check = array(
             'technician_job_assign.technician_id' => $this->session->userdata['spraye_technician_login']->user_id,
-            'job_assign_date' => date("Y-m-d"),
             'is_job_mode' => 1,
             'is_complete' => 1
         );
-
         $job_assign_details_check = $this->Tech->getAllJobAssignCheck($where_arr_check);
 
         if ($job_assign_details_check) {
@@ -466,7 +432,6 @@ class Technician extends MY_Controller
         $where2 = array(
             'technician_id' => $this->session->userdata['spraye_technician_login']->user_id,
             'technician_job_assign.property_id' => $property_id,
-            'job_assign_date' => date("Y-m-d"),
             'is_job_mode' => 0
         );
 
@@ -696,24 +661,13 @@ class Technician extends MY_Controller
 
 
         $where_arr_check = array(
-
             'technician_job_assign.technician_id' => $this->session->userdata['spraye_technician_login']->user_id,
-
-            'job_assign_date' => date("Y-m-d"),
-
             'is_job_mode' => 1,
-
             'is_complete' => 1
-
         );
-
-
         $job_assign_details_check = $this->Tech->getAllJobAssignCheck($where_arr_check);
 
-
         if ($job_assign_details_check) {
-
-
             $data['currentaddress'] = $job_assign_details_check->property_address;
 
             $data['currentlat'] = $job_assign_details_check->property_latitude;
@@ -825,270 +779,194 @@ class Technician extends MY_Controller
             //die(print_r($data));
 
             foreach ($property as $key => $data) {
+                if ($data['service_id'] != '' && $data['program_price'] != '') {
+                    $user_id = $this->session->userdata['spraye_technician_login']->user_id;
 
-                $user_id = $this->session->userdata['spraye_technician_login']->user_id;
+                    $company_id = $this->session->userdata['spraye_technician_login']->company_id;
 
-                $company_id = $this->session->userdata['spraye_technician_login']->company_id;
+                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
 
-                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+                    //create program
 
-                //create program
-
-                $param = array(
-
-                    'user_id' => $user_id,
-
-                    'company_id' => $company_id,
-
-                    'program_name' => $data['program_name'],
-
-                    'program_price' => $data['program_price'],
-
-                    'ad_hoc' => 1,
-
-                );
-
-
-                //Create Program
-
-                $program_id = $this->ProgramModel->insert_program($param);
-
-
-                //Assign job to program
-
-                $param2 = array(
-
-                    'program_id' => $program_id,
-
-                    'job_id' => $data['service_id'],
-
-                    'priority' => 1
-
-                );
-
-
-                $result1 = $this->ProgramModel->assignProgramJobs($param2);
-
-
-                //assign program to property
-
-                $param3 = array(
-
-                    'program_id' => $program_id,
-
-                    'property_id' => $data['property_id'],
-
-                    'price_override' => $data['price_override'],
-
-                    'is_price_override_set' => $data['is_price_override_set']
-
-                );
-
-
-                $property_program_id = $this->PropertyModel->assignProgram($param3);
-
-
-                if ($property_program_id) {
-
-                    //create technician job assign
-
-                    $param4 = array(
-
-                        'technician_id' => $data['technician_id'],
+                    $param = array(
 
                         'user_id' => $user_id,
 
                         'company_id' => $company_id,
 
-                        'customer_id' => $data['customer_id'],
+                        'program_name' => $data['program_name'],
+
+                        'program_price' => $data['program_price'],
+
+                        'ad_hoc' => 1,
+
+                    );
+
+
+                    //Create Program
+
+                    $program_id = $this->ProgramModel->insert_program($param);
+
+
+                    //Assign job to program
+
+                    $param2 = array(
+
+                        'program_id' => $program_id,
 
                         'job_id' => $data['service_id'],
+
+                        'priority' => 1
+
+                    );
+
+
+                    $result1 = $this->ProgramModel->assignProgramJobs($param2);
+
+
+                    //assign program to property
+
+                    $param3 = array(
 
                         'program_id' => $program_id,
 
                         'property_id' => $data['property_id'],
 
-                        'job_assign_date' => date("Y-m-d"),
+                        'price_override' => $data['price_override'],
 
-                        'route_id' => $data['route_id'],
+                        'is_price_override_set' => $data['is_price_override_set']
 
                     );
 
 
-                    $technician_job_assign_id = $this->JobModel->CreateOneTecnicianJob($param4);
+                    $property_program_id = $this->PropertyModel->assignProgram($param3);
 
 
-                    // if program price is not manual
+                    if ($property_program_id) {
 
-                    if ($data['program_price'] != 3) {
+                        //create technician job assign
 
-                        //get customer info
+                        $param4 = array(
 
-                        $customer_property_details = $this->CustomerModel->getAllproperty(array('customer_property_assign.property_id' => $data['property_id']));
+                            'technician_id' => $data['technician_id'],
 
+                            'user_id' => $user_id,
 
-                        if ($customer_property_details) {
+                            'company_id' => $company_id,
 
-                            $customer_id = $data['customer_id'];
+                            'customer_id' => $data['customer_id'],
 
-                            $yard_sq_ft = $customer_property_details[0]->yard_square_feet;
+                            'job_id' => $data['service_id'],
 
+                            'program_id' => $program_id,
 
-                            //get job cost
+                            'property_id' => $data['property_id'],
 
-                            if (isset($data['is_price_override_set']) && $data['is_price_override_set'] == 1) {
+                            'job_assign_date' => date("Y-m-d"),
 
-                                $cost = $data['price_override'];
+                            'route_id' => $data['route_id'],
 
-                            } else {
-
-                                $job_details = $this->JobModel->getOneJob(array('job_id' => $data['service_id']));
-
-
-                                $job_price = $job_details->job_price;
+                        );
 
 
-                                //get property difficulty level
-
-                                if (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 2) {
-
-                                    $difficulty_multiplier = $setting_details->dlmult_2;
-
-                                } elseif (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 3) {
-
-                                    $difficulty_multiplier = $setting_details->dlmult_3;
-
-                                } else {
-
-                                    $difficulty_multiplier = $setting_details->dlmult_1;
-
-                                }
+                        $technician_job_assign_id = $this->JobModel->CreateOneTecnicianJob($param4);
 
 
-                                //get base fee
+                        // if program price is not manual
 
-                                if (isset($job_details->base_fee_override)) {
+                        if ($data['program_price'] != 3) {
 
-                                    $base_fee = $job_details->base_fee_override;
+                            //get customer info
 
-                                } else {
-
-                                    $base_fee = $setting_details->base_service_fee;
-
-                                }
+                            $customer_property_details = $this->CustomerModel->getAllproperty(array('customer_property_assign.property_id' => $data['property_id']));
 
 
-                                $cost_per_sqf = $base_fee + ($job_price * $yard_sq_ft * $difficulty_multiplier) / 1000;
+                            if ($customer_property_details) {
+
+                                $customer_id = $data['customer_id'];
+
+                                $yard_sq_ft = $customer_property_details[0]->yard_square_feet;
 
 
-                                //get min. service fee
+                                //get job cost
 
-                                if (isset($job_details->min_fee_override)) {
+                                if (isset($data['is_price_override_set']) && $data['is_price_override_set'] == 1) {
 
-                                    $min_fee = $job_details->min_fee_override;
+                                    $cost = $data['price_override'];
 
                                 } else {
 
-                                    $min_fee = $setting_details->base_service_fee;
-
-                                }
+                                    $job_details = $this->JobModel->getOneJob(array('job_id' => $data['service_id']));
 
 
-                                // Compare cost per sf with min service fee
-
-                                if ($cost_per_sqf > $min_fee) {
-
-                                    $cost = $cost_per_sqf;
-
-                                } else {
-
-                                    $cost = $min_fee;
-
-                                }
+                                    $job_price = $job_details->job_price;
 
 
-                            }
+                                    //get property difficulty level
 
+                                    if (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 2) {
 
-                            //create invoice
+                                        $difficulty_multiplier = $setting_details->dlmult_2;
 
-                            $invParam = array(
+                                    } elseif (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 3) {
 
-                                'customer_id' => $customer_id,
+                                        $difficulty_multiplier = $setting_details->dlmult_3;
 
-                                'property_id' => $data['property_id'],
+                                    } else {
 
-                                'program_id' => $program_id,
-
-                                'job_id' => $data['service_id'],
-
-                                'user_id' => $user_id,
-
-                                'company_id' => $company_id,
-
-                                'invoice_date' => date("Y-m-d"),
-
-                                'description' => $data['program_name'],
-
-                                'cost' => ($cost),
-
-                                'is_created' => 2,
-
-                                'invoice_created' => date("Y-m-d H:i:s"),
-
-                            );
-
-                            //create invoice
-
-                            $invoice_id = $this->INV->createOneInvoice($invParam);
-
-
-                            // figure sales tax
-
-                            if ($invoice_id) {
-
-                                //update technician job assign table
-
-                                $updateTechAssign = $this->JobModel->updateAssignJob(array('technician_job_assign_id' => $technician_job_assign_id), array('invoice_id' => $invoice_id));
-
-
-                                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
-
-
-                                if (isset($setting_details) && $setting_details->is_sales_tax == 1) {
-
-                                    $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $data['property_id']));
-
-                                    if ($property_assign_tax) {
-
-                                        foreach ($property_assign_tax as $tax_details) {
-
-                                            $invoice_tax_details = array(
-
-                                                'invoice_id' => $invoice_id,
-
-                                                'tax_name' => $tax_details['tax_name'],
-
-                                                'tax_value' => $tax_details['tax_value'],
-
-                                                'tax_amount' => $cost * $tax_details['tax_value'] / 100
-
-                                            );
-
-
-                                            $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
-
-                                        }
-
+                                        $difficulty_multiplier = $setting_details->dlmult_1;
 
                                     }
 
+
+                                    //get base fee
+
+                                    if (isset($job_details->base_fee_override)) {
+
+                                        $base_fee = $job_details->base_fee_override;
+
+                                    } else {
+
+                                        $base_fee = $setting_details->base_service_fee;
+
+                                    }
+
+
+                                    $cost_per_sqf = $base_fee + ($job_price * $yard_sq_ft * $difficulty_multiplier) / 1000;
+
+
+                                    //get min. service fee
+
+                                    if (isset($job_details->min_fee_override)) {
+
+                                        $min_fee = $job_details->min_fee_override;
+
+                                    } else {
+
+                                        $min_fee = $setting_details->base_service_fee;
+
+                                    }
+
+
+                                    // Compare cost per sf with min service fee
+
+                                    if ($cost_per_sqf > $min_fee) {
+
+                                        $cost = $cost_per_sqf;
+
+                                    } else {
+
+                                        $cost = $min_fee;
+
+                                    }
+
+
                                 }
 
 
-                                //store in property program job invoice table
+                                //create invoice
 
-                                $newPPJOBINV = array(
+                                $invParam = array(
 
                                     'customer_id' => $customer_id,
 
@@ -1096,36 +974,114 @@ class Technician extends MY_Controller
 
                                     'program_id' => $program_id,
 
-                                    'property_program_id' => $property_program_id,
-
                                     'job_id' => $data['service_id'],
 
-                                    'invoice_id' => $invoice_id,
+                                    'user_id' => $user_id,
 
-                                    'job_cost' => $cost,
+                                    'company_id' => $company_id,
 
-                                    'created_at' => date("Y-m-d"),
+                                    'invoice_date' => date("Y-m-d"),
 
-                                    'updated_at' => date("Y-m-d"),
+                                    'description' => $data['program_name'],
+
+                                    'cost' => ($cost),
+
+                                    'is_created' => 2,
+
+                                    'invoice_created' => date("Y-m-d H:i:s"),
 
                                 );
 
+                                //create invoice
 
-                                $PPJOBINV_ID = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($newPPJOBINV);
+                                $invoice_id = $this->INV->createOneInvoice($invParam);
+
+
+                                // figure sales tax
+
+                                if ($invoice_id) {
+
+                                    //update technician job assign table
+
+                                    $updateTechAssign = $this->JobModel->updateAssignJob(array('technician_job_assign_id' => $technician_job_assign_id), array('invoice_id' => $invoice_id));
+
+
+                                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+
+
+                                    if (isset($setting_details) && $setting_details->is_sales_tax == 1) {
+
+                                        $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $data['property_id']));
+
+                                        if ($property_assign_tax) {
+
+                                            foreach ($property_assign_tax as $tax_details) {
+
+                                                $invoice_tax_details = array(
+
+                                                    'invoice_id' => $invoice_id,
+
+                                                    'tax_name' => $tax_details['tax_name'],
+
+                                                    'tax_value' => $tax_details['tax_value'],
+
+                                                    'tax_amount' => $cost * $tax_details['tax_value'] / 100
+
+                                                );
+
+
+                                                $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
+
+                                            }
+
+
+                                        }
+
+                                    }
+
+
+                                    //store in property program job invoice table
+
+                                    $newPPJOBINV = array(
+
+                                        'customer_id' => $customer_id,
+
+                                        'property_id' => $data['property_id'],
+
+                                        'program_id' => $program_id,
+
+                                        'property_program_id' => $property_program_id,
+
+                                        'job_id' => $data['service_id'],
+
+                                        'invoice_id' => $invoice_id,
+
+                                        'job_cost' => $cost,
+
+                                        'created_at' => date("Y-m-d"),
+
+                                        'updated_at' => date("Y-m-d"),
+
+                                    );
+
+
+                                    $PPJOBINV_ID = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($newPPJOBINV);
+
+                                }
 
                             }
 
                         }
 
+
+                    } else {
+
+                        $error = 1;
+
                     }
-
-
                 } else {
-
                     $error = 1;
-
                 }
-
             }
 
         } else {
@@ -1163,8 +1119,6 @@ class Technician extends MY_Controller
 
         $post = $this->input->post();
 
-        //die(print_r($post));
-
         $error = 0;
 
         if (is_array($post['post'])) {
@@ -1174,236 +1128,162 @@ class Technician extends MY_Controller
             //die(print_r($data));
 
             foreach ($property as $key => $data) {
+                if ($data['service_id'] != '' && $data['program_price'] != '') {
+                    $user_id = $this->session->userdata['spraye_technician_login']->user_id;
 
-                $user_id = $this->session->userdata['spraye_technician_login']->user_id;
+                    $company_id = $this->session->userdata['spraye_technician_login']->company_id;
 
-                $company_id = $this->session->userdata['spraye_technician_login']->company_id;
+                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
 
-                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+                    //create program
 
-                //create program
+                    $param = array(
 
-                $param = array(
+                        'user_id' => $user_id,
 
-                    'user_id' => $user_id,
+                        'company_id' => $company_id,
 
-                    'company_id' => $company_id,
+                        'program_name' => $data['program_name'],
 
-                    'program_name' => $data['program_name'],
+                        'program_price' => $data['program_price'],
 
-                    'program_price' => $data['program_price'],
+                        'ad_hoc' => 1,
 
-                    'ad_hoc' => 1,
-
-                );
-
-
-                //Create Program
-
-                $program_id = $this->ProgramModel->insert_program($param);
+                    );
 
 
-                //Assign job to program
+                    //Create Program
 
-                $param2 = array(
-
-                    'program_id' => $program_id,
-
-                    'job_id' => $data['service_id'],
-
-                    'priority' => 1
-
-                );
+                    $program_id = $this->ProgramModel->insert_program($param);
 
 
-                $result1 = $this->ProgramModel->assignProgramJobs($param2);
+                    //Assign job to program
+
+                    $param2 = array(
+
+                        'program_id' => $program_id,
+
+                        'job_id' => $data['service_id'],
+
+                        'priority' => 1
+
+                    );
 
 
-                //assign program to property
-
-                $param3 = array(
-
-                    'program_id' => $program_id,
-
-                    'property_id' => $data['property_id'],
-
-                    'price_override' => $data['price_override'],
-
-                    'is_price_override_set' => $data['is_price_override_set']
-
-                );
+                    $result1 = $this->ProgramModel->assignProgramJobs($param2);
 
 
-                $property_program_id = $this->PropertyModel->assignProgram($param3);
+                    //assign program to property
+
+                    $param3 = array(
+
+                        'program_id' => $program_id,
+
+                        'property_id' => $data['property_id'],
+
+                        'price_override' => $data['price_override'],
+
+                        'is_price_override_set' => $data['is_price_override_set']
+
+                    );
 
 
-                if ($property_program_id) {
+                    $property_program_id = $this->PropertyModel->assignProgram($param3);
 
-                    // if program price = one time invoice then create invoice
 
-                    if ($data['program_price'] == 1) {
+                    if ($property_program_id) {
+
+                        // if program price = one time invoice then create invoice
 
                         //get customer info
-
                         $customer_property_details = $this->CustomerModel->getAllproperty(array('customer_property_assign.property_id' => $data['property_id']));
+                        if ($data['program_price'] == 1) {
+
+                            if ($customer_property_details) {
+
+                                $customer_id = $customer_property_details[0]->customer_id;
+
+                                $yard_sq_ft = $customer_property_details[0]->yard_square_feet;
 
 
-                        if ($customer_property_details) {
+                                //get job cost
 
-                            $customer_id = $customer_property_details[0]->customer_id;
+                                if (isset($data['is_price_override_set']) && $data['is_price_override_set'] == 1) {
 
-                            $yard_sq_ft = $customer_property_details[0]->yard_square_feet;
-
-
-                            //get job cost
-
-                            if (isset($data['is_price_override_set']) && $data['is_price_override_set'] == 1) {
-
-                                $cost = $data['price_override'];
-
-                            } else {
-
-                                $job_details = $this->JobModel->getOneJob(array('job_id' => $data['service_id']));
-
-
-                                $job_price = $job_details->job_price;
-
-
-                                //get property difficulty level
-
-                                if (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 2) {
-
-                                    $difficulty_multiplier = $setting_details->dlmult_2;
-
-                                } elseif (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 3) {
-
-                                    $difficulty_multiplier = $setting_details->dlmult_3;
+                                    $cost = $data['price_override'];
 
                                 } else {
 
-                                    $difficulty_multiplier = $setting_details->dlmult_1;
-
-                                }
+                                    $job_details = $this->JobModel->getOneJob(array('job_id' => $data['service_id']));
 
 
-                                //get base fee
-
-                                if (isset($job_details->base_fee_override)) {
-
-                                    $base_fee = $job_details->base_fee_override;
-
-                                } else {
-
-                                    $base_fee = $setting_details->base_service_fee;
-
-                                }
+                                    $job_price = $job_details->job_price;
 
 
-                                $cost_per_sqf = $base_fee + ($job_price * $yard_sq_ft * $difficulty_multiplier) / 1000;
+                                    //get property difficulty level
+
+                                    if (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 2) {
+
+                                        $difficulty_multiplier = $setting_details->dlmult_2;
+
+                                    } elseif (isset($customer_property_details[0]->difficulty_level) && $customer_property_details[0]->difficulty_level == 3) {
+
+                                        $difficulty_multiplier = $setting_details->dlmult_3;
+
+                                    } else {
+
+                                        $difficulty_multiplier = $setting_details->dlmult_1;
+
+                                    }
 
 
-                                //get min. service fee
+                                    //get base fee
 
-                                if (isset($job_details->min_fee_override)) {
+                                    if (isset($job_details->base_fee_override)) {
 
-                                    $min_fee = $job_details->min_fee_override;
+                                        $base_fee = $job_details->base_fee_override;
 
-                                } else {
+                                    } else {
 
-                                    $min_fee = $setting_details->base_service_fee;
+                                        $base_fee = $setting_details->base_service_fee;
 
-                                }
-
-
-                                // Compare cost per sf with min service fee
-
-                                if ($cost_per_sqf > $min_fee) {
-
-                                    $cost = $cost_per_sqf;
-
-                                } else {
-
-                                    $cost = $min_fee;
-
-                                }
-
-                            }
+                                    }
 
 
-                            //create invoice
-
-                            $invParam = array(
-
-                                'customer_id' => $customer_id,
-
-                                'property_id' => $data['property_id'],
-
-                                'program_id' => $program_id,
-
-                                'job_id' => $data['service_id'],
-
-                                'user_id' => $user_id,
-
-                                'company_id' => $company_id,
-
-                                'invoice_date' => date("Y-m-d"),
-
-                                'description' => $data['program_name'],
-
-                                'cost' => ($cost),
-
-                                'is_created' => 2,
-
-                                'invoice_created' => date("Y-m-d H:i:s"),
-
-                            );
-
-                            //create invoice
-
-                            $invoice_id = $this->INV->createOneInvoice($invParam);
+                                    $cost_per_sqf = $base_fee + ($job_price * $yard_sq_ft * $difficulty_multiplier) / 1000;
 
 
-                            // figure sales tax
+                                    //get min. service fee
 
-                            if ($invoice_id) {
+                                    if (isset($job_details->min_fee_override)) {
 
-                                $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+                                        $min_fee = $job_details->min_fee_override;
 
+                                    } else {
 
-                                if (isset($setting_details) && $setting_details->is_sales_tax == 1) {
+                                        $min_fee = $setting_details->base_service_fee;
 
-                                    $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $data['property_id']));
-
-                                    if ($property_assign_tax) {
-
-                                        foreach ($property_assign_tax as $tax_details) {
-
-                                            $invoice_tax_details = array(
-
-                                                'invoice_id' => $invoice_id,
-
-                                                'tax_name' => $tax_details['tax_name'],
-
-                                                'tax_value' => $tax_details['tax_value'],
-
-                                                'tax_amount' => $cost * $tax_details['tax_value'] / 100
-
-                                            );
+                                    }
 
 
-                                            $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
+                                    // Compare cost per sf with min service fee
 
-                                        }
+                                    if ($cost_per_sqf > $min_fee) {
 
+                                        $cost = $cost_per_sqf;
+
+                                    } else {
+
+                                        $cost = $min_fee;
 
                                     }
 
                                 }
 
 
-                                //store in property program job invoice table
+                                //create invoice
 
-                                $newPPJOBINV = array(
+                                $invParam = array(
 
                                     'customer_id' => $customer_id,
 
@@ -1411,36 +1291,121 @@ class Technician extends MY_Controller
 
                                     'program_id' => $program_id,
 
-                                    'property_program_id' => $property_program_id,
-
                                     'job_id' => $data['service_id'],
 
-                                    'invoice_id' => $invoice_id,
+                                    'user_id' => $user_id,
 
-                                    'job_cost' => $cost,
+                                    'company_id' => $company_id,
 
-                                    'created_at' => date("Y-m-d"),
+                                    'invoice_date' => date("Y-m-d"),
 
-                                    'updated_at' => date("Y-m-d"),
+                                    'description' => $data['program_name'],
+
+                                    'cost' => ($cost),
+
+                                    'is_created' => 2,
+
+                                    'invoice_created' => date("Y-m-d H:i:s"),
 
                                 );
 
+                                //create invoice
 
-                                $PPJOBINV_ID = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($newPPJOBINV);
+                                $invoice_id = $this->INV->createOneInvoice($invParam);
+
+
+                                // figure sales tax
+
+                                if ($invoice_id) {
+
+                                    $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
+
+
+                                    if (isset($setting_details) && $setting_details->is_sales_tax == 1) {
+
+                                        $property_assign_tax = $this->PropertySalesTax->getAllPropertySalesTax(array('property_id' => $data['property_id']));
+
+                                        if ($property_assign_tax) {
+
+                                            foreach ($property_assign_tax as $tax_details) {
+
+                                                $invoice_tax_details = array(
+
+                                                    'invoice_id' => $invoice_id,
+
+                                                    'tax_name' => $tax_details['tax_name'],
+
+                                                    'tax_value' => $tax_details['tax_value'],
+
+                                                    'tax_amount' => $cost * $tax_details['tax_value'] / 100
+
+                                                );
+
+
+                                                $this->InvoiceSalesTax->CreateOneInvoiceSalesTax($invoice_tax_details);
+
+                                            }
+
+
+                                        }
+
+                                    }
+
+
+                                    //store in property program job invoice table
+
+                                    $newPPJOBINV = array(
+
+                                        'customer_id' => $customer_id,
+
+                                        'property_id' => $data['property_id'],
+
+                                        'program_id' => $program_id,
+
+                                        'property_program_id' => $property_program_id,
+
+                                        'job_id' => $data['service_id'],
+
+                                        'invoice_id' => $invoice_id,
+
+                                        'job_cost' => $cost,
+
+                                        'created_at' => date("Y-m-d"),
+
+                                        'updated_at' => date("Y-m-d"),
+
+                                    );
+
+
+                                    $PPJOBINV_ID = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($newPPJOBINV);
+
+                                }
 
                             }
 
                         }
 
+                        // create hold until date option if any
+                        if (isset($data['hold_until_date'])) {
+                            $hold_until_data = array(
+                                'customer_id' => $customer_property_details[0]->customer_id,
+                                'property_id' => $data['property_id'],
+                                'program_id' => $program_id,
+                                'job_id' => $data['service_id'],
+                                'hold_until_date' => $data['hold_until_date'],
+                            );
+                            $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($hold_until_data);
+                        }
+
+
+                    } else {
+
+                        $error = 1;
+
                     }
-
-
                 } else {
-
                     $error = 1;
-
                 }
-
             }
 
         } else {
@@ -1607,17 +1572,17 @@ class Technician extends MY_Controller
     {
         $sendEmail = [];
         //die(print_r($data));
-        if(!empty($data) && !empty($report_details)){
-            $tech_job_assign_details = $this->Tech->getOneJobAssign(array('technician_job_assign_id'=>$data->technician_job_assign_id));
-            if(!empty($tech_job_assign_details)){
-                $emaildata['email_data_details'] =  $data;
-                $emaildata['report_details'] =  $report_details;
-                $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' =>$tech_job_assign_details->company_id));
+        if (!empty($data) && !empty($report_details)) {
+            $tech_job_assign_details = $this->Tech->getOneJobAssign(array('technician_job_assign_id' => $data->technician_job_assign_id));
+            if (!empty($tech_job_assign_details)) {
+                $emaildata['email_data_details'] = $data;
+                $emaildata['report_details'] = $report_details;
+                $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $tech_job_assign_details->company_id));
 
-                $emaildata['property_data'] = $this->PropertyModel->getOneProperty(array('property_id'=>$tech_job_assign_details->property_id));
+                $emaildata['property_data'] = $this->PropertyModel->getOneProperty(array('property_id' => $tech_job_assign_details->property_id));
                 $emaildata['job_details'] = $job_details = $this->JobModel->getOneJob(array('job_id' => $tech_job_assign_details->job_id));
 
-                $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' =>$tech_job_assign_details->company_id));
+                $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $tech_job_assign_details->company_id));
 
 
                 #check if customer billing type is Group Billing
@@ -2055,67 +2020,67 @@ class Technician extends MY_Controller
                         }
 
 
-            $product_details = $this->Tech->getAllProductDetails_new(array('job_id' =>$oneJobDetails->job_id), $extra_products);
-            //die(print_r($product_details));
-            if ($product_details) {
-              foreach ($product_details as $key => $value) {
-                $param = array (
-                      'report_id' => $report_id,
-                      'product_id' => $value->product_id,
-                      'product_name' => $value->product_name,
-                      'epa_reg_nunber' => $value->epa_reg_nunber,
-                      'weed_pest_prevented' => $value->weed_pest_prevented,
-                      're_entry_time' => $value->re_entry_time,
-                      'restricted_product' => $value->restricted_product
-                    );
-                    if ($value->application_method==1) {
-                      $param['application_method'] = 'Ride On';
-                    } else if($value->application_method==2) {
-                      $param['application_method'] = 'Skid Spray';
-                    } else if ($value->application_method==3) {
-                      $param['application_method'] = 'Backback';
-                    } else if ($value->application_method==4) {
-                      $param['application_method'] = 'Walk Behind Spreader';
-                    }
-                  if ($value->application_type==1) {
-                      $param['application_type'] = 'Broadcast';
-                  } else if($value->application_type==2) {
-                      $param['application_type'] = 'Spot Spray';
-                  } elseif ($value->application_type==3) {
-                      $param['application_type'] = 'Granular';
-                  }
-                    if($value->chemical_type==1) {
-                      $param['chemical_type'] = 'Herbicide';
-                    } else if($value->chemical_type==2) {
-                      $param['chemical_type'] = 'Fungicide';
-                    } else if($value->chemical_type==3) {
-                      $param['chemical_type'] = 'Insecticide';
-                    } else if($value->chemical_type==4) {
-                      $param['chemical_type'] = 'Fertilizer';
-                    } else if($value->chemical_type==5) {
-                      $param['chemical_type'] = 'Wetting Agent';
-                    } else if($value->chemical_type==6) {
-                      $param['chemical_type'] = 'Surfactant/Tank Additive';
-                    } else if($value->chemical_type==7) {
-                      $param['chemical_type'] = 'Aquatics';
-                    } else if($value->chemical_type==8) {
-                      $param['chemical_type'] = 'Growth Regulator';
-                    } else if($value->chemical_type==9) {
-                      $param['chemical_type'] = 'Biostimulants';
-                    }
-                    $active_ingredients = array();
-                    $ingredientDatails = getActiveIngredient(array('product_id'=>$value->product_id));
-                    if ($ingredientDatails) {
-                      foreach ($ingredientDatails as $key2 => $value2) {
-                        $active_ingredients[] =   $value2->active_ingredient.' : '.$value2->percent_active_ingredient.' %';
-                      }
-                    }
-                    $param['active_ingredients'] =  implode(', ', $active_ingredients);
-                    if (!empty($value->application_rate) && $value->application_rate != 0) {
-                      $param['application_rate'] = $value->application_rate . ' ' . $value->application_unit . ' / ' . $value->application_per;
-                }
-                $param['estimate_of_pesticide_used'] = amountOfChemicalUsed($value, $post_data[$technician_job_assign_id], $oneJobDetails->yard_square_feet);
-                $param['amount_of_mixture_applied'] =  $post_data[$technician_job_assign_id][$value->product_id] . ' ' . $value->mixture_application_unit;
+                        $product_details = $this->Tech->getAllProductDetails_new(array('job_id' => $oneJobDetails->job_id), $extra_products);
+                        //die(print_r($product_details));
+                        if ($product_details) {
+                            foreach ($product_details as $key => $value) {
+                                $param = array(
+                                    'report_id' => $report_id,
+                                    'product_id' => $value->product_id,
+                                    'product_name' => $value->product_name,
+                                    'epa_reg_nunber' => $value->epa_reg_nunber,
+                                    'weed_pest_prevented' => $value->weed_pest_prevented,
+                                    're_entry_time' => $value->re_entry_time,
+                                    'restricted_product' => $value->restricted_product
+                                );
+                                if ($value->application_method == 1) {
+                                    $param['application_method'] = 'Ride On';
+                                } else if ($value->application_method == 2) {
+                                    $param['application_method'] = 'Skid Spray';
+                                } else if ($value->application_method == 3) {
+                                    $param['application_method'] = 'Backback';
+                                } else if ($value->application_method == 4) {
+                                    $param['application_method'] = 'Walk Behind Spreader';
+                                }
+                                if ($value->application_type == 1) {
+                                    $param['application_type'] = 'Broadcast';
+                                } else if ($value->application_type == 2) {
+                                    $param['application_type'] = 'Spot Spray';
+                                } elseif ($value->application_type == 3) {
+                                    $param['application_type'] = 'Granular';
+                                }
+                                if ($value->chemical_type == 1) {
+                                    $param['chemical_type'] = 'Herbicide';
+                                } else if ($value->chemical_type == 2) {
+                                    $param['chemical_type'] = 'Fungicide';
+                                } else if ($value->chemical_type == 3) {
+                                    $param['chemical_type'] = 'Insecticide';
+                                } else if ($value->chemical_type == 4) {
+                                    $param['chemical_type'] = 'Fertilizer';
+                                } else if ($value->chemical_type == 5) {
+                                    $param['chemical_type'] = 'Wetting Agent';
+                                } else if ($value->chemical_type == 6) {
+                                    $param['chemical_type'] = 'Surfactant/Tank Additive';
+                                } else if ($value->chemical_type == 7) {
+                                    $param['chemical_type'] = 'Aquatics';
+                                } else if ($value->chemical_type == 8) {
+                                    $param['chemical_type'] = 'Growth Regulator';
+                                } else if ($value->chemical_type == 9) {
+                                    $param['chemical_type'] = 'Biostimulants';
+                                }
+                                $active_ingredients = array();
+                                $ingredientDatails = getActiveIngredient(array('product_id' => $value->product_id));
+                                if ($ingredientDatails) {
+                                    foreach ($ingredientDatails as $key2 => $value2) {
+                                        $active_ingredients[] = $value2->active_ingredient . ' : ' . $value2->percent_active_ingredient . ' %';
+                                    }
+                                }
+                                $param['active_ingredients'] = implode(', ', $active_ingredients);
+                                if (!empty($value->application_rate) && $value->application_rate != 0) {
+                                    $param['application_rate'] = $value->application_rate . ' ' . $value->application_unit . ' / ' . $value->application_per;
+                                }
+                                $param['estimate_of_pesticide_used'] = amountOfChemicalUsed($value, $post_data[$technician_job_assign_id], $oneJobDetails->yard_square_feet);
+                                $param['amount_of_mixture_applied'] = $post_data[$technician_job_assign_id][$value->product_id] . ' ' . $value->mixture_application_unit;
 
                                 $item_info = $this->Tech->getItemInfoByProductId($value->product_id);
 
@@ -2298,8 +2263,8 @@ class Technician extends MY_Controller
 
                                     // Declare array to be passed to coupon calculatiuon function
                                     $coup_inv_param = array(
-                                        'cost' => (is_object($QBO_param))?$QBO_param->cost:-1,
-                                        'invoice_id' => (is_object($invoice_details))?$invoice_details->invoice_id:-1
+                                        'cost' => (is_object($QBO_param)) ? $QBO_param->cost : -1,
+                                        'invoice_id' => (is_object($invoice_details)) ? $invoice_details->invoice_id : -1
                                     );
 
                                     // Assign value of calculation function to new variable
@@ -2850,16 +2815,15 @@ class Technician extends MY_Controller
 
             if ($return_data['error'] == false) {
 
-          
 
-        //webhook_trigger
-        $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
-        if($user_info->webhook_service_completed){
-            $this->load->model('api/Webhook');
-            $webhook_data = ['property_id' => $data->property_id, 'property_name' => $report_data['property_title'], 'property_address' => $report_data['property_address'], 'property_square_footage' => $report_data['yard_square_feet'], 'program_id' => $report_data['program_id'], 'service_name' => $report_data['program_name'], 'customer_email' =>  $customer_details['email'], 'customer_name' => $customer_details['first_name'] . " " . $customer_details['last_name'], 'address' =>  $customer_details['billing_street'] . " " . $customer_details['billing_city'] . ", " . $customer_details['billing_state'] . " " . $customer_details['billing_zipcode'], 'phone' =>  $customer_details['phone']];
-            $response = $this->Webhook->callTrigger($user_info->webhook_service_completed, $webhook_data);
-        }
-        //end of webhook
+                //webhook_trigger
+                $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
+                if ($user_info->webhook_service_completed) {
+                    $this->load->model('api/Webhook');
+                    $webhook_data = ['property_id' => $data->property_id, 'property_name' => $report_data['property_title'], 'property_address' => $report_data['property_address'], 'property_square_footage' => $report_data['yard_square_feet'], 'program_id' => $report_data['program_id'], 'service_name' => $report_data['program_name'], 'customer_email' => $customer_details['email'], 'customer_name' => $customer_details['first_name'] . " " . $customer_details['last_name'], 'address' => $customer_details['billing_street'] . " " . $customer_details['billing_city'] . ", " . $customer_details['billing_state'] . " " . $customer_details['billing_zipcode'], 'phone' => $customer_details['phone']];
+                    $response = $this->Webhook->callTrigger($user_info->webhook_service_completed, $webhook_data);
+                }
+                //end of webhook
 
 
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Service </strong> completed successfully</div>');
@@ -3798,8 +3762,6 @@ class Technician extends MY_Controller
             $technician_job_assign_array = explode(',', trim($technician_job_assign_ids));
 
             $data = $this->input->post();
-            // echo 'hola';
-            // die("hola");
 
             $reason_array = explode('/', $data['reason_id']);
             $reason_message = ($reason_array[0] == '-1') ? 'Other: ' . $data['reason_other'] : $reason_array[1];
@@ -3894,6 +3856,18 @@ class Technician extends MY_Controller
                 }
                 //die(print_r($updatearr));
                 $result = $this->Tech->updateJobAssign($where_ar, $updatearr);
+                // update hold until date service
+                if (isset($data['hold_until_date'])) {
+                    $hold_until_data = array(
+                        'customer_id' => $details->customer_id,
+                        'property_id' => $details->property_id,
+                        'program_id' => $details->program_id,
+                        'job_id' => $details->job_id,
+                        'hold_until_date' => $data['hold_until_date'],
+                    );
+                    $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($hold_until_data);
+
+                }
 
                 if ($result) {
                     #send email
@@ -5537,6 +5511,7 @@ class Technician extends MY_Controller
 
             return false;
 
+
         }
 
     }
@@ -5568,6 +5543,7 @@ class Technician extends MY_Controller
                     'QBORealmID' => $company_details->qbo_realm_id,
 
                     'baseUrl' => "Production"
+                    //'baseUrl' => "Production"
 
                 ));
 
@@ -5617,18 +5593,10 @@ class Technician extends MY_Controller
 
                 return false;
 
+
             }
 
-
-        } else {
-
-
-            return false;
-
-
         }
-
-
     }
 
     public function checkQuickbook()
@@ -6472,7 +6440,7 @@ class Technician extends MY_Controller
 
         if ($cc_authorize['status'] == 200) {
 
-            if (strcmp($cc_authorize['result']->respstat, 'A') == 0){
+            if (strcmp($cc_authorize['result']->respstat, 'A') == 0) {
 
                 //if payment is successful and approved
 
@@ -7945,7 +7913,7 @@ class Technician extends MY_Controller
         // Render the HTML as PDF
         $this->dompdf->render();
         $companyName = str_replace(" ", "", $this->session->userdata['compny_details']->company_name);
-        $customerName = $data['statement_details'][0]->first_name . $data['statement_details'][0]   ->last_name;
+        $customerName = $data['statement_details'][0]->first_name . $data['statement_details'][0]->last_name;
         $fileName = $companyName . "_statement_" . $customerName . "_" . date("Y") . "_" . date("m") . "_" . date("d") . "_" . date("h") . "_" . date("i") . "_" . date("s");
         // Output the generated PDF (1 = download and 0 = preview)
         $this->dompdf->stream($fileName . ".pdf", array("Attachment" => 0));

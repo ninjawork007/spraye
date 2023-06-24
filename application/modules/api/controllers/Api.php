@@ -390,7 +390,7 @@ class Api extends REST_Controller
           $source = !empty($this->put('source',true))? $this->put('source',true) : "";
           $service_id = !empty($this->put('service_id',true))? $this->put('service_id',true) : [];
           $email_notes = !empty($this->put('email_notes',true))? $this->put('email_notes',true) : "";
-          $coupon_id = !empty($this->put('coupon_id',true))? $this->put('coupon_id',true) : "";
+          $coupon_id = !empty($this->put('coupon_id',true))? $this->put('coupon_id',true) : [];
           $program_price = !empty($this->put('program_price',true))? $this->put('program_price',true) : "";
           $jobIds = !empty($this->put('job_id',true))? $this->put('job_id',true) : [];
           $program_id = !empty($this->put('program_id',true))? $this->put('program_id',true) : [];
@@ -398,6 +398,14 @@ class Api extends REST_Controller
 
 
           
+
+          if( !is_array($coupon_id) ) {           
+            $temp5 = array();
+            $temp5[] = $coupon_id;
+            $coupon_id = $temp5;
+        }
+
+        
 
 
         
@@ -439,7 +447,7 @@ class Api extends REST_Controller
             $price_override = $temp4;
         }
 
-        //price override needs zapier allow multiples before removing this
+        
 
           //remove above for zapier
         */
@@ -499,12 +507,13 @@ class Api extends REST_Controller
 
           $company_id = $this->CustomerModel->getCompanyForCustomer($customer_id);
           //$company_id = $company_id[0]->company_id;
+          $custData = $this->Customer_model->getOneCustomer(['customer_id' => $customer_id]);
           
             $propArray = array();
             $prop = new stdClass;     
             $prop->property_id = $property_id;
             $prop->customer_id =  $customer_id;
-            // $prop->customer_email = ;
+            $prop->customer_email = $custData->email;
 
             $propArray[] = $prop;
 
@@ -940,10 +949,9 @@ class Api extends REST_Controller
               //instead get program ids and jobs ids for this estimate
               //
               
-              //$estimate_response = print_r($estimate_response['estimate_id'], true);  
-              $this->Estimate_model->CreateEstimatePrograms($program_ids_for_join_table,$estimate_response, $job_ids_for_program_join);
-              //$this->EstimateModal->CreateEstimateJobs($listarray->services,$estimate_response['estimate_id']);
-              //array_push($return_messages, $message);
+              
+             $this->Estimate_model->CreateEstimatePrograms($program_ids_for_join_table,$estimate_response, $job_ids_for_program_join);
+             
             
            
         }
@@ -1262,32 +1270,11 @@ class Api extends REST_Controller
                       }
                   }
                    
-              }
+              }    
               
-              if($bulk_call) {
-                  if(is_object($response_object) && $response_object->status != "Created" && (isset($response_object->message) && $response_object->message != "")) {
-                     
-                      return $estimate_id;
-                   }else{
-                    return $estimate_id;
-                   }
-              } else {
-                  if(is_object($response_object) && $response_object->status != "Created" && (isset($response_object->message) && $response_object->message != "")) {
-                    return $estimate_id;
-                  } else {
-                    return $estimate_id;
-                  }
-              }
+          } 
 
-              
-          } else {
-              if($bulk_call) {
-                    return $estimate_id;     
-                } else {
-                    return $estimate_id;
-              }
-          }            
-        
+          return $estimate_id;
         
       }
       
@@ -2532,11 +2519,13 @@ public function assignprogramfromzapier_post(){
 
       public function tagGet_post(){
        $tag_name = !empty($this->post('tag_name',true)) ? $this->post('tag_name',true) : "";
-
-       $where =  ['company_id' => $this->user->company_id];
-
+       
        if($tag_name){
-        $where =  ['tags_title' => $tag_name];
+        $where = array(
+            'company_id' => $this->user->company_id,
+            'tags_title' => $tag_name
+        );
+
        }
 
        $taglist = $this->AdminTbl_property_model->getTagsListZap($where);
@@ -2548,10 +2537,10 @@ public function assignprogramfromzapier_post(){
        
        
        // Check if the user data exists
-        if(!empty($resultsArray && $this->user)){
+        if(!empty($taglist && $this->user)){
             // Set the response and exit
             //OK (200) being the HTTP response code
-            $this->response($resultsArray, REST_Controller::HTTP_OK);
+            $this->response($taglist, REST_Controller::HTTP_OK);
         }else{
             // Set the response and exit
             //NOT_FOUND (404) being the HTTP response code

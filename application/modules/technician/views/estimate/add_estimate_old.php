@@ -792,7 +792,7 @@
                             <label>Property Status</label>
                             <select class="form-control" name="property_status">
                                 <option value="">Select Any Status</option>
-                                <option value="1">Active</option>
+                                <option value="1" selected>Active</option>
                                 <option value="0">Non-Active</option>
                               </select>                    
                           </div>

@@ -1602,92 +1602,84 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 </div>
             </div>
         </div>
+      </div>
     </div>
+
+    <?php if ( !empty($setting_details->tech_add_standalone_service) && $setting_details->tech_add_standalone_service == 1 &&
+    isset($job_assign_details[0]['job_name']) && $job_assign_details[0]['job_name'] != 'Sales Visit' ) { ?>
+<!---- START, COMPLETE, SKIP, ADD SERVICE BUTTONS --->
+	 <div class="row">
+		 <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
+			 <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					 <button id='startTime' class="btn btn-technician btn-start-time" >Start Service</button>
+					</div>
+			  </div>
+			  <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					   <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
+             <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#<?= ($is_tech_customer_note_required == 1) ? 'modal_required_customer_note' : 'modal_mixture_application'; ?>"   >Complete Service </button>
+				  </div>
+			  </div>
+			  <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>
+					</div>
+			  </div>
+			  <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					  <button id='addjob' class="btn btn-technician btn-addservice" data-toggle="modal" data-target="#modal_add_service" >Add Service</button>
+
+					</div>
+			  </div>
+		  </div>
+	 </div>
+
+     <?php } else if(isset($job_assign_details[0]['job_name']) && $job_assign_details[0]['job_name'] != 'Sales Visit' ) { ?>
+        <div class="row">
+		 <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
+			 <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					 <button id='startTime' class="btn btn-technician btn-start-time" >Start Service</button>
+					</div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					   <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
+             <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#<?= ($is_tech_customer_note_required == 1) ? 'modal_required_customer_note' : 'modal_mixture_application'; ?>"   >Complete Service </button>
+				  </div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>
+					</div>
+			  </div>
+		  </div>
+	 </div>
+	<?php } else { ?>
+	<div class="row">
+		 <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
+			 <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					 <button id='startTimeSales' class="btn btn-technician btn-start-time" >Start Service</button>
+					</div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					   <button disabled=""  id='completejobsales' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_sales_visit"   >Complete Service </button>
+				  </div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>
+					</div>
+			  </div>
+		  </div>
+	 </div>
+	<?php } ?>
 </div>
 
-<?php if (!empty($setting_details->tech_add_standalone_service) && $setting_details->tech_add_standalone_service == 1 &&
-    isset($job_assign_details[0]['job_name']) && $job_assign_details[0]['job_name'] != 'Sales Visit') { ?>
-    <!---- START, COMPLETE, SKIP, ADD SERVICE BUTTONS --->
-    <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
-            <div class="col-lg-3 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <button id='startTime' class="btn btn-technician btn-start-time">Start Service</button>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
-                    <button disabled="" id='completejob' class="btn btn-technician btn-complete" data-toggle="modal"
-                            data-target="#<?= ($is_tech_customer_note_required == 1) ? 'modal_required_customer_note' : 'modal_mixture_application'; ?>">
-                        Complete Service
-                    </button>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"
-                       id='reschedulejob'>Skip Service/Reschedule</a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <button id='addjob' class="btn btn-technician btn-addservice" data-toggle="modal"
-                            data-target="#modal_add_service">Add Service
-                    </button>
 
-                </div>
-            </div>
-        </div>
-    </div>
-<?php } else if (isset($job_assign_details[0]['job_name']) && $job_assign_details[0]['job_name'] != 'Sales Visit') { ?>
-    <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
-            <div class="col-lg-4 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <button id='startTime' class="btn btn-technician btn-start-time">Start Service</button>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
-                    <button disabled="" id='completejob' class="btn btn-technician btn-complete" data-toggle="modal"
-                            data-target="#<?= ($is_tech_customer_note_required == 1) ? 'modal_required_customer_note' : 'modal_mixture_application'; ?>">
-                        Complete Service
-                    </button>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-3 col-sm-12">           
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule" id='reschedulejob' >Skip Service/Reschedule</a>      
-                </div>          
-            </div>
-        </div>
-    </div>
-<?php } else { ?>
-    <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
-            <div class="col-lg-4 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <button id='startTimeSales' class="btn btn-technician btn-start-time">Start Service</button>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-3 col-sm-12">
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <button disabled="" id='completejobsales' class="btn btn-technician btn-complete"
-                            data-toggle="modal" data-target="#modal_sales_visit">Complete Service
-                    </button>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-3 col-sm-12">           
-                <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                <a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>      
-                </div>          
-            </div>
-        </div>
-    </div>
-<?php } ?>
-</div>
 
 
 <!--- COMPLETE JOB FORM --->
@@ -1727,9 +1719,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 <div class="modal-body">
                     <h5 class="text-semibold">How much mixture was used?</h5>
 
-                    <?php foreach ($services
-
-                    as $service){
+                    <?php foreach ($services as $service) {
                     ?>
                     <h6 class="text-semibold"><?= $service['job_details']->job_name ?></h6>
                     <div class="form-group">
@@ -1842,7 +1832,8 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                     </div>
 
                     <?php }  else { ?>
-                    <p>Products are not available</p></div>
+                    <p>Products are not available</p>
+                </div>
         </div>
         <?php } ?>
 
@@ -1915,510 +1906,30 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
             <button type="button" class="btn btn-link" data-dismiss="modal" id="cancel_completejobform">Close</button>
             <button type="submit" class="btn btn-primary" id="job_assign_bt">Continue</button>
         </div>
+        </form>
     </div>
-    </form>
 </div>
 </div>
 </div>
 <!---- END COMPLETE JOB MODAL ---->
-<!--- COMPLETE JOB FORM Sales --->
-<div id="modal_sales_visit" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Complete Service</h6>
-            </div>
-            <form action="<?= base_url('technician/completeJobMultiple/') . $tech_assign_ids ?>"
-                  name="completejobformsales" method="post">
-                <input type="hidden" name="prog_price" id="prog_price"
-                       value=<?= $job_assign_details[0]['program_price'] ?>>
-                <?php if (isset($job_assign_details[0]['basys_autocharge']) && $job_assign_details[0]['basys_autocharge'] == 1) { ?>
-                    <input type="hidden" name="basys_autocharge" id="basys_autocharge" value=1>
-                <?php } else { ?>
-                    <input type="hidden" name="basys_autocharge" id="basys_autocharge" value=0>
-                <?php } ?>
-                <?php if (!empty($job_assign_details[0]['email']) && $job_assign_details[0]['is_email'] == 1) { ?>
-                    <input type="hidden" name="customer_email" id="customer_email" value=1>
-                <?php } elseif (!empty($job_assign_details[0]['secondary_email']) && $job_assign_details[0]['is_email'] == 1) { ?>
-                    <input type="hidden" name="customer_email" id="customer_email" value=1>
-                <?php } else { ?>
-                    <input type="hidden" name="customer_email" id="customer_email" value=0>
-                <?php } ?>
-                <div class="modal-body">
 
+<?= $this->load->view('partials/sales_visit_modal') ?>
 
-                    <?php
-                    if ($job_assign_details[0]['is_email'] == 1) { ?>
+<?= $this->load->view('partials/reschedule_modal') ?>
 
-                        <h6 class="text-semibold">Type a message to the customer below to be included with the Service
-                            completion email.</h6>
+<?= $this->load->view('partials/add_service_modal') ?>
 
-                        <div class="form-group">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <textarea class="form-control" name="message"></textarea>
-                                </div>
+<?= $this->load->view('partials/required_customer_note_modal') ?>
 
-                            </div>
-                        </div>
-                    <?php } else { ?>
-                        <input type="hidden" name="message">
-                    <?php } ?>
+<?= $this->load->view('partials/file_display_modal') ?>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="job_assign_bt">Continue</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!---- END COMPLETE JOB MODAL Sales ---->
-<!--- Reschedule FORM  --->
-<div id="modal_reschedule" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Reschedule</h6>
-            </div>
-            <form action="<?= base_url('technician/rescheduleJobMultiple/') . $tech_assign_ids ?>"
-                  name="reschedulejobform" method="post">
+<?= $this->load->view('partials/clover_payment_method_modal') ?>
 
-                <input type="hidden" name="prog_price" id="prog_price"
-                       value=<?= $job_assign_details[0]['program_price'] ?>>
+<?= $this->load->view('partials/basys_payment_method_modal') ?>
 
-                <div class="modal-body">
+<?= $this->load->view('partials/clover_update_payment_modal') ?>
 
-
-                    <?php
-                    if ($job_assign_details[0]['is_email'] == 1) { ?>
-
-                        <h6 class="text-semibold">Reschedule Reason</h6>
-
-                        <div class="form-group">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <select class="form-control" name="reason_id" id="reason_id" required>
-                                        <option value="">Select Any Reason</option>
-                                        <?php
-
-                                        if (isset($reschedule_reasons)) {
-                                            foreach ($reschedule_reasons as $value) { ?>
-                                                <option
-                                                    value="<?= $value->reschedule_id . '/' . $value->reschedule_name ?>"><?= $value->reschedule_name ?></option>
-                                            <?php }
-                                        } ?>
-                                        <option value="-1">Other</option>
-                                    </select>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="form-group" id="reschedule_reason_other" hidden>
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <label for="reason_other">Add more details</label>
-                                    <input type="text" class="form-control" name="reason_other" id="reason_other">
-
-                                </div>
-
-                            </div>
-                        </div>
-                    <?php } else { ?>
-                        <input type="hidden" name="other">
-                    <?php } ?>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" id="reschedule_bt">Reschedule</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!---- Reschedule FORM ---->
-<!---  Add Service Modal --->
-<div id="modal_add_service" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Add Service</h6>
-            </div>
-
-            <form name="addService" method="post" enctype="multipart/form-data">
-
-                <div class="modal-body">
-
-
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <label class="radio-inline">
-                                    <input name="add_to" value="today" type="radio" checked="checked" id="addToToday">Add
-                                    to Today's Stop
-                                </label>
-                            </div>
-                            <div class="col-lg-4">
-                                <label class="radio-inline">
-                                    <input name="add_to" value="future" type="radio" id="addToFuture">Schedule in Future
-                                </label>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label>Add Service</label>
-
-                                <select class="form-control" name="job_id" id="selected_job_id" required>
-                                    <option value="">Select Any Service</option>
-                                    <?php if ($allservicelist) {
-                                        foreach ($allservicelist as $value) { ?>
-                                            <option value="<?= $value->job_id ?>"><?= $value->job_name ?></option>
-                                        <?php }
-                                    } ?>
-                                </select>
-                                <input type="hidden" name="add_service_property_id"
-                                       value="<?= $property_details->property_id; ?>">
-                                <input type="hidden" name="add_service_technician_id"
-                                       value="<?= $job_assign_details[0]['technician_id']; ?>">
-                                <input type="hidden" name="add_service_route_id"
-                                       value="<?= $job_assign_details[0]['route_id']; ?>">
-                                <input type="hidden" name="add_service_customer_id"
-                                       value="<?= $job_assign_details[0]['customer_id']; ?>">
-
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label>Pricing</label>
-                                <select class="form-control" name="program_price" id="add_service_program_price"
-                                        required>
-                                    <option value="">Select Any Pricing</option>
-                                    <option value=1>One-Time Service Invoicing</option>
-                                    <option value=2>Invoiced at Service Completion</option>
-                                    <option value=3>Manual Billing</option>
-                                </select>
-
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label>Price Override</label>
-                                <input type="number" class="form-control" min=0 name="add_job_price_override" value=""
-                                       placeholder="(Optional) Enter Price Override Here">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button type="submit" id="addServiceSubmit" class="btn btn-success">Save</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Required Customer Notes Modal Start -->
-<div id="modal_required_customer_note" class="modal fade" data-backdrop="static">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <!-- <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;"> -->
-            <div class="modal-header bg-warning">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Complete Service</h6>
-            </div>
-
-            <form name="form_required_customer_note" method="post" enctype="multipart/form-data"
-                  id="form_required_customer_note" onsubmit="formFileSizeValidate(this)">
-                <div class="modal-body">
-                    <h6 class="text-semibold">Please Submit a Customer Completion Note.</h6>
-                    <hr>
-
-                    <div class="row">
-                        <div class="form-group">
-                            <label for="customer_note_saw">What I Saw:</label><br>
-                            <input type="text" class="form-control" id="customer_note_saw" name="customer_note_saw"
-                                   required>
-                        </div>
-                        <div class="form-group">
-                            <label for="customer_note_did">What I Did:</label><br>
-                            <input type="text" class="form-control" id="customer_note_did" name="customer_note_did"
-                                   required>
-                        </div>
-                        <div class="form-group">
-                            <label for="customer_note_expect">What To Expect:</label><br>
-                            <input type="text" class="form-control" id="customer_note_expect"
-                                   name="customer_note_expect" required>
-                            <input type="hidden" id="note_property_id" name="note_property_id"
-                                   value="<?= $property_details->property_id; ?>">
-                            <input type="hidden" name="note_customer_id"
-                                   value="<?= $job_assign_details[0]['customer_id']; ?>">
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label">Attach Documents/Images</label>
-                            <input id="files" type="file" name="files[]" class="form-control-file" multiple
-                                   onchange="fileValidationCheck(this)">
-                            <span style="color:red;"><?php echo form_error('files'); ?></span>
-                        </div>
-                    </div>
-
-                    <hr>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-link" data-dismiss="modal"
-                                id="cancel_required_customer_note">Close
-                        </button>
-                        <button type="submit" class="btn btn-primary" id="submit_required_customer_note">Continue
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-        </div>
-    </div>
-</div>
-<!-- Required Customer Notes Modal End -->
-
-<!-- Files Modal -->
-<div id="file-display-modal" class="modal fade" data-backdrop="">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <!-- <h6 class="modal-title">Complete Service</h6> -->
-            </div>
-            <div class="modal-body">
-                <img class="modal-content" id="modal-file-image">
-                <div id="caption"></div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- clover create payment modal -->
-<div id="clover_payment_method" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Add Payment Method</h6>
-            </div>
-
-            <form name="add_clover_payment" id="add_clover_payment" method="POST" enctype="multipart/form-data"
-                  form_ajax="ajax">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-9">
-                                <label>Card Number</label>
-                                <input type="text" class="form-control" name="clover_card_number"
-                                       placeholder="Card Number"
-                                       required>
-                            </div>
-                            <div class="col-sm-6 col-md-3" width="50%">
-                                <label>Expiration Month</label>
-                                <select class="form-control" name="clover_card_exp_m"
-                                        required>
-                                    <option value="">Select Month</option>
-                                    <option value="1">January</option>
-                                    <option value="2">February</option>
-                                    <option value="3">March</option>
-                                    <option value="4">April</option>
-                                    <option value="5">May</option>
-                                    <option value="6">June</option>
-                                    <option value="7">July</option>
-                                    <option value="8">August</option>
-                                    <option value="9">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <label>Expiration Year</label>
-                                <select class="form-control" name="clover_card_exp_y"
-                                        required>
-                                    <option value="">Select Year</option>
-                                    <?php $cur_year = date('Y');
-                                    for ($i = 0; $i <= 10; $i++) { ?>
-                                        <option
-                                            value="<?php echo $cur_year + $i; ?>"><?php echo $cur_year + $i; ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <label>CVV</label>
-                                <input type="text" class="form-control number-only" name="clover_card_cvv"
-                                       placeholder="CVV"
-                                       maxlength="4" pattern="\d{4}"
-                                       required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button type="submit" id="submitCloverPaymentMethod" class="btn btn-success"
-                                data-customer="<?php echo $customerData['customer_id']; ?>">Save
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- /clover create payment modal -->
-
-<!-- basys create payment modal -->
-<div id="basys_payment_method" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary modal_head">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Add Payment Method</h6>
-            </div>
-
-            <form name="add_basys_payment" id="add_basys_payment" method="POST" enctype="multipart/form-data"
-                  form_ajax="ajax">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-9">
-                                <label>Card Number</label>
-                                <input type="text" class="form-control" name="card_number" placeholder="Card Number"
-                                       required>
-                            </div>
-                            <div class="col-sm-12 col-md-3">
-                                <label>Card Exp</label>
-                                <input type="text" class="form-control" name="card_exp" placeholder="MM/YY" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button type="submit" id="submitPaymentMethod" class="btn btn-success"
-                                data-customer="<?= $customerData['customer_id'] ?>">Save
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- /basys create payment modal -->
-
-<div id="clover_update_payment" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Update Payment Method</h6>
-            </div>
-
-            <form name="update_clover_payment" id="update_clover_payment" method="POST" enctype="multipart/form-data"
-                  form_ajax="ajax">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-9">
-                                <label>Card Number</label>
-                                <input type="text" class="form-control" name="clover_card_number"
-                                       placeholder="Card Number"
-                                       required>
-                            </div>
-                            <div class="col-sm-3 col-md-3" width="50%">
-                                <label>Expiration Month</label>
-                                <select class="form-control" name="clover_card_exp_m"
-                                        required>
-                                    <option value="">Select Month</option>
-                                    <option value="1">January</option>
-                                    <option value="2">February</option>
-                                    <option value="3">March</option>
-                                    <option value="4">April</option>
-                                    <option value="5">May</option>
-                                    <option value="6">June</option>
-                                    <option value="7">July</option>
-                                    <option value="8">August</option>
-                                    <option value="9">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-3 col-md-3">
-                                <label>Expiration Year</label>
-                                <select class="form-control" name="clover_card_exp_y"
-                                        required>
-                                    <option value="">Select Year</option>
-                                    <?php $cur_year = date('Y');
-                                    for ($i = 0; $i <= 10; $i++) { ?>
-                                        <option
-                                            value="<?php echo $cur_year + $i; ?>"><?php echo $cur_year + $i; ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                            <div class="col-sm-6 col-md-3">
-                                <label>CVV</label>
-                                <input type="text" class="form-control number-only" name="clover_card_cvv"
-                                       placeholder="CVV"
-                                       maxlength="4" pattern="\d{4}"
-                                       required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button type="submit" id="submitCloverUpdatePayment" class="btn btn-success"
-                                data-customer="<?= $customerData['customer_id'] ?>">Save
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- /clover update payment modal -->
-
-<!-- basys update payment modal -->
-<div id="modal_update_payment" class="modal fade">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary modal_head">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h6 class="modal-title">Update Payment Method</h6>
-            </div>
-
-            <form name="update_basys_payment" id="update_basys_payment" method="POST" enctype="multipart/form-data"
-                  form_ajax="ajax">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-9">
-                                <label>Card Number</label>
-                                <input type="text" class="form-control" name="card_number" placeholder="Card Number"
-                                       required>
-                            </div>
-                            <div class="col-sm-12 col-md-3">
-                                <label>Card Exp</label>
-                                <input type="text" class="form-control" name="card_exp" placeholder="MM/YY" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                        <button type="submit" id="submitUpdatePayment" class="btn btn-success"
-                                data-customer="<?= $customerData['customer_id'] ?>">Save
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- /basys payment modal -->
+<?= $this->load->view('partials/update_payment_modal') ?>
 
 
 <script type="text/javascript"
@@ -2458,6 +1969,15 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
             $('#reason_other').attributes["required"] = "";
         }
     });
+
+    $('[name="add_to"]').on('click', function (e) {
+        if ($(this).val() === "hold_until") {
+            $('#hold_date_for_future_service').show();
+        } else {
+            $('#hold_date_for_future_service').hide();
+        }
+    });
+
     $('#form_required_customer_note').on('submit', function (e) {
         e.preventDefault();
         let form = $('#form_required_customer_note')[0];
@@ -3094,6 +2614,26 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
         var tech_id = $('input[name="add_service_technician_id"]').val();
         var customerId = $('input[name="add_service_customer_id"]').val();
         var routeId = $('input[name="add_service_route_id"]').val();
+        var holdUntilDate = $('input[name="add_service_hold_until_date"]').val();
+        $('#add_service_program_price').parent().children('.error').remove();
+        $('#selected_job_id').parent().children('.error').remove();
+
+        if (programPrice == '')
+        {
+            var error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+            var el = $('#add_service_program_price').parent().append(error_label);
+        }
+
+        if (serviceId == '')
+        {
+            var error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+            var el = $('#selected_job_id').parent().append(error_label);
+        }
+
+        if (programPrice == '' || serviceId == '')
+        {
+            return;
+        }
 
         if (priceOverride == '') {
             var price_override_set = 0;
@@ -3101,9 +2641,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
             var price_override_set = 1;
         }
 
-        //console.log(when);
-
-        if (when == 'today') {
+        if (when === 'today') {
             var post = [];
             var property = {
                 service_id: serviceId,
@@ -3123,24 +2661,16 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 type: 'POST',
                 url: "<?=base_url('technician/addJobToPropertyToday')?>",
                 data: {post},
-                dataType: "JSON",
-                success: function (data) {
-
-
-                }
-
+                dataType: "JSON"
             }).done(function (data) {
                 $('#modal_add_service').modal('hide');
                 if (data.status == "success") {
-
                     swal(
                         'Success!',
                         'Service Added Successfully',
                         'success'
                     )
                     location.reload();
-
-
                 } else {
                     swal({
                         type: 'error',
@@ -3149,7 +2679,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                     })
                 }
             });
-        } else if (when == 'future') {
+        } else {
             var post = [];
             var property = {
                 service_id: serviceId,
@@ -3157,7 +2687,8 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 program_name: programName,
                 program_price: programPrice,
                 price_override: priceOverride,
-                is_price_override_set: price_override_set
+                is_price_override_set: price_override_set,
+                hold_until_date: holdUntilDate,
             }
             post.push(property);
 
@@ -3167,22 +2698,14 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 url: "<?=base_url('technician/addJobToPropertyFuture')?>",
                 data: {post},
                 dataType: "JSON",
-                success: function (data) {
-
-
-                }
-
             }).done(function (data) {
                 $('#modal_add_service').modal('hide');
                 if (data.status == "success") {
-
                     swal(
                         'Success!',
                         'Service Added Successfully',
                         'success'
                     )
-
-
                 } else {
                     swal({
                         type: 'error',
@@ -3193,7 +2716,6 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
             });
 
         }
-
     });
 
     function removePropertyCondition(property_condition_assign_id) {

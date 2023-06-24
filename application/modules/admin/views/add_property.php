@@ -521,13 +521,13 @@ span.requesecolo {
 					<div class="col-lg-9">
 					  <select class="form-control" name="property_status" id="prospect_status" onchange="showDiv('hidden_source', this)">
 						<option value="" >Select Any Status</option>
-						<option value="2" <?= (set_value('property_status') == 2)?'selected': '';?>>Prospect</option>
-						<option value="1" <?= (set_value('property_status') == 1)?'selected': '';?>>Active</option>
-						<option value="0" <?= (set_value('property_status') == 0)?'selected': '';?>>Non-Active</option>
-                        <option value="3" <?= (set_value('property_status') == 3)?'selected': '';?>>Estimate</option>
-                		<option value="4" <?= (set_value('property_status') == 4)?'selected': '';?>>Sales Call Scheduled</option>
-                		<option value="5" <?= (set_value('property_status') == 5)?'selected': '';?>>Estimate Sent</option>
-                		<option value="6" <?= (set_value('property_status') == 6)?'selected': '';?>>Estimate Declined</option>
+						<option value="2" <?= (set_value('property_status', 1) == 2)?'selected': '';?>>Prospect</option>
+						<option value="1" <?= (set_value('property_status', 1) == 1)?'selected': '';?>>Active</option>
+						<option value="0" <?= (set_value('property_status', 1) == 0)?'selected': '';?>>Non-Active</option>
+                        <option value="3" <?= (set_value('property_status', 1) == 3)?'selected': '';?>>Estimate</option>
+                		<option value="4" <?= (set_value('property_status', 1) == 4)?'selected': '';?>>Sales Call Scheduled</option>
+                		<option value="5" <?= (set_value('property_status', 1) == 5)?'selected': '';?>>Estimate Sent</option>
+                		<option value="6" <?= (set_value('property_status', 1) == 6)?'selected': '';?>>Estimate Declined</option>
 					  </select>
 					</div>
 				  </div>

@@ -47,7 +47,33 @@
                 <div class="col-md-3 col-sm-3 col-12">
                     <div class="service-bols">
                         <h3 class="ser-head">On hold customers </h3>
-                        <p class="text-danger ser-num"><?= getHold_Customer_Couts() ?></p>
+                        <p class="text-danger ser-num"><?= $hold_customer ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="row cx-dt">
+                <div class="col-md-3 col-sm-3 col-12">
+                    <div class="service-bols">
+                        <h3 class="ser-head">Prospect </h3>
+                        <p class="text-success ser-num"><?= $prospect ?></p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-12">
+                    <div class=" service-bols">
+                        <h3 class="ser-head">Sales Call Scheduled </h3>
+                        <p class="text-success ser-num "><?= $sales_call_scheduled ?></p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-12">
+                    <div class="service-bols">
+                        <h3 class="ser-head">Estimate Sent</h3>
+                        <p class=" ser-num text-success"><?= $estimate_sent ?></p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3 col-12">
+                    <div class="service-bols">
+                        <h3 class="ser-head">Estimate Declined</h3>
+                        <p class="text-danger ser-num"><?= $estimate_declined ?></p>
                     </div>
                 </div>
             </div>

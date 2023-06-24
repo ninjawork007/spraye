@@ -319,7 +319,6 @@
                                  <td id="technician_name_filter">TECH NAME</td>
                                  <td id="technician_last_name_filter">TECH LAST NAME</td>
                                  <!-- <td id="route_id_filter">ROUTE ID</td> -->
-                                 <td< /td>
                                     <td id="route_name_filter">ROUTE NAME</td>
                                     <td></td>
                                     <td></td>
@@ -328,7 +327,6 @@
                                     <td id="property_type_filter">PROPERTY TYPE</td>
                                     <td id="notify_filter">NOTIFY CUSTOMER</td>
                                     <td></td>
-
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -688,19 +686,19 @@
             {"data": "technician_job_assign_id", "name":"Technician Job Assign ID", "searchable":true, "orderable": true },
             {"data": "tech_name", "name":"Technician", "searchable":true, "orderable": true },
             //   {"data": "tech_name", "name":"Technician Last Name", "searchable":true, "orderable": true },
-            {"data": "route_id", "name":"Route ID", "searchable":true, "orderable": true },
-            {"data": "route_name", "name":"Route Name", "orderable": true },
-            {"data": "yard_square_feet", "name":"Square Feet", "orderable": true },
-            {"data": "job_assign_date", "name":"Job Assign Date", "orderable": true },
-            {"data": "property_title", "name":"Property Name", "orderable": true },
-            {"data": "property_address", "name":"Address", "searchable":true, "orderable": true },
-            {"data": "property_type", "name":"Property Type", "orderable": true },
-            {"data": "pre_service_notification", "name":"Notify Customer", "orderable": true, "searchable": true },
-            {"data": "property_notes", "name":"Property Notes", "orderable": true },
-            {"data": "front_yard_grass", "name":"Front Yard Grass", "orderable": true },
-            {"data": "front_yard_square_ft", "name":"Square Ft.", "orderable": true},
-            {"data": "back_yard_grass", "name":"Back Yard Grass", "orderable": true},
-            {"data": "back_yard_square_ft", "name":"Square Ft.", "orderable": true},
+            { "data": "route_id", "name": "Route ID", "searchable": true, "orderable": true },
+            { "data": "route_name", "name": "Route Name", "orderable": true },
+            { "data": "yard_square_feet", "name": "Square Feet", "orderable": true },
+            { "data": "job_assign_date", "name": "Job Assign Date", "orderable": true },
+            { "data": "property_title", "name": "Property Name", "orderable": true },
+            { "data": "property_address", "name": "Address", "searchable": true, "orderable": true },
+            { "data": "property_type", "name": "Property Type", "orderable": true },
+            { "data": "pre_service_notification", "name": "Notify Customer", "orderable": true, "searchable": true },
+            { "data": "property_notes", "name": "Property Notes", "orderable": true },
+            { "data": "front_yard_grass", "name": "Front Yard Grass", "orderable": true },
+            { "data": "front_yard_square_feet", "name": "Square Ft.", "orderable": true },
+            { "data": "back_yard_grass", "name": "Back Yard Grass", "orderable": true },
+            { "data": "back_yard_square_feet", "name": "Square Ft.", "orderable": true },
             // {"data": "action", "name":"Action", "orderable": false}
          ],
          language: {

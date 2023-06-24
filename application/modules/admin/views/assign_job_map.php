@@ -405,6 +405,14 @@
                                                     <input placeholder="" id="totalSqFt" type="text"  size="15">
                                                 </div>
                                             </div>
+                                            <div class="row">
+                                                <div class="col-md-3" style="text-align:right;">
+                                                    <label for="appllicationCost">Application Cost</label>
+                                                </div>
+                                                <div class="col-md-3" style="text-align:right;">
+                                                    <input placeholder="" id="totalApplicationCost" type="text"  size="15">
+                                                </div>
+                                            </div>
                                         
                                     </div>
                                     <button type="submit" disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage" style="margin-left:15px;">
@@ -528,6 +536,7 @@
                                                     <th>Tags</th>
                                                     <th>ASAP Reason</th>
                                                     <th>Available Days</th>
+                                                    <th>Hold Until Date</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -582,7 +591,7 @@
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
                 <h6 class="modal-title">Assign Service to Technician</h6>
             </div>
-            <form action="<?= base_url('admin/tecnicianJobAssign') ?>" name="tecnicianjobassign" method="post">
+            <form action="<?= base_url('admin/tecnicianJobAssign') ?>" name="tecnicianjobassign" method="post" id="formTechnicianJobAssign">
                 <div class="modal-body">
                     <div class="form-group">
                         <div class="row">
@@ -713,7 +722,7 @@
 
                                         <div class="property-type-filter">                   
                                             <label>Property Type</label>
-                                            <input type="text" id = "ptfilter" name = "ptfilter" class="form-control dtatableInput" placeholder="PROPERTY TYPE">
+                                            <input type="text" id = "propertyTypefilter" name = "propertyTypefilter" class="form-control dtatableInput" placeholder="PROPERTY TYPE">
                                         </div>
 
                                         <div class="service-name-filter">                   
@@ -967,6 +976,7 @@
 
 	   $('#totalSqFt').val(sqftTotal);
 
+      let costTotal = 0;
       let applicationSqft = 0;
       let tmpAddressArray = [];
       $('#unassigntbl tbody input:checked').each(function() {
@@ -975,10 +985,16 @@
             tmpAddressArray.push(currentAddress);
             applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
          }
+
+          let cost = $(this).data('cost');
+          if (cost)
+              costTotal = costTotal + parseFloat(cost);
          //console.log(applicationSqft);
          //console.log(tmpAddressArray);
       });
       $('#applicationSqFt').val(applicationSqft);
+
+       $('#totalApplicationCost').val(costTotal.toFixed(2));
 
    });
 
@@ -994,6 +1010,15 @@
             $('#allMessage').prop('disabled', false);
             $('#multiple-delete-id,#multiple-restore-id').prop('disabled', false);
         }
+        var costTotal = 0;
+        $('#unassigntbl tbody input:checked').each(function() { //iterate all listed checkbox items
+            if ($(this).is(':checked')) {
+                let cost = $(this).data('cost');
+                if (cost)
+                    costTotal = costTotal + parseFloat(cost);
+            }
+        });
+        $('#totalApplicationCost').val(costTotal.toFixed(2));
     });
 </script>
 
@@ -1179,6 +1204,17 @@
         //     allowClear: true,
         //     placeholder: "-- DUE",
         // });
+        $("#formTechnicianJobAssign").submit(function(event) {
+            let technicianName = $("#technician_id option:selected").text();
+            Swal.fire({
+                title: 'Please Wait !',
+                html: 'Assigning all selected jobs to '+technicianName+'. It may take a while...',// add html attribute if you want or remove
+                allowOutsideClick: false,
+                onBeforeOpen: () => {
+                    Swal.showLoading()
+                },
+            });
+        });
         $(".service-due-filter").find(".btn-group").css("width", "100%");
         function getRowNum() {
             let e = new Error();
@@ -1985,6 +2021,11 @@
                             "orderable": false
                         },
                         {
+                            "data": "hold_until_date",
+                            "name":"Hold Until Date",
+                            "orderable": true
+                        },
+                        {
                             "data": "action",
                             "name": "Action",
                             "searchable": false,
@@ -2175,7 +2216,7 @@
                         //Get property type input value
                         if (sessionStorage.getItem("prop_type_input")) {
                         //console.log(sessionStorage.getItem("prop_type_input"));
-                        document.getElementById("ptfilter").value = sessionStorage.getItem("prop_type_input");
+                        document.getElementById("propertyTypefilter").value = sessionStorage.getItem("prop_type_input");
                         }
 
                         //Get service area input value
@@ -2331,11 +2372,11 @@
 
 
                         // Connect the filter inputs to filter data
-                        $('#ptfilter').on('blur', function() { // PROPERTY TYPE
+                        $('#propertyTypefilter').on('blur', function() { // PROPERTY TYPE
                             //var filter_input_val = this.querySelector('input').value;
                             var filter_input_val = $(this).val();
                             sessionStorage.setItem("prop_type_input", filter_input_val);
-                            table.columns(11).search(filter_input_val).draw();
+                            table.columns(12).search(filter_input_val).draw();
                             $("#update-map-note").remove();
                             if (!$('input[name=changeview]').is(':checked')) {
                                 if (!$("#update-map-note").length > 0) {
@@ -2387,6 +2428,7 @@
                             sessionStorage.setItem("serv_multi_filter_input", filter_input_val);
                             $('#applicationSqFt').val('');
                             $('#totalSqFt').val('');
+                            $('#totalApplicationCost').val('');
                             let multi_service_val = $(this).val();
                             
                             table.columns( 2 ).search( multi_service_val).draw();
@@ -2424,7 +2466,7 @@
                             sessionStorage.setItem("program_services_multi_filter", filter_input_val);
                             $('#applicationSqFt').val('');
                             $('#totalSqFt').val('');
-                            table.columns( 21 ).search( filter_input_val).draw();
+                            table.columns( 22 ).search( filter_input_val).draw();
                             $("#update-map-note").remove();
                             if (!$('input[name=changeview]').is(':checked')) {
                                 if (!$("#update-map-note").length > 0) {
@@ -2689,6 +2731,7 @@
             });
             $('#totalSqFt').val(sqftTotal);
 
+            var costTotal = 0;
             let applicationSqft = 0;
             let tmpAddressArray = [];
             $('#unassigntbl tbody input:checked').each(function() {
@@ -2697,10 +2740,16 @@
                     tmpAddressArray.push(currentAddress);
                     applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
                 }
+
+                let cost = $(this).data('cost');
+                if (cost)
+                    costTotal = costTotal + parseFloat(cost);
+
                 //console.log(applicationSqft);
                 //console.log(tmpAddressArray);
             });
             $('#applicationSqFt').val(applicationSqft);
+            $('#totalApplicationCost').val(costTotal.toFixed(2));
             
         
             if(this.checked == false){ //if this item is unchecked
@@ -2802,6 +2851,8 @@
 
                 // LF - shouldnt we get values of all checked checkboxes each time an event occurs and store
                 var checked_realvalue = [];
+                var costTotal = 0;
+
                 $('input:checkbox.map').each(function(index, element) {
                     ////console.log("REACHED INPUT CHECKBOX MAP");
                     if ($(this).is(":checked")) {
@@ -2811,11 +2862,17 @@
                         checked_realvalue.push(checked_value);
                         ////console.log('checked: '+ $(this).val());
 
+                        let cost = $(this).data('cost');
+                        if (cost)
+                            costTotal = costTotal + parseFloat(cost);
+
                     }
 
                 });
                 ////console.log('array of checked indexes = ' + checked_realvalue);
                 $('#checkbox_realvalues_array').val(checked_realvalue);
+
+                $('#totalApplicationCost').val(costTotal.toFixed(2));
 
                 /// END LF		 
                 position = $(this).val();
@@ -2901,6 +2958,7 @@
                 var sqftTotal = 0;
                 let applicationSqft = 0;
                 let tmpAddressArray = [];
+                var costTotal = 0;
                 $('.myCheckBox.map').each(function() { //iterate all listed checkbox items
                     // this.checked = status; //change ".checkbox" checked status
                     if ($(this).is(':checked')) {
@@ -2912,12 +2970,18 @@
                             applicationSqft += parseInt($(this).parent().parent().find('td').eq(6).html());
                         }
 
+                        let cost = $(this).data('cost');
+                        if (cost)
+                            costTotal = costTotal + parseFloat(cost);
+
                     }
                 });
 
                 $('#totalSqFt').val(sqftTotal);
 
                 $('#applicationSqFt').val(applicationSqft);
+
+                $('#totalApplicationCost').val(costTotal.toFixed(2));
 
 
                 //uncheck "select all", if one of the listed checkbox item is unchecked
@@ -2964,15 +3028,22 @@
                 unCheckAll();
             }
 
+            var costTotal = 0;
+
             var sqftTotal = 0;
             $('.myCheckBox.map').each(function() { //iterate all listed checkbox items
                 this.checked = status; //change ".checkbox" checked status
                 if ($(this).is(':checked')) {
 
                     sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
+                    let cost = $(this).data('cost');
+                    if (cost)
+                        costTotal = costTotal + parseFloat(cost);
 
                 }
             });
+
+            $('#totalApplicationCost').val(costTotal.toFixed(2));
 
             $('#totalSqFt').val(sqftTotal);
 

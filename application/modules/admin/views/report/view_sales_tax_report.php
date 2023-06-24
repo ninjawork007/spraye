@@ -193,8 +193,8 @@ function searchFilter() {
     var job_completed_date_to = $('#job_completed_date_to').val();
     }
     
-    console.log(job_completed_date_from);
-    console.log(job_completed_date_to);
+    //console.log(job_completed_date_from);
+    //console.log(job_completed_date_to);
     $('.loading').css("display", "block");
    $('#sales-tax-list').html('');
     $.ajax({

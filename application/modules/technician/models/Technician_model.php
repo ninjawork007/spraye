@@ -92,15 +92,39 @@ class Technician_model extends CI_Model
 
     public function getAllJobAssign($where_arr)
     {
-        $this->db->select("technician_job_assign.*, customers.*, jobs.*, programs.*, property_tbl.*, program_job_assigned_customer_property.program_job_assigned_customer_property_id, program_job_assigned_customer_property.reason ,TIME_FORMAT (`specific_time`,'%H:%i') as  specific_time");
+        $this->db->select("technician_job_assign.*, 
+                           customers.*, 
+                           jobs.*, 
+                           programs.*, 
+                           property_tbl.*, 
+                           program_job_assigned_customer_property_id, 
+                           program_job_assigned_customer_property.reason,
+                           IFNULL(program_job_assigned_customer_property.hold_until_date, technician_job_assign.job_assign_date) as job_assign_date,
+                           TIME_FORMAT (`specific_time`,'%H:%i') as  specific_time"
+        );
 
         $this->db->from(self::TJATBL);
         $this->db->join('customers', "customers.customer_id=technician_job_assign.customer_id", "inner");
         $this->db->join('jobs', "jobs.job_id=technician_job_assign.job_id", "inner");
         $this->db->join('programs', "programs.program_id=technician_job_assign.program_id", "inner");
         $this->db->join('property_tbl', "property_tbl.property_id=technician_job_assign.property_id", "inner");
-        $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
 
+        $this->db->join('program_job_assigned_customer_property',
+            'technician_job_assign.job_id = program_job_assigned_customer_property.job_id AND 
+            technician_job_assign.customer_id = program_job_assigned_customer_property.customer_id AND 
+            technician_job_assign.program_id = program_job_assigned_customer_property.program_id AND 
+            technician_job_assign.property_id = program_job_assigned_customer_property.property_id',
+            'left');
+
+        $this->db->or_group_start()
+            ->or_group_start()
+            ->where('job_assign_date', date("Y-m-d"))
+            ->where('hold_until_date IS NULL')
+            ->group_end()
+            ->or_group_start()
+            ->where('hold_until_date', date("Y-m-d"))
+            ->group_end()
+            ->group_end();
 
         $this->db->where($where_arr);
 
@@ -111,49 +135,6 @@ class Technician_model extends CI_Model
         $data = $result->result_array();
         return $data;
     }
-
-
-    //    public function getAllJobAssign($latitude,$longitude) {
-
-
-    //        $sql='SELECT *, 111.045 * DEGREES(ACOS(COS(RADIANS('.$latitude.'))
-    //            * COS(RADIANS(property_latitude))
-    //            * COS(RADIANS(property_longitude) - RADIANS('.$longitude.'))
-    //            + SIN(RADIANS('.$latitude.'))
-    //            * SIN(RADIANS(property_latitude))))
-    //            AS distance_in_km
-    //            FROM technician_job_assign INNER JOIN `customers` ON `customers`.`customer_id`=`technician_job_assign`.`customer_id` INNER JOIN `jobs` ON `jobs`.`job_id`=`technician_job_assign`.`job_id` INNER JOIN `programs` ON `programs`.`program_id`=`technician_job_assign`.`program_id` INNER JOIN `property_tbl` ON `property_tbl`.`property_id`=`technician_job_assign`.`property_id`
-    // where technician_job_assign.technician_id="'.$this->session->userdata['spraye_technician_login']->user_id.'" AND `job_assign_date` = "'.date("Y-m-d").'" AND `is_job_mode`=0
-    //            ORDER BY distance_in_km ASC';
-    //        $record=$this->db->query($sql);
-
-    //        if($record->num_rows()>0){
-    //            return $record->result();
-    //        }
-
-    //    }
-
-
-    //    public function getAllJobAssignArray($latitude,$longitude) {
-
-
-    //        $sql='SELECT *, 111.045 * DEGREES(ACOS(COS(RADIANS('.$latitude.'))
-    //            * COS(RADIANS(property_latitude))
-    //            * COS(RADIANS(property_longitude) - RADIANS('.$longitude.'))
-    //            + SIN(RADIANS('.$latitude.'))
-    //            * SIN(RADIANS(property_latitude))))
-    //            AS distance_in_km
-    //            FROM technician_job_assign INNER JOIN `customers` ON `customers`.`customer_id`=`technician_job_assign`.`customer_id` INNER JOIN `jobs` ON `jobs`.`job_id`=`technician_job_assign`.`job_id` INNER JOIN `programs` ON `programs`.`program_id`=`technician_job_assign`.`program_id` INNER JOIN `property_tbl` ON `property_tbl`.`property_id`=`technician_job_assign`.`property_id`
-    // where technician_job_assign.technician_id="'.$this->session->userdata['spraye_technician_login']->user_id.'" AND `job_assign_date` = "'.date("Y-m-d").'" AND `is_job_mode`=0
-    //            ORDER BY distance_in_km ASC';
-    //        $record=$this->db->query($sql);
-
-    //        if($record->num_rows()>0){
-    //            return $record->result_array();
-    //        }
-
-    //    }
-
 
     public function getAllJobAssignbyAjax($property_address)
     {
@@ -172,8 +153,6 @@ class Technician_model extends CI_Model
 
     public function getAllJobAssignCheck($where_arr)
     {
-
-
         $this->db->select('*');
 
         $this->db->from(self::TJATBL);
@@ -181,13 +160,26 @@ class Technician_model extends CI_Model
         $this->db->join('jobs', "jobs.job_id=technician_job_assign.job_id", "inner");
         $this->db->join('programs', "programs.program_id=technician_job_assign.program_id", "inner");
         $this->db->join('property_tbl', "property_tbl.property_id=technician_job_assign.property_id", "inner");
+        $this->db->join('program_job_assigned_customer_property',
+            'technician_job_assign.job_id = program_job_assigned_customer_property.job_id AND 
+            technician_job_assign.customer_id = program_job_assigned_customer_property.customer_id AND 
+            technician_job_assign.program_id = program_job_assigned_customer_property.program_id AND 
+            technician_job_assign.property_id = program_job_assigned_customer_property.property_id',
+            'left');
 
-
+        $this->db->or_group_start()
+                ->or_group_start()
+                    ->where('job_assign_date', date("Y-m-d"))
+                    ->where('hold_until_date IS NULL')
+                ->group_end()
+                ->or_group_start()
+                    ->where('hold_until_date', date("Y-m-d"))
+                ->group_end()
+            ->group_end();
         $this->db->where($where_arr);
 
         $this->db->order_by('job_completed_time', 'desc');
         $result = $this->db->get();
-
         $data = $result->row();
         return $data;
     }
@@ -430,6 +422,23 @@ class Technician_model extends CI_Model
         $this->db->select('technician_job_assign.route_id,route_name,is_time_check,specific_time');
         $this->db->from(self::TJATBL);
         $this->db->join('route', "route.route_id=technician_job_assign.route_id", "inner");
+        $this->db->join('program_job_assigned_customer_property',
+            'technician_job_assign.job_id = program_job_assigned_customer_property.job_id AND 
+            technician_job_assign.customer_id = program_job_assigned_customer_property.customer_id AND 
+            technician_job_assign.program_id = program_job_assigned_customer_property.program_id AND 
+            technician_job_assign.property_id = program_job_assigned_customer_property.property_id',
+            'left');
+
+        $this->db->or_group_start()
+                ->or_group_start()
+                    ->where('technician_job_assign.job_assign_date', date("Y-m-d"))
+                    ->where('hold_until_date IS NULL')
+                ->group_end()
+                ->or_group_start()
+                    ->where('hold_until_date', date("Y-m-d"))
+                ->group_end()
+            ->group_end();
+
         $this->db->where($where_arr);
         $this->db->group_by('technician_job_assign.route_id');
         $result = $this->db->get();

@@ -19,7 +19,7 @@ class Setting extends MY_Controller
 
         if (!$this->session->userdata('email')) {
 
-            $actual_link = $_SERVER[REQUEST_URI];
+            $actual_link = $_SERVER["REQUEST_URI"];
             $_SESSION['iniurl'] = $actual_link;
             return redirect('admin/auth');
         }
@@ -108,6 +108,7 @@ class Setting extends MY_Controller
         $this->load->model('Bonuses_model', 'BonusModel');
 		$this->load->model('AdminTbl_tags_model', 'TagsModel');
         $this->load->model('Sales_tax_model', 'SalesTax');
+        $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
     }
 
     public function index()
@@ -2312,7 +2313,79 @@ class Setting extends MY_Controller
         echo 1;
     }
 
-    /* END COUPON SECTION */
+    public function applyHoldUntilDate() {
+        $data = $this->input->post();
+        $hold_until_date = $data['hold_until_date'];
+
+        $job_data_csv = json_decode($data['job_data']);
+        if (empty($job_data_csv)) {
+            echo json_encode("Please select a service!");
+            die();
+        }
+
+        if (empty($hold_until_date)) {
+            echo json_encode("Please select a date!");
+            die();
+        }
+
+        try {
+            foreach ($job_data_csv as $job) {
+                // customer_id, job_id, program_id, property_id
+                $data_arr = array();
+                $data_arr[] = str_getcsv($job);
+
+                $customer_id = $data_arr[0][0];
+                $job_id = $data_arr[0][1];
+                $program_id = $data_arr[0][2];
+                $property_id = $data_arr[0][3];
+                $where = array(
+                    'job_id'          => $job_id,
+                    'customer_id'     => $customer_id,
+                    'program_id'      => $program_id,
+                    'property_id'     => $property_id,
+                    'hold_until_date' => $hold_until_date
+                );
+                $result = $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($where);
+            }
+            echo 1;
+        } catch (Exception $ex) {
+            echo json_encode($ex->getMessage());
+            die();
+        }
+    }
+    public function stopHoldingService() {
+        $data = $this->input->post();
+        $customer_id = $data['customer_id'];
+        $job_id = $data['job_id'];
+        $program_id = $data['program_id'];
+        $property_id = $data['property_id'];
+
+        if (!$customer_id || !$job_id || !$program_id || !$property_id) {
+            echo json_encode("Something was wrong!");
+            die();
+        }
+
+        try {
+            $where = array(
+                'job_id'          => $job_id,
+                'customer_id'     => $customer_id,
+                'program_id'      => $program_id,
+                'property_id'     => $property_id,
+            );
+            $result = $this->PJACPM->getIsAsap($where);
+            // if exist asap -> set hold until date to NULL
+            if ($result) {
+                $this->PJACPM->update($where, ['hold_until_date' => NULL]);
+            } else {
+                // if not, delete the record
+                $this->PJACPM->delete($where);
+            }
+            echo 1;
+        } catch (Exception $ex) {
+            echo json_encode($ex->getMessage());
+            die();
+        }
+    }
 
     public function getServiceArea()
     {

@@ -312,7 +312,7 @@
         $.ajax({
                 type: "POST", 
                 url: "<?= base_url('admin/Invoices/getAllServicesByProgram')  ?>",
-                data: {program_id : program_id, property_id: property_id }, 
+                data: {program_id : program_id }, 
                 dataType: 'JSON', 
             }).done(function(response){
 

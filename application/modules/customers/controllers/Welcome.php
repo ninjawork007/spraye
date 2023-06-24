@@ -3377,6 +3377,10 @@ class Welcome extends MY_Controller
 				);
                 $actual_cost = [];
 				$proprojobinv = $this->PropertyProgramJobInvoiceModel_2->getPropertyProgramJobInvoiceCouponWhereIn('property_program_job_invoice.invoice_id', $invoice_id);
+                 $invoice_total_by_id = array();
+                foreach($invoice_id as $inid) {
+                    $invoice_total_by_id[$inid] = 0;
+                }
                 // die(print_r($proprojobinv));
 				if (!empty($proprojobinv)) {
 					foreach($proprojobinv as $job) {
@@ -3390,7 +3394,6 @@ class Welcome extends MY_Controller
                             'program_id' =>$job['program_id']
                         );
                         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-
                         if (!empty($coupon_job_details)) {
 
                             foreach($coupon_job_details as $coupon) {
@@ -3414,17 +3417,19 @@ class Welcome extends MY_Controller
                         }
                         // array_push($actual_cost, $job['job_cost']);
 						$job_cost_total += $job_cost;
+                        $invoice_total_by_id[$job["invoice_id"]] += $job_cost;
 					}
 				} else {
                     foreach($invoice_details as $i_d){
                         $job_cost_total += $i_d->cost;
+                        $invoice_total_by_id[$i_d->invoice_id] += $i_d->cost;
                     }
                 }
                 $invoice_total_cost = $job_cost_total;
                 // die(print_r($actual_cost));
                 // die(print_r($invoice_total_cost));
 				// check price override -- any that are not stored in just that ^^.
-
+                
 				// - invoice coupons
                 $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $invoice_id);
 				foreach ($coupon_invoice_details as $coupon_invoice) {
@@ -3432,13 +3437,15 @@ class Welcome extends MY_Controller
                         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
                         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
                         if ($coupon_invoice_amm_calc == 0) { // flat amm
-                            $invoice_total_cost -= (float) $coupon_invoice_amm;
+							$invoice_total_cost -= (float) $coupon_invoice_amm;
+                            $invoice_total_by_id[$coupon_invoice->invoice_id] -= (float) $coupon_invoice_amm;
                             //$total_coupon_amount += $coupon_invoice_amm;
-                        } else { // percentage
-                            $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * ($coupon_invoice->cost - $coupon_invoice->partial_payment);
-                            $invoice_total_cost -= $coupon_invoice_amm;
+						} else { // percentage
+							$coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * ($invoice_total_by_id[$coupon_invoice->invoice_id]);
+							//$invoice_total_cost -= $coupon_invoice_amm;
+                            $invoice_total_by_id[$coupon_invoice->invoice_id] -= $coupon_invoice_amm;
                             $total_coupon_amount += $coupon_invoice_amm;
-                        }
+						}
                         if ($invoice_total_cost < 0) {
                             $invoice_total_cost = 0;
                         }
@@ -3454,9 +3461,9 @@ class Welcome extends MY_Controller
 				if (!empty($invoice_sales_tax_details)) {
 					foreach($invoice_sales_tax_details as $tax) {
                         // die(print_r($proprojobinv));
-
-                                $tax_amm_to_add = ((float) $tax['tax_amount']);
-                                array_push($actual_cost, $tax_amm_to_add);
+                        $tax_amm_to_add = ((float) $tax['tax_amount']);
+                        $invoice_total_by_id[$tax["invoice_id"]] += ((float) $tax['tax_amount']);
+                        array_push($actual_cost, $tax_amm_to_add);
 
 					}
                     array_push($actual_cost, $invoice_total_cost);
@@ -3464,11 +3471,13 @@ class Welcome extends MY_Controller
 				} else {
                     array_push($actual_cost, $invoice_total_cost);
                 }
+                $amount_from_all_invoices = array_sum($invoice_total_by_id);
+                //var_dump($amount_from_all_invoices);
 				// $invoice_total_cost += $invoice_total_tax;
 				// $total_tax_amount = $invoice_total_tax;
                 // die(print_r($invoice_total_cost));
                 // die(print_r($total_tax_amount));
-                $actual_cost = array_sum($actual_cost);
+                $actual_cost = array_sum($invoice_total_by_id);
                 // die(print_r($actual_cost));
 				// END TOTAL INVOICE CALCULATION COST //
 				////////////////////////////////////////
@@ -3894,6 +3903,12 @@ class Welcome extends MY_Controller
             'cardconnect_details' => false,
             'basys_details' => false,
         );
+        //late fee
+        // need to get each of the late fees for any overdue invoices
+        $late_fees = array();
+        foreach($invoice_details as $id) {
+            $late_fees = $this->INV->getLateFee($id->invoice_id);
+        }
         //var_dump($invoice_details);
         //exit();
         if ($invoice_details) {
@@ -3923,6 +3938,7 @@ class Welcome extends MY_Controller
                 }
                 //die(print_r($invoice_id));
                 //var_dump($invoice_id);
+                //var_dump($invoice_total_by_id);
 				$proprojobinv = $this->PropertyProgramJobInvoiceModel_2->getPropertyProgramJobInvoiceCouponWhereIn('property_program_job_invoice.invoice_id', $invoice_id);
 				if (!empty($proprojobinv)) {
 					foreach($proprojobinv as $job) {
@@ -4012,6 +4028,8 @@ class Welcome extends MY_Controller
                         if (array_key_exists("tax_amount", $tax)) {
                             $tax_amm_to_add = ((float) $tax['tax_amount']);
                             $invoice_total_tax += ((float) $tax['tax_amount']);
+                            $invoice_total_by_id[$tax["invoice_id"]] += ((float) $tax['tax_amount']);
+                            //var_dump($tax);
                         }
                         array_push($actual_cost, $tax_amm_to_add);
 					}
@@ -4020,6 +4038,9 @@ class Welcome extends MY_Controller
 				} else {
                     array_push($actual_cost, $invoice_total_cost);
                 }
+                $amount_from_all_invoices = array_sum($invoice_total_by_id);
+                //var_dump(array_sum($invoice_total_by_id));
+                //var_dump($invoice_total_cost);
                 //var_dump($actual_cost);
                 //var_dump($invoice_total_tax);
                 // die(print_r($actual_cost));
@@ -4027,7 +4048,7 @@ class Welcome extends MY_Controller
 				// $total_tax_amount = $invoice_total_tax;
                 // die(print_r($invoice_total_cost));
                 // die(print_r($total_tax_amount));
-                $actual_cost = array_sum($actual_cost);
+                $actual_cost = array_sum($invoice_total_by_id);
                 // die(print_r($actual_cost));
 				// END TOTAL INVOICE CALCULATION COST //
 				////////////////////////////////////////
@@ -4043,11 +4064,13 @@ class Welcome extends MY_Controller
                     foreach($payment as $amount){
                         if(isset($amount->payment_applied)){
                             // die(print_r($amount->payment_applied));
-                            $actual_payments += $amount->payment_applied;
+                            if($amount->payment_applied > 0) {
+                                $actual_payments += $amount->payment_applied;
+                            }
                         }
                     }
                 }
-                // die(print_r($actual_payments));
+                //var_dump($actual_payments);
                 //var_dump($actual_cost);
                 //var_dump($actual_payments);
                 $data['actual_total_cost_miunus_partial'] = $actual_cost - $actual_payments;
@@ -4831,7 +4854,9 @@ class Welcome extends MY_Controller
         $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
         $customer_details = $this->Customer->getCustomerDetail($invoice_arr[0]->customer_id);
         $cardconnect_details = $this->CardConnect->getOneCardConnect(array('company_id' => $invoice_arr[0]->company_id, 'status' => 1));
+        
         $invoice_amt_tax = [];
+
         if ($tax_details) {
             foreach($tax_details as $tax){
                 array_push($invoice_amt_tax, $tax['tax_amount']);
@@ -4929,8 +4954,8 @@ class Welcome extends MY_Controller
 					foreach($invoice_sales_tax_details as $tax) {
                         // die(print_r($proprojobinv));
                         
-                                $tax_amm_to_add = ((float) $tax['tax_amount']);
-                                array_push($actual_cost, $tax_amm_to_add);
+                        $tax_amm_to_add = ((float) $tax['tax_amount']);
+                        array_push($actual_cost, $tax_amm_to_add);
                         
 					}
                     array_push($actual_cost, $invoice_total_cost);

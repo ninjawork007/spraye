@@ -82,7 +82,7 @@ class Quickbook extends MY_Controller {
         'ClientSecret' => $this->input->post('quickbook_client_secret'),
         'RedirectURI' => 'https://dashboard.spraye.io/admin/quickbook/processCode',
         // 'RedirectURI' => 'https://dev-env.spraye.io/admin/quickbook/processCode',
-        // 'RedirectURI' => 'https://spraye-dev9.blayzer.com/admin/quickbook/processCode',
+        // 'RedirectURI' => 'https://spraye-dev8.blayzer.com/admin/quickbook/processCode',
         'scope' => 'com.intuit.quickbooks.accounting openid profile email phone address',
         'baseUrl' => "Production"
       ));
@@ -111,8 +111,8 @@ function processCode()
         'ClientID' => $this->session->userdata('quicjbookArray')['quickbook_client_id'],
         'ClientSecret' =>  $this->session->userdata('quicjbookArray')['quickbook_client_secret'],
         'RedirectURI' => 'https://dashboard.spraye.io/admin/quickbook/processCode',
-//        'RedirectURI' => 'https://dev-env.spraye.io/admin/quickbook/processCode',
-        // 'RedirectURI' => 'https://spraye-dev9.blayzer.com/admin/quickbook/processCode',
+        //'RedirectURI' => 'https://dev-env.spraye.io/admin/quickbook/processCode',
+        // 'RedirectURI' => 'https://spraye-dev8.blayzer.com/admin/quickbook/processCode',
         'scope' => 'com.intuit.quickbooks.accounting openid profile email phone address',
         'baseUrl' => "Production"
     ));
@@ -536,7 +536,7 @@ public function manageAlreadyQuickInvoice($value=''){
 
              $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
-             $all_invoice = $this->INV->getAllInvoiveForQuick(array('invoice_tbl.company_id' =>$company_details->company_id,'quickbook_customer_id !='=>0, 'quickbook_invoice_id !='=>0));
+             $all_invoice = $this->INV->getAllInvoiveForQuick(array('invoice_tbl.company_id' =>$company_details->company_id,'quickbook_customer_id !='=>0, 'quickbook_invoice_id !='=>0, 'is_archived' => 0));
 
              if ($all_invoice) {
 
@@ -707,7 +707,7 @@ public function manageExitingInvoices(){
 
                 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
-                $all_invoice = $this->INV->getAllInvoiveForQuick(array('invoice_tbl.company_id' =>$company_details->company_id,'quickbook_customer_id !='=>0, 'quickbook_invoice_id'=>0));
+                $all_invoice = $this->INV->getAllInvoiveForQuick(array('invoice_tbl.company_id' =>$company_details->company_id,'quickbook_customer_id !='=>0, 'quickbook_invoice_id'=>0, 'is_archived' => 0));
 
             
 

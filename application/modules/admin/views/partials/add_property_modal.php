@@ -365,7 +365,7 @@
 								<select class="form-control" name="property_status" onchange="showDiv('hidden_source', this)">
 									<option value="">Select Any Status</option>
 									<option value="2">Prospect</option>
-									<option value="1">Active</option>
+									<option value="1" selected>Active</option>
 									<option value="0">Non-Active</option>
 								</select>  
 							</div>

@@ -9383,15 +9383,13 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
     public function getAllServicesByProgram($value=''){
         $program_id =  $this->input->post('program_id');
-        $property_id = $this->input->post('property_id');
-        $property_size = $this->PropertyModel->getPropertySquareFootage($property_id);
         // die(print_r($property_size));
         $program_details =  $this->ProgramModel->getProgramAssignJobs(array('program_id' =>$program_id));
     
         if ($program_details) {
-          $return_result =  array('status'=>200,'property_size'=>$property_size,'result'=>$program_details,'msg'=>'successfully');
+          $return_result =  array('status'=>200,'result'=>$program_details,'msg'=>'successfully');
         } else{
-          $return_result =  array('status'=>400,'property_size'=>$property_size,'result'=>array(),'msg'=>'successfully');
+          $return_result =  array('status'=>400,'result'=>array(),'msg'=>'successfully');
         }
         echo json_encode($return_result);
     

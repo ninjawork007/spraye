@@ -147,14 +147,14 @@ if ($this->session->userdata['spraye_technician_login']->end_location != "") {
     $endLocation = array(
         'Name' => $setting_details->end_location,
         'Latitude' => $setting_details->end_location_lat,
-        'Longitude' => $setting_details->end_location_long 
-        );
-    }
-  if (!empty($job_assign_details)) {
-    foreach ($job_assign_details as $key => $value) {     
-      $Locations[$key]['Name'] = $value[0]['property_address'];
-      $Locations[$key]['Latitude'] = $value[0]['property_latitude'];
-      $Locations[$key]['Longitude'] = $value[0]['property_longitude'];
+        'Longitude' => $setting_details->end_location_long
+    );
+}
+if (!empty($job_assign_details)) {
+    foreach ($job_assign_details as $key => $value) {
+        $Locations[$key]['Name'] = $value[0]['property_address'];
+        $Locations[$key]['Latitude'] = $value[0]['property_latitude'];
+        $Locations[$key]['Longitude'] = $value[0]['property_longitude'];
     }
     array_unshift($Locations, $statLocation);
     array_push($Locations, $endLocation);
@@ -860,7 +860,8 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                                         Notification To
                                     </label>
                                     <div class="multi-select-full col-lg-9">
-                                        <select class="multiselect-select-all-filtering form-control note-filter" name="notification_to[]" id="notification_to" multiple="multiple">
+                                        <select class="multiselect-select-all-filtering form-control note-filter"
+                                                name="notification_to[]" id="notification_to" multiple="multiple">
                                             <?php
                                             foreach ($userdata as $user) {
                                                 ?>
@@ -1151,8 +1152,8 @@ function post_RealRoadOptimizeStops() {
                   phone = '(' + phone[1] + ') ' + phone[2] + '-' + phone[3];
               }
 
-              let asap_reason = '';
-              let asap = response[i].program_job_assigned_customer_property_id;
+                            let asap_reason = '';
+                            let asap = response[i].program_job_assigned_customer_property_id;
 
               if (asap && response[i].reason !== null) {
                   asap_reason = '<a><span class="text-muted" style="background: red; color: white"><i class="icon-alert" ></i>&nbspASAP -  &nbsp' + response[i].reason + '</span></a><br>';
@@ -1164,7 +1165,7 @@ function post_RealRoadOptimizeStops() {
               response[i].property_id + '" > <h6 class="no-margin text-semibold">' +
               response[i].property_title +
               '</h6><span class="text-muted"><i class=" icon-location4"></i>  ' + response[i]
-              .property_address + '</span>' + specific_time_html + '</a><br><a><span class="text-muted"><i class="icon-phone"></i>&nbsp' + phone + '</span></a><br>'+asap_reason+'<span class="text-muted">' + response[i].tags + '</span>'+response[i].pre_service_notification+'</div></div></div></li>');
+              .property_address + '</span>' + specific_time_html + '</a><br><a><span class="text-muted"><i class="icon-phone"></i>&nbsp' + phone + '</span></a><br>'+asap_reason+'<span class="text-muted">Service(s): '+response[i].job_label_stop+'</span><span class="text-muted">' + response[i].tags + '</span>'+response[i].pre_service_notification+'</div></div></div></li>');
             if (i == response.length) {
               $("#from_jquery_sorting").append('<li></li>');
             }

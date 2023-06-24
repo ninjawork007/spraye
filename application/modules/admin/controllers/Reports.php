@@ -1378,134 +1378,184 @@ class Reports extends MY_Controller {
 
         // $inv_and_sales_tax += $this->INV->getAllSalesInvoice($where_hotfix);
         // echo "<pre>";
+        $invoices_already_used = array();
         foreach($inv_and_sales_tax as $invoice_details) {
             $invoice_id = $invoice_details->invoice_id;
-            $tax_name = $invoice_details->tax_name;
-            $tax_value = $invoice_details->tax_value;
-			$refund_amount = $invoice_details->refund_amount_total;
+            if(!in_array($invoice_id, $invoices_already_used)) {
+                //var_dump($invoice_id);
+                $tax_name = $invoice_details->tax_name;
+                $tax_value = $invoice_details->tax_value;
+                $refund_amount = $invoice_details->refund_amount_total;
 
-            // check for the invoice's jobs to be complete
-            $invoice_jobs_are_complete = 0;
-            $where = array(
-                'invoice_tbl.invoice_id' => $invoice_id
-            );
-
-            $inv_tech = $this->InvoiceSalesTax->matchInvTechByInvId($where);
-			// die(print_r($this->db->last_query ()));
-            
-            if (isset($inv_tech) && !empty($inv_tech)) { // match by invoice_id
-                foreach($inv_tech as $inv_tech_detail) {
-                    if ($inv_tech_detail->is_complete == 1) {
-                        $invoice_jobs_are_complete = 1;
-                    }
-                }
-            } else {
-
+                // check for the invoice's jobs to be complete
+                $invoice_jobs_are_complete = 0;
                 $where = array(
                     'invoice_tbl.invoice_id' => $invoice_id
                 );
-
-                $inv_tech = $this->InvoiceSalesTax->matchInvTechByAllFour($where);
-                // die(print_r($inv_tech));
-                if (isset($inv_tech) && !empty($inv_tech)) { // match by all 4 ids
+                $inv_tech = $this->InvoiceSalesTax->matchInvTechByInvId($where);
+                if (isset($inv_tech) && !empty($inv_tech)) { // match by invoice_id
                     foreach($inv_tech as $inv_tech_detail) {
                         if ($inv_tech_detail->is_complete == 1) {
-                            $invoice_jobs_are_complete = 1;
+                            $invoice_jobs_are_complete = 1; 
                         }
                     }
                 } else {
-
                     $where = array(
                         'invoice_tbl.invoice_id' => $invoice_id
                     );
 
-                    $inv_tech = $this->InvoiceSalesTax->matchInvTechByTbl($where);
-                    if (isset($inv_tech) && !empty($inv_tech)) { // match by program jobs
-                        $invoice_jobs_are_complete = 1;
+                    $inv_tech = $this->InvoiceSalesTax->matchInvTechByAllFour($where);
+                    if (isset($inv_tech) && !empty($inv_tech)) { // match by all 4 ids
                         foreach($inv_tech as $inv_tech_detail) {
-                            if ($inv_tech_detail->is_complete == 0) {
-                                $invoice_jobs_are_complete = 0;
+                            if ($inv_tech_detail->is_complete == 1) {
+                                $invoice_jobs_are_complete = 1;
+                            }
+                        }
+                    } else {
+
+                        $where = array(
+                            'invoice_tbl.invoice_id' => $invoice_id
+                        );
+
+                        $inv_tech = $this->InvoiceSalesTax->matchInvTechByTbl($where);
+                        
+                        if (isset($inv_tech) && !empty($inv_tech)) { // match by program jobs
+                            $invoice_jobs_are_complete = 1;
+                            foreach($inv_tech as $inv_tech_detail) {
+                                if ($inv_tech_detail->is_complete == 0) {
+                                    $invoice_jobs_are_complete = 0;
+                                }
                             }
                         }
                     }
                 }
-            }
+                $program_price = $this->RP->getProgramPriceById($invoice_details->program_id)->program_price;
 
-            $program_price = $this->RP->getProgramPriceById($invoice_details->program_id)->program_price;
-            // die(print_r($program_price));
+                // die(print_r($program_price));
 
-            if (($invoice_jobs_are_complete == 1 && ($program_price == 1 || $program_price == 2)) || ($program_price == 3 && ($invoice_details->payment_status == 2 || $invoice_details->payment_status == 1))) { 
-                // add sales tax if complete
+                if (($invoice_jobs_are_complete == 1 && ($program_price == 1 || $program_price == 2)) || ($program_price == 3 && ($invoice_details->payment_status == 2 || $invoice_details->payment_status == 1))) {  // add sales tax if complete
 
-                ////////////////////////////////////
-				// START INVOICE CALCULATION COST //
+                    ////////////////////////////////////
+                    // START INVOICE CALCULATION COST //
+                    
+                    // vars 
+                    $tmp_invoice_id = $invoice_id;
+                    
 
-                // vars
-                $tmp_invoice_id = $invoice_id;
+                    // invoice cost
+                    // $invoice_total_cost = $invoice->cost;
 
-				// invoice cost
-				// $invoice_total_cost = $invoice->cost;
-
-				// cost of all services (with price overrides) - service coupons
-				$job_cost_total = 0;
-				$where = array(
-					'property_program_job_invoice.invoice_id' => $tmp_invoice_id
-				);
-				$proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
-				// die(print_r($this->db->last_query ()));
-				if (!empty($proprojobinv)) {
-                    $got_all_costs = false;
-					foreach($proprojobinv as $job) {
-						if($invoice_details->partial_payment == 0 && $invoice_details->payment_status == 2){
-							$job_cost = $job['job_cost'];
-						} else {
-							$job_cost = $invoice_details->partial_payment;
-                            $got_all_costs = true; // this means we are grabbing all the info from the invoice already, no need to run the foreach over and over and add to this
-						}
-
-						$job_cost_total += $job_cost;
-                        if($got_all_costs == true) {
-                            break;
-                        }
-					}
-                    $invoice_total_cost = $job_cost_total-$refund_amount;
-                } else {
-                    $invoice_total_cost = $invoice_details->cost-$refund_amount;
-                }
-
-				// + tax cost
-				$invoice_total_tax = 0;
-				$invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id ));
-                if (!empty($invoice_sales_tax_details)) {
-					foreach($invoice_sales_tax_details as $tax) {
-						if (array_key_exists("tax_value", $tax)) {
-							$tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
-							$invoice_total_tax += $tax_amm_to_add;
-						}
-					}
-				}
-				$invoice_total_cost += $invoice_total_tax;
-				$total_tax_amount = $invoice_total_tax;
-
-				// END TOTAL INVOICE CALCULATION COST //
-				////////////////////////////////////////
-
-                if (!isset($total_sales_tax_data[$tax_name])) {
-                    $total_sales_tax_data[$tax_name] = array(
-                        'total_tax' => 0,
-                        'OLD_total_tax' => 0,
-                        'gross_revenue' => 0,
-                        'total_sales' => 0,
-                        'tax_value' => $invoice_details->tax_value,
-                        'tax_name' => $invoice_details->tax_name
+                    // cost of all services (with price overrides) - service coupons
+                    $job_cost_total = 0;
+                    $invoice_total_tax = 0;
+                    $where = array(
+                        'property_program_job_invoice.invoice_id' => $tmp_invoice_id
                     );
-                }
-                $total_sales_tax_data[$tax_name]['total_tax'] += number_format((float)$total_tax_amount, 2,'.','');
-                $total_sales_tax_data[$tax_name]['OLD_total_tax'] += number_format((float)$invoice_details->tax_amount, 2,'.','');
-                $total_sales_tax_data[$tax_name]['gross_revenue'] += $invoice_total_cost;
-                $total_sales_tax_data[$tax_name]['total_sales'] += $invoice_total_cost-$total_tax_amount;
+                    $where_in = "property_program_job_invoice.job_id IN (Select job_id from technician_job_assign WHERE invoice_id = '".$invoice_id."' and is_complete = 1)";
+                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where, $where_in, true, $invoice_id);
+                    $total_jobs_on_invoice = $proprojobinv["total_job_count"];
+                    if (!empty($proprojobinv)) {
+                        foreach($proprojobinv as $job) {
+                            
+                            $job_cost = $job['job_cost'];
+                            // die(print_r($tax_subtracted));
 
-            } else { // don't add price if not complete
+                            $job_where = array(
+                                'job_id' => $job['job_id'],
+                                'customer_id' =>$job['customer_id'],
+                                'property_id' =>$job['property_id'],
+                                'program_id' =>$job['program_id']
+                            );
+                            $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                            if (!empty($coupon_job_details)) {
+
+                                foreach($coupon_job_details as $coupon) {
+                                    // $nestedData['email'] = json_encode($coupon->coupon_amount);
+                                    $coupon_job_amm_total = 0;
+                                    $coupon_job_amm = $coupon->coupon_amount;
+                                    $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                    if ($coupon_job_calc == 0) { // flat amm
+                                        $coupon_job_amm_total = (float) $coupon_job_amm;
+                                    } else { // percentage
+                                        $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                    }
+
+                                    $job_cost = $job_cost - $coupon_job_amm_total;
+
+                                    if ($job_cost < 0) {
+                                        $job_cost = 0;
+                                    }
+                                }
+                            }
+
+                            $job_cost_total += $job_cost;
+                        }
+                        $invoice_total_cost = $job_cost_total;
+                    } else {
+                        $invoice_total_cost = $invoice_details->cost;
+                    }
+
+                    // check price override -- any that are not stored in just that ^^.
+
+                    // - invoice coupons
+                    $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id ));
+                    foreach ($coupon_invoice_details as $coupon_invoice) {
+                        if (!empty($coupon_invoice)) {
+                            $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                            $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+            
+                            if ($coupon_invoice_amm_calc == 0) { // flat amm
+                                $invoice_total_cost -= (float) $coupon_invoice_amm;
+                            } else { // percentage
+                                $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                                $invoice_total_cost -= $coupon_invoice_amm;
+                            }
+                            if ($invoice_total_cost < 0) {
+                                $invoice_total_cost = 0;
+                            }
+                        }
+                    }
+
+                    $invoice_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id ));
+                    if (!empty($invoice_sales_tax)) {
+                        $tax_added = 0;
+                        foreach($invoice_sales_tax as $tax1) {
+                            if (array_key_exists("tax_value", $tax1)) {
+                                $tax_subtracted = ($tax1['tax_value']  / 100) * $invoice_total_cost;
+                                //die(print_r($tax_subtracted));
+                                $tax_added += $tax_subtracted;
+                                // $job_cost += $tax_subtracted;
+                                $invoice_total_tax += $tax_added;
+                            }
+                        }
+                    }
+                    
+                    
+                    //$invoice_total_cost += $invoice_total_tax;
+                    $total_tax_amount = $invoice_total_tax;
+
+                    // END TOTAL INVOICE CALCULATION COST //
+                    ////////////////////////////////////////
+
+                    if (!isset($total_sales_tax_data[$tax_name])) {
+                        $total_sales_tax_data[$tax_name] = array(
+                            'total_tax' => 0,
+                            'OLD_total_tax' => 0,
+                            'gross_revenue' => 0,
+                            'total_sales' => 0,
+                            'tax_value' => $invoice_details->tax_value,
+                            'tax_name' => $invoice_details->tax_name
+                        );
+                    }
+                    $total_sales_tax_data[$tax_name]['total_tax'] += number_format((float)$total_tax_amount, 2,'.','');
+                    $total_sales_tax_data[$tax_name]['OLD_total_tax'] += number_format((float)$invoice_details->tax_amount, 2,'.','');
+                    $total_sales_tax_data[$tax_name]['gross_revenue'] += $invoice_total_cost+$total_tax_amount;
+                    $total_sales_tax_data[$tax_name]['total_sales'] += $invoice_total_cost;
+
+                } 
+                $invoices_already_used[] = $invoice_id;
             }
         }
 
@@ -1641,6 +1691,7 @@ class Reports extends MY_Controller {
         foreach($inv_and_sales_tax as $invoice_details) {
             $invoice_id = $invoice_details->invoice_id;
             if(!in_array($invoice_id, $invoices_already_used)) {
+                //var_dump($invoice_id);
                 $tax_name = $invoice_details->tax_name;
                 $tax_value = $invoice_details->tax_value;
                 $refund_amount = $invoice_details->refund_amount_total;
@@ -1650,7 +1701,6 @@ class Reports extends MY_Controller {
                 $where = array(
                     'invoice_tbl.invoice_id' => $invoice_id
                 );
-
                 $inv_tech = $this->InvoiceSalesTax->matchInvTechByInvId($where);
                 if (isset($inv_tech) && !empty($inv_tech)) { // match by invoice_id
                     foreach($inv_tech as $inv_tech_detail) {
@@ -1659,7 +1709,6 @@ class Reports extends MY_Controller {
                         }
                     }
                 } else {
-
                     $where = array(
                         'invoice_tbl.invoice_id' => $invoice_id
                     );
@@ -1700,6 +1749,7 @@ class Reports extends MY_Controller {
                     
                     // vars 
                     $tmp_invoice_id = $invoice_id;
+                    
 
                     // invoice cost
                     // $invoice_total_cost = $invoice->cost;
@@ -1711,26 +1761,12 @@ class Reports extends MY_Controller {
                         'property_program_job_invoice.invoice_id' => $tmp_invoice_id
                     );
                     $where_in = "property_program_job_invoice.job_id IN (Select job_id from technician_job_assign WHERE invoice_id = '".$invoice_id."' and is_complete = 1)";
-                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where, $where_in);
-
+                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where, $where_in, true, $invoice_id);
+                    $total_jobs_on_invoice = $proprojobinv["total_job_count"];
                     if (!empty($proprojobinv)) {
                         foreach($proprojobinv as $job) {
-
                             
-                            $invoice_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id ));
-                            if (!empty($invoice_sales_tax)) {
-                                $tax_added = 0;
-                                foreach($invoice_sales_tax as $tax1) {
-                                    if (array_key_exists("tax_value", $tax1)) {
-                                        $tax_subtracted = ($tax1['tax_value']  / 100) * $job['job_cost'];
-                                        //die(print_r($tax_subtracted));
-                                            $tax_added += $tax_subtracted;
-                                        // $job_cost += $tax_subtracted;
-                                        $invoice_total_tax += $tax_added;
-                                    }
-                                }
-                            }
-                            $job_cost = $job['job_cost'] + $tax_added;
+                            $job_cost = $job['job_cost'];
                             // die(print_r($tax_subtracted));
 
                             $job_where = array(
@@ -1790,6 +1826,20 @@ class Reports extends MY_Controller {
                             }
                         }
                     }
+
+                    $invoice_sales_tax = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id ));
+                    if (!empty($invoice_sales_tax)) {
+                        $tax_added = 0;
+                        foreach($invoice_sales_tax as $tax1) {
+                            if (array_key_exists("tax_value", $tax1)) {
+                                $tax_subtracted = ($tax1['tax_value']  / 100) * $invoice_total_cost;
+                                //die(print_r($tax_subtracted));
+                                $tax_added += round($tax_subtracted);
+                                // $job_cost += $tax_subtracted;
+                                $invoice_total_tax += $tax_added;
+                            }
+                        }
+                    }
                     
                     
                     //$invoice_total_cost += $invoice_total_tax;
@@ -1810,8 +1860,8 @@ class Reports extends MY_Controller {
                     }
                     $total_sales_tax_data[$tax_name]['total_tax'] += number_format((float)$total_tax_amount, 2,'.','');
                     $total_sales_tax_data[$tax_name]['OLD_total_tax'] += number_format((float)$invoice_details->tax_amount, 2,'.','');
-                    $total_sales_tax_data[$tax_name]['gross_revenue'] += $invoice_total_cost;
-                    $total_sales_tax_data[$tax_name]['total_sales'] += $invoice_total_cost-$total_tax_amount;
+                    $total_sales_tax_data[$tax_name]['gross_revenue'] += $invoice_total_cost+$total_tax_amount;
+                    $total_sales_tax_data[$tax_name]['total_sales'] += $invoice_total_cost;
 
                 } 
                 $invoices_already_used[] = $invoice_id;
@@ -2158,7 +2208,8 @@ class Reports extends MY_Controller {
         
             foreach ($data as $key => $value) {
 
-            $lineData = array($value->first_name,$value->last_name,$value->customer_company_name, $value->email,$value->secondary_email,$value->phone, $value->home_phone, $value->work_phone, $value->billing_street, $value->billing_street_2,$value->billing_city, $value->billing_state, $value->billing_zipcode,$value->customer_status==1 ? 'Active':'Non-Active');
+            
+            $lineData = array($value->first_name,$value->last_name,$value->customer_company_name, $value->email,$value->secondary_email,$value->phone, $value->home_phone, $value->work_phone, $value->billing_street, $value->billing_street_2,$value->billing_city, $value->billing_state, $value->billing_zipcode,$this->CustomerModel->formatStatus($value->customer_status));
 
                 fputcsv($f, $lineData, $delimiter);
             

@@ -959,8 +959,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
     }
 
     .div-assi-prog {
-        order: 0;
-        width: 50%
+        margin-top: 10px;
     }
 
     .div-prop-det2 {
@@ -968,23 +967,19 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
     }
 
     .div-outs-inv {
-        order: 2;
-        width: 50%; /*flex:1 0 415px;*/
+        margin-top: 10px;
     }
 
     .div-uns-ser {
-        order: 1;
-        width: 50%; /*flex:1 0 335px;*/
+        margin-top: 10px;
     }
 
     .div-sch-ser {
-        order: 3;
-        width: 50%; /*flex:1 0 335px;*/
+        margin-top: 10px;
     }
 
     .div-notes {
-        order: 4;
-        width: 50%; /*flex:1 0 335px*/;
+        margin-top: 10px;
     }
 
     .table#propertyDetails > tbody > tr > td {
@@ -1155,6 +1150,11 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                    type="button" class="btn btn-success">
                                     <i class="icon-plus22"> </i> New Estimate
                                 </a>
+
+                                <button type="button" class="btn btn-info" id="addServiceButton" onclick="$('#modal_add_service').modal('show')">
+                                    <i class=" icon-plus22"></i>
+                                    Add Standalone Service
+                                </button>
                             </div>
 
                             <div class="form-group col-md-4 col-xs-12 go-to-customer"
@@ -1561,204 +1561,218 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                             </div>
                         </div>
 
-                        <div class="row flex-div-data">
+                        <div class="row">
                             <!-- Assigned Program -->
-                            <div class="div-assi-prog">
+                            <div class="col-md-6 col-sm-12">
+                                <div class="div-assi-prog">
+                                    <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
+                                        <table class="table table2 dataTable" id="assignedPrograms" role="grid">
+                                            <thead class="customer">
+                                            <tr>
+                                                <th style="width: 50%"><span class="text-semibold">Assigned Programs</span>
+                                                </th>
+                                                <th class="text-right"
+                                                    style="vertical-align: middle;width: 50%"><?php echo '<a href="#highlighted-justified-tab2" data-toggle="tab" onclick="openTab(\'litwo\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
 
-                                <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
-                                    <table class="table table2 dataTable" id="assignedPrograms" role="grid">
-                                        <thead class="customer">
-                                        <tr>
-                                            <th style="width: 50%"><span class="text-semibold">Assigned Programs</span>
-                                            </th>
-                                            <th class="text-right"
-                                                style="vertical-align: middle;width: 50%"><?php echo '<a href="#highlighted-justified-tab2" data-toggle="tab" onclick="openTab(\'litwo\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
+                                            </tr>
+                                            <tr role="row">
+                                                <th>Program Name</th>
+                                                <th>Sales Rep</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="scrollable" style="max-height: 35vh;">
 
-                                        </tr>
-                                        <tr role="row">
-                                            <th>Program Name</th>
-                                            <th>Sales Rep</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody class="scrollable" style="max-height: 35vh;">
+                                            <?php
+                                            if (isset($prop_programs)) {
 
-                                        <?php
-                                        if (isset($prop_programs)) {
-
-                                            foreach ($prop_programs as $k => $program) {
-                                                ?>
-
-
-                                                <tr role="row">
-
-                                                    <td><?php echo '<a  class="customer-view-link" href="' . base_url('admin/editProperty/') . $program['property_id'] . '" target="_blank">' . $program['program_name'] . '</a>' ?></td>
-                                                    <td><?php echo '<a  class="customer-view-link" onclick="salesRepNote(' . $program['id_sales_rep'] . ')">' . $program['sales_rep'] . '</a>' ?></td>
+                                                foreach ($prop_programs as $k => $program) {
+                                                    ?>
 
 
-                                                </tr>
+                                                    <tr role="row">
+
+                                                        <td><?php echo '<a  class="customer-view-link" href="' . base_url('admin/editProperty/') . $program['property_id'] . '" target="_blank">' . $program['program_name'] . '</a>' ?></td>
+                                                        <td><?php echo '<a  class="customer-view-link" onclick="salesRepNote(' . $program['id_sales_rep'] . ')">' . $program['sales_rep'] . '</a>' ?></td>
 
 
-                                            <?php }
-                                        } ?>
+                                                    </tr>
 
-                                        </tbody>
-                                    </table>
+
+                                                <?php }
+                                            } ?>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                             <!-- Unscheduled Services -->
-                            <div class="div-uns-ser">
-                                <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
-                                    <table class="table table2 dataTable" id="unassignedServices" role="grid">
-                                        <thead class="customer">
-                                        <tr>
-                                            <th style="width: 50%"><span class="text-semibold" style="">Unscheduled Services</span>
-                                            </th>
-                                            <th style="width: 50%" class="text-right"
-                                                style="vertical-align: middle;"><?php echo '<a href="#highlighted-justified-tab4" data-toggle="tab" onclick="openTab(\'lifour\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
-                                        </tr>
-                                        <tr role="row">
-                                            <th>Property Name</th>
-                                            <th>Service Name</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody class="scrollable" style="max-height: 35vh">
-                                        <?php if (isset($unscheduled)) {
-                                            foreach ($unscheduled as $k => $uService) {
-                                                ?>
-                                                <tr role="row">
-                                                    <td><?php echo '<a class="color-light" href="' . base_url('admin/editProperty/') . $uService->property_id . '" target="_blank">' . $uService->property_title . '</a>' ?></td>
-                                                    <td><?php echo '<a class="color-light" href="' . base_url('admin/job/editJob/') . $uService->job_id . '" target="_blank">' . $uService->job_name . '</a>' ?></td>
-                                                </tr>
-                                            <?php }
-                                        } ?>
+                            <div class="col-md-6 col-sm-12">
+                                <div class="div-uns-ser">
+                                    <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
+                                        <table class="table table2 dataTable" id="unassignedServices" role="grid">
+                                            <thead class="customer">
+                                            <tr>
+                                                <th colspan="2"><span class="text-semibold" style="">Unscheduled Services</span>
+                                                </th>
+                                                <th class="text-right"
+                                                    style="vertical-align: middle;"><?php echo '<a href="#highlighted-justified-tab4" data-toggle="tab" onclick="openTab(\'lifour\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
+                                                
+                                            </tr>
+                                            <tr role="row">
+                                                <th>Property Name</th>
+                                                <th>Service Name</th>
+                                                <th>Program Name</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="scrollable" style="max-height: 35vh">
+                                            <?php if (isset($unscheduled)) {
+                                                foreach ($unscheduled as $k => $uService) {
+                                                    ?>
+                                                    <tr role="row">
+                                                        <td><?php echo '<a class="color-light" href="' . base_url('admin/editProperty/') . $uService->property_id . '" target="_blank">' . $uService->property_title . '</a>' ?></td>
+                                                        <td><?php echo '<a class="color-light" href="' . base_url('admin/job/editJob/') . $uService->job_id . '" target="_blank">' . $uService->job_name . '</a>' ?></td>
+                                                        <td><?php echo '<a class="color-light" href="' . base_url('admin/job/editJob/') . $uService->job_id . '" target="_blank">' . $uService->program_name . '</a>' ?></td>
+                                                    </tr>
+                                                <?php }
+                                            } ?>
 
-                                        </tbody>
-                                    </table>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="row">
                             <!-- Outstanding Invoices -->
-                            <div class="div-outs-inv">
-                                <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
+                            <div class="col-md-6 col-sm-12">
+                                <div class="div-outs-inv">
+                                    <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
 
-                                    <table class="table table2 dataTable" id="outstandingInvoices" role="grid">
+                                        <table class="table table2 dataTable" id="outstandingInvoices" role="grid">
 
-                                        <thead class="customer">
-                                        <tr>
-                                            <th colspan="2"><span class="text-semibold"
-                                                                  style="">Outstanding Invoices</span></th>
+                                            <thead class="customer">
+                                            <tr>
+                                                <th colspan="2"><span class="text-semibold"
+                                                                    style="">Outstanding Invoices</span></th>
 
-                                            <th class="text-right"
-                                                style="vertical-align: middle;"><?php echo '<a href="#highlighted-justified-tab3" data-toggle="tab" onclick="openTab(\'lithree\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
-                                        </tr>
-
-
-                                        <tr role="row">
-
-                                            <th style="width: 33%">Invoice #</th>
-
-                                            <th style="width: 33%">Amount Due</th>
-
-                                            <th style="width: 33%">Invoice Date</th>
-
-                                        </tr>
-
-                                        </thead>
-
-                                        <tbody class="scrollable" style="max-height: 29vh">
-
-                                        <?php if (isset($outstanding)) {
-
-                                            foreach ($outstanding as $k => $inv) {
-                                                ?>
-
-                                                <tr role="row">
-
-                                                    <td><?php echo '<a class="color-light" href="' . base_url('admin/Invoices/editInvoice/') . $inv['invoice_id'] . '" target="_blank">#' . $inv['invoice_id'] . '</a>' ?>
-
-                                                    </td>
-
-                                                    <td class="color-light"><?= $inv['amount_due'] ?></td>
-
-                                                    <td class="color-light"><?= (strtotime(date('d-m-Y', strtotime($inv['due_date']))) < strtotime(date('d-m-Y'))) ? "<span class='due_tag'> <i class='icon-flag3'></i> <span >DUE</span> " : '<span>'; ?><?php echo date('m-d-Y', strtotime($inv['due_date'])) . '</span>'; ?></td>
-
-                                                </tr>
-
-                                            <?php }
-                                        } ?>
+                                                <th class="text-right"
+                                                    style="vertical-align: middle;"><?php echo '<a href="#highlighted-justified-tab3" data-toggle="tab" onclick="openTab(\'lithree\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
+                                            </tr>
 
 
-                                        </tbody>
+                                            <tr role="row">
+
+                                                <th style="width: 33%">Invoice #</th>
+
+                                                <th style="width: 33%">Amount Due</th>
+
+                                                <th style="width: 33%">Invoice Date</th>
+
+                                            </tr>
+
+                                            </thead>
+
+                                            <tbody class="scrollable" style="max-height: 29vh">
+
+                                            <?php if (isset($outstanding)) {
+
+                                                foreach ($outstanding as $k => $inv) {
+                                                    ?>
+
+                                                    <tr role="row">
+
+                                                        <td><?php echo '<a class="color-light" href="' . base_url('admin/Invoices/editInvoice/') . $inv['invoice_id'] . '" target="_blank">#' . $inv['invoice_id'] . '</a>' ?>
+
+                                                        </td>
+
+                                                        <td class="color-light"><?= $inv['amount_due'] ?></td>
+
+                                                        <td class="color-light"><?= (strtotime(date('d-m-Y', strtotime($inv['due_date']))) < strtotime(date('d-m-Y'))) ? "<span class='due_tag'> <i class='icon-flag3'></i> <span >DUE</span> " : '<span>'; ?><?php echo date('m-d-Y', strtotime($inv['due_date'])) . '</span>'; ?></td>
+
+                                                    </tr>
+
+                                                <?php }
+                                            } ?>
 
 
-                                    </table>
+                                            </tbody>
 
+
+                                        </table>
+
+                                    </div>
                                 </div>
                             </div>
                             <!-- Scheduled Services -->
-                            <div class="div-sch-ser">
+                            <div class="col-md-6 col-sm-12">
+                                <div class="div-sch-ser">
 
-                                <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
+                                    <div class="table-responsive table-spraye table-responsive2 table-spraye2 dash-tbl">
 
-                                    <table class="table table2 dataTable" id="scheduledServices" role="grid">
+                                        <table class="table table2 dataTable" id="scheduledServices" role="grid">
 
-                                        <thead class="customer">
-                                        <tr>
-                                            <th colspan="2"><span class="text-semibold"
-                                                                  style="">Scheduled Services</span></th>
-                                            <th class="text-right"
-                                                style="vertical-align: middle;"><?php echo '<a href="#highlighted-justified-tab2" data-toggle="tab" onclick="openTab(\'litwo\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
-                                        </tr>
-
-
-                                        <tr role="row">
-
-                                            <th>Property Name</th>
-
-                                            <th>Service Name</th>
-
-                                            <th>Date Scheduled</th>
-
-                                        </tr>
-
-                                        </thead>
-
-                                        <tbody class="scrollable" style="max-height: 29vh;">
-
-                                        <?php if (isset($scheduled)) {
-
-                                            foreach ($scheduled as $k => $service) {
-                                                ?>
-
-                                                <tr role="row">
-
-                                                    <td><?php echo '<a class="color-light" href="' . base_url('admin/editProperty/') . $service->property_id . '" target="_blank">' . $service->property_title . '</a>' ?>
-
-                                                    </td>
-
-                                                    <td><?php echo '<a class="color-light" href="' . base_url('admin/job/editJob/') . $service->job_id . '" target="_blank">' . $service->job_name . '</a>' ?>
-
-                                                    </td>
-
-                                                    <td class="color-light"><?php echo date('m-d-Y', strtotime($service->job_assign_date)); ?>
-
-                                                    </td>
-
-                                                </tr>
-
-                                            <?php }
-                                        } ?>
-
-                                        </tbody>
+                                            <thead class="customer">
+                                            <tr>
+                                                <th colspan="2"><span class="text-semibold"
+                                                                    style="">Scheduled Services</span></th>
+                                                <th class="text-right"
+                                                    style="vertical-align: middle;"><?php echo '<a href="#highlighted-justified-tab2" data-toggle="tab" onclick="openTab(\'litwo\')"><i class="see-more-icon icon-list"></i><span class="see-more-text">See more</span></a>' ?></th>
+                                            </tr>
 
 
-                                    </table>
+                                            <tr role="row">
+
+                                                <th>Property Name</th>
+
+                                                <th>Service Name</th>
+
+                                                <th>Date Scheduled</th>
+
+                                            </tr>
+
+                                            </thead>
+
+                                            <tbody class="scrollable" style="max-height: 29vh;">
+
+                                            <?php if (isset($scheduled)) {
+
+                                                foreach ($scheduled as $k => $service) {
+                                                    ?>
+
+                                                    <tr role="row">
+
+                                                        <td><?php echo '<a class="color-light" href="' . base_url('admin/editProperty/') . $service->property_id . '" target="_blank">' . $service->property_title . '</a>' ?>
+
+                                                        </td>
+
+                                                        <td><?php echo '<a class="color-light" href="' . base_url('admin/job/editJob/') . $service->job_id . '" target="_blank">' . $service->job_name . '</a>' ?>
+
+                                                        </td>
+
+                                                        <td class="color-light"><?php echo date('m-d-Y', strtotime($service->job_assign_date)); ?>
+
+                                                        </td>
+
+                                                    </tr>
+
+                                                <?php }
+                                            } ?>
+
+                                            </tbody>
+
+
+                                        </table>
+
+                                    </div>
 
                                 </div>
-
                             </div>
-                            <div class="div-notes">
-                                <div class="row">
+                        </div>
 
+                        <div class="div-notes">
+                                <div class="row">
                                     <div class="col-md-12 col-sm-12 col-12">
 
                                         <div
@@ -2066,9 +2080,6 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                     </div>
                                 </div>
                             </div>
-
-                        </div>
-
                     </div>
 
                     <!-- PROFILE TAB-->
@@ -3484,14 +3495,18 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
 
                         </div>
 
+                        <?= $this->load->view('partials/hold_until_modal') ?>
 
                         <div class="table-responsive table-spraye">
 
                             <table class="table datatable-basic" id="customer-services">
 
-                                <button type="button" class="btn btn-primary" data-toggle="modal"
-                                        data-target="#modal_apply_discount_services" onclick="applyDiscount()">Apply
-                                    Coupon
+                                <button type="button" class="btn btn-primary" data-toggle="modal" style="margin-right: 10px;"
+                                        data-target="#modal_apply_discount_services" onclick="applyDiscount()">Apply Coupon
+                                </button>
+
+                                <button type="button" class="btn btn-success" data-toggle="modal"
+                                        data-target="#modal_hold_until_services" onclick="applyHoldService()">Hold Until
                                 </button>
 
                                 <script>
@@ -3579,6 +3594,53 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
 
                                     });
 
+                                    $("#apply_hold_until_date").submit(function () {
+                                        $.ajax({
+                                            url: "<?= base_url('admin/setting/applyHoldUntilDate') ?>",
+                                            data: $("#apply_hold_until_date").serialize(),
+                                            type: "POST",
+                                            dataType: 'json',
+                                            beforeSend: function () {
+                                                $("#loading").css("display", "block");
+                                            },
+                                            success: function (e) {
+                                                $("#loading").css("display", "none");
+                                                if (e != 0 && e != 1) {
+                                                    document.querySelector('#apply_hold_until_date_errors').innerHTML = e;
+                                                } else {
+                                                    $("#modal_hold_until_services").css("display", "none");
+                                                    $('.modal-backdrop').css("display", "none");
+
+                                                    if ($("#apply_hold_until_date").serialize().includes('REMOVE-ALL')) {
+                                                        swal(
+                                                            'Hold Until',
+                                                            'Removed Successfully ',
+                                                            'success'
+                                                        )
+                                                    } else {
+                                                        swal(
+                                                            'Hold Until',
+                                                            'Added Successfully ',
+                                                            'success'
+                                                        )
+                                                    }
+                                                    window.location.reload();
+                                                }
+                                            },
+                                            error: function (e) {
+                                                $("#loading").css("display", "none");
+                                                swal(
+                                                    'Hold Until',
+                                                    'Something went wrong',
+                                                    'error'
+                                                )
+                                            }
+                                        });
+
+                                        return false;
+
+                                    });
+
                                     // get all checked services, and insert data into form
 
                                     function applyDiscount() {
@@ -3592,7 +3654,12 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                         });
 
                                         document.querySelector('#coupon_apply_id_csv').value = JSON.stringify(all_service_data);
+                                        document.querySelector('#hold_date_job_data_csv').value = JSON.stringify(all_service_data);
 
+                                    }
+                                    function applyHoldService() {
+                                        applyDiscount();
+                                        $('#modal_hold_until_services').find('.hold_service_text label').text('Hold these services until the following date:');
                                     }
 
                                 </script>
@@ -3617,6 +3684,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                     <th>Completion Status</th>
                                     <th>Sales Rep</th>
                                     <th>Coupons</th>
+                                    <th>Hold Until Date</th>
                                     <th>Active Status</th>
                                     <?php if (isset($customerData['billing_type']) && $customerData['billing_type'] == 1) { ?>
                                         <th>Action</th><?php } ?>
@@ -3629,7 +3697,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                 if (!empty($all_services)) {
 
                                     foreach ($all_services as $value) {
-                                        $asapClass = $value->asap == 1 ? 'asap_row' : '';
+                                        $asapClass = empty($value->on_hold_status) && $value->asap == 1 ? 'asap_row' : '';
                                         ?>
 
                                         <tr class="<?= $asapClass ?>">
@@ -3664,20 +3732,25 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                             <td>
 
                                                 <?php
-                                                switch ($value->is_job_mode) {
-                                                    case 0:
-                                                        echo 'Pending';
-                                                        break;
-                                                    case 1:
-                                                        echo "Completed";
-                                                        break;
-                                                    case 2:
-                                                        echo "Rescheduled";
-                                                        break;
-                                                    default:
-                                                        echo "Default";
-                                                        break;
+                                                if ($value->technician_job_assign_id != 0){
+                                                    switch ($value->is_job_mode) {
+                                                        case 0:
+                                                            echo 'Scheduled';
+                                                            break;
+                                                        case 1:
+                                                            echo "Completed";
+                                                            break;
+                                                        case 2:
+                                                            echo "Rescheduled";
+                                                            break;
+                                                        default:
+                                                            echo "Default";
+                                                            break;
+                                                    }
+                                                } else {
+                                                    echo "Pending";
                                                 }
+                                                
                                                 ?>
                                             </td>
                                             <td><?php if (isset($value->sales_rep_name)) {
@@ -3685,39 +3758,58 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 } ?></td>
 
                                             <td><?= $value->coupon_code_csv ?></td>
+                                            <td><?php if (isset($value->hold_until_date)) {
+                                                    echo date('m-d-Y', strtotime($value->hold_until_date));
+                                                } ?>
+                                            </td>
                                             <td class="table-action">
                                                 <ul style="list-style-type: none; padding-left: 0px;">
                                                     <li>
                                                         <?php if (isset($value->cancelled) && $value->cancelled == 1) { ?>
                                                             <span class="label label-danger">Canceled</span>
                                                         <?php } else { ?>
-                                                            <span class="label label-success">Active</span>
-                                                            <?php if ($value->asap == 1) { ?>
-                                                                <span class="label label-danger">ASAP</span>
+                                                            <?php if (!empty($value->on_hold_status)) { ?>
+                                                                <span class="label label-refunded">On Hold</span>
+                                                            <?php } else { ?>
+                                                                <span class="label label-success">Active</span>
+                                                                <?php if ($value->asap == 1) { ?>
+                                                                    <span class="label label-danger">ASAP</span>
+                                                                <?php } ?>
                                                             <?php } ?>
                                                         <?php }
                                                         ?>
                                                     </li>
-                                                    <li style="display: inline; padding-right: 10px;">
-                                                        <?php if ($value->cancelled == 0 && $value->is_job_mode != 1) { ?>
-                                                    <li style="display: inline; padding-right: 10px;">
+                                                    <li style="display: flex; gap: 10px;">
+                                                    <?php if ($value->cancelled == 0 && $value->is_job_mode != 1) { ?>
                                                         <a href="#" class="confirm_cancellation"
                                                            onclick="cancelService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
                                                             <i class="fa fa-remove position-center"
                                                                title="Cancel Service"
                                                                style="color: #9a9797; size: 16px"></i>
                                                         </a>
-                                                    </li>
-                                                    <?php if ($value->asap == 0) { ?>
-                                                        <li style="display: inline; padding-right: 10px;">
+                                                        <?php if (empty($value->on_hold_status) && $value->asap == 0) { ?>
                                                             <a href="#" class="confirm_asap"
                                                                onclick="markAsAsap(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
                                                                 <i class="fa fa-level-up position-center"
                                                                    title="Mark as ASAP"
                                                                    style="color: #9a9797; size: 16px"></i>
                                                             </a>
-                                                        </li>
-                                                    <?php } ?>
+                                                        <?php } ?>
+                                                        <?php if (empty($value->on_hold_status)) { ?>
+                                                            <a href="#" class="confirm_asap"
+                                                               onclick="holdUntilService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                <i class="fa fa-pause position-center"
+                                                                   title="Hold This Service"
+                                                                   style="color: #9a9797; size: 16px"></i>
+                                                            </a>
+                                                        <?php } else { ?>
+                                                            <a href="#" class="confirm_asap"
+                                                               onclick="stopHoldingService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                <i class="fa fa-play position-center"
+                                                                   title="Stop Holding Service"
+                                                                   style="color: #9a9797; size: 16px"></i>
+                                                            </a>
+                                                        <?php } ?>
                                                     <?php } ?>
                                                     </li>
                                                 </ul>
@@ -5090,6 +5182,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
 
 </div>
 
+<?= $this->load->view('partials/add_standalone_service_customer_modal') ?>
 
 <!-- clover create payment modal -->
 
@@ -5777,6 +5870,9 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
     </div>
 
 </div>
+
+
+
 <?php
 $data = array(
     'polygon_bounds' => $polygon_bounds
@@ -7478,6 +7574,8 @@ $data = array(
         var switchery_technician_view = new Switchery(technician_view, config);
         var customer_view = document.querySelector('.switchery_customer_view');
         var switchery_customer_view = new Switchery(customer_view, config);
+        var switchery_add_to_service_specific_note = document.querySelector('.switchery_add_to_service_specific_note');
+        var switchery_add_to_service_specific_note = new Switchery(switchery_add_to_service_specific_note, config);
 
         register_switchery_create_note_modal();
         $('#note-filter-all, #note-filter-customer, #note-filter-property').click(function (e) {
@@ -7622,11 +7720,89 @@ $data = array(
 
     }
 
+    function addStandaloneService() {
+        $(".loading").css("display", "block");
+        var propertyId = $('#modal_add_service #property_id').val();
+        var propertyName = $('#modal_add_service #property_id option:selected').text();
+        var serviceId = $('#modal_add_service #service_id').val();
+        var serviceName = $('#modal_add_service #service_id option:selected').text();
+        var programPrice = $('#modal_add_service #program_price').val();
+
+        $('#add_service_program_price').parent().children('.error').remove();
+        $('#selected_job_id').parent().children('.error').remove();
+        $('#modal_add_service').find('.error').remove();
+        let error_label = '';
+        let is_valid = true;
+        if (propertyId === '') {
+            error_label = '<label id="property-error" class="error" for="property_id">Please select a property</label>';
+            $('#modal_add_service #property_id').parent().append(error_label);
+            is_valid = false;
+        }
+        if (serviceId === '') {
+            error_label = '<label id="service-error" class="error" for="job_id">Please select a service</label>';
+            $('#modal_add_service #service_id').parent().append(error_label);
+            is_valid = false;
+        }
+        if (programPrice === '') {
+            error_label = '<label id="program-price-error" class="error" for="program_price">Please select a pricing method</label>';
+            $('#modal_add_service #program_price').parent().append(error_label);
+            is_valid = false;
+        }
+        let add_to_service_specific_note = $('#modal_add_service #add_to_service_specific_note').is(':checked');
+        let note_contents = $('#modal_add_service #note_contents').val();
+        if (add_to_service_specific_note && note_contents == '') {
+            error_label = '<label id="note_contents-error" class="error" for="note_contents">Please input your note contents</label>';
+            $('#modal_add_service #note_contents').parent().append(error_label);
+            is_valid = false;
+        }
+        if (!is_valid) return;
+
+        var post = [];
+        var programName = serviceName + " - Standalone";
+        var priceOverride = $('#modal_add_service #price_override').val();
+
+        var property = {
+            service_id: serviceId,
+            hold_until_date: $('#modal_add_service #hold_until_date').val(),
+            add_to_service_specific_note: add_to_service_specific_note,
+            note_contents: note_contents,
+            service_name: serviceName,
+            property_id: propertyId,
+            property_name: propertyName,
+            program_name: programName,
+            is_price_override_set: priceOverride ? 1 : 0,
+            price_override: priceOverride,
+            program_price: programPrice
+        };
+        post.push(property);
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('admin/job/addJobToProperty')?>",
+            data: {post},
+            dataType: "JSON",
+        }).done(function(data){
+            $(".loading").css("display", "none");
+            if (data.status === "success") {
+                $('#modal_add_service').modal('hide');
+                swal(
+                    'Success!',
+                    'Service Added Successfully',
+                    'success'
+                ).then(function() {
+                    window.location.reload();
+                })
+            } else {
+                swal({
+                    type: 'error',
+                    title: 'Oops...',
+                    text: 'Please select a service and a pricing method'
+                })
+            }
+        });
+    }
 </script>
-
-
 <!-- Debug Var Dumps -->
-
 <script>
 
     var currentUser = <?= print_r(json_encode($currentUser), TRUE); ?>;
@@ -7641,6 +7817,71 @@ $data = array(
         $('input#asap_program_id').val(programId);
         $('input#asap_job_id').val(jobId);
         $('#modal_asap_service').modal('show');
+    }
+
+    function holdUntilService(propertyId, customerId, programId, jobId) {
+        let job_data = "" + customerId + "," + jobId + "," + programId + "," + propertyId + "";
+        let all_service_data = [];
+        all_service_data.push(job_data);
+        document.querySelector('#hold_date_job_data_csv').value = JSON.stringify(all_service_data);
+
+        $('#modal_hold_until_services').find('.hold_service_text label').text('Hold this service until the following date:');
+        $('#modal_hold_until_services').modal('show');
+    }
+
+    function stopHoldingService(propertyId, customerId, programId, jobId) {
+        swal({
+            title: 'Are you sure?',
+            text: "Stop Holding This Service.",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#009402',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            if (result.value) {
+                $.ajax({
+                    url: "<?= base_url('admin/setting/stopHoldingService') ?>",
+                    data: {
+                        property_id: propertyId,
+                        customer_id: customerId,
+                        program_id: programId,
+                        job_id: jobId,
+                    },
+                    type: "POST",
+                    dataType: 'json',
+                    beforeSend: function () {
+                        $("#loading").css("display", "block");
+                    },
+                    success: function (e) {
+                        $("#loading").css("display", "none");
+                        if (e != 0 && e != 1) {
+                            swal(
+                                'Stop Holding Service',
+                                'Stop Holding Failed',
+                                'error'
+                            )
+                        } else {
+                            swal(
+                                'Stop Holding Service',
+                                'Stopped Holding Successfully',
+                                'success'
+                            )
+                        }
+                        window.location.reload();
+                    },
+                    error: function (e) {
+                        $("#loading").css("display", "none");
+                        swal(
+                            'Stop Holding Service',
+                            'Something went wrong',
+                            'error'
+                        )
+                    }
+                });
+            }
+        });
     }
 
     // handle cancel property
@@ -7702,8 +7943,6 @@ $data = array(
         }
     });
 </script>
-
-
 <script>
 
     //assign properties autocomplete code:
@@ -8003,8 +8242,6 @@ $data = array(
     }); */
 
 </script>
-
-
 <script>
     //select a customer autocomplete code:
 
