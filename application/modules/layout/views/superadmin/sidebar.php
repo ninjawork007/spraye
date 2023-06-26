@@ -81,7 +81,7 @@
                     <li class="<?= $active_sidebar == "marketingCustomerDataReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/marketingCustomerDataReport');?>">Marketing / Customer Data Report</a></li>
                     <li class="<?= $active_sidebar == "materialResourcePlanningReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/MaterialResourcePlanningReport');?>" >Material Resource Planning</a></li>
 					      <li>
-                     <li class="<?= $active_sidebar == "revenueServieType" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/revenueServieType');?>">Revenue by Service Type</a></li>
+                     <li class="<?= $active_sidebar == "revenueServiceType" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/revenueServiceType');?>">Revenue by Service Type</a></li>
                      <li>
                      <a href="#"><span>Sales</span></a>
                      <ul>

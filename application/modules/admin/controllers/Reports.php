@@ -507,7 +507,7 @@ class Reports extends MY_Controller {
 	}
 
     ## Revenue by Service Type Report
-    public function revenueServieType(){
+    public function revenueServiceType(){
         $company_id = $this->session->userdata['company_id'];
         $data['ServiceArea'] = $this->ServiceArea->getAllServiceArea(['company_id' => $this->session->userdata['company_id']]);
         
