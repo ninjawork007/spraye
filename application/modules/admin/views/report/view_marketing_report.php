@@ -525,8 +525,7 @@ opacity: 1;
 	<center><img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/></center>
 </div>
 <script type="text/javascript" src="<?= base_url('assets/admin') ?>/assets/js/pages/components_popups.js"></script>
-
-  <script src="https://cdn.ckeditor.com/4.21.0/standard-all/ckeditor.js"></script>
+<script src="https://cdn.ckeditor.com/4.21.0/standard-all/ckeditor.js"></script>
 
 <script>
 CKEDITOR.replace('editor1');

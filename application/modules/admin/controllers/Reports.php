@@ -641,6 +641,10 @@ class Reports extends MY_Controller {
             $data['invoices'][$Index]->Jobs = $jobs;
         }
         $data['Services'] = $ServiceTypeID;
+
+        $data['SearchDateStart'] = $start_date;
+        $data['SearchDateEnd'] = $end_date;
+
         $body =  $this->load->view('admin/report/ajax_revenue_service_type', $data, false);
     }
 
@@ -10557,6 +10561,18 @@ class Reports extends MY_Controller {
         }
     }
 
+    public function getEamilData(){
+        $data = $this->input->post();
+        $where = array('company_id' =>$this->session->userdata['company_id']);
+        $data['program_details'] = $this->ProgramModel->get_all_program($where);
+
+        $company_id = $this->session->userdata['company_id'];
+        $where_arr = array('id' => $data["id"]);
+        $GetData = $this->MassEmailModel->getMassEmailData($where_arr);
+        $data['EmailList'] = $GetData;
+        $body =  $this->load->view('admin/report/EmailEditPopup', $data, false);
+    }
+
     public function emailMarketing(){
         $company_id = $this->session->userdata['company_id'];
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
@@ -10566,5 +10582,18 @@ class Reports extends MY_Controller {
         $page["page_name"] = 'Email Marketing';
         $page["page_content"] = $this->load->view("admin/report/view_email_marketing", $data, TRUE);
         $this->layout->superAdminReportTemplateTable($page);
+    }
+
+    public function UpdateEmailData(){
+        $Programs = $_POST["MassProgramms"];
+
+        $Data = array(
+            "programmes_id" => implode(",", $Programs),
+            "mail_text" => $_POST['mailText'],
+            "email_name" => $_POST['email_name'],
+            "email_subject" => $_POST['email_subject'],
+        );
+        $this->MassEmailModel->updateEmailData($Data, array("id" => $_POST['email_id']));
+        redirect("admin/reports/emailMarketing");
     }
 }

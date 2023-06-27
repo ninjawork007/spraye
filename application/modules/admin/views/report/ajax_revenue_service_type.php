@@ -23,7 +23,7 @@
                     $GrandTotal += $ServiceName;
                 ?>
                 <tr>
-                    <td><?php echo date("m/d/Y", strtotime($StartDate)) . " TO " . date("m/d/Y", strtotime($EndDate)) ?></td>
+                    <td><?php echo date("m/d/Y", strtotime($SearchDateStart)) . " TO " . date("m/d/Y", strtotime($SearchDateEnd)) ?></td>
                     <td><?php echo $ServiceTypeName ?></td>
                     <td align="right">$<?php echo number_format($ServiceName, 2) ?></td>
                 </tr>
