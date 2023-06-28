@@ -119,7 +119,7 @@
 		var url = $(this).attr('href');
 		swal({
 			title: 'Are you sure?',
-			text: "Are you sure to send emails?",
+			text: "Clicking 'Yes' will send this email to the selected recipients now.",
 			type: 'warning',
 			showCancelButton: true,
 			confirmButtonColor: '#009402',

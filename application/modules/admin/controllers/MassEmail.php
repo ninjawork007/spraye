@@ -31,6 +31,7 @@ class MassEmail extends MY_Controller {
     public function ResendEmail() {
         $ModelID = $_GET['id'];
         $Data = $this->MassEmailModel->getMassEmailData(array("id" => $ModelID));
+        $Data = $Data[0];
 
         $this->MassEmailModel->updateEmailData(array("status" => 1, "send_date" => date("Y-m-d")), array("id" => $ModelID));
 
@@ -86,6 +87,7 @@ class MassEmail extends MY_Controller {
                         $CustomerDetails->secondary_email
                     );
                 }
+                $body = $Data->mail_text;
             }
         }
         redirect("admin/reports/emailMarketing");

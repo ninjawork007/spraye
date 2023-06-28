@@ -304,7 +304,6 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 		}
 		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
 		$res = curl_exec($curl);
-		echo $res;
 		$httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
 		if ($httpcode == 202) {

@@ -44,6 +44,7 @@
 	</span>
 
 	<div class="modal-footer">
-	    <button class="btn btn-primary" type="submit">Save</button>
+	    <button class="btn btn-primary" type="submit" name="Save" value="1">Save</button>
+	    <button class="btn btn-primary" type="submit" name="Save" value="2">Send Email</button>
 	</div>
 </form>

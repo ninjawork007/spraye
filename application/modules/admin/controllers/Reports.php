@@ -10593,7 +10593,15 @@ class Reports extends MY_Controller {
             "email_name" => $_POST['email_name'],
             "email_subject" => $_POST['email_subject'],
         );
+        if($_POST['Save'] == 2){
+            $Data["status"] = 1;
+        }
+
         $this->MassEmailModel->updateEmailData($Data, array("id" => $_POST['email_id']));
+
+        if($_POST['Save'] == 2){
+            $this->sendMassEmail($_POST['email_id']);
+        }
         redirect("admin/reports/emailMarketing");
     }
 }
