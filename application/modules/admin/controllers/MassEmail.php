@@ -72,7 +72,7 @@ class MassEmail extends MY_Controller {
                     }
                 }
 
-                $body = str_replace('{PROGRAMM_NAME}', implode(", ", $AllProgrammNames), $body);
+                $body = str_replace('{PROGRAM_NAME}', implode(", ", $AllProgrammNames), $body);
 
                 if(count($AllProgrammNames) > 0){
                     Send_Mail_dynamic(
