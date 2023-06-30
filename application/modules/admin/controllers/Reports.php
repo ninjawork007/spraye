@@ -525,7 +525,7 @@ class Reports extends MY_Controller {
             $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id, "payment_datetime >=" => date("Y-01-01 00:00:00")));
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id, "payment_datetime >=" => date("Y-01-01 00:00:00"), "is_credit_balance" => 0));
             $TotalPayment = 0;
             foreach($all_invoice_partials as $PayPart){
                 $TotalPayment += $PayPart->payment_amount;
@@ -603,6 +603,7 @@ class Reports extends MY_Controller {
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
             $NewWhere['invoice_id'] = $INVs->invoice_id;
+            $NewWhere["is_credit_balance"] = 0
 
             $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment($NewWhere);
             $TotalPayment = 0;
