@@ -603,7 +603,7 @@ class Reports extends MY_Controller {
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
             $NewWhere['invoice_id'] = $INVs->invoice_id;
-            $NewWhere["is_credit_balance"] = 0
+            $NewWhere["is_credit_balance"] = 0;
 
             $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment($NewWhere);
             $TotalPayment = 0;
