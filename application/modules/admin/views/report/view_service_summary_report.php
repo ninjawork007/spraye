@@ -47,11 +47,11 @@
 
 						<div class="col-md-4">
 							<label>Date Range Start</label>
-							<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
+							<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
 						</div>
 						<div class="col-md-4">
 							<label>Date Range End</label>
-							<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
+							<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
 						</div>
 					</div>
 

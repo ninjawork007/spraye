@@ -209,6 +209,8 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			$mail->SMTPSecure = 'tls';
 
 		$mail->Host = str_replace('tls://', '', $smtparray['mass_smtp_host']);
+		$mail->Host = str_replace('ssl://', '', $smtparray['mass_smtp_host']);
+
 		$mail->Port = $smtparray['mass_smtp_port'];
 		$mail->Username = $smtparray['mass_smtp_username'];
 		$mail->Password = $smtparray['mass_smtp_password'];
@@ -229,7 +231,13 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 				$mail->AddCC($secondary_email_ele, $secondary_email_ele);
 			}
 		}
+		
 		$res = $mail->Send();
+
+		echo '<pre>';
+		print_r($mail);
+		print_r($res);
+		die;
 		
 		if ($res) {
 			$errorLog = fopen($_SERVER['DOCUMENT_ROOT'] . '/logemail_' . date("m-d-Y") . '.csv', 'a');
@@ -237,7 +245,6 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			fclose($errorLog);
 			return array('status' => true, 'message' => 'Email send succefully');
 		} else {
-
 			$errorLog = fopen($_SERVER['DOCUMENT_ROOT'] . '/logemail_' . date("m-d-Y") . '.csv', 'a');
 			fwrite($errorLog, $from_email . "," . $to . "," . $subject . "," . @$smtparray['smtp_host'] . "," . date("m-d-Y H:i:s") . "," . $mail->ErrorInfo . "\n");
 

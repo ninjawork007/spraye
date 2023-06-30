@@ -513,8 +513,7 @@ class Reports extends MY_Controller {
         
         $whereArr = array(
             'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-            'is_archived' => 0,
-            'invoice_created >=' => date("Y-01-01"),
+            'is_archived' => 0
         );
         
         $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
@@ -526,7 +525,7 @@ class Reports extends MY_Controller {
             $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id, "payment_datetime >=" => date("Y-01-01 00:00:00")));
             $TotalPayment = 0;
             foreach($all_invoice_partials as $PayPart){
                 $TotalPayment += $PayPart->payment_amount;
@@ -574,6 +573,8 @@ class Reports extends MY_Controller {
         $customer = $this->input->post('customer');
         $start_date = $this->input->post('start_date');
         $end_date = $this->input->post('end_date');
+
+        $NewWhere = array();
         
         $whereArr = array(
             'invoice_tbl.company_id' => $this->session->userdata['company_id'],
@@ -581,11 +582,11 @@ class Reports extends MY_Controller {
         );
 
         if($start_date != ""){
-            $whereArr['invoice_created >='] = $start_date;
+            $NewWhere['payment_datetime >='] = $start_date;
         }
 
         if($end_date != ""){
-            $whereArr['invoice_created <='] = $end_date;
+            $NewWhere['payment_datetime <='] = $end_date;
         }
         
         $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
@@ -601,7 +602,9 @@ class Reports extends MY_Controller {
             $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
+            $NewWhere['invoice_id'] = $INVs->invoice_id;
+
+            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment($NewWhere);
             $TotalPayment = 0;
             foreach($all_invoice_partials as $PayPart){
                 $TotalPayment += $PayPart->payment_amount;
@@ -5339,6 +5342,7 @@ class Reports extends MY_Controller {
         $data['estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_1);
         $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
         #### Adding status to conditions1
+
         $data['total_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
         $data['total_estimates_1'] = is_array($data['total_estimates_1']) ? count($data['total_estimates_1']) : 0;
         
@@ -5470,6 +5474,7 @@ class Reports extends MY_Controller {
 
            $data['service_summary_1'] = $service_summary_1;
            $data['service_summary_2'] = $service_summary_2;
+           
         ##### Results for both Conditions
         $report_results = [];
         if(isset($data['service_summary_2']) && !empty($data['service_summary_2'])){

@@ -15,21 +15,18 @@ class Payment_invoice_logs_model extends CI_Model{
     }
 
     public function getAllPartialPayment($where_arr = '') {
-           
         $this->db->select('*');
-        
         $this->db->from(self::SRATBL);
-
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
         
         $this->db->order_by('payment_datetime','asc');
         $result = $this->db->get();
-
         $data = $result->result();
         return $data;
     }
+
     public function getAllPartialPaymentWhereIn($search_column, $where_arr='') {
            
         $this->db->select('*');

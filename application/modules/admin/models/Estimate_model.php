@@ -652,32 +652,32 @@ class Estimate_model extends CI_Model{
         }
 
         else if(!empty($params['search']['estimate_created_date_to']) && !empty($params['search']['estimate_created_date_from']) ){
-           $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_to']);
-           $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_from']);
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_to']);
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_from']);
         }
 
         if(!empty($params['search']['date_range_date_to']) && empty($params['search']['date_range_date_from']) ){
-           $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_to']);
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
         }
         else if(empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
-           $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_from']);
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
         }
 
         else if(!empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
-           $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_to']);
-           $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_from']);
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
         }
 
         if(!empty($params['search']['comparision_range_date_to']) && empty($params['search']['comparision_range_date_from']) ){
-           $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_to']);
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_to']);
         }
         else if(empty($params['search']['comparision_range_date_to']) && !empty($params['search']['comparision_range_date_from']) ){
-           $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_from']);
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_from']);
         }
 
         else if(!empty($params['search']['comparision_range_date_to']) && !empty($params['search']['comparision_range_date_from']) ){
-           $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_to']);
-           $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_from']);
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_to']);
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_from']);
         }
 
        
@@ -907,14 +907,8 @@ class Estimate_model extends CI_Model{
    }elseif(!array_key_exists("start",$params) && array_key_exists("limit",$params)){
        $this->db->limit($params['limit']);
    }
-    //get records
-      $query = $this->db->get();
-//  die($this->db->last_query());
-       //return fetched data
-    return ($query->num_rows() > 0)?$query->result():FALSE;        
-
-
-  
+   $query = $this->db->get();
+   return ($query->num_rows() > 0) ? $query->result() : FALSE;
 }
 
 public function getSource($property_id) {
