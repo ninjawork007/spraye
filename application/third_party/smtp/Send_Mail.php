@@ -209,7 +209,6 @@ function Send_Mail_dynamic_mass($smtparray = array(), $to, $company_data, $body,
 			$mail->SMTPSecure = 'tls';
 
 		$mail->Host = str_replace('tls://', '', $smtparray['mass_smtp_host']);
-		$mail->Host = str_replace('ssl://', '', $smtparray['mass_smtp_host']);
 
 		$mail->Port = $smtparray['mass_smtp_port'];
 		$mail->Username = $smtparray['mass_smtp_username'];
