@@ -73,7 +73,7 @@ class MassEmail extends MY_Controller {
                 }
 
                 $body = str_replace('{PROGRAM_NAME}', implode(", ", $AllProgrammNames), $body);
-                $Email = "pulkitintech@gmail.com";
+                $Email = "brian@spraye.io";
 
                 if(count($AllProgrammNames) > 0){
                     Send_Mail_dynamic_mass(
