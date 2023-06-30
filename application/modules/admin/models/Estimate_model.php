@@ -635,7 +635,8 @@ class Estimate_model extends CI_Model{
     public function getAllEstimateDetailsSearch($params = array()){
         $this->db->select('* ');
         $this->db->from(self::EST);
-        $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
+        $this->db->join('estimate_programs','estimate_programs.estimate_id = t_estimate.estimate_id','left');
+        $this->db->join('program_job_assign','program_job_assign.program_id = estimate_programs.program_id','inner');
         $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
         $this->db->join('service_type_tbl','service_type_tbl.service_type_id=jobs.service_type_id','left');
         $this->db->where('t_estimate.company_id',$this->session->userdata['company_id']);
@@ -754,7 +755,7 @@ class Estimate_model extends CI_Model{
         }
          //get records
            $query = $this->db->get();
-		// die($this->db->last_query());
+		//die($this->db->last_query());
          return ($query->num_rows() > 0)?$query->result() : FALSE;  
     }
 
@@ -794,7 +795,8 @@ class Estimate_model extends CI_Model{
   public function getAllEstimateDetailsSearchGroupByID($params = array()){
    $this->db->select('* ');
    $this->db->from(self::EST);
-   $this->db->join('program_job_assign','program_job_assign.program_id = t_estimate.program_id','inner');
+   $this->db->join('estimate_programs','estimate_programs.estimate_id = t_estimate.estimate_id','left');
+   $this->db->join('program_job_assign','program_job_assign.program_id = estimate_programs.program_id','inner');
    $this->db->join('jobs','jobs.job_id = program_job_assign.job_id','inner');
    $this->db->where('t_estimate.company_id',$this->session->userdata['company_id']);
    if (array_key_exists("where_condition",$params)) {
@@ -802,39 +804,39 @@ class Estimate_model extends CI_Model{
     }
 
    if(!empty($params['search']['estimate_created_date_to']) && empty($params['search']['estimate_created_date_from']) ){
-      $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_to']);
+      $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_to']);
    }
    else if(empty($params['search']['estimate_created_date_to']) && !empty($params['search']['estimate_created_date_from']) ){
-      $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_from']);
+      $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_from']);
    }
 
    else if(!empty($params['search']['estimate_created_date_to']) && !empty($params['search']['estimate_created_date_from']) ){
-      $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_to']);
-      $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_from']);
+      $this->db->where('t_estimate.estimate_date <=',$params['search']['estimate_created_date_to']);
+      $this->db->where('t_estimate.estimate_date >=',$params['search']['estimate_created_date_from']);
    }
 
    if(!empty($params['search']['date_range_date_to']) && empty($params['search']['date_range_date_from']) ){
-      $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_to']);
+      $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
    }
    else if(empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
-      $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_from']);
+      $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
    }
 
    else if(!empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
-      $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_to']);
-      $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_from']);
+      $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
+      $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
    }
 
    if(!empty($params['search']['comparision_range_date_to']) && empty($params['search']['comparision_range_date_from']) ){
-      $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_to']);
+      $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_to']);
    }
    else if(empty($params['search']['comparision_range_date_to']) && !empty($params['search']['comparision_range_date_from']) ){
-      $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_from']);
+      $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_from']);
    }
 
    else if(!empty($params['search']['comparision_range_date_to']) && !empty($params['search']['comparision_range_date_from']) ){
-      $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_to']);
-      $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_from']);
+      $this->db->where('t_estimate.estimate_date <=',$params['search']['comparision_range_date_to']);
+      $this->db->where('t_estimate.estimate_date >=',$params['search']['comparision_range_date_from']);
    }
 
   

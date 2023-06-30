@@ -5338,7 +5338,6 @@ class Reports extends MY_Controller {
         }
         
          //get posts data
-       
         $data['estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_1);
         $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
         #### Adding status to conditions1
