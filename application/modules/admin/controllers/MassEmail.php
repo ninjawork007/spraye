@@ -73,12 +73,11 @@ class MassEmail extends MY_Controller {
                 }
 
                 $body = str_replace('{PROGRAM_NAME}', implode(", ", $AllProgrammNames), $body);
-                $Email = "brian@spraye.io";
 
                 if(count($AllProgrammNames) > 0){
                     Send_Mail_dynamic_mass(
                         $company_email_details,
-                        $Email,
+                        $CustomerDetails->email,
                         array(
                             "name" => $this->session->userdata['compny_details']->company_name,
                             "email" => $this->session->userdata['compny_details']->company_email
@@ -87,7 +86,6 @@ class MassEmail extends MY_Controller {
                         $Data->email_subject,
                         $CustomerDetails->secondary_email
                     );
-                    die;
                 }
                 $body = $Data->mail_text;
             }
