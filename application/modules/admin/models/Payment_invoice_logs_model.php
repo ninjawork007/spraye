@@ -20,10 +20,11 @@ class Payment_invoice_logs_model extends CI_Model{
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
-        
+
         $this->db->order_by('payment_datetime','asc');
         $result = $this->db->get();
         $data = $result->result();
+        //die(print_r($this->db->last_query()));
         return $data;
     }
 

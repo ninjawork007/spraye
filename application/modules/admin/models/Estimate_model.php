@@ -628,10 +628,20 @@ class Estimate_model extends CI_Model{
         $result = $this->db->get();
         $data = $result->result();
         // die(print($this->db->last_query()));
-        return $data;        
- 
-       
+        return $data;
     }
+
+    public function getAllEstimateForReport($where_arr = array()){
+        $this->db->from(self::EST);
+        $this->db->where($where_arr);
+        $this->db->order_by('estimate_id','desc');
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+    
+
+
     public function getAllEstimateDetailsSearch($params = array()){
         $this->db->select('* ');
         $this->db->from(self::EST);

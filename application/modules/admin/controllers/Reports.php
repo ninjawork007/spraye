@@ -513,10 +513,13 @@ class Reports extends MY_Controller {
         
         $whereArr = array(
             'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-            'is_archived' => 0
+            'invoice_tbl.is_archived' => 0,
+            'payment_invoice_logs.is_credit_balance' => 0,
+            'payment_invoice_logs.payment_datetime >=' => date("Y-01-01 00:00:00"),
         );
         
-        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        $data['invoices'] = $this->INV->getAllInvoiceWithPayments($whereArr);
+
         $data['AllServiceType'] = $this->RP->get_job_company($this->session->userdata['company_id']);
 
         $ServiceTypeID = array();
@@ -525,11 +528,7 @@ class Reports extends MY_Controller {
             $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
 
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id, "payment_datetime >=" => date("Y-01-01 00:00:00"), "is_credit_balance" => 0));
-            $TotalPayment = 0;
-            foreach($all_invoice_partials as $PayPart){
-                $TotalPayment += $PayPart->payment_amount;
-            }
+            $TotalPayment = $INVs->SumPay;
             $data['invoices'][$Index]->payment = $TotalPayment;
 
             $jobs = array();
@@ -573,23 +572,22 @@ class Reports extends MY_Controller {
         $customer = $this->input->post('customer');
         $start_date = $this->input->post('start_date');
         $end_date = $this->input->post('end_date');
-
-        $NewWhere = array();
         
         $whereArr = array(
             'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-            'is_archived' => 0,
+            'invoice_tbl.is_archived' => 0,
+            'payment_invoice_logs.is_credit_balance' => 0,
         );
 
         if($start_date != ""){
-            $NewWhere['payment_datetime >='] = $start_date;
+            $whereArr['payment_invoice_logs.payment_datetime >='] = $start_date;
         }
 
         if($end_date != ""){
-            $NewWhere['payment_datetime <='] = $end_date;
+            $whereArr['payment_invoice_logs.payment_datetime <='] = $end_date;
         }
         
-        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        $data['invoices'] = $this->INV->getAllInvoiceWithPayments($whereArr);
 
         $data['StartDate'] = $data['invoices'][0]->invoice_created;
         $data['EndDate'] = $data['invoices'][count($data['invoices']) -1]->invoice_created;
@@ -601,15 +599,7 @@ class Reports extends MY_Controller {
         foreach($data['invoices'] as $Index => $INVs){
             $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
-
-            $NewWhere['invoice_id'] = $INVs->invoice_id;
-            $NewWhere["is_credit_balance"] = 0;
-
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment($NewWhere);
-            $TotalPayment = 0;
-            foreach($all_invoice_partials as $PayPart){
-                $TotalPayment += $PayPart->payment_amount;
-            }
+            $TotalPayment = $INVs->SumPay;
             $data['invoices'][$Index]->payment = $TotalPayment;
 
             $jobs = array();
@@ -660,21 +650,22 @@ class Reports extends MY_Controller {
         
         $whereArr = array(
             'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-            'is_archived' => 0,
+            'invoice_tbl.is_archived' => 0,
+            'payment_invoice_logs.is_credit_balance' => 0,
         );
 
         if($start_date != ""){
-            $whereArr['invoice_created >='] = $start_date;
+            $whereArr['payment_invoice_logs.payment_datetime >='] = $start_date;
         }
 
         if($end_date != ""){
-            $whereArr['invoice_created <='] = $end_date;
+            $whereArr['payment_invoice_logs.payment_datetime <='] = $end_date;
         }
         
-        $data['invoices'] = $this->INV->getAllInvoicesReport($whereArr);
+        $data['invoices'] = $this->INV->getAllInvoiceWithPayments($whereArr);
 
-        $StartDate = $data['invoices'][0]->invoice_created;
-        $EndDate = $data['invoices'][count($data['invoices']) -1]->invoice_created;
+        $data['StartDate'] = $data['invoices'][0]->invoice_created;
+        $data['EndDate'] = $data['invoices'][count($data['invoices']) -1]->invoice_created;
 
         $data['AllServiceType'] = $this->RP->get_job_company($this->session->userdata['company_id']);
 
@@ -683,12 +674,7 @@ class Reports extends MY_Controller {
         foreach($data['invoices'] as $Index => $INVs){
             $param = array('property_program_job_invoice.invoice_id' => $INVs->invoice_id);
             $details = $this->PropertyProgramJobInvoiceModel->getOneInvoiceByPropertyProgram($param);
-
-            $all_invoice_partials = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $INVs->invoice_id));
-            $TotalPayment = 0;
-            foreach($all_invoice_partials as $PayPart){
-                $TotalPayment += $PayPart->payment_amount;
-            }
+            $TotalPayment = $INVs->SumPay;
             $data['invoices'][$Index]->payment = $TotalPayment;
 
             $jobs = array();
@@ -721,8 +707,8 @@ class Reports extends MY_Controller {
                     }
                 }
             }
+            $data['invoices'][$Index]->Jobs = $jobs;
         }
-
         
         if(is_array($ServiceTypeID) && count($ServiceTypeID) > 0){
              $delimiter = ",";
@@ -5186,8 +5172,6 @@ class Reports extends MY_Controller {
 
     ## Service  Summary Report
     public function serviceSummary($active = 0){   
-        //get the posts data
-        
         $where_arr = array('company_id' =>$this->session->userdata['company_id']);
         
         $data['service_types'] = $this->ServiceTypeModel->getAllServiceType($where_arr);
@@ -5202,59 +5186,49 @@ class Reports extends MY_Controller {
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
-        $data['estimates'] = $this->EstimateModal->getAllEstimateDetails(array('t_estimate.company_id' =>$this->session->userdata['company_id']));
+        
+        $data['estimates'] = $this->EstimateModal->getAllEstimateForReport(array('t_estimate.company_id' =>$this->session->userdata['company_id']));
+
         $data['total_estimates'] = $this->EstimateModal->getAllEstimateGroupByID(array('t_estimate.company_id' =>$this->session->userdata['company_id']));
         $data['accepted_estimates'] = $this->EstimateModal->getAllEstimateGroupByID(array('t_estimate.company_id' =>$this->session->userdata['company_id'], 'status' => 2));
         $data['declined_estimates'] = $this->EstimateModal->getAllEstimateGroupByID(array('t_estimate.company_id' =>$this->session->userdata['company_id'], 'status' => 5));
         
         $service_summary = [];
         foreach($data['estimates'] as $service){
-            $service_summary[$service->job_id]['service_type_name'] = $service->service_type_name;
+            $ProgrammsName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 0));
+            $ServicesName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 1));
 
-            if(is_array($service_summary) && array_key_exists($service->job_id, $service_summary)){
-                $service_summary[$service->job_id]['job_name'] = $service->job_name;
-                $estimate_cost = $service->job_price;
-                $service_summary[$service->job_id]['total_estimates'] += 1;
-                if(isset($service->status) && $service->status == 2){
-                    $service_summary[$service->job_id]['accepted'] += 1 ;
-                    $service_summary[$service->job_id]['accepted_total'] += $estimate_cost;
-                    
-                } elseif (isset($service->status) && $service->status == 5){
-                    $service_summary[$service->job_id]['declined'] += 1 ;
-                    $service_summary[$service->job_id]['declined_total'] += $estimate_cost;
-                } else {
-                    $service_summary[$service->job_id]['accepted'] += 0 ;
-                    $service_summary[$service->job_id]['declined'] += 0 ;
-                    $service_summary[$service->job_id]['accepted_total'] += 0;
-                    $service_summary[$service->job_id]['declined_total'] += 0;
-
+            $ServicesListArray = array();
+            foreach($ProgrammsName as $PGMS){
+                $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $PGMS->program_id));
+                foreach($SerData as $SRD){
+                    $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
                 }
-            } else {
-                $service_summary[$service->job_id]['job_name'] = $service->job_name;
-                $service_summary[$service->job_id]['total_estimates'] = 1;
-                $total_cost = $service->job_price;
-              
+            }
+
+            foreach($ServicesName as $Srn){
+                $JobData = $this->JobModel->getAllJob(array('jobs.job_id' => $Srn->service_id));
+                $ServicesListArray[] = array("id" => $Srn->service_id, "job_name" => $Srn->program_name, "service_type_name" => $JobData[0]->service_type_name, "price" => $JobData[0]->job_price);
+            }
+
+            foreach($ServicesListArray as $ServiceListData){
+                $service_summary[$ServiceListData['id']]['service_type_name'] = $ServiceListData["service_type_name"];
+                $service_summary[$ServiceListData['id']]['job_name'] = $ServiceListData["job_name"];
+                $estimate_cost = $ServiceListData["price"];
+                $service_summary[$ServiceListData['id']]['total_estimates'] += 1;
                 if(isset($service->status) && $service->status == 2){
-                    $estimate_cost = $service->job_price;
-                   
-                    $service_summary[$service->job_id]['accepted'] = 1 ;
-                    $service_summary[$service->job_id]['declined'] = 0 ;
-                    $service_summary[$service->job_id]['accepted_total'] = $estimate_cost ;
-                    $service_summary[$service->job_id]['declined_total'] = 0 ;
+                    $service_summary[$ServiceListData['id']]['accepted'] += 1 ;
+                    $service_summary[$ServiceListData['id']]['accepted_total'] += $estimate_cost;
+                    
                 } elseif (isset($service->status) && $service->status == 5){
-                    $estimate_cost = $service->job_price;
-                    
-                    $service_summary[$service->job_id]['accepted'] = 0 ;
-                    $service_summary[$service->job_id]['declined'] = 1 ;
-                    $service_summary[$service->job_id]['declined_total'] = $estimate_cost ;
-                    $service_summary[$service->job_id]['accepted_total'] = 0 ;
+                    $service_summary[$ServiceListData['id']]['declined'] += 1 ;
+                    $service_summary[$ServiceListData['id']]['declined_total'] += $estimate_cost;
                 } else {
-                    $estimate_cost = $service->job_price;
-                    
-                    $service_summary[$service->job_id]['accepted'] = 0 ;
-                    $service_summary[$service->job_id]['declined'] = 0 ;
-                    $service_summary[$service->job_id]['declined_total'] = 0 ;
-                    $service_summary[$service->job_id]['accepted_total'] = 0 ;
+                    $service_summary[$ServiceListData['id']]['accepted'] += 0 ;
+                    $service_summary[$ServiceListData['id']]['declined'] += 0 ;
+                    $service_summary[$ServiceListData['id']]['accepted_total'] += 0;
+                    $service_summary[$ServiceListData['id']]['declined_total'] += 0;
+
                 }
             }
         }

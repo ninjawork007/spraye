@@ -129,6 +129,7 @@ class AdminTbl_program_model extends CI_Model
             $this->db->where($where_arr);
         }
         $this->db->join('jobs', 'jobs.job_id=program_job_assign.job_id', 'inner');
+        $this->db->join('service_type_tbl', 'service_type_tbl.service_type_id=jobs.service_type_id', 'left');
         $result = $this->db->get();
         $data = $result->result();
         return $data;

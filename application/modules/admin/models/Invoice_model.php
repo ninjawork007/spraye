@@ -810,6 +810,24 @@ class Invoice_model extends CI_Model{
         return $data;
     }
 
+
+    public function getAllInvoiceWithPayments($where_arr = '') {
+        $this->db->select('sum(payment_invoice_logs.payment_amount)  as SumPay, payment_invoice_logs.invoice_id');
+        $this->db->from(self::INVTBL);
+        $this->db->join("payment_invoice_logs", "payment_invoice_logs.invoice_id = invoice_tbl.invoice_id", "left");
+
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+        $this->db->group_by('payment_invoice_logs.invoice_id');
+        $result = $this->db->get();
+        $data = $result->result();
+
+        //print_r($this->db->last_query());
+        return $data;
+    }
+
+
     public function getRefundDate($invoice_id){
         $this->db->select('refund_invoice_logs.refund_datetime');
         $this->db->from('refund_invoice_logs');
