@@ -5211,6 +5211,13 @@ class Reports extends MY_Controller {
                 $ServicesListArray[] = array("id" => $Srn->service_id, "job_name" => $Srn->program_name, "service_type_name" => $JobData[0]->service_type_name, "price" => $JobData[0]->job_price);
             }
 
+            if($service->program_id != ""){
+                $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $service->program_id));
+                foreach($SerData as $SRD){
+                    $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
+                }
+            }
+
             foreach($ServicesListArray as $ServiceListData){
                 $service_summary[$ServiceListData['id']]['service_type_name'] = $ServiceListData["service_type_name"];
                 $service_summary[$ServiceListData['id']]['job_name'] = $ServiceListData["job_name"];
@@ -5232,7 +5239,7 @@ class Reports extends MY_Controller {
                 }
             }
         }
-        
+
         $data['total_open_estimate'] = count($data['total_estimates']);
         $data['total_accepeted_estimate'] = count($data['accepted_estimates']);
         $data['total_declined_estimate'] = count($data['declined_estimates']);

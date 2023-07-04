@@ -228,7 +228,9 @@ class Estimates extends MY_Controller
                 $data[$i]['user_complete_name'] = ($value->user_first_name != '') ? $value->user_first_name . ' ' . $value->user_last_name : '';
                 $data[$i]['customer_name_url'] = '<a href="' . base_url('admin/editCustomer/') . $value->customer_id . '">' . $value->first_name . ' ' . $value->last_name . '</a>';
                 $data[$i]['property_address'] = $value->property_address;
+
                 $data[$i]['program_name'] = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $value->estimate_id, 'estimate_programs.ad_hoc' => 0));
+
                 $data[$i]['service_name'] = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $value->estimate_id, 'estimate_programs.ad_hoc' => 1));
                 $all_program_names = $all_service_names = array();
                 foreach ($data[$i]['program_name'] as $p) {
@@ -245,7 +247,6 @@ class Estimates extends MY_Controller
                 $data[$i]['service_name'] = implode(', ', $all_service_names);
                 $data[$i]['estimate_created_date'] = $value->estimate_created_date;
                 $data[$i]['user_complete_name'] = $value->user_first_name . ' ' . $value->user_last_name;
-
 
                 // Estimate Costs
                 $line_total = 0;
@@ -432,19 +433,10 @@ class Estimates extends MY_Controller
                 $i++;
             }
         }
-
-        //die($order);
         if ($order == 'total_cost') {
-
             $key_values = array_column($data, 'cost_unformated');
-
-            //die(print_r( $key_values));
             array_multisort($key_values, ($dir == 'asc') ? SORT_ASC : SORT_DESC, SORT_NUMERIC, $data);
-
         }
-
-
-        // die(print_r($data));
 
         $json_data = array(
             "draw" => intval($this->input->post('draw')),
