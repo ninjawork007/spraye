@@ -447,8 +447,8 @@ public function	getPPJOBINVdetails($where_arr = ''){
     public function sendMonthlyInvoice($customer,$email)
     {
 
-        $file = fopen("MonthlyStatementResult.txt","a");
-        fwrite($file, 'Customer_id: '.$customer.  PHP_EOL);
+        $file_log = fopen("MonthlyStatementResult.txt","a");
+        fwrite($file_log, 'Customer_id: '.$customer.  PHP_EOL);
 
         $customer_id = $customer;
 
@@ -462,8 +462,10 @@ public function	getPPJOBINVdetails($where_arr = ''){
             // 'payment_status !=' => 2
         );
 
-        $start_date = date("Y-m-d", strtotime("first day of previous month"));
-        $end_date = date('Y-m-01');
+//        $start_date = date("Y-m-d", strtotime("first day of previous month"));
+//        $end_date = date('Y-m-01');
+        $start_date = date('Y-06-01');
+        $end_date = date('Y-06-30');
 
         $whereArr['invoice_tbl.invoice_date >='] = $start_date; //$post_data['start_date'];
         $whereArr['invoice_tbl.invoice_date <'] = $end_date; //$post_data['end_date'];
@@ -497,7 +499,7 @@ public function	getPPJOBINVdetails($where_arr = ''){
                 'is_archived' => 0,
                 'invoice_tbl.customer_id' => $customer_id,
                 // 'payment_status !=' => 2,
-                'invoice_tbl.invoice_date >' => $end_date,
+                'invoice_tbl.invoice_date <' => $start_date ,
             );
 
             $data_before_period = $this->INV->ajaxActiveInvoicesTechWithSalesTax($whereArrBefore, "", "", "", "", $whereArrExclude, $whereArrExclude2, "", false);
@@ -614,7 +616,7 @@ public function	getPPJOBINVdetails($where_arr = ''){
         $data['statement_start_date'] = $start_date;
         $data['statement_end_date'] = $end_date;
         $data['invoice_details'] = $this->INV->ajaxActiveInvoicesTechWithSalesTax($whereArr, "", "", "", "", $whereArrExclude, $whereArrExclude2, "", false);
-
+        //die($this->db->last_query());
 
         $data['customer_details'] = $this->Customer->getCustomerDetail($customer_id);
         $companyID =  $data['customer_details']['company_id'];
@@ -767,7 +769,6 @@ public function	getPPJOBINVdetails($where_arr = ''){
             $this->load->view('admin/invoice/customer_all_pdf_invoice', $data);
 
             $html = $this->output->get_output();
-
             //  // Load pdf library
             $this->load->library('pdf');
             $dompdf = new Dompdf();
@@ -800,7 +801,7 @@ public function	getPPJOBINVdetails($where_arr = ''){
             } else {
                 $email = '';
             }
-            fwrite($file, 'Sent Email To: '.$email.  PHP_EOL);
+            fwrite($file_log, 'Sent Email To: '.$email.  PHP_EOL);
             if($data['customer_details']['email'] != ''){
                 //echo 'Sending email...';
                 $body = ' ';
@@ -830,12 +831,12 @@ public function	getPPJOBINVdetails($where_arr = ''){
                     $data['customer_details']->secondary_email,
                     $file
                 );
-                fwrite($file, 'Resp: '.print_r($res). PHP_EOL);
+                fwrite($file_log, 'Resp: '.print_r($res). PHP_EOL);
 
 
             }
         //}
-        fclose($file);
+        fclose($file_log);
     }
 
     public function getAllInvoicesReport($where_arr = '') {

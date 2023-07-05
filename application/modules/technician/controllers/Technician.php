@@ -1359,7 +1359,7 @@ class Technician extends MY_Controller
                         }
 
                         // create hold until date option if any
-                        if (isset($data['hold_until_date'])) {
+                        if (!empty($data['hold_until_date'])) {
                             $hold_until_data = array(
                                 'customer_id' => $customer_property_details[0]->customer_id,
                                 'property_id' => $data['property_id'],
@@ -3829,8 +3829,9 @@ class Technician extends MY_Controller
                 }
                 //die(print_r($updatearr));
                 $result = $this->Tech->updateJobAssign($where_ar, $updatearr);
+                
                 // update hold until date service
-                if (isset($data['hold_until_date'])) {
+                if (!empty($data['hold_until_date'])) {
                     $hold_until_data = array(
                         'customer_id' => $details->customer_id,
                         'property_id' => $details->property_id,
@@ -3839,7 +3840,6 @@ class Technician extends MY_Controller
                         'hold_until_date' => $data['hold_until_date'],
                     );
                     $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($hold_until_data);
-
                 }
 
                 if ($result) {

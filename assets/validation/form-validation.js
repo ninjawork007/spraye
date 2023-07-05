@@ -2348,7 +2348,21 @@ $(function () {
       },
     },
     submitHandler: function (form) {
-      form.submit();
+      swal({
+        title: 'Are you sure?',
+        text: "Some data may be overwritten!",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#009402',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      }).then((result) => {
+          if (result.value) {
+            form.submit();
+          }
+      })
+      
     },
   });
   // AUTOMATED EMAIL FORM

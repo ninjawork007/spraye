@@ -1394,7 +1394,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 <tr role="row">
                                                     <td colspan="3" class="left-column-property-details">Source</td>
                                                     <td colspan="3"
-                                                        class="color-grey"><?= (isset($customer_property->source)) ? $customer_property->source : '' ?></td>
+                                                        class="color-grey"><?= (isset($customer_property->source)) ? $customer_property->source_name: 'None' ?></td>
                                                 </tr>
                                                 <tr role="row">
                                                     <td colspan="3" class="left-column-property-details">Customer
@@ -3766,7 +3766,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 } ?></td>
 
                                             <td><?= $value->coupon_code_csv ?></td>
-                                            <td><?php if (isset($value->hold_until_date)) {
+                                            <td><?php if (isset($value->hold_until_date) && $value->hold_until_date != '0000-00-00') {
                                                     echo date('m-d-Y', strtotime($value->hold_until_date));
                                                 } ?>
                                             </td>

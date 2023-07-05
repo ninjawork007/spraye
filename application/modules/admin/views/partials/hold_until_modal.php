@@ -16,7 +16,7 @@
 									   id="hold_until_date"
 									   name="hold_until_date"
 									   value=""
-									   class="form-control pickaalldate"
+									   class="form-control pickadate"
 									   placeholder="YYYY-MM-DD">
 								<input type="hidden" name="job_data" id="hold_date_job_data_csv" value="">
 							</div>

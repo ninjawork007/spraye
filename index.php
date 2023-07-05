@@ -323,5 +323,7 @@ switch (ENVIRONMENT)
  * --------------------------------------------------------------------
  *
  * And away we go...
+ *
+ *  testing something here
  */
 require_once BASEPATH.'core/CodeIgniter.php';

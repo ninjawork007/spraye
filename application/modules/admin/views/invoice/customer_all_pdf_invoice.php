@@ -588,14 +588,16 @@ if ($invoice_details) {
                 ?>
               dollars. Please make your payment to cover the balance by the due date.</b></td>
       </tr>
-      <?php foreach ($credit_details as $value){
-        // die(print_r($invoice_details));
-        
-          
-    
-              print "<tr><td class='text-center'><b>Credit amount of \${$value->payment_amount} was added on ".date('m-d-Y',strtotime($value->payment_datetime))."</b></td></tr>";
-        
-      } ?>
+      <?php
+      if (isset($credit_details) && is_array($credit_details)) {
+          foreach ($credit_details as $value) {
+              // die(print_r($invoice_details));
+
+
+              print "<tr><td class='text-center'><b>Credit amount of \${$value->payment_amount} was added on " . date('m-d-Y', strtotime($value->payment_datetime)) . "</b></td></tr>";
+
+          }
+      }?>
    </table>
 
   <table width="100%" class="main_table" >
