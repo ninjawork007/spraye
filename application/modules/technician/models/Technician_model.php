@@ -99,7 +99,7 @@ class Technician_model extends CI_Model
                            property_tbl.*, 
                            program_job_assigned_customer_property_id, 
                            program_job_assigned_customer_property.reason,
-                           IFNULL(program_job_assigned_customer_property.hold_until_date, technician_job_assign.job_assign_date) as job_assign_date,
+                           technician_job_assign.job_assign_date,
                            TIME_FORMAT (`specific_time`,'%H:%i') as  specific_time"
         );
 
@@ -116,22 +116,12 @@ class Technician_model extends CI_Model
             technician_job_assign.property_id = program_job_assigned_customer_property.property_id',
             'left');
 
-        $this->db->or_group_start()
-            ->or_group_start()
-            ->where('job_assign_date', date("Y-m-d"))
-            ->where('hold_until_date IS NULL')
-            ->group_end()
-            ->or_group_start()
-            ->where('hold_until_date', date("Y-m-d"))
-            ->group_end()
-            ->group_end();
+        $this->db->where('job_assign_date', date("Y-m-d"));
 
         $this->db->where($where_arr);
 
-
         $this->db->order_by('technician_job_assign_id', 'desc');
         $result = $this->db->get();
-
         $data = $result->result_array();
         return $data;
     }
@@ -167,15 +157,7 @@ class Technician_model extends CI_Model
             technician_job_assign.property_id = program_job_assigned_customer_property.property_id',
             'left');
 
-        $this->db->or_group_start()
-                ->or_group_start()
-                    ->where('job_assign_date', date("Y-m-d"))
-                    ->where('hold_until_date IS NULL')
-                ->group_end()
-                ->or_group_start()
-                    ->where('hold_until_date', date("Y-m-d"))
-                ->group_end()
-            ->group_end();
+        $this->db->where('job_assign_date', date("Y-m-d"));
         $this->db->where($where_arr);
 
         $this->db->order_by('job_completed_time', 'desc');
@@ -429,15 +411,7 @@ class Technician_model extends CI_Model
             technician_job_assign.property_id = program_job_assigned_customer_property.property_id',
             'left');
 
-        $this->db->or_group_start()
-                ->or_group_start()
-                    ->where('technician_job_assign.job_assign_date', date("Y-m-d"))
-                    ->where('hold_until_date IS NULL')
-                ->group_end()
-                ->or_group_start()
-                    ->where('hold_until_date', date("Y-m-d"))
-                ->group_end()
-            ->group_end();
+        $this->db->where('technician_job_assign.job_assign_date', date("Y-m-d"));
 
         $this->db->where($where_arr);
         $this->db->group_by('technician_job_assign.route_id');

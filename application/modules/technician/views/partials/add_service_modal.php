@@ -81,7 +81,7 @@
                                        id="add_service_hold_until_date"
                                        name="add_service_hold_until_date"
                                        value=""
-                                       class="form-control pickaalldate note-filter"
+                                       class="form-control pickadate note-filter"
                                        placeholder="YYYY-MM-DD">
                             </div>
                         </div>

@@ -94,7 +94,7 @@
          <div class="col-md-3 col-sm-3 col-12">
             <div class="service-bols">
                <h3 class="ser-head">Total Revenue (YTD)</h3>
-               <p class="text-success ser-num">$ <?php if(!empty($total)) {echo number_format($total['total_revenue'],2); } ?>
+               <p class="text-success ser-num">$ <?php if(!empty($total)) {echo round($total['total_revenue'],2); } ?>
               </p>
             </div>
          </div>

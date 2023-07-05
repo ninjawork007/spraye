@@ -138,7 +138,7 @@
         var url = $(this).attr('href');
         swal({
             title: 'Are you sure?',
-            text: "You won't be able to recover this !",
+            text: "You won't be able to recover this!",
             type: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#009402',

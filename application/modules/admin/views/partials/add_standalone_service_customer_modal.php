@@ -62,7 +62,7 @@
                                            id="hold_until_date"
                                            name="hold_until_date"
                                            value=""
-                                           class="form-control pickaalldate"
+                                           class="form-control pickadate"
                                            placeholder="YYYY-MM-DD">
                                 </div>
                             </div>

@@ -54,7 +54,7 @@
                                            id="hold_until_date"
                                            name="hold_until_date"
                                            value=""
-                                           class="form-control pickaalldate note-filter"
+                                           class="form-control pickadate note-filter"
                                            placeholder="YYYY-MM-DD"
                                            required>
                                 </div>

@@ -5802,6 +5802,18 @@ class Admin extends MY_Controller
         $data['customer_property'] = $customerProperty;
         $data['source_list'] = $this->SourceModel->getAllSource(array('company_id' => $this->session->userdata['company_id']));
         $data['users'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
+        //Check if the source is from Source Table
+        if (isset($data['customer_property']->source))
+        {
+            $customer = $data['customer_property'];
+            foreach($data['source_list'] as $sourceEl)
+            {
+                if ($sourceEl->source_id == $customer->source)
+                {
+                    $data['customer_property']->source_name = $sourceEl->source_name;
+                }
+            }
+        }
         // $data['sources'] = array_merge($data['source_list'], $data['users']);
         $source = [];
         foreach ($data['users'] as $user) {
@@ -5812,6 +5824,19 @@ class Admin extends MY_Controller
             );
             array_push($data['source_list'], $source);
         }
+        //Checks if the source_name was already found in the source_table. If not, search the user database again.
+        if (isset($data['customer_property']->source) && !isset($data['customer_property']->source_name))
+        {
+            $customer = $data['customer_property'];
+            foreach($data['source_list'] as $sourceEl)
+            {
+                if ($sourceEl->source_id == $customer->source)
+                {
+                    $data['customer_property']->source_name = $sourceEl->source_name;
+                }
+            }
+        }
+        
         $data['note_types'] = $this->CompanyModel->getNoteTypes($this->session->userdata['company_id']);
 
         $coupon_customers = $this->CouponModel->getAllCouponCustomerCouponDetails(array('customer_id' => $customerID));
