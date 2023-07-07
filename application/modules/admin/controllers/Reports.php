@@ -5290,221 +5290,61 @@ class Reports extends MY_Controller {
             $conditions_1['search']['service_type'] = $this->input->post('service_type');
         }
         
-        $conditions_2 = array();
-        
-        //set conditions for search
         $job_name = $this->input->post('job_name');
         $comparision_range_date_to = $this->input->post('comparision_range_date_to');
         $comparision_range_date_from = $this->input->post('comparision_range_date_from');
-
-        if(!empty($job_name)){
-            $conditions_2['search']['job_name'] = $job_name;
-        }
-        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
-            $conditions_2['search']['sales_rep_id'] = $sales_rep_id;
-        }
-
-        if(!empty($ProgramName) && $ProgramName != "null"){
-            $conditions_2['search']['program_name'] = $ProgramName;
-        }
-
-        if(!empty($comparision_range_date_to)){
-            $conditions_2['search']['comparision_range_date_to'] = $comparision_range_date_to;
-        }
-         if(!empty($comparision_range_date_from)){
-            $conditions_2['search']['comparision_range_date_from'] = $comparision_range_date_from;
-        }
-
-        if(!empty($this->input->post('service_type'))){
-            $conditions_2['search']['service_type'] = $this->input->post('service_type');
-        }
         
-         //get posts data
-        $data['estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_1);
-        $data['estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearch($conditions_2);
-        #### Adding status to conditions1
+        $data['estimates'] = $this->EstimateModal->getAllEstimateDetailsSearchForReport($conditions_1);
 
-        $data['total_estimates_1'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_1);
-        $data['total_estimates_1'] = is_array($data['total_estimates_1']) ? count($data['total_estimates_1']) : 0;
-        
-        
-        ####  Adding status to conditions1
-        $data['total_estimates_2'] = $this->EstimateModal->getAllEstimateDetailsSearchGroupByID($conditions_2);
-        $data['total_estimates_2'] = is_array($data['total_estimates_2']) ? count($data['total_estimates_2']) : 0;
-        // die(print_r($data['total_estimates_2']));
-       
-        $service_summary_1 = [];
+        $service_summary = [];
+        foreach($data['estimates'] as $service){
+            $ProgrammsName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 0));
+            $ServicesName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 1));
 
-        // if($data['sales_summary_1']){
-        if($data['estimates_1']){
-            foreach($data['estimates_1'] as $service_1){
-                $service_summary_1[$service_1->job_id]['service_type_name'] = $service_1->service_type_name;
-                if(is_array($service_summary_1) && array_key_exists($service_1->job_id, $service_summary_1)){
-                    $service_summary_1[$service_1->job_id]['job_id'] = $service_1->job_id;
-                    $service_summary_1[$service_1->job_id]['job_name'] = $service_1->job_name;
-
-                    $estimate_cost = $service_1->job_price;
-                    $service_summary_1[$service_1->job_id]['total_estimates'] += 1;
-                    if(isset($service_1->status) && $service_1->status == 2){
-                        $service_summary_1[$service_1->job_id]['accepted'] += 1 ;
-                        $service_summary_1[$service_1->job_id]['accepted_total'] += $estimate_cost;
-                        
-                    } elseif (isset($service_1->status) && $service_1->status == 5){
-                        $service_summary_1[$service_1->job_id]['declined'] += 1 ;
-                        $service_summary_1[$service_1->job_id]['declined_total'] += $estimate_cost;
-                    } else {
-                        $service_summary_1[$service_1->job_id]['accepted'] += 0 ;
-                        $service_summary_1[$service_1->job_id]['declined'] += 0 ;
-                        $service_summary_1[$service_1->job_id]['accepted_total'] += 0;
-                        $service_summary_1[$service_1->job_id]['declined_total'] += 0;
-    
-                    }
-                } else {
-                    $service_summary_1[$service_1->job_id]['job_id'] = $service_1->job_id;
-                    $service_summary_1[$service_1->job_id]['job_name'] = $service_1->job_name;
-                    
-                    $service_summary_1[$service_1->job_id]['total_estimates'] = 1;
-                    $total_cost = $service_1->job_price;
-                  
-                    if(isset($service_1->status) && $service_1->status == 2){
-                        $estimate_cost = $service_1->job_price;
-                        
-                        $service_summary_1[$service_1->job_id]['accepted'] = 1 ;
-                        $service_summary_1[$service_1->job_id]['declined'] = 0 ;
-                        $service_summary_1[$service_1->job_id]['accepted_total'] = $estimate_cost ;
-                        $service_summary_1[$service_1->job_id]['declined_total'] = 0 ;
-                    } elseif (isset($service_1->status) && $service_1->status == 5){
-                        $estimate_cost = $service_1->job_price;
-                        
-                        $service_summary_1[$service_1->job_id]['accepted'] = 0 ;
-                        $service_summary_1[$service_1->job_id]['declined'] = 1 ;
-                        $service_summary_1[$service_1->job_id]['declined_total'] = $estimate_cost ;
-                        $service_summary_1[$service_1->job_id]['accepted_total'] = 0 ;
-                    } else {
-                        $estimate_cost = $service_1->job_price;
-                        
-                        $service_summary_1[$service_1->job_id]['accepted'] = 0 ;
-                        $service_summary_1[$service_1->job_id]['declined'] = 0 ;
-                        $service_summary_1[$service_1->job_id]['declined_total'] = 0 ;
-                        $service_summary_1[$service_1->job_id]['accepted_total'] = 0 ;
-                    }
-                   
-                }         
-            }
-        }
-
-        $service_summary_2 = [];
-        // if($data['sales_summary_2']){
-        if($data['estimates_2']){
-
-            foreach($data['estimates_2'] as $service){
-                $service_summary_2[$service->job_id]['service_type_name'] = $service->service_type_name;
-                if(is_array($service_summary_2) && array_key_exists($service->job_id, $service_summary_2)){
-                    $service_summary_2[$service->job_id]['job_id'] = $service->job_id;
-                    $service_summary_2[$service->job_id]['job_name'] = $service->job_name;
-
-                    $estimate_cost = $service->job_price;
-                   
-                    $service_summary_2[$service->job_id]['total_estimates'] += 1;
-                    if(isset($service->status) && $service->status == 2){
-                        $service_summary_2[$service->job_id]['accepted'] += 1 ;
-                        $service_summary_2[$service->job_id]['accepted_total'] += $estimate_cost;
-                        
-                    } elseif (isset($service->status) && $service->status == 5){
-                        $service_summary_2[$service->job_id]['declined'] += 1 ;
-                        $service_summary_2[$service->job_id]['declined_total'] += $estimate_cost;
-                    } else {
-                        $service_summary_2[$service->job_id]['accepted'] += 0 ;
-                        $service_summary_2[$service->job_id]['declined'] += 0 ;
-                        $service_summary_2[$service->job_id]['accepted_total'] += 0;
-                        $service_summary_2[$service->job_id]['declined_total'] += 0;
-    
-                    }
-                } else {
-                    $service_summary_2[$service->job_id]['job_id'] = $service->job_id;
-                    $service_summary_2[$service->job_id]['job_name'] = $service->job_name;
-                    
-                    $service_summary_2[$service->job_id]['total_estimates'] = 1;
-                    $total_cost = $service->job_price;
-                  
-                    if(isset($service->status) && $service->status == 2){
-                        $estimate_cost = $service->job_price;
-                        
-                        $service_summary_2[$service->job_id]['accepted'] = 1 ;
-                        $service_summary_2[$service->job_id]['declined'] = 0 ;
-                        $service_summary_2[$service->job_id]['accepted_total'] = $estimate_cost ;
-                        $service_summary_2[$service->job_id]['declined_total'] = 0 ;
-                    } elseif (isset($service->status) && $service->status == 5){
-                        $estimate_cost = $service->job_price;
-                        
-                        $service_summary_2[$service->job_id]['accepted'] = 0 ;
-                        $service_summary_2[$service->job_id]['declined'] = 1 ;
-                        $service_summary_2[$service->job_id]['declined_total'] = $estimate_cost ;
-                        $service_summary_2[$service->job_id]['accepted_total'] = 0 ;
-                    } else {
-                        $estimate_cost = $service->job_price;
-                       
-                        $service_summary_2[$service->job_id]['accepted'] = 0 ;
-                        $service_summary_2[$service->job_id]['declined'] = 0 ;
-                        $service_summary_2[$service->job_id]['declined_total'] = 0 ;
-                        $service_summary_2[$service->job_id]['accepted_total'] = 0 ;
-                    }                 
-                }             
-            }
-        }
-
-           $data['service_summary_1'] = $service_summary_1;
-           $data['service_summary_2'] = $service_summary_2;
-           
-        ##### Results for both Conditions
-        $report_results = [];
-        if(isset($data['service_summary_2']) && !empty($data['service_summary_2'])){
-            foreach($data['service_summary_1'] as $rSummary1){
-                foreach($data['service_summary_2'] as $rSummary2){
-                    if(($rSummary1['job_id'] == $rSummary2['job_id'] )){
-                        $report_result = array(
-                            'job_id' => $rSummary1['job_id'],
-                            'job_name' => $rSummary1['job_name'],
-                            'service_type_name' => $rSummary1['service_type_name'],
-                            'total_estimates_1' => $rSummary1['total_estimates'],
-                            'accepted_1' => $rSummary1['accepted'],
-                            'declined_1' => $rSummary1['declined'],
-                            'accepted_total_1' => $rSummary1['accepted_total'],
-                            'declined_total_1' => $rSummary1['declined_total'],
-                            'total_estimates_2' => $rSummary2['total_estimates'],
-                            'accepted_2' => $rSummary2['accepted'],
-                            'declined_2' => $rSummary2['declined'],
-                            'accepted_total_2' => $rSummary2['accepted_total'],
-                            'declined_total_2' => $rSummary2['declined_total'],
-
-                        );
-                        array_push($report_results, $report_result );
-                
-                    }
+            $ServicesListArray = array();
+            foreach($ProgrammsName as $PGMS){
+                $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $PGMS->program_id));
+                foreach($SerData as $SRD){
+                    $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
                 }
             }
-        } else {
-            foreach($data['service_summary_1'] as $rSummary1){
-                $report_result = array(
-                    'job_id' => $rSummary1['job_id'],
-                    'job_name' => $rSummary1['job_name'],
-                    'service_type_name' => $rSummary1['service_type_name'],
-                    'total_estimates_1' => $rSummary1['total_estimates'],
-                    'accepted_1' => $rSummary1['accepted'],
-                    'declined_1' => $rSummary1['declined'],
-                    'accepted_total_1' => $rSummary1['accepted_total'],
-                    'declined_total_1' => $rSummary1['declined_total'],
-                    'total_estimates_2' => 0,
-                    'accepted_2' => 0,
-                    'declined_2' => 0,
-                    'accepted_total_2' => 0,
-                    'declined_total_2' => 0,
-                );
-                array_push($report_results, $report_result );
+
+            foreach($ServicesName as $Srn){
+                $JobData = $this->JobModel->getAllJob(array('jobs.job_id' => $Srn->service_id));
+                $ServicesListArray[] = array("id" => $Srn->service_id, "job_name" => $Srn->program_name, "service_type_name" => $JobData[0]->service_type_name, "price" => $JobData[0]->job_price);
+            }
+
+            if($service->program_id != ""){
+                $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $service->program_id));
+                foreach($SerData as $SRD){
+                    $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
+                }
+            }
+
+            foreach($ServicesListArray as $ServiceListData){
+                $service_summary[$ServiceListData['id']]['service_type_name'] = $ServiceListData["service_type_name"];
+                $service_summary[$ServiceListData['id']]['job_name'] = $ServiceListData["job_name"];
+                $estimate_cost = $ServiceListData["price"];
+                $service_summary[$ServiceListData['id']]['total_estimates'] += 1;
+                if(isset($service->status) && $service->status == 2){
+                    $service_summary[$ServiceListData['id']]['accepted'] += 1 ;
+                    $service_summary[$ServiceListData['id']]['accepted_total'] += $estimate_cost;
+                    
+                } elseif (isset($service->status) && $service->status == 5){
+                    $service_summary[$ServiceListData['id']]['declined'] += 1 ;
+                    $service_summary[$ServiceListData['id']]['declined_total'] += $estimate_cost;
+                } else {
+                    $service_summary[$ServiceListData['id']]['accepted'] += 0 ;
+                    $service_summary[$ServiceListData['id']]['declined'] += 0 ;
+                    $service_summary[$ServiceListData['id']]['accepted_total'] += 0;
+                    $service_summary[$ServiceListData['id']]['declined_total'] += 0;
+
+                }
             }
         }
 
-        $data['report_results'] = $report_results;
+        $data['report_results'] = $service_summary;
+        $data["total_estimate"] = count($data['estimates']);
         $body =  $this->load->view('admin/report/ajax_service_summary_report', $data, false);
         echo $body;
     }

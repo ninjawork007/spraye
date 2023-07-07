@@ -1,7 +1,6 @@
 <div  class="table-responsive table-spraye" id="total-new-estimates">
-  <table  class="table datatable-colvis-state" style="border: 1px solid #6eb0fe;
-    border-radius: 12px;" id="total-new-estimates-table">    
-    <thead>  
+  <table  class="table datatable-colvis-state" style="border: 1px solid #6eb0fe; border-radius: 12px;" id="total-new-estimates-table">    
+    <thead>
       <tr>
         <th>Service</th>
         <th>Service Type</th>
@@ -17,39 +16,34 @@
     </thead>
     <tbody>
       <?php 
-        if (!empty($report_results)) {
-          // $total_estimates = 0;
-          // $total_estimates_2 = 0;
-          $closed_rate_total = 0;
-          $closed_rate_amt = 0;
-          $closed_rate_total_2 = 0;
-          $closed_rate_amt_2 = 0;
+      if (!empty($report_results)) {
+        $closed_rate_total = 0;
+        $closed_rate_amt = 0;
+        $closed_rate_total_2 = 0;
+        $closed_rate_amt_2 = 0;
+        foreach ($report_results as $value) { 
+        ?>
 
-          foreach ($report_results as $value) { 
-      ?>
+        <tr>
+          <td ><?= $value['job_name'] ?></td>
+          <td ><?= $value['service_type_name'] ?></td>
+          <td><?= $value['total_estimates'] ?></td>
+          <td><?= (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100) ?>%</td>
+          <td><?= (number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2)*100) ?>%</td>
+          <td><?= $value['total_estimates_2'] ?></td>
+          <td><?= (number_format((($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1))) ,2)*100) ?>%</td>
+          <td><?= (number_format((($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1))) ,2)*100) ?>%</td>
+          <td><?= (number_format(((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1)))-(($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1)))) ,2)*100) ?>%</td>
+          <td><?= number_format(((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1)))-(($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1)))) ,2)*100 ?>%</td>
+        </tr>
 
-      <tr>
-        <td ><?= $value['job_name'] ?></td>
-        <td ><?= $value['service_type_name'] ?></td>
-        <td><?= $value['total_estimates_1'] ?></td>
-        <td><?= (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100) ?>%</td>
-        <td><?= (number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2)*100) ?>%</td>
-        <td><?= $value['total_estimates_2'] ?></td>
-        <td><?= (number_format((($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1))) ,2)*100) ?>%</td>
-        <td><?= (number_format((($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1))) ,2)*100) ?>%</td>
-        <td><?= (number_format(((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1)))-(($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1)))) ,2)*100) ?>%</td>
-        <td><?= number_format(((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1)))-(($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1)))) ,2)*100 ?>%</td>
-      </tr>
-          <?php
-            // $total_estimates += $value['total_estimates_1'];
-            // $total_estimates_2 += $value['total_estimates_2'];
-            $closed_rate_total += (number_format((($value['accepted_1']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100);
-            $closed_rate_amt += (number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2)*100);
-            $closed_rate_total_2 += (number_format((($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1))) ,2)*100);
-            $closed_rate_amt_2 += (number_format((($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1))) ,2)*100);
-            }
-          
-        } else { 
+        <?php
+        $closed_rate_total += (number_format((($value['accepted']/max(($value['accepted_1']+$value['declined_1']),1))) ,2)*100);
+        $closed_rate_amt += (number_format((($value['accepted_total_1']/max(($value['accepted_total_1']+$value['declined_total_1']),1))) ,2)*100);
+        $closed_rate_total_2 += (number_format((($value['accepted_2']/max(($value['accepted_2']+$value['declined_2']),1))) ,2)*100);
+        $closed_rate_amt_2 += (number_format((($value['accepted_total_2']/max(($value['accepted_total_2']+$value['declined_total_2']),1))) ,2)*100);
+      }
+      } else { 
         ?> 
 
       <tr>
@@ -76,15 +70,9 @@
 
       <tr>
         <td colspan="2"><b>TOTALS</b>
-        <span
-
-											data-popup="tooltip-custom"
-											title="The total shown is the total number of estimates created and not total number of services."
-											data-placement="right"> <i class=" icon-info22 tooltip-icon"></i>
-
-											</span>
+        <span data-popup="tooltip-custom" title="The total shown is the total number of estimates created and not total number of services." data-placement="right"> <i class=" icon-info22 tooltip-icon"></i></span>
       </td>
-        <td><b><?= $total_estimates_1 ?></b></td>
+        <td><b><?= $total_estimate ?></b></td>
         <td><b><?= number_format($closed_rate_total/count($report_results)) ?>%</b></td>
         <td><b><?= number_format($closed_rate_amt/count($report_results)) ?>%</b></td>
         <td><b><?= $total_estimates_2 ?></b></td>

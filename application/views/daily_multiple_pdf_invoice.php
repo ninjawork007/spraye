@@ -683,7 +683,7 @@
                 $products = array();
                 $report_id = [];
                 if (isset($invoice_detail) && is_array($invoice_detail) && !empty($invoice_detail) ) {
-                    $job = $invoice_detail;
+                    $job = (array)$invoice_detail;
                     if ($job->report_id != '' && $job->report_id != 0) {
                             if (is_array($job)){
                                 array_push($report_id, $job['report_id']);
@@ -712,8 +712,7 @@
 
 
                 } else {
-                    $job = $invoice_detail;
-
+                    $job = (array)$invoice_detail;
                     if ($invoice_detail->report_id != 0) {
 
                         array_push($report_id, $job->report_id);

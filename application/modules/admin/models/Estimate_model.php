@@ -769,6 +769,30 @@ class Estimate_model extends CI_Model{
          return ($query->num_rows() > 0)?$query->result() : FALSE;  
     }
 
+
+
+
+    public function getAllEstimateDetailsSearchForReport($params = array()){
+        $this->db->select('* ');
+        $this->db->from(self::EST);
+        $this->db->where('t_estimate.company_id',$this->session->userdata['company_id']);
+        
+        if(!empty($params['search']['date_range_date_to']) && empty($params['search']['date_range_date_from']) ){
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
+        }
+        else if(empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
+        }
+
+        else if(!empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
+           $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
+           $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
+        }
+
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function getAllEstimateGroupByID($where_arr = array()){
       $this->db->select('* ');
       $this->db->from(self::EST);
