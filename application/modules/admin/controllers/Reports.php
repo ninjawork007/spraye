@@ -2946,7 +2946,7 @@ class Reports extends MY_Controller {
 
 
     public function customersCsv($value=''){
-   
+
         $where =  array('company_id' => $this->session->userdata['company_id']);        
         $data = $this->CustomerModel->get_all_customer($where);
 
@@ -2968,9 +2968,9 @@ class Reports extends MY_Controller {
         
         
             foreach ($data as $key => $value) {
-            $lineData = array($value->first_name,$value->last_name,$value->customer_company_name, $value->email,$value->secondary_email,$value->phone, $value->home_phone, $value->work_phone, $value->billing_street, $value->billing_street_2,$value->billing_city, $value->billing_state, $value->billing_zipcode,$this->CustomerModel->formatStatus($value->customer_status));
+
+            $lineData = array($value->first_name,$value->last_name,$value->customer_company_name, $value->email, $value->is_email == 1 ? "Subscribed" : "Unsubscribed", $value->secondary_email,$value->phone, $value->is_mobile_text == 1 ? "Subscribed" : "Unsubscribed", $value->home_phone, $value->work_phone, $value->billing_street, $value->billing_street_2,$value->billing_city, $value->billing_state, $value->billing_zipcode,$value->customer_status==1 ? 'Active':'Non-Active');
                 fputcsv($f, $lineData, $delimiter);
-            
             }
 
             //move back to beginning of file
@@ -2988,7 +2988,6 @@ class Reports extends MY_Controller {
         $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>No </strong> record found</div>');
         redirect("admin/customerList");
         }    
-
     }
 
     /**
