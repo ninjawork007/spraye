@@ -5284,10 +5284,6 @@ class Reports extends MY_Controller {
         if(!empty($date_range_date_from)){
             $conditions_1['search']['date_range_date_from'] = $date_range_date_from;
         }
-
-        if(!empty($this->input->post('service_type'))){
-            $conditions_1['search']['service_type'] = $this->input->post('service_type');
-        }
         
         $job_name = $this->input->post('job_name');
         $comparision_range_date_to = $this->input->post('comparision_range_date_to');
@@ -5296,7 +5292,14 @@ class Reports extends MY_Controller {
         $data['estimates'] = $this->EstimateModal->getAllEstimateDetailsSearchForReport($conditions_1);
 
         $service_summary = [];
+
+        $TotalEstimate = 0;
+        $TotalAccepted = 0;
+        $TotalDeclined = 0;
+
         foreach($data['estimates'] as $service){
+            $AllServiceType = array();
+
             $ProgrammsName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 0));
             $ServicesName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 1));
 
@@ -5304,20 +5307,49 @@ class Reports extends MY_Controller {
             foreach($ProgrammsName as $PGMS){
                 $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $PGMS->program_id));
                 foreach($SerData as $SRD){
+                    
+                    if($this->input->post('service_type') != ""){
+                        if($this->input->post('service_type') != $SRD->service_type_id){
+                            continue;
+                        }
+                    }
+
                     $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
                 }
             }
 
             foreach($ServicesName as $Srn){
                 $JobData = $this->JobModel->getAllJob(array('jobs.job_id' => $Srn->service_id));
+                if($this->input->post('service_type') != ""){
+                    if($this->input->post('service_type') != $JobData[0]->service_type_id){
+                        continue;
+                    }
+                }
+
                 $ServicesListArray[] = array("id" => $Srn->service_id, "job_name" => $Srn->program_name, "service_type_name" => $JobData[0]->service_type_name, "price" => $JobData[0]->job_price);
             }
 
             if($service->program_id != ""){
                 $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $service->program_id));
                 foreach($SerData as $SRD){
+                    
+                    if($this->input->post('service_type') != ""){
+                        if($this->input->post('service_type') != $SRD->service_type_id){
+                            continue;
+                        }
+                    }
+
                     $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
                 }
+            }
+
+
+            $TotalEstimate++;
+            if(isset($service->status) && $service->status == 2){
+                $TotalAccepted++;
+            }
+            if (isset($service->status) && $service->status == 5){
+                $TotalDeclined++;
             }
 
             foreach($ServicesListArray as $ServiceListData){
@@ -5343,7 +5375,10 @@ class Reports extends MY_Controller {
         }
 
         $data['report_results'] = $service_summary;
-        $data["total_estimate"] = count($data['estimates']);
+        $data["total_estimate"] = $TotalEstimate;
+        $data["total_accepted"] = $TotalAccepted;
+        $data["total_declined"] = $TotalDeclined;
+
         $body =  $this->load->view('admin/report/ajax_service_summary_report', $data, false);
         echo $body;
     }

@@ -47,11 +47,11 @@
 
 						<div class="col-md-4">
 							<label>Date Range Start</label>
-							<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
+							<input type="date" id="date_range_date_from" name="date_range_date_from" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
 						</div>
 						<div class="col-md-4">
 							<label>Date Range End</label>
-							<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["end_date"] ?>">
+							<input type="date" id="date_range_date_to" name="date_range_date_to" class="form-control pickaalldate" placeholder="YYYY-MM-DD" value="<?php echo $SavedFilter["start_date"] ?>">
 						</div>
 					</div>
 
@@ -129,17 +129,11 @@
 			<li class="lione <?php echo $active_nav_link == '1' ? 'active' : ''  ?> "><a href="#highlighted-justified-tab1" data-toggle="tab">Total Accepted Estimates</a></li>
 			<li class="litwo <?php echo $active_nav_link == '2' ? 'active' : ''  ?>"><a href="#highlighted-justified-tab2" data-toggle="tab">Total Declined Estimates</a></li>
 		</ul>
-        <div class="tab-content">
+        <div class="tab-content" id="LoadNewReportData">
 			<!-- NEW ESTIMATES -->
           <div class="tab-pane <?php echo $active_nav_link=='0' ? 'active' : ''  ?>" id="highlighted-justified-tab0">
 			<div class="row">
 				<div class="col-md-12">
-					
-					<div class="loading" style="display: none;">
-						<center>
-							<img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/>
-						</center>
-					</div>
 					<div class="post-list" id="postListNew"> 
 						<div  class="table-responsive table-spraye" id="total-new-estimates">
 							<table  class="table datatable-colvis-state" style="border: 1px solid #6eb0fe; border-radius: 12px;"  id="total-new-estimates-table">
@@ -223,7 +217,7 @@
 										<th>Revenue Close Rate</th>
 									</tr>  
 								</thead>
-								<tbody id="accepted_estimates_tbody">
+								<tbody>
 									<?php 
 										if (!empty($service_summary)) {
 										$total_accepted = 0;
@@ -367,6 +361,11 @@
 				<!-- end decline estimates -->
 			</div>
 		</div>
+		<div class="loading" style="display: none;">
+			<center>
+				<img style="padding-top: 30px;width: 7%;" src="<?php echo base_url().'assets/loader.gif'; ?>"/>
+			</center>
+		</div>
 		<!-- END TABBABLE -->
     </div>
   </div>
@@ -395,7 +394,7 @@ function searchFilterNew() {
     var service_type = $("#service_type").val();
 
     $('.loading').css("display", "block");
-   $('#postListNew').html('');
+   $('#LoadNewReportData').html('');
     $.ajax({
         type: 'POST',
         url: '<?php echo base_url(); ?>admin/reports/ajaxServiceSummaryDataNew/',
@@ -403,12 +402,14 @@ function searchFilterNew() {
         
         success: function (html) {
             $(".loading").css("display", "none");
-            $('#postListNew').html(html);
-            tableintalNew(); ///CHECK FUNCTION
+            $('#LoadNewReportData').html(html);
+            tableintalNew();
+            tableintalAccepted();
+            tableintalDeclined();
         }
     });
 
-	$('.loading_2').css("display", "block");
+	/*$('.loading_2').css("display", "block");
    $('#postListAccepted').html('');
     $.ajax({
         type: 'POST',
@@ -420,9 +421,9 @@ function searchFilterNew() {
             $('#postListAccepted').html(html);
             tableintalAccepted(); ///CHECK FUNCTION
         }
-    });
+    });*/
 
-	$('.loading_3').css("display", "block");
+	/*$('.loading_3').css("display", "block");
    $('#postListDeclined').html('');
     $.ajax({
         type: 'POST',
@@ -434,7 +435,7 @@ function searchFilterNew() {
             $('#postListDeclined').html(html);
             tableintalDeclined(); ///CHECK FUNCTION
         }
-    });
+    });*/
 }
 
 function tableintalNew(argument){

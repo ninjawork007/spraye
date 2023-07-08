@@ -627,7 +627,14 @@ class Admin extends MY_Controller
                     $status = '<span class="label label-prospect">Estimate Sent</span>';
                 } elseif ($value->property_status == 6) {
                     $status = '<span class="label label-primary">Estimate Declined</span>';
+                }elseif ($value->property_status==7) {
+                    $status = '<span class="label label-danger">Canceled - Moved</span>';
+                }elseif ($value->property_status==8) {
+                    $status = '<span class="label label-danger">Canceled - Do not call</span>';
+                }elseif ($value->property_status==9) {
+                    $status = '<span class="label label-danger">Canceled - Call Next Year</span>';
                 }
+
                 $data[$i]['property_status'] = $status;
 
                 $action_html = '
@@ -639,12 +646,12 @@ class Admin extends MY_Controller
                             <li style="display: inline; padding-right: 10px;">
                                 <a href="' . base_url("admin/propertyDelete/") . $value->property_id . '" class="confirm_delete button-next"><i class="fa fa-trash   position-center" style="color: #9a9797;"></i></a>
                             </li>';
-                if ($value->property_status != 0) {
+                if($value->property_status != 0 && $value->property_status != 7 && $value->property_status != 8 && $value->property_status != 9){
                     $action_html .= '<li style="display: inline; padding-right: 10px;" >
-                                    <a href="#" class="confirm_cancellation" onclick="cancelProperty(' . $value->property_id . ')" >
-                                        <i class="fa fa-remove position-center"  title="Cancel Property" style="color: #9a9797; size: 16px"></i>
-                                    </a>
-                                </li>';
+                        <a href="#" class="confirm_cancellation" onclick="cancelProperty('. $value->property_id .')" >
+                            <i class="fa fa-remove position-center"  title="Cancel Property" style="color: #9a9797; size: 16px"></i>
+                        </a>
+                    </li>';
                 }
                 $action_html .= '</ul>';
                 $data[$i]['action'] = $action_html;
@@ -13413,7 +13420,33 @@ class Admin extends MY_Controller
         $email_data['cancel_reason'] = $cancel_reason;
         $email_data['services'] = [];
         #update property status
-        $handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id, array('property_status' => 0, 'cancel_reason' => $cancel_reason, 'property_cancelled' => date('Y-m-d H:i:s', strtotime('now'))));
+        
+        $handleCancelProperty = $this->PropertyModel->updateAdminTbl($property_id,array('cancelled_by' => $this->session->userdata['id'], 'property_status'=> $data["cancel_status"],'cancel_reason'=>$cancel_reason,'property_cancelled'=>date('Y-m-d H:i:s',strtotime('now'))));
+
+        #GetEstimate of this properyt and cancel
+        $GetEstimates = $this->EstimateModel->getAllEstimate(array("property_tbl.property_id" => $property_id));
+        foreach($GetEstimates as $Estms){
+            if($Estms->status == 1){
+            $this->EstimateModel->updateEstimate(array("estimate_id" => $Estms->estimate_id), array("status" => 5));
+            }
+        }
+
+
+        #Getting all property of customer and check if all cancel
+        $customer_info = $this->PropertyModel->getAllcustomer(array('property_id'=>$property_id));
+        $AllProp = $this->CustomerModel->getAllproperty(array("customer_id" => $customer_info[0]->customer_id));
+
+        $CustomerCancel = 0;
+        foreach($AllProp as $APL){
+            if($APL->property_status == 0 || $APL->property_status == 7 || $APL->property_status == 8 || $APL->property_status == 9){
+                $CustomerCancel++;
+            }
+        }
+
+        if($CustomerCancel == count($AllProp)){
+            $this->CustomerModel->updateCustomerData(array("customer_status" => 0), array("customer_id" => $customer_info[0]->customer_id));
+        }
+
 
         #outstanding services should be cancelled
         $outstandingServices = $this->PropertyModel->getUnassignJobsByProperty($property_id);

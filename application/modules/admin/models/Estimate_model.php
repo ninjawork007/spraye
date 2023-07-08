@@ -696,7 +696,7 @@ class Estimate_model extends CI_Model{
            $this->db->where("(`user_first_name` LIKE '%".$params['search']['sales_rep']."%' OR `user_last_name` LIKE '%".$params['search']['sales_rep']."%')");
         }
         
-        if(!empty($params['search']['sales_rep_id'])){    
+        if(!empty($params['search']['sales_rep_id'])){ 
            $SaleRpID = explode(",", $params['search']['sales_rep_id']);
 
             $IdString = "sales_rep IN (";
@@ -787,6 +787,19 @@ class Estimate_model extends CI_Model{
         else if(!empty($params['search']['date_range_date_to']) && !empty($params['search']['date_range_date_from']) ){
            $this->db->where('t_estimate.estimate_date <=',$params['search']['date_range_date_to']);
            $this->db->where('t_estimate.estimate_date >=',$params['search']['date_range_date_from']);
+        }
+
+        if(!empty($params['search']['sales_rep_id'])){ 
+           $SaleRpID = explode(",", $params['search']['sales_rep_id']);
+
+            $IdString = "sales_rep IN (";
+            foreach($SaleRpID as $TcID){
+                $IdString .= "'".$TcID."',";
+            }
+            $IdString = substr($IdString, 0, -1);
+            $IdString .= ")";
+
+            $this->db->where($IdString);
         }
 
         $query = $this->db->get();
