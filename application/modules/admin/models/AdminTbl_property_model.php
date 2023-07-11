@@ -863,7 +863,6 @@ class AdminTbl_property_model extends CI_Model
         $this->db->join('users','users.id = property_tbl.cancelled_by ','inner');
         $this->db->join('t_estimate','t_estimate.property_id = property_tbl.property_id ','left');
         $this->db->where($where);
-        $this->db->where('property_tbl.property_status', 0);
         $this->db->where('property_tbl.property_cancelled IS NOT NULL');
         if ($from != '') {
             $this->db->where('property_tbl.property_cancelled >=', $from);

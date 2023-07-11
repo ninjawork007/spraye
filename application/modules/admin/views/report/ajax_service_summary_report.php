@@ -139,7 +139,7 @@
             <td><b><?= $total_accepted ?></b></td>
             <td><b><?= number_format($closed_rate_total/count($report_results)) ?>%</b></td>
             <td><b><?= number_format($closed_rate_amt/count($report_results)) ?>%</b></td>
-            <td><b><?= $total_estimates_2 ?></b></td>
+            <td><b><?= $total_accepted_2 ?></b></td>
             <td><b><?= number_format($closed_rate_total_2/count($report_results)) ?>%</b></td>
             <td><b><?= number_format($closed_rate_amt_2/count($report_results)) ?>%</b></td>
             <td><b><?= number_format(($closed_rate_total/max(count($report_results),1))-($closed_rate_total_2/max(count($report_results),1))) ?>%</b></td>
@@ -218,7 +218,7 @@
             <td><b><?= $total_declined ?></b></td>
             <td><b><?= number_format($closed_rate_total/count($report_results)) ?>%</b></td>
             <td><b><?= number_format($closed_rate_amt/count($report_results)) ?>%</b></td>
-            <td><b><?= $total_estimates_2 ?></b></td>
+            <td><b><?= $total_declined_2 ?></b></td>
             <td><b><?= number_format($closed_rate_total_2/count($report_results)) ?>%</b></td>
             <td><b><?= number_format($closed_rate_amt_2/count($report_results)) ?>%</b></td>
             <td><b><?= number_format(($closed_rate_total/max(count($report_results),1))-($closed_rate_total_2/max(count($report_results),1))) ?>%</b></td>

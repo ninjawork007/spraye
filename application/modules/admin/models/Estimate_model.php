@@ -803,6 +803,7 @@ class Estimate_model extends CI_Model{
         }
 
         $query = $this->db->get();
+        //die($this->db->last_query());
         return $query->result();
     }
 

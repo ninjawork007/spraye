@@ -5374,6 +5374,131 @@ class Reports extends MY_Controller {
             }
         }
 
+
+
+
+
+
+
+
+        //set conditions for compare
+        $job_name = $this->input->post('job_name');
+        $ProgramName = $this->input->post("program_ids");
+        $sales_rep_id = $this->input->post('sales_rep_id');
+
+        $date_range_date_to = $this->input->post('comparision_range_date_from');
+        $date_range_date_from = $this->input->post('comparision_range_date_to');
+       
+
+        if(!empty($job_name) && $job_name != "null"){
+            $conditions_1['search']['job_name'] = $job_name;
+        }
+
+        if(!empty($ProgramName) && $ProgramName != "null"){
+            $conditions_1['search']['program_name'] = $ProgramName;
+        }
+
+        if(!empty($sales_rep_id) && $sales_rep_id != "null"){
+            $conditions_1['search']['sales_rep_id'] = $sales_rep_id;
+        }
+
+        if(!empty($date_range_date_to)){
+            $conditions_1['search']['date_range_date_to'] = $date_range_date_to;
+        }
+
+        if(!empty($date_range_date_from)){
+            $conditions_1['search']['date_range_date_from'] = $date_range_date_from;
+        }
+        
+        $job_name = $this->input->post('job_name');
+        $comparision_range_date_to = $this->input->post('comparision_range_date_to');
+        $comparision_range_date_from = $this->input->post('comparision_range_date_from');
+
+        $TotalEstimate1 = 0;
+        $TotalAccepted1 = 0;
+        $TotalDeclined1 = 0;
+        $NewEstimates = $this->EstimateModal->getAllEstimateDetailsSearchForReport($conditions_1);
+
+        foreach($NewEstimates as $service){
+            $AllServiceType = array();
+
+            $ProgrammsName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 0));
+            $ServicesName = $this->EstimateModal->getAllJoinedPrograms(array('estimate_id' => $service->estimate_id, 'estimate_programs.ad_hoc' => 1));
+
+            $ServicesListArray = array();
+            foreach($ProgrammsName as $PGMS){
+                $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $PGMS->program_id));
+                foreach($SerData as $SRD){
+                    
+                    if($this->input->post('service_type') != ""){
+                        if($this->input->post('service_type') != $SRD->service_type_id){
+                            continue;
+                        }
+                    }
+
+                    $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
+                }
+            }
+
+            foreach($ServicesName as $Srn){
+                $JobData = $this->JobModel->getAllJob(array('jobs.job_id' => $Srn->service_id));
+                if($this->input->post('service_type') != ""){
+                    if($this->input->post('service_type') != $JobData[0]->service_type_id){
+                        continue;
+                    }
+                }
+
+                $ServicesListArray[] = array("id" => $Srn->service_id, "job_name" => $Srn->program_name, "service_type_name" => $JobData[0]->service_type_name, "price" => $JobData[0]->job_price);
+            }
+
+            if($service->program_id != ""){
+                $SerData = $this->ProgramModel->getProgramAssignJobs(array('program_id' => $service->program_id));
+                foreach($SerData as $SRD){
+                    
+                    if($this->input->post('service_type') != ""){
+                        if($this->input->post('service_type') != $SRD->service_type_id){
+                            continue;
+                        }
+                    }
+
+                    $ServicesListArray[] = array("id" => $SRD->job_id, "job_name" => $SRD->job_name, "service_type_name" => $SRD->service_type_name, "price" => $SRD->job_price);
+                }
+            }
+
+
+            $TotalEstimate1++;
+            if(isset($service->status) && $service->status == 2){
+                $TotalAccepted1++;
+            }
+            if (isset($service->status) && $service->status == 5){
+                $TotalDeclined1++;
+            }
+
+            foreach($ServicesListArray as $ServiceListData){
+                
+                $estimate_cost = $ServiceListData["price"];
+                $service_summary[$ServiceListData['id']]['total_estimates_2'] += 1;
+                if(isset($service->status) && $service->status == 2){
+                    $service_summary[$ServiceListData['id']]['accepted_2'] += 1 ;
+                    $service_summary[$ServiceListData['id']]['accepted_total_2'] += $estimate_cost;
+                    
+                } elseif (isset($service->status) && $service->status == 5){
+                    $service_summary[$ServiceListData['id']]['declined_2'] += 1 ;
+                    $service_summary[$ServiceListData['id']]['declined_total_2'] += $estimate_cost;
+                } else {
+                    $service_summary[$ServiceListData['id']]['accepted_2'] += 0 ;
+                    $service_summary[$ServiceListData['id']]['declined_2'] += 0 ;
+                    $service_summary[$ServiceListData['id']]['accepted_total_2'] += 0;
+                    $service_summary[$ServiceListData['id']]['declined_total_2'] += 0;
+
+                }
+            }
+        }
+
+        $data['total_estimates_2'] = $TotalEstimate1;
+        $data['total_accepted_2'] = $TotalAccepted1;
+        $data['total_declined_2'] = $TotalDeclined1;
+
         $data['report_results'] = $service_summary;
         $data["total_estimate"] = $TotalEstimate;
         $data["total_accepted"] = $TotalAccepted;
