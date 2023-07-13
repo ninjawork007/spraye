@@ -5475,7 +5475,8 @@ class Reports extends MY_Controller {
             }
 
             foreach($ServicesListArray as $ServiceListData){
-                
+                $service_summary[$ServiceListData['id']]['service_type_name'] = $ServiceListData["service_type_name"];
+                $service_summary[$ServiceListData['id']]['job_name'] = $ServiceListData["job_name"];
                 $estimate_cost = $ServiceListData["price"];
                 $service_summary[$ServiceListData['id']]['total_estimates_2'] += 1;
                 if(isset($service->status) && $service->status == 2){
