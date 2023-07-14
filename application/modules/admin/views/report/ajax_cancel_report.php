@@ -18,7 +18,7 @@
                     <tbody>
                         <?php if(!empty($report_details)){?>
                         <tr>
-                            <td><?= $report_details['total_cancelled_properties'] ?></td>
+                            <td><?=$report_details['total_cancelled_properties'] ?></td>
                             <td><?= $report_details['total_cancelled_services'] ?></td>
                             <td>$<?= $report_details['total_cancelled_revenue'] ?></td>
                             <td><?= $report_details['lost_total_new_cancelled_props'] ?></td>

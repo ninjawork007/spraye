@@ -7783,6 +7783,20 @@ class Reports extends MY_Controller {
         $data["AllCancelledProperty"] = $cancelled_properties;
         $data["setting_details"] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
 
+        $properties = [];
+        $total_cancelled_properties = [];
+        $total_cancelled_revenue = 0;
+        $lost_total_new_cancelled_props = [];
+        $lost_total_new_cancelled_servs = [];
+        $total_new_revenue_lost = 0;
+        $one_year_ago = date('Y-m-d', strtotime('-1 year'));
+
+        $TotalCancelledService = 0;
+        $TotalCencelledRevenue = 0;
+        $TotalNewCalcelledProp = 0;
+        $TotalNewCancelledServ = 0;
+        $TotalNewRevenueLost = 0;
+
         foreach($data["AllCancelledProperty"] as $CanProIndex => $CanPropers){
             $ServiceProgCancelled = array();
             $ProgramCancelledArray = array();
@@ -7863,6 +7877,18 @@ class Reports extends MY_Controller {
             $ServiceProgCancelled = array_values($ServiceProgCancelled);
             $ServiceProgCancelled = array_unique($ServiceProgCancelled);
 
+            $TotalCancelledService += count($ProgramCancelledArray);
+            $TotalCancelledService += count($ServiceProgCancelled);
+            $TotalCencelledRevenue += $cost;
+
+            if(strtotime($CanPropers->property_created) > strtotime($one_year_ago)){
+                $TotalNewCalcelledProp++;
+
+                $TotalNewCancelledServ += count($ProgramCancelledArray);
+                $TotalNewCancelledServ += count($ServiceProgCancelled);
+                $TotalNewRevenueLost += $cost;
+            }
+
             $data["AllCancelledProperty"][$CanProIndex]->job_cost = $cost;
             $data["AllCancelledProperty"][$CanProIndex]->program_cancelled = implode(", ", $ProgramCancelledArray);
             $data["AllCancelledProperty"][$CanProIndex]->service_cancelled = implode(", ", $ServiceProgCancelled);
@@ -7873,13 +7899,6 @@ class Reports extends MY_Controller {
 		$all_cancelled = $this->CancelledModel->getCancelledServiceInfoDetailsBetween($query,$start,$end);
 
 		if(!empty($all_cancelled)){
-            $properties = [];
-			$total_cancelled_properties = [];
-			$total_cancelled_revenue = 0;
-            $lost_total_new_cancelled_props = [];
-            $lost_total_new_cancelled_servs = [];
-			$total_new_revenue_lost = 0;
-			$one_year_ago = date('Y-m-d', strtotime('-1 year'));
 			foreach($all_cancelled as $key=>$value){
 				$total_cancelled_properties[] = $value->property_id;
 				
@@ -7908,14 +7927,16 @@ class Reports extends MY_Controller {
 					$lost_total_new_cancelled_props[] = $value->property_id;
 				}
             }
-
-			$report_data['total_cancelled_properties'] = count($data["AllCancelledProperty"]);
-			$report_data['total_cancelled_services'] = count($all_cancelled);
-			$report_data['total_cancelled_revenue'] = number_format($total_cancelled_revenue,2);
-			$report_data['lost_total_new_cancelled_props'] = count($lost_total_new_cancelled_props);
-            $report_data['lost_total_new_cancelled_servs'] = count($lost_total_new_cancelled_servs);
-			$report_data['total_new_revenue_lost'] = number_format($total_new_revenue_lost,2);
 		}
+
+        $report_data['total_cancelled_properties'] = count($data["AllCancelledProperty"]);
+        $report_data['total_cancelled_services'] = $TotalCancelledService;
+        $report_data['total_cancelled_revenue'] = number_format($TotalCencelledRevenue, 2);
+        $report_data['lost_total_new_cancelled_props'] = $TotalNewCalcelledProp;
+        $report_data['lost_total_new_cancelled_servs'] = $TotalNewCancelledServ;
+        $report_data['total_new_revenue_lost'] = number_format($TotalNewRevenueLost, 2);
+
+
         #get total sales for customer properties
         $total_sales = 0;
         $total_sales_revenue = 0;
