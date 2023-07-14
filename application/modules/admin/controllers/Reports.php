@@ -5479,6 +5479,11 @@ class Reports extends MY_Controller {
                 $service_summary[$ServiceListData['id']]['job_name'] = $ServiceListData["job_name"];
                 $estimate_cost = $ServiceListData["price"];
                 $service_summary[$ServiceListData['id']]['total_estimates_2'] += 1;
+                
+                if(!isset($service_summary[$ServiceListData['id']]['total_estimates'])){
+                    $service_summary[$ServiceListData['id']]['total_estimates'] += 1;
+                }
+                
                 if(isset($service->status) && $service->status == 2){
                     $service_summary[$ServiceListData['id']]['accepted_2'] += 1 ;
                     $service_summary[$ServiceListData['id']]['accepted_total_2'] += $estimate_cost;
