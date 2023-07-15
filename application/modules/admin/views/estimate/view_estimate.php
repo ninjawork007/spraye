@@ -562,11 +562,11 @@
                     error_string = "";
                     for (let index = 0; index < myArr.length; ++index) {
                         const element = myArr[index];
-                        error_string = error_string+"Estimate "+element["estimate_id"]+": Failed to send: "+element["message"]+'\n\n' ;
+                        error_string = error_string+"Estimate "+element["estimate_id"]+": "+element["message"]+'\n' ;
                     }
                     if (error_string=="") {
                         swal(
-                            'Estimates !',
+                            'Estimates!',
                             'Sent Successfully ',
                             'success'
                         ).then(function() {
@@ -577,6 +577,8 @@
                             type: 'error',
                             title: 'Oops...',
                             text: error_string
+                        }).then(function() {
+                            location.reload();
                         });
                     }
                 });

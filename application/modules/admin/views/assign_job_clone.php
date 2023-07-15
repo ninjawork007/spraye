@@ -1,6 +1,8 @@
 
 <style>
-
+    .dt-buttons {
+        float: right!important;
+    }
    .togglebutton{
       font-size:13px;
    }
@@ -79,11 +81,32 @@
    height: 500px;
    }
    }
-	@media only screen and (min-width: 1240px) {
+
+    @media only screen and (max-width: 1439px) {
+        .toolbar {
+            width: 64%!important;
+        }
+    }
+    @media only screen and (min-width: 1440px) {
+        .toolbar {
+            width: 68%!important;
+        }
+    }
+	@media only screen and (min-width: 1536px) {
 		 .toolbar {
-         	width: 70%!important; 
+         	width: 68%!important;
 		}
 	}
+    @media only screen and (min-width: 1920px) {
+        .toolbar {
+            width: 78%!important;
+        }
+    }
+    @media only screen and (min-width: 2560px) {
+        .toolbar {
+            width: 84%!important;
+        }
+    }
    @media only screen and (max-width: 1240px) {
       #multiple-delete-id {
          margin: 0;
@@ -108,6 +131,18 @@
          margin-left: -10px;
       }
    }
+    @media screen and (max-width: 767px) {
+        .dt-buttons {
+            float: right!important;
+            text-align: center!important;
+            display: block!important;
+        }
+    }
+    @media screen and (max-width: 1280px) {
+        .toolbar {
+            width: 64%!important; /* toolbar (filters) */
+        }
+    }
    @media only screen and (max-width: 769px) {
       .toolbar {
          float: left !important;
@@ -116,7 +151,7 @@
          display: block;
       }
       #unassigntbl_length { /* show: */
-         float: left !important;
+         /*float: left !important;*/
       }
       #unassigntbl_filter > label { /* search box */
          float: left !important;
@@ -137,11 +172,11 @@
    /*display: none;  */
    }
    .toolbar {
-   float: right;
-   width: 57%;
+       float: right;
+       width: 82%;
    }
    .toolbar td {
-   padding-left: 4px;
+    padding-left: 4px;
    }
    #unassigntbl_filter input {
    width :150px !important;
@@ -181,6 +216,8 @@
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/weather/css/responsive.css">
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/bootstrap-clockpicker.min.css">
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/github.min.css">
+<!-- Option 1: Include in HTML -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
 <div class="content">
    <div class="">
       <div class="mymessage"></div>
@@ -384,6 +421,39 @@
       </div>
    </div>
 </div>
+
+
+<!-- Primary modal -->
+<div id="modal_skip_reason" class="modal fade" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-light">Skip Reasons</h6>
+                <button type="button" class="close text-light modal-skip-dismiss close-modal-skip-reason">&times;</button>
+            </div>
+            <div class="modal-body ">
+                <div class="form-group ">
+                    <select class="form-control" name="skip_id" id="skip_id" >
+                        <option value="" >Select Skip Reason</option>
+
+                        <?php
+                        if (!empty($skip_reasons)) {
+                            foreach ($skip_reasons as $skip_reason) {
+                                echo '<option value="'.$skip_reason->skip_id.'" >'.$skip_reason->skip_name.'</option>';
+                            }
+                        }
+                        ?>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="button-skipp-reason" onclick="handleModalSkip()" type="button" class="btn btn-primary modal-skip-dismiss">Skip</button>
+                <button type="button" class="btn btn-secondary modal-skip-dismiss close-modal-skip-reason" >Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="modal_add_filters" class="modal fade">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -654,7 +724,14 @@
 </script>
 
 <script language="javascript" type="text/javascript">
-   $(".modal-mileage-dismiss").click(function() {
+    // $(document).on("click", "#multiple-skip-id", function(e) {
+    //     debugger
+    //     debugger
+    //     $("#modal_skip_reason").modal({
+    //         show:true
+    //     });
+    // });
+    $(".modal-mileage-dismiss").click(function() {
        $("#modal_mileage").modal('hide');
    })
    $("#select_all").change(function(){  //"select all" change
@@ -662,18 +739,17 @@
       var status = this.checked; // "select all" checked status
 
       if (status) {
-      $('#allMessage').prop('disabled', false);
-      $('#multiple-delete-id,#multiple-restore-id').prop('disabled', false);
+        $('#allMessage').prop('disabled', false);
+        $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', false);
       }
       else
       {
          $('#allMessage').prop('disabled', true);
-         $('#multiple-delete-id,#multiple-restore-id').prop('disabled', true);
-
+         $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', true);
       }
 
    var costTotal = 0;
-   $('.myCheckBox').each(function() { //iterate all listed checkbox items
+   $('.myCheckBox:not(.customer_in_hold)').each(function() { //iterate all listed checkbox items
        this.checked = status;
        if ($(this).is(':checked')) {
             let cost = $(this).data('cost');
@@ -683,15 +759,15 @@
    });
    $('#totalApplicationCost').val(costTotal.toFixed(2));
 
-	var sqftTotal = 0;	
-	$('.myCheckBox').each(function(){ //iterate all listed checkbox items	
+	var sqftTotal = 0;
+
+	$('.myCheckBox)').each(function(){ //iterate all listed checkbox items
 		var has_customer_in_hold=$(this).hasClass("customer_in_hold");	
 		if(!has_customer_in_hold){	
 			this.checked = status; //change ".checkbox" checked status	
 		}	
 		if ($(this).is(':checked')) {	
-			// console.log( $(this).parent().parent().find('td').eq(5).html() );	
-			sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());	
+			sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
 		}	
 	});
 
@@ -719,10 +795,10 @@
       if($(".table .myCheckBox").filter(':checked') .length < 1) {
          $('#allMessage').prop('disabled', true);
 		 $('.myCheckBox customer_in_hold').prop('disabled', true);	
-         $('#multiple-delete-id,#multiple-restore-id').prop('disabled', true);
+         $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', true);
       } else {
          $('#allMessage').prop('disabled', false);
-         $('#multiple-delete-id,#multiple-restore-id').prop('disabled', false);
+         $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', false);
       }
        var sqftTotal = 0;
        $('#unassigntbl tbody input:checked').each(function() {
@@ -765,6 +841,76 @@
 </script>
 
 <script type="text/javascript">
+
+   function handleOneSkip(event)
+   {
+       $($(event).parent().parent().parent().parent().find("td:first")[0]).find('input').attr('checked', 'checked');
+   }
+
+   function handleModalSkip(e)
+   {
+
+       var group_id = [];
+       var button_id = this.id;
+       var url = "";
+
+       //   $("input:checkbox[name=group_id]:checked").each(function(){
+       //      group_id.push($(this).val());
+       //   });
+
+       var all_checked_boxes = $('input:checkbox[name=group_id]:checked');
+       for (let i = 0; i < all_checked_boxes.length; i++) {
+           var a_checked_box_val = all_checked_boxes[i].getAttribute('data-realvalue');
+           group_id.push(a_checked_box_val);
+       }
+
+       var post_data =  {};
+       var success_message = "";
+       post_data.group_id = group_id;
+
+       post_data.action = 'skip';
+       post_data.skip_id = $("#skip_id").val();
+       success_message = "Skipped Successfully";
+
+       console.log(post_data);
+       swal({
+           title: 'Are you sure?',
+           text: "",
+           type: 'warning',
+           showCancelButton: true,
+           confirmButtonColor: '#009402',
+           cancelButtonColor: '#d33',
+           confirmButtonText: 'Yes',
+           cancelButtonText: 'No'
+       }).then((result) => {
+           if (result.value) {
+               $("#loading").css("display","block");
+               $.ajax({
+                   type: "POST",
+                   url: "<?= base_url('admin/skipMultiUnassignedJobs') ?>",
+                   data: post_data,
+                   dataType: 'json'
+               }).done(function(data){
+                   $("#loading").css("display","none");
+                   if (data.status==200) {
+                       swal(
+                           'Unassigned Service(s) !',
+                           success_message,
+                           'success'
+                       ).then(function() {
+                           location.reload();
+                       });
+                   } else {
+                       swal({
+                           type: 'error',
+                           title: 'Oops...',
+                           text: 'Something went wrong!'
+                       })
+                   }
+               });
+           }
+       })
+   }
    $(document).on("click", "#multiple-delete-id,#multiple-restore-id", function(e) {
       var group_id = [];
       var button_id = this.id;
@@ -859,7 +1005,9 @@
                     data: {group_id : group_id, action : action },
                     dataType: 'json'
                  }).done(function(data){
-
+                     $("#modal_skip_reason").modal('hide');
+                     $("#modal_skip_reason").modal('hide');
+                     $("#modal_skip_reason").attr('style', 'display: none');
                      $("#loading").css("display","none");
 
                     if (data.status==200) {
@@ -881,8 +1029,6 @@
                                 text: 'Something went wrong!'
                             })
                          }
-
-
                  });
                }
            })
@@ -909,7 +1055,9 @@
 
 
 $(document).ready(function() {
-
+    $(".close-modal-skip-reason").click(function(){
+        $("#modal_skip_reason").modal('hide');
+    })
     $( "#mileage" ).click(function(event) {
         event.stopPropagation();
         event.preventDefault();
@@ -1315,11 +1463,18 @@ $(document).ready(function() {
     } );
     $('#filter-criteria-id').remove();
     $('#multiple-delete-id').remove();
+    $('#multiple-skip-id').remove();
 
-    $(".dataTables_filter")
-        .append('<button id="filter-criteria-id" class="btn btn-primary " style="margin-left: 10px;">Filters</button>');
-    $(".dataTables_filter")
-        .append('<button disabled="disabled" id="multiple-delete-id" class="ml-5 btn btn-danger unassigned-services-element">Delete Services</button>');
+    $("div.toolbar").append('<button id="filter-criteria-id" class="btn btn-primary " style="margin-left: 10px;">Filters</button>');
+    $("div.toolbar").append('<button disabled="disabled" id="multiple-delete-id" class="ml-5 btn btn-danger unassigned-services-element">Delete Services</button>');
+    $("div.toolbar").append('<button disabled="disabled" id="multiple-skip-id" class="ml-5 btn btn-warning" data-toggle="modal" data-target="#modal_skip_reason">Skip</button>');
+    // $(".dataTables_filter")
+    //     .append('<button id="filter-criteria-id" class="btn btn-primary " style="margin-left: 10px;">Filters</button>');
+    // $(".dataTables_filter")
+    //     .append('<button disabled="disabled" id="multiple-delete-id" class="ml-5 btn btn-danger unassigned-services-element">Delete Services</button>');
+    //
+    // $(".dataTables_filter")
+    //     .append('<button disabled="disabled" id="multiple-skip-id" class="ml-5 btn btn-warning" data-toggle="modal" data-target="#modal_skip_reason">Skip</button>');
 
     $("#filter-criteria-id").unbind('click');
     $("#filter-criteria-id").click(function() {

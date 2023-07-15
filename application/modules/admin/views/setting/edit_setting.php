@@ -2383,6 +2383,57 @@ line-height: normal;
         </div>
     </div>
     <!-- / end crud cancel reasons  area / -->
+    <!-- Crud table cancel reasons -->
+    <div class="row form2">
+        <div class="col-md-12">
+            <fieldset class="content-group">
+                <legend class="text-bold">Skip Reasons</legend>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <a class="btn btn-success" data-toggle="modal" data-target="#modal_add_skipreason">Add Skip Reason</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="table-responsive table-spraye">
+                            <table id="datatable_skipreasons" class="table datatable-basic2" style="border: 1px solid #6eb1fd; border-radius: 4px;">
+                                <thead>
+                                <tr>
+                                    <th>Skip Reason</th>
+                                    <th class="text-right" style="width:15%">Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                <?php if (!empty($skip_reasons)){
+                                    foreach($skip_reasons as $skip_reason) {?>
+                                        <tr>
+                                            <td>
+                                                <?= $skip_reason->skip_name; ?>
+                                            </td>
+                                            <td class="text-right" style="width:15%">
+                                                <ul  style="list-style-type: none; padding-left: 0px;">
+                                                    <li style="display: inline; padding-right: 10px;">
+                                                        <a href="#" class="edit-cancel-reason" onclick="editSkipReason(<?= $skip_reason->skip_id ?>,'<?=$skip_reason->skip_name?>')" data-cancelid="<?= $skip_reason->skip_id; ?>"><i class="icon-pencil position-center" title="Edit Skip Reason" style="color: #9a9797;"></i></a>
+                                                    </li>
+                                                    <li style="display: inline; padding-right: 10px;">
+                                                        <a href="#" class="delete-cancel-reason" onclick="deleteSkipReason(<?= $skip_reason->skip_id ?>,'<?=$skip_reason->skip_name?>')"><i class="icon-trash position-center" title="Delete Skip Reason" style="color: #9a9797;"></i></a>
+                                                    </li>
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    <?php  } } ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <!-- / end crud cancel reasons  area / -->
     <form class="form-horizontal form2" action="<?= base_url('admin/setting/setSignwellAPI') ?>" method="post" name="setsignwellapi" enctype="multipart/form-data">
         <fieldset class="content-group">
             <legend class="text-bold">SignWell API</legend>
@@ -2796,6 +2847,104 @@ line-height: normal;
                                 <label for="delete_reschedule_name">Are You Sure You Want To Delete The Cancel Reason Below?</label>
                                 <input type="text" class="form-control" name="delete_reschedule_name" id="delete_reschedule_name" value="" readonly >
                                 <input type="hidden" class="form-control" name="delete_reschedule_id" id="delete_reschedule_id" value="<?php echo ($reason->reschedule_id); ?>">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Delete</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Delete reschedule Reason modal -->
+
+<!-- Add skip Reason Modal -->
+<div id="modal_add_skipreason" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title">Add New Skip Reason</h6>
+            </div>
+            <form action="<?= base_url('admin/createSkipReason'); ?>" method="post" id="add_skipreason_form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+
+
+
+                                <label for="reschedule_name">Skip Name</label>
+                                <input type="text" class="form-control" name="skip_name"
+                                       placeholder="" id="skip_name">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Add</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Add skip Reason modal/ -->
+
+<!-- Edit skip Reason modal -->
+<div id="modal_edit_skipreason" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title">Edit Skip Reason</h6>
+            </div>
+            <form action="<?= base_url('admin/editSkipReason'); ?>" method="post" id="edit_skipreason_form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+
+                                <label for="edit_skip_name">Edit Skip Reason Below</label>
+                                <input type="text" class="form-control" name="edit_skip_name" id="edit_skip_name">
+                                <input type="hidden" id="edit_skip_id" name="edit_skip_id" value="">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- /Edit skip Reason modal/ -->
+
+<!-- Delete skip Reason modal -->
+<div id="modal_delete_skipreason" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title">Delete Skip Reason</h6>
+            </div>
+            <form action="<?= base_url('admin/deleteSkipReason'); ?>" method="post" id="delete_skipreason_form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-sm-12">
+
+                                <label for="delete_skip_name">Are You Sure You Want To Delete The Skip Reason Below?</label>
+                                <input type="text" class="form-control" name="delete_skip_name" id="delete_skip_name" value="" readonly >
+                                <input type="hidden" class="form-control" name="delete_skip_id" id="delete_skip_id" value="<?php echo ($reason->skip_id); ?>">
 
                             </div>
                         </div>
@@ -4628,7 +4777,6 @@ function deleteRescheduleReason(rescheduleId,rescheduleName){
     $('#modal_delete_reschedulereason').modal('show');
 }
 
-
 function SaveEmailPOs(){
     var email = $("#POEmailIDs").val();
     if(email != ""){
@@ -4707,4 +4855,16 @@ $('#POEmailIDs').select2({
         }, cache: true
     }
 });
+
+// handle edit and delete skip reason crud
+function editSkipReason(skipId,skipName){
+    $('input#edit_skip_name').val(skipName);
+    $('input#edit_skip_id').val(skipId);
+    $('#modal_edit_skipreason').modal('show');
+}
+function deleteSkipReason(skipId,skipName){
+    $('input#delete_skip_name').val(skipName);
+    $('input#delete_skip_id').val(skipId);
+    $('#modal_delete_skipreason').modal('show');
+}
 </script>

@@ -1608,75 +1608,75 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
     <?php if ( !empty($setting_details->tech_add_standalone_service) && $setting_details->tech_add_standalone_service == 1 &&
     isset($job_assign_details[0]['job_name']) && $job_assign_details[0]['job_name'] != 'Sales Visit' ) { ?>
 <!---- START, COMPLETE, SKIP, ADD SERVICE BUTTONS --->
-     <div class="row">
-         <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
-             <div class="col-lg-3 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                     <button id='startTime' class="btn btn-technician btn-start-time" >Start Service</button>
-                    </div>
-              </div>
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                       <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
+	 <div class="row">
+		 <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
+			 <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					 <button id='startTime' class="btn btn-technician btn-start-time" >Start Service</button>
+					</div>
+			  </div>
+			  <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					   <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
              <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#<?= ($is_tech_customer_note_required == 1) ? 'modal_required_customer_note' : 'modal_mixture_application'; ?>"   >Complete Service </button>
-                  </div>
-              </div>
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
-                    </div>
-              </div>
-              <div class="col-lg-3 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                      <button id='addjob' class="btn btn-technician btn-addservice" data-toggle="modal" data-target="#modal_add_service" >Add Service</button>
+				  </div>
+			  </div>
+			  <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
+					</div>
+			  </div>
+			  <div class="col-lg-3 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					  <button id='addjob' class="btn btn-technician btn-addservice" data-toggle="modal" data-target="#modal_add_service" >Add Service</button>
 
-                    </div>
-              </div>
-          </div>
-     </div>
+					</div>
+			  </div>
+		  </div>
+	 </div>
 
      <?php } else if(isset($job_assign_details[0]['job_name']) && $job_assign_details[0]['job_name'] != 'Sales Visit' ) { ?>
         <div class="row">
-         <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
-             <div class="col-lg-4 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                     <button id='startTime' class="btn btn-technician btn-start-time" >Start Service</button>
-                    </div>
-              </div>
-              <div class="col-lg-4 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                       <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
+		 <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
+			 <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					 <button id='startTime' class="btn btn-technician btn-start-time" >Start Service</button>
+					</div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					   <!-- <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_mixture_application"   >Complete Service </button> -->
              <button disabled=""  id='completejob' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#<?= ($is_tech_customer_note_required == 1) ? 'modal_required_customer_note' : 'modal_mixture_application'; ?>"   >Complete Service </button>
-                  </div>
-              </div>
-              <div class="col-lg-4 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
-                    </div>
-              </div>
-          </div>
-     </div>
-    <?php } else { ?>
-    <div class="row">
-         <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
-             <div class="col-lg-4 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                     <button id='startTimeSales' class="btn btn-technician btn-start-time" >Start Service</button>
-                    </div>
-              </div>
-              <div class="col-lg-4 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                       <button disabled=""  id='completejobsales' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_sales_visit"   >Complete Service </button>
-                  </div>
-              </div>
-              <div class="col-lg-4 col-md-3 col-sm-12">
-                  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-                    <a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
-                    </div>
-              </div>
-          </div>
-     </div>
-    <?php } ?>
+				  </div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
+					</div>
+			  </div>
+		  </div>
+	 </div>
+	<?php } else { ?>
+	<div class="row">
+		 <div class="col-lg-12 col-md-12 col-sm-12" style="background-color: #e6e6e6 !important">
+			 <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					 <button id='startTimeSales' class="btn btn-technician btn-start-time" >Start Service</button>
+					</div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					   <button disabled=""  id='completejobsales' class="btn btn-technician btn-complete" data-toggle="modal" data-target="#modal_sales_visit"   >Complete Service </button>
+				  </div>
+			  </div>
+			  <div class="col-lg-4 col-md-3 col-sm-12">
+				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
+					</div>
+			  </div>
+		  </div>
+	 </div>
+	<?php } ?>
 </div>
 
 

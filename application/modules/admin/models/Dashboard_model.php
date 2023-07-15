@@ -135,6 +135,36 @@ class Dashboard_model extends CI_Model
         return $data;
     }
 
+
+    public function getScheduledWork($where_arr = '', $where_in = array())
+    {
+        $this->db->select("technician_job_assign_id,invoice_id,first_name,last_name,programs.program_id as program_id,program_name,customers.customer_id,category_area_name,is_job_mode,job_name,user_first_name,user_last_name,job_assign_date,property_address,property_tbl.property_id,property_title,yard_square_feet,technician_id,jobs.job_id");
+        $this->db->from('technician_job_assign');
+        $this->db->join('customers', 'customers.customer_id = technician_job_assign.customer_id ', 'inner');
+        $this->db->join('programs', 'programs.program_id = technician_job_assign.program_id', 'inner');
+        $this->db->join('property_tbl', 'property_tbl.property_id = technician_job_assign.property_id', 'inner');
+        $this->db->join('category_property_area', 'category_property_area.property_area_cat_id = property_tbl.property_area', 'left');
+        $this->db->join('jobs', 'jobs.job_id=technician_job_assign.job_id', 'inner');
+        $this->db->join('users', 'users.user_id=technician_job_assign.technician_id', 'inner');
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+        //var_dump($where_in);
+        if (!empty($where_in['jobs.job_id'])) {
+            $this->db->where_in( 'jobs.job_id',$where_in['jobs.job_id']);
+        }
+        //die(print_r($where_in['programs.program_id']));
+        if (!empty($where_in['programs.program_id'])) {
+            $this->db->where_in( 'programs.program_id',$where_in['programs.program_id']);
+        }
+        $this->db->order_by('job_assign_date DESC, technician_id ASC');
+        //var_dump($this->db->get_compiled_select());
+        //$this->db->limit(100);
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+
     public function getUnassignJobs($where_arr = '', $where_in = array())
     {
         $this->db->select("technician_job_assign_id,technician_id,technician_job_assign_id,invoice_id,first_name,last_name,billing_street,billing_street_2,program_name,customers.customer_id,programs.program_id,programs.program_price,category_area_name,is_job_mode,is_complete,job_name,user_first_name,user_last_name,job_assign_date,property_address,job_assign_updated_date,jobs.job_id,job_price,property_title,property_tbl.property_id, customers.first_name as customer_first_name ,customers.last_name as customer_last_name");
@@ -838,9 +868,9 @@ class Dashboard_model extends CI_Model
 //        fwrite($file,"We are inside getTableDataAjaxSearch function");
 //        fclose($file);
 
-        if ($is_for_count) {
-            $this->db->select(" COUNT(*) AS count ");
-        } else {
+//        if ($is_for_count) {
+//            $this->db->select(" COUNT(*) AS count ");
+//        } else {
             $this->db->select("
                 customers.first_name,
                 customers.last_name,
@@ -933,7 +963,7 @@ class Dashboard_model extends CI_Model
                  property_program_assign.price_override,
                  property_program_assign.is_price_override_set
                 ", FALSE);
-        }
+//        }
 
 
         $this->db->from('jobs');
@@ -1109,7 +1139,7 @@ class Dashboard_model extends CI_Model
         $this->db->or_like('property_notes', $search);
         $this->db->or_like('category_area_name', $search);
         $this->db->or_like('program_name', $search);
-        $this->db->or_like('reschedule_message', $search);
+        $this->db->or_like('technician_job_assign.reschedule_message', $search);
         $this->db->or_like('jobs.job_name', $search);
         // $this->db->or_like('program_schedule_window',$search);
         $this->db->group_end();
@@ -1127,10 +1157,10 @@ class Dashboard_model extends CI_Model
             }
             $this->db->group_end();
         }
-        if ($is_for_count) {
-
-            $this->db->group_by('');
-        } else {
+//        if ($is_for_count) {
+//
+//            $this->db->group_by('');
+//        } else {
             $this->db->group_by('`customers`.`first_name`, `customers`.`last_name`, `billing_street`, `billing_street_2`, `jobs`.`job_id`, `jobs`.`job_name`, programs.`program_name`,
             service_due,
            `customers`.`customer_id`, `jobs`.`job_id`, `programs`.`program_id`, `property_tbl`.`property_id`, `property_tbl`.`property_notes`,
@@ -1142,7 +1172,7 @@ class Dashboard_model extends CI_Model
            `technician`.`user_first_name`, `technician`.`user_last_name`, completed_date_last_service_by_type, assign_reschedule_message, assign_table_data,'
             );
             $this->db->order_by($col, $dir);
-        }
+//        }
 
 
         // $this->db->group_by('1,2,5,6,7,8,9');
@@ -1304,6 +1334,8 @@ class Dashboard_model extends CI_Model
             jobs.base_fee_override,
             jobs.min_fee_override,
             program_job_assigned_customer_property.hold_until_date,
+            unassigned_Job_delete.skip_reason_id,
+            skip_reasons.skip_name,
             CASE 
                 WHEN program_job_assigned_customer_property.reason IS NOT NULL 
                     THEN 1 
@@ -1331,6 +1363,8 @@ class Dashboard_model extends CI_Model
         $this->db->join('users sales_rep', 'sales_rep.id = t_estimate.sales_rep', 'left');
         //$this->db->join('program_service_property_price_overrides psp', 'psp.property_id = property_tbl.property_id and psp.program_id = programs.program_id and psp.job_id = jobs.job_id' , 'left');
         $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
+        $this->db->join("unassigned_Job_delete", "unassigned_Job_delete.customer_id = customers.customer_id AND unassigned_Job_delete.job_id = jobs.job_id AND unassigned_Job_delete.program_id = programs.program_id AND unassigned_Job_delete.property_id = property_tbl.property_id and unassigned_Job_delete.skip_reason_id IS NOT NULL", "left");
+        $this->db->join("skip_reasons", "unassigned_Job_delete.skip_reason_id = skip_reasons.skip_id", "left");
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
@@ -1338,6 +1372,7 @@ class Dashboard_model extends CI_Model
 //        $this->db->group_by('1,2');
         $this->db->order_by('technician_job_assign.job_assign_date', 'desc');
         $result = $this->db->get();
+        $a = $this->db->last_query();
         $data = $result->result();
         return $data;
     }
@@ -1550,7 +1585,14 @@ class Dashboard_model extends CI_Model
             property_program_assign.program_id,
             customer_property_assign.customer_id,
             property_program_assign.property_id,
-            property_tbl.yard_square_feet
+            property_tbl.yard_square_feet,
+            is_complete,
+            is_job_mode,
+            invoice_tbl.cost,
+            property_program_job_invoice.property_program_job_invoice_id,
+            property_program_job_invoice.job_cost,
+            invoice_tbl.invoice_id,
+            technician_job_assign.technician_job_assign_id,
         ");
 
         $this->db->from('jobs');
@@ -1563,6 +1605,7 @@ class Dashboard_model extends CI_Model
         $this->db->join('customer_property_assign', 'customer_property_assign.property_id = property_program_assign.property_id ', 'inner');
         $this->db->join('customers', 'customers.customer_id = customer_property_assign.customer_id ', 'inner');
 
+
         // latest property job date
         $this->db->join("(SELECT MAX(job_completed_date) AS completed_date_property, property_id FROM technician_job_assign GROUP BY property_id) AS technician_job_assign_property", "property_program_assign.property_id = technician_job_assign_property.property_id", "left");
 
@@ -1570,10 +1613,13 @@ class Dashboard_model extends CI_Model
         $this->db->join("(SELECT MAX(job_completed_date) AS completed_date_property_program, property_id, program_id FROM technician_job_assign GROUP BY property_id, program_id ) AS technician_job_assign_property_program", "property_program_assign.property_id = technician_job_assign_property_program.property_id AND programs.program_id = technician_job_assign_property_program.program_id", "left");
 
         // to filter out deleted & non-reschedule
-        $this->db->join("technician_job_assign", "technician_job_assign.customer_id = customers.customer_id AND technician_job_assign.job_id = jobs.job_id AND technician_job_assign.program_id = programs.program_id AND technician_job_assign.property_id = property_tbl.property_id", "left");
         $this->db->join("unassigned_Job_delete", "unassigned_Job_delete.customer_id = customers.customer_id AND unassigned_Job_delete.job_id = jobs.job_id AND unassigned_Job_delete.program_id = programs.program_id AND unassigned_Job_delete.property_id = property_tbl.property_id", "left");
-
-        $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
+        $this->db->join('property_program_job_invoice', '`property_program_job_invoice`.`customer_id` = `customers`.`customer_id` AND `property_program_job_invoice`.`program_id` = `programs`.`program_id` and `property_tbl`.`property_id` = `property_program_job_invoice`.`property_id` AND `property_program_job_invoice`.`job_id` = `jobs`.`job_id`', 'left');
+        $this->db->join('invoice_tbl', 'invoice_tbl.invoice_id = property_program_job_invoice.invoice_id ', 'left');
+        $this->db->join("technician_job_assign", "`technician_job_assign`.`customer_id` = `customers`.`customer_id` AND `technician_job_assign`.`job_id` = `jobs`.`job_id` AND `technician_job_assign`.`program_id` = `programs`.`program_id` AND `technician_job_assign`.`property_id` = `property_tbl`.`property_id`", "left");
+        $this->db->join("program_job_assigned_customer_property", "`jobs`.`job_id` = `program_job_assigned_customer_property`.`job_id` AND `customers`.`customer_id` = `program_job_assigned_customer_property`.`customer_id` AND `programs`.`program_id` = `program_job_assigned_customer_property`.`program_id` AND `property_tbl`.`property_id` = `program_job_assigned_customer_property`.`property_id`", "left");
+        $this->db->where("  unassigned_Job_delete_id IS NULL");
+        $this->db->where("( `invoice_tbl`.`is_archived` IS NULL OR `invoice_tbl`.`is_archived` != 1 )");
 
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
@@ -1586,6 +1632,7 @@ class Dashboard_model extends CI_Model
         if (is_array($where_in) && array_key_exists('program_id', $where_in)) {
             $this->db->where_in('programs.program_id', $where_in['program_id']);
         }
+        $this->db->group_by('1, 3, 4, 5,7,8,9,10,11,12,13,14');
 
         $result = $this->db->get();
         //die(print_r($this->db->last_query()));
@@ -2065,146 +2112,112 @@ class Dashboard_model extends CI_Model
 //            $where_arr, $where_like, $limit, $start, $col, $dir, $is_for_count, $where_in, $or_where,$property_outstanding_services
 //        ]));
         $program_services_search = array();
-        $select = "";
-        if ($is_for_count) {
 
-            $select = "
-            jobs.job_id,
-            customers.customer_id,
-
-            `property_tbl`.`property_id`,
-            CASE WHEN datediff(now(),(
-	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
-            )) >= (IFNULL(programs.program_schedule_window,30)+ 5) THEN 'Overdue' WHEN datediff(now(),(
-	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
-            )) < (IFNULL(programs.program_schedule_window,30) - 5)  THEN 'Not Due' ELSE 'Due' END as service_due,
-            (
-                SELECT MAX(job_completed_date) AS completed_date_property FROM technician_job_assign where property_id = property_program_assign.property_id GROUP BY property_id
-            ) as completed_date_property,
-            (
-	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
-            ) as completed_date_property_program,
-            (
-                SELECT
-                    MAX(job_completed_date) AS completed_date_last_service_by_type
-                FROM
-                    technician_job_assign tja 		
-				JOIN
-					jobs j
-				ON
-					j.job_id = tja.job_id
-                WHERE
-					tja.is_complete = 1
-                    and j.service_type_id = jobs.service_type_id
-                    and tja.property_id = property_program_assign.property_id
-            ) as completed_date_last_service_by_type
-            ";
-            $select = " COUNT(*) as count";
-        } else {
-
-            $select = "
-            customers.first_name,
-            customers.last_name,
-            billing_street,
-            billing_street_2,
-            jobs.job_id,
-            jobs.job_name,
-            jobs.job_price,
-            jobs.base_fee_override,
-            program_name, 
-             customers.customer_id,
-             jobs.job_id,
-             programs.program_id,
-             `property_tbl`.`property_id`,
-             `property_tbl`.`property_notes`,
-             `property_tbl`.`yard_square_feet`,
-             `property_tbl`.`property_latitude`,
-             `property_tbl`.`property_longitude`,
-            `property_tbl`.`difficulty_level`,
-             `category_area_name`,
-             property_address,
-             program_job_assign.priority,
-             property_type,
-             property_title, 
-             technician_job_assign.is_job_mode, 
-             unassigned_Job_delete.unassigned_Job_delete_id,
-             `property_tbl`.`property_state`,
-             `property_tbl`.`property_city`,
-             `property_tbl`.`property_zip`,
-             customers.pre_service_notification,
-             `property_tbl`.`tags`,
-             `property_tbl`.`available_days`,	     
-             `jobs`.`service_note`,
-             `jobs`.`job_notes`,
-             customers.customer_status,
-             (
-                SELECT 
-                    reschedule_message 
-                FROM 
-                    technician_job_assign 
-                WHERE 
-                    customer_id = customers.customer_id AND 
-                    job_id = jobs.job_id AND 
-                    program_id = programs.program_id AND 
-                    property_id = property_tbl.property_id
-             ) assign_reschedule_message,
-             EXISTS(
-                SELECT 
-                    * 
-                FROM 
-                    technician_job_assign 
-                WHERE 
-                    is_job_mode = 2 AND 
-                    customer_id = customers.customer_id AND
-                    job_id = jobs.job_id AND 
-                    program_id = programs.program_id 
-                    AND property_id = property_tbl.property_id
-             ) assign_table_data,   
-             property_program_assign.property_program_date,
-             program_job_assigned_customer_property.hold_until_date,
-             technician.user_first_name,
-             technician.user_last_name,
-             (
-                SELECT
-                    MAX(job_completed_date) AS completed_date_last_service_by_type
-                FROM
-                    technician_job_assign tja 		
-				JOIN
-					jobs j
-				ON
-					j.job_id = tja.job_id
-                WHERE
-					tja.is_complete = 1
-                    and j.service_type_id = jobs.service_type_id
-                    and tja.property_id = property_program_assign.property_id
-            ) as completed_date_last_service_by_type,
-            (
-                SELECT MAX(job_completed_date) AS completed_date_property FROM technician_job_assign where property_id = property_program_assign.property_id GROUP BY property_id
-            ) as completed_date_property,
-            (
-	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
-            ) as completed_date_property_program,
-            CASE WHEN datediff(now(), (
-	            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
-            )) >= (IFNULL(programs.program_schedule_window, 30)+ 5) THEN 'Overdue' WHEN datediff(now(), 
-            ( SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id)) < (IFNULL(programs.program_schedule_window, 30) - 5)  THEN 'Not Due' ELSE 'Due' END as service_due,
-            CASE 
-                WHEN program_job_assigned_customer_property.reason IS NOT NULL 
-                    THEN 1 
-                    ELSE 0
-                END asap,
-            CASE 
-                WHEN program_job_assigned_customer_property.reason IS NOT NULL 
-                    THEN program_job_assigned_customer_property.reason 
-                ELSE '' 
-            END as asap_reason ,
-            property_program_job_invoice.job_cost,
-            property_program_assign.price_override,
-            property_program_assign.is_price_override_set
-            ";
-
-
-        }
+        $select = "
+        customers.first_name,
+        customers.last_name,
+        billing_street,
+        billing_street_2,
+        jobs.job_id,
+        jobs.job_name,
+        jobs.job_price,
+        jobs.base_fee_override,
+        program_name, 
+         customers.customer_id,
+         jobs.job_id,
+         programs.program_id,
+         `property_tbl`.`property_id`,
+         `property_tbl`.`property_notes`,
+         `property_tbl`.`yard_square_feet`,
+         `property_tbl`.`property_latitude`,
+         `property_tbl`.`property_longitude`,
+        `property_tbl`.`difficulty_level`,
+         `category_area_name`,
+         property_address,
+         program_job_assign.priority,
+         property_type,
+         property_title, 
+         technician_job_assign.is_complete, 
+         technician_job_assign.is_job_mode, 
+         unassigned_Job_delete.unassigned_Job_delete_id,
+         `property_tbl`.`property_state`,
+         `property_tbl`.`property_city`,
+         `property_tbl`.`property_zip`,
+         customers.pre_service_notification,
+         `property_tbl`.`tags`,
+         `property_tbl`.`available_days`,	     
+         `jobs`.`service_note`,
+         `jobs`.`job_notes`,
+         customers.customer_status,
+         (
+            SELECT 
+                reschedule_message 
+            FROM 
+                technician_job_assign 
+            WHERE 
+                customer_id = customers.customer_id AND 
+                job_id = jobs.job_id AND 
+                program_id = programs.program_id AND 
+                property_id = property_tbl.property_id
+         ) assign_reschedule_message,
+         EXISTS(
+            SELECT 
+                * 
+            FROM 
+                technician_job_assign 
+            WHERE 
+                is_job_mode = 2 AND 
+                customer_id = customers.customer_id AND
+                job_id = jobs.job_id AND 
+                program_id = programs.program_id 
+                AND property_id = property_tbl.property_id
+         ) assign_table_data,   
+         property_program_assign.property_program_date,
+         technician.user_first_name,
+         technician.user_last_name,
+         (
+            SELECT
+                MAX(job_completed_date) AS completed_date_last_service_by_type
+            FROM
+                technician_job_assign tja 		
+            JOIN
+                jobs j
+            ON
+                j.job_id = tja.job_id
+            WHERE
+                tja.is_complete = 1
+                and j.service_type_id = jobs.service_type_id
+                and tja.property_id = property_program_assign.property_id
+        ) as completed_date_last_service_by_type,
+        (
+            SELECT MAX(job_completed_date) AS completed_date_property FROM technician_job_assign where property_id = property_program_assign.property_id GROUP BY property_id
+        ) as completed_date_property,
+        (
+            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
+        ) as completed_date_property_program,
+        CASE WHEN datediff(now(), (
+            SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id
+        )) >= (IFNULL(programs.program_schedule_window, 30)+ 5) THEN 'Overdue' WHEN datediff(now(), 
+        ( SELECT MAX(job_completed_date) AS completed_date_property_program FROM technician_job_assign  where property_id = property_program_assign.property_id AND programs.program_id = program_id GROUP BY property_id, program_id)) < (IFNULL(programs.program_schedule_window, 30) - 5)  THEN 'Not Due' ELSE 'Due' END as service_due,
+        CASE 
+            WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                THEN 1 
+                ELSE 0
+            END asap,
+        CASE 
+            WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
+                THEN program_job_assigned_customer_property.reason 
+            ELSE '' 
+        END as asap_reason ,
+        property_program_job_invoice.job_cost,
+        property_program_assign.price_override,
+        property_program_assign.is_price_override_set,
+        property_program_job_invoice.property_program_job_invoice_id,
+        property_program_job_invoice.job_cost,
+        invoice_tbl.invoice_id,
+        invoice_tbl.cost,
+        technician_job_assign.technician_job_assign_id
+        ";
 
         $this->db->select($select, FALSE);
         $this->db->from('jobs');
@@ -2217,12 +2230,6 @@ class Dashboard_model extends CI_Model
         $this->db->join('customer_property_assign', 'customer_property_assign.property_id = property_program_assign.property_id ', 'inner');
         $this->db->join('customers', 'customers.customer_id = customer_property_assign.customer_id ', 'inner');
 
-        // latest property job date
-//        $this->db->join("(SELECT MAX(job_completed_date) AS completed_date_property, property_id FROM technician_job_assign GROUP BY property_id) AS technician_job_assign_property", "property_program_assign.property_id = technician_job_assign_property.property_id", "left");
-
-        // latest property program job date
-//        $this->db->join("(SELECT MAX(job_completed_date) AS completed_date_property_program, property_id, program_id FROM technician_job_assign GROUP BY property_id, program_id ) AS technician_job_assign_property_program", "property_program_assign.property_id = technician_job_assign_property_program.property_id AND programs.program_id = technician_job_assign_property_program.program_id", "left");
-
 
         // to filter out deleted & non-reschedule
         $this->db->join("technician_job_assign", "technician_job_assign.customer_id = customers.customer_id AND technician_job_assign.job_id = jobs.job_id AND technician_job_assign.program_id = programs.program_id AND technician_job_assign.property_id = property_tbl.property_id", "left");
@@ -2231,6 +2238,7 @@ class Dashboard_model extends CI_Model
         $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
         $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
         $this->db->join('property_program_job_invoice', 'property_program_job_invoice.customer_id = customers.customer_id AND property_program_job_invoice.program_id = programs.program_id and property_tbl.property_id = property_program_job_invoice.property_id AND property_program_job_invoice.job_id = jobs.job_id', 'left');
+        $this->db->join('invoice_tbl', 'invoice_tbl.invoice_id = property_program_job_invoice.invoice_id', 'left');
 
         if (is_array($where_like) && array_key_exists( 'job_name', $where_like )) {
             $this->db->where_in( 'job_name', $where_in['job_name'] );
@@ -2276,6 +2284,16 @@ class Dashboard_model extends CI_Model
             foreach ($where_in['available_days'] as $day) {
                 $this->db->where('JSON_VALUE(`property_tbl`.`available_days`, "$.' . $day . '" RETURNING UNSIGNED) IS TRUE');
             }
+        }
+
+        // For Available work report
+        if (is_array($where_in) && array_key_exists('jobs.job_id', $where_in)) {
+            $this->db->where_in('jobs.job_id', $where_in['jobs.job_id']);
+
+        }
+        if (is_array($where_in) && array_key_exists('programs.program_id', $where_in)) {
+            $this->db->where_in('programs.program_id', $where_in['programs.program_id']);
+
         }
 
 
@@ -2370,10 +2388,10 @@ class Dashboard_model extends CI_Model
             }
             $this->db->like($where_like);
         }
-        if ($is_for_count) {
-
-            $this->db->group_by('');
-        } else {
+//        if ($is_for_count) {
+//
+//            $this->db->group_by('');
+//        } else {
             $this->db->group_by('`customers`.`first_name`, `customers`.`last_name`, `billing_street`, `billing_street_2`, `jobs`.`job_id`, `jobs`.`job_name`, programs.`program_name`,
             service_due,
            `customers`.`customer_id`, `jobs`.`job_id`, `programs`.`program_id`, `property_tbl`.`property_id`, `property_tbl`.`property_notes`,
@@ -2385,7 +2403,7 @@ class Dashboard_model extends CI_Model
             
             //$this->db->group_by('1,2,5,6,7,8,9');
             $this->db->order_by($col,$dir);
-        }
+//        }
 
 
         if ($is_for_count == false) {

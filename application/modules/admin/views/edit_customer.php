@@ -995,6 +995,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
 
     /*}*/
 
+
     .prop-status-2 {
         color: #01669A !important;
     }
@@ -1071,9 +1072,22 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
         color: #000;
     }
 
+    .isCanceled {
+        text-decoration: line-through;
+        color: gray;
+    }
+
     .asap_row {
         background: #FBE9E7 !important;
         border: 1px solid #FF5722;
+    }
+
+    .skipped_row {
+        color: #8080804f !important;
+    }
+
+    .label-skipped {
+        background-color: #868686 !important;
     }
 
     .wrapper_pagination {
@@ -1341,25 +1355,15 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                     <th colspan="4" class="left-column-property-details"><span
                                                             class="text-semibold" style="">Property Details</span>
                                                     </th>
-                                                    <th class="color-grey"><span  style="font-weight: 500; font-size: 15px">Status <label class="status-label prop-status-<?= @$customer_property->property_status?>" >
-                                                        <?php
-                                                        if(isset($customer_property->property_status)){
-                                                            switch($customer_property->property_status){
-                                                                case 1: echo "Active"; break;
-                                                                case 2: echo "Prospect"; break;
-                                                                case 4: echo "Sales Call Scheduled"; break;
-                                                                case 5: echo "Estimate Sent"; break;
-                                                                case 6: echo "Estimate Decline"; break;
-                                                                case 7: echo "Canceled - Moved"; break;
-                                                                case 8: echo "Canceled - Do not call"; break;
-                                                                case 9: echo "Canceled - Call Next Year"; break;
-                                                                default: echo "Non-Active";
-                                                            }
-                                                        }
-                                                        ?>
-                                                            
-                                                        </label></span></th>
-                                                    <th class="text-right" style="vertical-align: top;"> <a class='pencil-link'href="<?=base_url("admin/editProperty/").@$customer_property->property_id?>"><i class="icon-pencil"></i> </a></th>
+
+                                                    <th class="color-grey"><span
+                                                            style="font-weight: 500; font-size: 15px">Status <label
+                                                                class="status-label prop-status-<?= @$customer_property->property_status ?>"><?= (@$customer_property->property_status == 1) ? 'Active' : ((@$customer_property->property_status == 2) ? 'Prospect' : ((@$customer_property->property_status == 4) ? 'Sales Call Scheduled' : ((@$customer_property->property_status == 5) ? 'Estimate Sent' : ((@$customer_property->property_status == 6) ? 'Estimate Decline' : 'Non-Active')))) ?></label></span>
+                                                    </th>
+                                                    <th class="text-right" style="vertical-align: top;"><a
+                                                            class='pencil-link'
+                                                            href="<?= base_url("admin/editProperty/") . @$customer_property->property_id ?>"><i
+                                                                class="icon-pencil"></i> </a></th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -3694,7 +3698,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                     <th>Sales Rep</th>
                                     <th>Coupons</th>
                                     <th>Hold Until Date</th>
-                                    <th>Active Status</th>
+                                    <th>Actions</th>
                                     <?php if (isset($customerData['billing_type']) && $customerData['billing_type'] == 1) { ?>
                                         <th>Action</th><?php } ?>
                                 </tr>
@@ -3706,14 +3710,18 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                 if (!empty($all_services)) {
 
                                     foreach ($all_services as $value) {
+                                        $isSkipped = !is_null($value->skip_name) && $value->skip_name != '';
                                         $asapClass = empty($value->on_hold_status) && $value->asap == 1 ? 'asap_row' : '';
+                                        $skippedClass = $isSkipped ? 'skipped_row' : '';
+                                        $disabled = $skippedClass != '' ? "disabled='disabled'" : '';
                                         ?>
-                                        <tr class="<?= $asapClass ?>">
+
+                                        <tr class="<?= $asapClass ?> <?=$skippedClass?>">
 
                                             <td><input name='group_id' type='checkbox'
 
                                                        value="<?php echo $value->customer_id . "," . $value->job_id . "," . $value->program_id . "," . $value->property_id ?>"
-
+                                                       <?= $disabled ?>"
                                                        class='myCheckBox'/></td>
 
                                             <td><?= $value->user_first_name . ' ' . $value->user_last_name; ?></td>
@@ -3740,25 +3748,38 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                             <td>
 
                                                 <?php
-                                                if ($value->technician_job_assign_id != 0){
+                                                $strStatus = '';
+                                                if ($value->skip_name != '') {
+                                                    $strStatus = 'Skipped - '.$value->skip_name;
+                                                } else if ($value->technician_job_assign_id != 0){
                                                     switch ($value->is_job_mode) {
                                                         case 0:
-                                                            echo 'Scheduled';
+                                                            $strStatus = 'Scheduled';
                                                             break;
                                                         case 1:
-                                                            echo "Completed";
+                                                            $strStatus = "Completed";
                                                             break;
                                                         case 2:
-                                                            echo "Rescheduled";
+                                                            $strStatus = "Rescheduled";
                                                             break;
                                                         default:
-                                                            echo "Default";
+                                                            $strStatus = "Default";
                                                             break;
                                                     }
                                                 } else {
-                                                    echo "Pending";
+                                                    $strStatus = "Pending";
                                                 }
-                                                
+                                                $isCanceledClass = '';
+                                                if (isset($value->cancelled) && $value->cancelled == 1) {
+                                                    $strStatus = 'Canceled';
+                                                    $isCanceledClass = "isCanceled";
+                                                } else if (!$isSkipped) {
+                                                    if(!empty($value->on_hold_status))
+                                                        $strStatus = $strStatus .' - '. 'On Hold';
+                                                    else if($value->asap == 1)
+                                                        $strStatus = $strStatus .' - '. 'ASAP';
+                                                }
+                                                echo $strStatus;
                                                 ?>
                                             </td>
                                             <td><?php if (isset($value->sales_rep_name)) {
@@ -3766,7 +3787,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 } ?></td>
 
                                             <td><?= $value->coupon_code_csv ?></td>
-                                            <td><?php if (isset($value->hold_until_date) && $value->hold_until_date != '0000-00-00') {
+                                            <td class="<?=$isCanceledClass?>"><?php if (isset($value->hold_until_date) && $value->hold_until_date != '0000-00-00') {
                                                     echo date('m-d-Y', strtotime($value->hold_until_date));
                                                 } ?>
                                             </td>
@@ -3774,52 +3795,55 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 <ul style="list-style-type: none; padding-left: 0px;">
                                                     <li>
                                                         <?php if (isset($value->cancelled) && $value->cancelled == 1) { ?>
-                                                            <span class="label label-danger">Canceled</span>
+<!--                                                            <span class="label label-danger">Canceled</span>-->
                                                         <?php } else { ?>
                                                             <?php if (!empty($value->on_hold_status)) { ?>
-                                                                <span class="label label-refunded">On Hold</span>
+<!--                                                                <span class="label label-refunded">On Hold</span>-->
+                                                            <?php } else if ($isSkipped) { ?>
+<!--                                                                <span class="label label-skipped">Skipped</span>-->
+                                                            <?php } else if($value->asap == 1) { ?>
+<!--                                                                <span class="label label-danger">ASAP</span>-->
                                                             <?php } else { ?>
-                                                                <span class="label label-success">Active</span>
-                                                                <?php if ($value->asap == 1) { ?>
-                                                                    <span class="label label-danger">ASAP</span>
-                                                                <?php } ?>
+<!--                                                                <span class="label label-success">Active</span>-->
                                                             <?php } ?>
                                                         <?php }
                                                         ?>
                                                     </li>
-                                                    <li style="display: flex; gap: 10px;">
-                                                    <?php if ($value->cancelled == 0 && $value->is_job_mode != 1) { ?>
-                                                        <a href="#" class="confirm_cancellation"
-                                                           onclick="cancelService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                            <i class="fa fa-remove position-center"
-                                                               title="Cancel Service"
-                                                               style="color: #9a9797; size: 16px"></i>
-                                                        </a>
-                                                        <?php if (empty($value->on_hold_status) && $value->asap == 0) { ?>
-                                                            <a href="#" class="confirm_asap"
-                                                               onclick="markAsAsap(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                                <i class="fa fa-level-up position-center"
-                                                                   title="Mark as ASAP"
+                                                    <?php if (!$isSkipped): ?>
+                                                        <li style="display: flex; gap: 10px;">
+                                                        <?php if ($value->cancelled == 0 && $value->is_job_mode != 1) { ?>
+                                                            <a href="#" class="confirm_cancellation"
+                                                               onclick="cancelService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                <i class="fa fa-remove position-center"
+                                                                   title="Cancel Service"
                                                                    style="color: #9a9797; size: 16px"></i>
                                                             </a>
+                                                            <?php if (empty($value->on_hold_status) && $value->asap == 0) { ?>
+                                                                <a href="#" class="confirm_asap"
+                                                                   onclick="markAsAsap(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                    <i class="fa fa-level-up position-center"
+                                                                       title="Mark as ASAP"
+                                                                       style="color: #9a9797; size: 16px"></i>
+                                                                </a>
+                                                            <?php } ?>
+                                                            <?php if (empty($value->on_hold_status)) { ?>
+                                                                <a href="#" class="confirm_asap"
+                                                                   onclick="holdUntilService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                    <i class="fa fa-pause position-center"
+                                                                       title="Hold This Service"
+                                                                       style="color: #9a9797; size: 16px"></i>
+                                                                </a>
+                                                            <?php } else { ?>
+                                                                <a href="#" class="confirm_asap"
+                                                                   onclick="stopHoldingService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                    <i class="fa fa-play position-center"
+                                                                       title="Stop Holding Service"
+                                                                       style="color: #9a9797; size: 16px"></i>
+                                                                </a>
+                                                            <?php } ?>
                                                         <?php } ?>
-                                                        <?php if (empty($value->on_hold_status)) { ?>
-                                                            <a href="#" class="confirm_asap"
-                                                               onclick="holdUntilService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                                <i class="fa fa-pause position-center"
-                                                                   title="Hold This Service"
-                                                                   style="color: #9a9797; size: 16px"></i>
-                                                            </a>
-                                                        <?php } else { ?>
-                                                            <a href="#" class="confirm_asap"
-                                                               onclick="stopHoldingService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                                <i class="fa fa-play position-center"
-                                                                   title="Stop Holding Service"
-                                                                   style="color: #9a9797; size: 16px"></i>
-                                                            </a>
-                                                        <?php } ?>
-                                                    <?php } ?>
-                                                    </li>
+                                                        </li>
+                                                    <?php endif;?>
                                                 </ul>
                                             </td>
                                             <?php if (isset($value->billing_type) && $value->billing_type == 1) { ?>
@@ -4052,43 +4076,51 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                             <table class="table" id="editcustmerpropertytbl">
                                 <thead>
                                 <tr>
+
                                     <th>Property Name</th>
                                     <th>Address</th>
                                     <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            if (!empty($selectedPropertyDetailsList)) { foreach ($selectedPropertyDetailsList as $value) { 
-                                $prop_stat = '';
-                                if($value->status == 2){
-                                    $prop_stat = '<span class="label label-gray" style= "background-color: #808080!important; border-color: #808080;">Prospect</span>';
-                                }elseif($value->status == 1) {
-                                    $prop_stat = '<span class="label label-success">Active</span>';
-                                }elseif($value->status == 4) {
-                                    $prop_stat = '<span class="label label-primary">Sales Call Scheduled</span>';
-                                }elseif($value->status == 5) {
-                                    $prop_stat = '<span class="label label-primary">Estimate Sent</span>';
-                                }elseif($value->status == 6) {
-                                    $prop_stat = '<span class="label label-primary">Estimate Decline</span>';
-                                }elseif($value->status == 7) {
-                                    $prop_stat = '<span class="label label-danger">Canceled - Moved</span>';
-                                }elseif($value->status == 8) {
-                                    $prop_stat = '<span class="label label-danger">Canceled - Do not call</span>';
-                                }elseif($value->status == 9) {
-                                    $prop_stat = '<span class="label label-danger">Canceled - Call Next Year</span>';
-                                }else {
-                                    $prop_stat = '<span class="label label-danger">Non-active</span>';
-                                }
-                                echo '<tr>
-                                        <td> <a href="'.base_url("admin/editProperty/").$value->id.'"> '.$value->title.'</a>  </td>
-                                        <td>'.$value->address.'</td>
-                                        <td>'.$prop_stat.'</td>
-                                    </tr>';
-                                }
-                            } ?>
-                        </tbody>
-                    </table>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <?php
+
+                                if (!empty($selectedPropertyDetailsList)) {
+                                    foreach ($selectedPropertyDetailsList as $value) {
+                                        // die(print_r($value));
+
+
+                                        $prop_stat = '';
+
+                                        if ($value->status == 2) {
+                                            $prop_stat = '<span class="label label-gray" style= "background-color: #808080!important; border-color: #808080;">Prospect</span>';
+                                        } elseif ($value->status == 1) {
+                                            $prop_stat = '<span class="label label-success">Active</span>';
+                                        } elseif ($value->status == 4) {
+                                            $prop_stat = '<span class="label label-primary">Sales Call Scheduled</span>';
+                                        } elseif ($value->status == 5) {
+                                            $prop_stat = '<span class="label label-primary">Estimate Sent</span>';
+                                        } elseif ($value->status == 6) {
+                                            $prop_stat = '<span class="label label-primary">Estimate Decline</span>';
+                                        } else {
+                                            $prop_stat = '<span class="label label-danger">Non-active</span>';
+                                        }
+
+                                        echo '<tr>
+                                              <td> <a href="' . base_url("admin/editProperty/") . $value->id . '"> ' . $value->title . '</a>  </td>
+                                              <td>' . $value->address . '</td>
+                                              <td>' . $prop_stat . '</td>
+                                            </tr>';
+
+
+                                    }
+                                } ?>
+
+
+                                </tbody>
+                            </table>
+
                         </div>
 
                     </div>
@@ -5641,11 +5673,13 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                 <div class="form-group">
                     <label for="property">Choose Property</label>
                     <select class="form-control" id="property" name="property">
-                        <option value="" >None</option>
-                       <?php foreach ($all_customer_properties as $property) {
-                        if(isset($property->property_status) && $property->property_status != 0 && $property->property_status != 7 && $property->property_status != 8 && $property->property_status != 9){?>
-                                <option value="<?= $property->property_id; ?>"><?= $property->property_title; ?></option>
-                            <?php } }?>
+                        <option value="">None</option>
+                        <?php foreach ($all_customer_properties as $property) {
+                            if (isset($property->property_status) && $property->property_status != 0) { ?>
+                                <option
+                                    value="<?= $property->property_id; ?>"><?= $property->property_title; ?></option>
+                            <?php }
+                        } ?>
                     </select>
                 </div>
                 <div class="form-group checkbox">
@@ -5675,41 +5709,40 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
                 <h6 class="modal-title">Add Credit Payment</h6>
             </div>
-
             <div class="modal-body">
-                <form method="POST" action="<?= base_url('technician/addCreditPayment/').$customerData['customer_id'] ?>">
+                <form method="POST"
+                      action="<?= base_url('technician/addCreditPayment/') . $customerData['customer_id'] ?>">
                     <div class="form-group">
-                        <span data-popup="tooltip-custom" title="" data-placement="top" data-original-title="Enter the amount you want to add as credit for this customer."> <i class=" icon-info22 tooltip-icon"></i> </span>
-
+                        <span data-popup="tooltip-custom" title="" data-placement="top"
+                              data-original-title="Enter the amount you want to add as credit for this customer."> <i
+                                class=" icon-info22 tooltip-icon"></i> </span>
                         <label for="credit_amount">Enter Credit Amount</label>
-                        <input class="form-control" required type="number" step="0.01" id="credit_amount" name="credit_amount" maxlength="100" size="100" spellcheck="true">
-                        <input class="form-control" required type="hidden" id="property_id" name="property_id" value="<?=$selectedpropertylist?$selectedpropertylist['0']:0?>">
-
+                        <input class="form-control" required type="number" step="0.01" id="credit_amount"
+                               name="credit_amount" maxlength="100" size="100" spellcheck="true">
+                        <input class="form-control" required type="hidden" id="property_id" name="property_id"
+                               value="<?= $selectedpropertylist ? $selectedpropertylist['0'] : 0 ?>">
                         <label for="payment_type">Payment Type</label>
                         <select class="form-control" id="payment_type" name="payment_type">
-                            <option <?=$customerData['payment_type'] == "check" ? "selected" : ""?> value="check" > Check </option>
-                            <option <?=$customerData['payment_type'] == "cash" ? "selected" : ""?> value="cash" > Cash </option>
-                            <option <?=$customerData['payment_type'] == "other" ? "selected" : ""?> value="other" > Other </option>
+                            <option <?= $customerData['payment_type'] == "check" ? "selected" : "" ?> value="check">
+                                Check
+                            </option>
+                            <option <?= $customerData['payment_type'] == "cash" ? "selected" : "" ?> value="cash">
+                                Cash
+                            </option>
+                            <option <?= $customerData['payment_type'] == "other" ? "selected" : "" ?> value="other">
+                                Other
+                            </option>
+                            <!-- <?php
+                            //if($customerData['clover_autocharge'] == 1 || $customerData['basys_autocharge'] == 1):?>
+               <option <?= $customerData//['payment_type'] == "card" ? "selected" : ""   ?> value="card" > Card </option>
+             <?php //endif; ?> -->
                         </select>
-
-                        <label for="responsible_party">Responsible Party</label>
-                        <select class="form-control" id="responsible_party" name="responsible_party[]" multiple required>
-                            <?php
-                            foreach($CompaniesUser as $UserListCompany){
-                                ?>
-                                <option value="<?php echo $UserListCompany->id ?>"><?php echo $UserListCompany->user_first_name ?> <?php echo $UserListCompany->user_last_name ?></option>
-                                <?php
-                            }
-                            ?>
-                        </select>
-
-                        <label for="credit_notes">Reason for Entering Credit</label>
-                        <input class="form-control" required type="text" id="credit_notes" name="credit_notes" spellcheck="true">
                     </div>
-
                     <div class="col">
                         <div class="modal-footer">
-                            <button class="btn btn-primary" type="submit"><i class="icon-plus22"></i> Submit</button>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="icon-plus22"></i> Submit
+                            </button>
                         </div>
                     </div>
                 </form>

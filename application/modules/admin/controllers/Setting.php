@@ -290,6 +290,7 @@ class Setting extends MY_Controller
         $data['note_types'] = $this->CompanyModel->getNoteTypes($this->session->userdata['company_id']);
         $data['cancel_reasons'] = $this->CustomerModel->getCancelReasons($this->session->userdata['company_id']);
         $data['reschedule_reasons'] = $this->CustomerModel->getRescheduleReasonsList($this->session->userdata['company_id']);
+        $data['skip_reasons'] = $this->CustomerModel->getSkipReasonsList($this->session->userdata['company_id']);
         // $data['note_types'] = $this->CompanyModel->getNoteTypes(0);
         // die(print_r($data['note_types']));
 		$data['company_id'] = $this->session->userdata['company_id'];

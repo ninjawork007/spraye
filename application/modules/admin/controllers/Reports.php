@@ -51,6 +51,8 @@ class Reports extends MY_Controller {
         $this->load->model('Invoice_sales_tax_model', 'InvoiceSalesTax');
         $this->load->model('AdminTbl_property_model', 'PropertyModel');
         $this->load->model('Property_sales_tax_model', 'PropertySalesTax');
+        $this->load->model('Unassign_job_delete_model', 'UnassignJobDeleteModal');
+        $this->load->model('Service_type_model', 'ServiceTypeModel');
 		$this->load->model('Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel');
 		$this->load->model('AdminTbl_coupon_model', 'CouponModel');
 		$this->load->model('AdminTbl_servive_area_model', 'ServiceArea');
@@ -114,7 +116,7 @@ class Reports extends MY_Controller {
     public function index()
     {   
         //get the posts data
-        $data['report_details'] = $this->RP->getAllRepots();
+        $data['report_details'] = $this->RP->getCompletedServices();
 		//die(print_r($data));
 	    $page["active_sidebar"] = "reports";
         $page["page_name"] = 'Completed Service Log';
@@ -155,7 +157,7 @@ class Reports extends MY_Controller {
         
          //get posts data
         $data['report_details'] = $this->RP->getAllRepots($conditions);
-           
+
         $body =  $this->load->view('admin/report/ajax_report', $data, false);
 
         echo $body;
@@ -368,7 +370,7 @@ class Reports extends MY_Controller {
 					#check for coupons at customer, property, job level
 
 					$job_cost_total = 0;
-					$invoice_jobs = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon(array('invoice_id'=>$invoice->invoice_id));
+					$invoice_jobs = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon(array('property_program_job_invoice.invoice_id'=>$invoice->invoice_id));
 					if (!empty($invoice_jobs)) {
 						foreach($invoice_jobs as $job) {
 							$job_cost = $job['job_cost'];
@@ -2213,7 +2215,7 @@ class Reports extends MY_Controller {
                         'property_program_job_invoice.invoice_id' => $tmp_invoice_id
                     );
                     $where_in = "property_program_job_invoice.job_id IN (Select job_id from technician_job_assign WHERE invoice_id = '".$invoice_id."' and is_complete = 1)";
-                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where, $where_in, true, $invoice_id);
+                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCouponReporting($where, $where_in, true, $invoice_id);
                     $total_jobs_on_invoice = $proprojobinv["total_job_count"];
                     if (!empty($proprojobinv)) {
                         foreach($proprojobinv as $job) {
@@ -2449,6 +2451,11 @@ class Reports extends MY_Controller {
 
         // echo "<pre>";
         $invoices_already_used = array();
+        // we need to know what the date is that this was paid in case it is after when the service was completed
+        $invoice_numbers_from_paid_dates = array();
+        foreach($inv_and_sales_tax as $invs) {
+            $invoice_numbers_from_paid_dates[$invs->invoice_id] = date('Y-m-d',strtotime($invs->payment_created));
+        }
         foreach($inv_and_sales_tax as $invoice_details) {
             $invoice_id = $invoice_details->invoice_id;
             if(!in_array($invoice_id, $invoices_already_used)) {
@@ -2502,7 +2509,6 @@ class Reports extends MY_Controller {
                 $program_price = $this->RP->getProgramPriceById($invoice_details->program_id)->program_price;
 
                 // die(print_r($program_price));
-
                 if (($invoice_jobs_are_complete == 1 && ($program_price == 1 || $program_price == 2)) || ($program_price == 3 && ($invoice_details->payment_status == 2 || $invoice_details->payment_status == 1))) {  // add sales tax if complete
 
                     ////////////////////////////////////
@@ -2518,54 +2524,144 @@ class Reports extends MY_Controller {
                     // cost of all services (with price overrides) - service coupons
                     $job_cost_total = 0;
                     $invoice_total_tax = 0;
+                    $where_date = array();
                     $where = array(
                         'property_program_job_invoice.invoice_id' => $tmp_invoice_id
                     );
+                    
                     $where_in = "property_program_job_invoice.job_id IN (Select job_id from technician_job_assign WHERE invoice_id = '".$invoice_id."' and is_complete = 1)";
-                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where, $where_in, true, $invoice_id);
+                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCouponReporting($where, $where_in, true, $invoice_id);
                     $total_jobs_on_invoice = $proprojobinv["total_job_count"];
                     if (!empty($proprojobinv)) {
                         foreach($proprojobinv as $job) {
-                            
-                            $job_cost = $job['job_cost'];
-                            // die(print_r($tax_subtracted));
+                            if($job["invoice_id"] != NULL) {
+                                // now that we have the date the invoice was paid as well as the job completed date we need to see which happened later and use that date
+                                if (date('Y-m-d',strtotime($invoice_numbers_from_paid_dates[$invoice_id])) > date('Y-m-d',strtotime($job['job_completed_date']))) {
+                                    $latest_date_for_comparison = $invoice_numbers_from_paid_dates[$invoice_id];
+                                } else {
+                                    $latest_date_for_comparison = $job['job_completed_date'];
+                                }
+                                if(!empty($job_completed_date_to) && empty($job_completed_date_from) ){
+                                    if(date('Y-m-d',strtotime($latest_date_for_comparison)) >= date('Y-m-d',strtotime($job_completed_date_from))) {
+                                        $job_cost = $job['job_cost'];
+                                        // die(print_r($tax_subtracted));
 
-                            $job_where = array(
-                                'job_id' => $job['job_id'],
-                                'customer_id' =>$job['customer_id'],
-                                'property_id' =>$job['property_id'],
-                                'program_id' =>$job['program_id']
-                            );
-                            $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+                                        $job_where = array(
+                                            'job_id' => $job['job_id'],
+                                            'customer_id' =>$job['customer_id'],
+                                            'property_id' =>$job['property_id'],
+                                            'program_id' =>$job['program_id']
+                                        );
+                                        $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                            if (!empty($coupon_job_details)) {
+                                        if (!empty($coupon_job_details)) {
 
-                                foreach($coupon_job_details as $coupon) {
-                                    // $nestedData['email'] = json_encode($coupon->coupon_amount);
-                                    $coupon_job_amm_total = 0;
-                                    $coupon_job_amm = $coupon->coupon_amount;
-                                    $coupon_job_calc = $coupon->coupon_amount_calculation;
+                                            foreach($coupon_job_details as $coupon) {
+                                                // $nestedData['email'] = json_encode($coupon->coupon_amount);
+                                                $coupon_job_amm_total = 0;
+                                                $coupon_job_amm = $coupon->coupon_amount;
+                                                $coupon_job_calc = $coupon->coupon_amount_calculation;
 
-                                    if ($coupon_job_calc == 0) { // flat amm
-                                        $coupon_job_amm_total = (float) $coupon_job_amm;
-                                    } else { // percentage
-                                        $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                                if ($coupon_job_calc == 0) { // flat amm
+                                                    $coupon_job_amm_total = (float) $coupon_job_amm;
+                                                } else { // percentage
+                                                    $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                                }
+
+                                                $job_cost = $job_cost - $coupon_job_amm_total;
+
+                                                if ($job_cost < 0) {
+                                                    $job_cost = 0;
+                                                }
+                                            }
+                                        }
+
+                                        $job_cost_total += $job_cost;
                                     }
+                                } else if(empty($job_completed_date_to) && !empty($job_completed_date_from) ){
+                                    if(date('Y-m-d',strtotime($latest_date_for_comparison)) <= date('Y-m-d',strtotime($job_completed_date_to))) {
+                                        $job_cost = $job['job_cost'];
+                                        // die(print_r($tax_subtracted));
 
-                                    $job_cost = $job_cost - $coupon_job_amm_total;
+                                        $job_where = array(
+                                            'job_id' => $job['job_id'],
+                                            'customer_id' =>$job['customer_id'],
+                                            'property_id' =>$job['property_id'],
+                                            'program_id' =>$job['program_id']
+                                        );
+                                        $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                                    if ($job_cost < 0) {
-                                        $job_cost = 0;
+                                        if (!empty($coupon_job_details)) {
+
+                                            foreach($coupon_job_details as $coupon) {
+                                                // $nestedData['email'] = json_encode($coupon->coupon_amount);
+                                                $coupon_job_amm_total = 0;
+                                                $coupon_job_amm = $coupon->coupon_amount;
+                                                $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                                if ($coupon_job_calc == 0) { // flat amm
+                                                    $coupon_job_amm_total = (float) $coupon_job_amm;
+                                                } else { // percentage
+                                                    $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                                }
+
+                                                $job_cost = $job_cost - $coupon_job_amm_total;
+
+                                                if ($job_cost < 0) {
+                                                    $job_cost = 0;
+                                                }
+                                            }
+                                        }
+
+                                        $job_cost_total += $job_cost;
+                                    }
+                                    $this->db->where('technician_job_assign.job_completed_date <=',$job_completed_date_from);
+                                } else if(!empty($job_completed_date_to) && !empty($job_completed_date_from) ){
+                                    if((date('Y-m-d',strtotime($latest_date_for_comparison)) >= date('Y-m-d',strtotime($job_completed_date_from))) && (date('Y-m-d',strtotime($latest_date_for_comparison)) <= date('Y-m-d',strtotime($job_completed_date_to)))) {
+                                        $job_cost = $job['job_cost'];
+                                        // die(print_r($tax_subtracted));
+
+                                        $job_where = array(
+                                            'job_id' => $job['job_id'],
+                                            'customer_id' =>$job['customer_id'],
+                                            'property_id' =>$job['property_id'],
+                                            'program_id' =>$job['program_id']
+                                        );
+                                        $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                                        if (!empty($coupon_job_details)) {
+
+                                            foreach($coupon_job_details as $coupon) {
+                                                // $nestedData['email'] = json_encode($coupon->coupon_amount);
+                                                $coupon_job_amm_total = 0;
+                                                $coupon_job_amm = $coupon->coupon_amount;
+                                                $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                                                if ($coupon_job_calc == 0) { // flat amm
+                                                    $coupon_job_amm_total = (float) $coupon_job_amm;
+                                                } else { // percentage
+                                                    $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                                                }
+
+                                                $job_cost = $job_cost - $coupon_job_amm_total;
+
+                                                if ($job_cost < 0) {
+                                                    $job_cost = 0;
+                                                }
+                                            }
+                                        }
+
+                                        $job_cost_total += $job_cost;
                                     }
                                 }
                             }
-
-                            $job_cost_total += $job_cost;
+                            
                         }
                         $invoice_total_cost = $job_cost_total;
                     } else {
                         $invoice_total_cost = $invoice_details->cost;
                     }
+                    //var_dump($invoice_id." = ".$invoice_total_cost);
 
                     // check price override -- any that are not stored in just that ^^.
 
@@ -3336,103 +3432,111 @@ class Reports extends MY_Controller {
 
     public function ajaxForAvailableWorkReport() 
     {
-	  	$qPrograms = $this->input->post('programs');
-		$qProgramsArr = explode(',', $this->input->post('programs'));
+		$qPrograms = ($this->input->post('programs') != 'null')?explode(',', $this->input->post('programs')):0;
+
 	  	$qServices = explode(',', $this->input->post('services'));
-	 	$programFlag = ($qPrograms !== 'null') ? true : false;
 		$company_id = $this->session->userdata['company_id'] ?? $this->session->userdata['spraye_technician_login']->company_id;
 		$where = array(
 			'jobs.company_id' => $company_id,
 			'property_tbl.company_id' => $company_id,
-			'customer_status' => 1,
-			'property_status' => 1
-		);
+			'customer_status !=' => 0,
+			'property_status !=' => 0
+        );
 
-		$where_in = array(
-			'job_id' => $qServices
-		);
 
-		if($programFlag) {
-			$where_in['program_id'] = $qProgramsArr;
-		}
 
-		$outstandingWork = $this->DashboardModel->getWorkReportOutstanding($where, $where_in);
+        //$outstandingWork = $this->DashboardModel->getWorkReportOutstanding($where, $where_in); // Get all jobs assigned to property or program
+        // Modified by Alvaro M.
+        // Separate unnasigned, schedule and closed services into different querys for better matching rest of web information
+        $where_like = array();
+        $where_in = array();
+        $or_where = array();
+        $property_outstanding_services = array();
+        $limit = 0;
+        $start = 0;
+        $order = '';
+        $dir = '';
+        if (is_array($qServices)){
+            $where_in['jobs.job_id'] = $qServices;
+        }
+        //die(print_r($qPrograms));
+        if (is_array($qPrograms) ){
+            $where_in['programs.program_id'] = $qPrograms;
+        }
+        $outstandingWork = array();
+        $completedWork = array();
+        $scheduledWork =array();
+        $outstandingWork = $this->DashboardModel->getTableDataAjax_new($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where, $property_outstanding_services);
+        $completedWork = $this->RP->getCompletedServices($where_in);
+        //die($this->db->last_query());
+        //var_dump($completedWork);
+        if (!$completedWork){
+            $completedWork = array();
+        }
+        //die(print_r($completedWork));
+        $scheduledWork = $this->DashboardModel->getScheduledWork(array('technician_job_assign.company_id' => $company_id, 'is_job_mode' => 0),$where_in);
+
+        //die(print_r($scheduledWork));
+        //die(print_r($completedWork));
+        //die(print_r($unnasigned_services));
+        //die($this->db->last_query());
 		// die( print_r( json_encode( $outstandingWork ),true ));
 		// $unServiceList = $this->DashboardModel->getUnassignedServiceList($where);
 		// die(print_r(json_encode($unServiceList),true));
 
-		$jobs = array();
+		$jobs = array(); // this will be the list of jobs assigned to technicians
 
-		if($programFlag)
-		{
-			$qPrograms = explode(',', $qPrograms);
-		}
-        
+
+        // Get the assigned services assgined to a technician
 		foreach($qServices as $service)
 		{
-			$where = array(
-				'job_id'	=> $service
-			);
-			$job = $this->JobModel->getOneJob($where);
-			$job->assigned = $this->RP->GetAllRow($where);
-
-			if($programFlag && is_array($qPrograms))
-			{
-				foreach($job->assigned as $key => $value)
-				{
-					if(!in_array($value['program_id'], $qPrograms))
-					{
-						unset($job->assigned[$key]);
-					}
-				}
-			}
-
-			foreach($job->assigned as $key => $value)
-			{
-				if(is_null($value['invoice_id']) || !isset($value['invoice_id']) || $value['invoice_id'] == '' || $value['invoice_id'] == 0)
-				{
-					unset($job->assigned[$key]);
-				}
-			}
-			if(!empty($job->assigned))
-			{	
-				array_push($jobs,$job);
-			}
-		}
-
+			$job = $this->JobModel->getOneJob(array(
+                'job_id'	=> $service
+            )); // Get job information
+//
+		} // end -- Get the assigned services assgined to a technician
+        // Get all service area of assigned services list.
 		$areas = array();
-		foreach($outstandingWork as $item)
+		foreach($outstandingWork as $item) // reorder original jobs list by service area
 		{
 			$category_area_name = (isset($item->category_area_name) ? $item->category_area_name : 'NONE');
 			if(!in_array($category_area_name, $areas)) {
                 array_push($areas, $category_area_name);
 			}
 		}
-        
-        
-		foreach($jobs as $job)
-		{
-			foreach($job->assigned as $item)
-			{
-                $category_area_name = (isset($item['category_area_name']) ? $item['category_area_name'] : 'NONE');
-				if(!in_array($item['category_area_name'], $areas) && !is_null($item['category_area_name']))
-				{
+        if (is_array($completedWork) && !empty($completedWork)){
+            foreach($completedWork as $item) // reorder original jobs list by service area
+            {
+                $category_area_name = (isset($item->category_area_name) ? $item->category_area_name : 'NONE');
+                if(!in_array($category_area_name, $areas)) {
+                    array_push($areas, $category_area_name);
+                }
+            }
+        }
 
-					array_push($areas, $item['category_area_name']);
-				}				
-			}
-		}
+        foreach($scheduledWork as $item) // reorder original jobs list by service area
+        {
+            $category_area_name = (isset($item->category_area_name) ? $item->category_area_name : 'NONE');
+            if(!in_array($category_area_name, $areas)) {
+                array_push($areas, $category_area_name);
+            }
+        }
+
 		$index = 0;
 		$services = array();
 		foreach($areas as $area)
 		{
 			$tmp = (object)[];
 			$tmp->open = array();
+			$tmp->scheduled = array();
 			$tmp->closed = array();
 			$tmp->index = $index;
 			$tmp->area = $area;
+
+            // Get open work
 			foreach($outstandingWork as $item)
 			{
+                $job_cost = 0;
                 // sometimes the $item->category_area_name will come in as NULL - and above sets those to NONE - so we need to check for null and change to NONE so we get the results we expect
                 if($item->category_area_name == NULL) {
                     $category_area_name_check = 'NONE';
@@ -3441,126 +3545,119 @@ class Reports extends MY_Controller {
                 }
 				if(isset($category_area_name_check) && $category_area_name_check == $area)
 				{
-					//get program invoice method
-					$checkInvMethod = $this->ProgramModel->getOneProgramForCheck( array( 'program_id' => $item->program_id ));
-					$programPrice = $checkInvMethod->program_price;
-					//get job cost depending on invoice method
-					if( $programPrice == 1 ) 
-					{
-						$where_arr = array(
-							'customer_id' => $item->customer_id, 
-							'property_id' => $item->property_id, 
-							'program_id' => $item->program_id, 
-							'job_id' => $item->job_id
-						);
-						$ppjobinv_details = $this->PropertyProgramJobInvoiceModel->getOnePropertyProgramJobInvoiceDetails( $where_arr );
-						if( isset( $ppjobinv_details ) && isset( $ppjobinv_details->job_cost ))
-						{
-							$job_cost = $ppjobinv_details->job_cost;
-						} else {
-                            $job_cost = $this->calculateJobCost( $item );
-						}
-					} elseif( $programPrice == 2 || $programPrice == 3 )
-					{
-						$job_cost = $this->calculateJobCost( $item );
-					}
+
+                    $job_cost = $this->RP->calculateJobCost( $item->customer_id, $item->property_id, $item->program_id,$item->invoice_id,$item->job_id, $item->yard_square_feet );
 					$job_cost = ( $job_cost === 0 || $job_cost === NULL ) ? 0 : $job_cost;
-					$job = $this->JobModel->getOneJob(array( 'job_id' => $item->job_id));
-					if( !is_null( $job ))
-					{
-						$tmp2 = (object)[];
-						$tmp2->job_id = $item->job_id;
-						$tmp2->sqft = $item->yard_square_feet;
-						$tmp2->job_price_per = 1000;
-						$tmp2->job_price = $job->job_price;
-						$tmp2->job_name = $job->job_name;
-						$tmp2->job_cost = $job_cost;
-						array_push($tmp->open, $tmp2);
-					}
+
+
+                    $tmp2 = (object)[];
+                    $tmp2->job_id = $item->job_id;
+                    $tmp2->sqft = $item->yard_square_feet;
+                    $tmp2->job_name = $job->job_name;
+                    $tmp2->job_cost = $job_cost ;
+                    $tmp2->invoice_id = $item->invoice_id;
+//                    if(   !is_null( $item->technician_job_assign_id) && $item->is_complete == 0  && $item->is_job_mode == 0 )
+//                    {
+//                        array_push($tmp->scheduled, $tmp2);
+//                    }
+
+                    array_push($tmp->open, $tmp2);
+
 				}
-			}
-			// die( print_r( json_encode( $jobs ), true ));
-			foreach($jobs as $item)
-			{
-				foreach($item->assigned as $job)
-				{
-                    // sometimes the $job['category_area_name'] will come in as NULL - and above sets those to NONE - so we need to check for null and change to NONE so we get the results we expect
-					if($job['category_area_name'] == NULL) {
-                        $category_area_name_check = 'NONE';
-                    } else {
-                        $category_area_name_check = $job['category_area_name'];
-                    }
-                    if( $category_area_name_check == $area )
-					{
-						$cost = 0;
-						if( isset( $job['invoice_id'] ))
-						{
-							$where = array(
-								'job_id' => $job['job_id'],
-								'invoice_id' => $job['invoice_id']
-							);
-							$cost = $this->RP->getJobInvoiceCost( $where );
-						}
-						if( $cost === 0 || $cost === NULL )
-						{
-							//get program invoice method
-							$checkInvMethod = $this->ProgramModel->getOneProgramForCheck( array( 'program_id' => $job['program_id'] ));
-							$programPrice = $checkInvMethod->program_price;
-							//get job cost depending on invoice method
-							if( $programPrice == 1 ) 
-							{
-								$where_arr = array(
-									'customer_id' => $job['customer_id'], 
-									'property_id' => $job['property_id'], 
-									'program_id' => $job['program_id'], 
-									'job_id' => $job['job_id']
-								);
-								$ppjobinv_details = $this->PropertyProgramJobInvoiceModel->getOnePropertyProgramJobInvoiceDetails( $where_arr );
-								if( isset( $ppjobinv_details ) && isset( $ppjobinv_details->job_cost ))
-								{
-									$cost = $ppjobinv_details->job_cost;
-								} else {
-									// die(print_r( (object)$job,true ));
-									$cost = $this->calculateJobCost( (object)$job );
-								}
-							} elseif( $programPrice == 2 || $programPrice == 3 )
-							{
-								$cost = $this->calculateJobCost( (object)$job );
-							}
-							$cost = ( $cost === 0 ) ? null : $cost;
-							$cost = ( $cost === 0 || $cost === NULL ) ? 0 : $cost;
-						}
-						if( !is_null($cost) )
-						{
-							$tmp2 = (object)[];
-							$tmp2->job_id = $job['job_id'];
-							$tmp2->sqft = $job['yard_square_feet'];
-							$tmp2->job_price_per = 1000;
-							$tmp2->job_price = $item->job_price;
-							$tmp2->job_name = $item->job_name;
-							$tmp2->invoice_id = $job['invoice_id'];
-							$tmp2->invoiced_price = $cost;
-							array_push( $tmp->closed, $tmp2 );
-						}
-					}
-				}
-			}
-			array_push($services, $tmp);
-			$index++;
-		}
-		// die( print_r( json_encode( $services ),true ));
+			}  // end -- Get open work
+            // Get closed work
+            $i = 1;
+            foreach($completedWork as  $item)
+            {
+                $job_cost = 0;
+                // sometimes the $item->category_area_name will come in as NULL - and above sets those to NONE - so we need to check for null and change to NONE so we get the results we expect
+
+                if($item->category_area_name == NULL) {
+                    //var_dump($item->category_area_name);
+                    $item->category_area_name = 'NONE';
+                }
+
+                if(isset($item->category_area_name) && $item->category_area_name == $area)
+                {
+                    //die(print_r($item));
+                    $job_cost = $this->RP->calculateJobCost( $item->customer_id, $item->property_id, $item->program_id,$item->invoice_id,$item->job_id, $item->yard_square_feet );
+                    $job_cost = ( $job_cost === 0 || $job_cost === NULL ) ? 0 : $job_cost;
+
+
+                    $tmp2 = (object)[];
+                    $tmp2->job_id = $item->job_id;
+                    $tmp2->sqft = $item->yard_square_feet;
+                    $tmp2->job_name = $job->job_name;
+                    $tmp2->job_cost = $job_cost ;
+                    $tmp2->invoice_id = $item->invoice_id;
+                    array_push( $tmp->closed, $tmp2 );
+
+//                    $i += 1;
+
+                }
+//                echo $i. ' - '.count($tmp->closed).'<br>';
+
+            }  // end --  Get Closed work
+
+            // Get schedule work
+            foreach($scheduledWork as $item)
+            {
+                $job_cost = 0;
+                // sometimes the $item->category_area_name will come in as NULL - and above sets those to NONE - so we need to check for null and change to NONE so we get the results we expect
+
+                if($item->category_area_name == NULL) {
+                    $category_area_name_check = 'NONE';
+                } else {
+                    $category_area_name_check = $item->category_area_name;
+                }
+                if(isset($category_area_name_check) && $category_area_name_check == $area)
+                {
+                    //die(print_r($item));
+                    $job_cost = $this->RP->calculateJobCost( $item->customer_id, $item->property_id, $item->program_id,$item->invoice_id,$item->job_id, $item->yard_square_feet );
+                    $job_cost = ( $job_cost === 0 || $job_cost === NULL ) ? 0 : $job_cost;
+
+
+                    $tmp2 = (object)[];
+                    $tmp2->job_id = $item->job_id;
+                    $tmp2->sqft = $item->yard_square_feet;
+                    $tmp2->job_name = $job->job_name;
+                    $tmp2->job_cost = $job_cost ;
+                    $tmp2->invoice_id = $item->invoice_id;
+                    array_push( $tmp->scheduled, $tmp2 );
+
+                }
+            }  // end --  Get schedule work
+
+            array_push($services, $tmp);
+            $index++;
+        }
+
+
+        //die(print_r($services));
+
+
+
+        // Calculate totals
+		 //die( print_r( json_encode( $services ),true ));
 		$results = array();
 		foreach($services as $service)
 		{
-			$t_serv_assgn = count( $service->open ) + count( $service->closed );
+			$t_serv_assgn = count( $service->open ) + count( $service->closed )+ count( $service->scheduled );
+			$t_serv_scheduled = count( $service->scheduled );
 			$t_serv_comp = count( $service->closed );
 			$t_serv_out = count( $service->open );
 			$total_sqft = 0;
 			$total_sqft_comp = 0;
+			$total_sqft_scheduled = 0;
 			$total_sqft_out = 0;
 			$total_rev_prod = 0;
+			$total_rev_scheduled = 0;
 			$total_rev_out = 0;
 			$total_rev = 0;
+            //var_dump($service->open);
+            //var_dump($service->closed);
+            //var_dump($service->scheduled);
+
 			foreach($service->open as $open)
 			{
 				$total_sqft += floatval( $open->sqft );
@@ -3568,24 +3665,37 @@ class Reports extends MY_Controller {
 				$total_rev_out +=  $open->job_cost;
 				$total_rev += $open->job_cost;
 			}
-			foreach($service->closed as $closed)
-			{
-				$total_sqft += floatval( $closed->sqft );
-				$total_sqft_comp += floatval( $closed->sqft );
-				$total_rev_prod += floatval( $closed->invoiced_price );
-				// $total_rev_prod += floatval( $closed->job_price ) * ( floatval( $closed->sqft ) / floatval( $closed->job_price_per ));
-				$total_rev += $closed->invoiced_price;
-			}
+//        die(print_r($service->closed));
+            foreach($service->closed as $closed)
+            {
+                $total_sqft += floatval( $closed->sqft );
+                $total_sqft_comp += floatval( $closed->sqft );
+                $total_rev_prod += floatval( $closed->job_cost );
+                // $total_rev_prod += floatval( $closed->job_price ) * ( floatval( $closed->sqft ) / floatval( $closed->job_price_per ));
+                $total_rev += $closed->job_cost;
+            }
+            //die(print_r($service->scheduled));
+            foreach($service->scheduled as $scheduled)
+            {
+                $total_sqft += floatval( $scheduled->sqft );
+                $total_sqft_scheduled += floatval( $scheduled->sqft );
+                $total_rev_scheduled += floatval( $scheduled->job_cost );
+                // $total_rev_prod += floatval( $closed->job_price ) * ( floatval( $closed->sqft ) / floatval( $closed->job_price_per ));
+                //$total_rev += $schedule->invoiced_price;
+            }
 			$tmp = array(
 				'service_area' => $service->area,
 				't_serv_assgn' => $t_serv_assgn,
+				't_serv_scheduled' => $t_serv_scheduled,
 				't_serv_comp' => $t_serv_comp,
 				't_serv_out' => $t_serv_out,
 				'perc_comp' => ( $t_serv_comp == 0 ) ? 0 : round(( $t_serv_comp / $t_serv_assgn ) * 100 ),
 				'total_sqft' => $total_sqft,
+				'total_sqft_scheduled' => $total_sqft_scheduled,
 				'total_sqft_comp' => $total_sqft_comp,
-				'total_sqft_out' => $total_sqft_out, 
+				'total_sqft_out' => $total_sqft_out,
 				'perc_sqft_comp' => ( $total_sqft_comp == 0 ) ? 0 : round(( $total_sqft_comp / $total_sqft ) * 100 ),
+				'total_rev_scheduled' => round( $total_rev_scheduled, 2 ),
 				'total_rev_prod' => round( $total_rev_prod, 2 ),
 				'total_rev_out' => round( $total_rev_out, 2 ),
 				'perc_rev_prod' =>  ( $total_rev == 0 ) ? 0 : round(( $total_rev_prod / $total_rev ) * 100 ),
@@ -3619,81 +3729,83 @@ class Reports extends MY_Controller {
 		fpassthru($f);
 	}
 
-	public function calculateJobCost( $job_details )
-	{
-		$job_cost = 0;
-		// Currently only tested on invoice pricing 2
-		$where_arr = array(
-			'customer_id' => $job_details->customer_id,
-			'property_id' => $job_details->property_id,
-			'program_id' => $job_details->program_id,
-			'job_id' => $job_details->job_id
-		);
-		$estimate_price_override = GetOneEstimateJobPriceOverride( $where_arr );
-		if( $estimate_price_override && !empty( $estimate_price_override->is_price_override_set ))
-		{
-			$job_cost = $estimate_price_override->price_override;
-		} else {
-			$where_arr = array(
-				'property_id' => $job_details->property_id,
-				'program_id' => $job_details->program_id
-			);
-			$priceOverrideData = $this->Tech->getOnePriceOverride( $where_arr );
-
-			if( isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1 )
-			{
-				$job_cost = $priceOverrideData->price_override;
-			} else {
-				//else no price overrides, then calculate job cost
-				$job = $this->JobModel->getOneJob(array( 'job_id' => $job_details->job_id ));
-				$property = $this->PropertyModel->getOneProperty( array( 'property_id' => $job_details->property_id ));
-				$lawn_sqf = $job_details->yard_square_feet;
-				$job_price = $job->job_price;
-
-				//get property difficulty level
-				$setting_details = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
-
-				if( isset( $property->difficulty_level ) && $property->difficulty_level == 2 )
-				{
-					$difficulty_multiplier = $setting_details->dlmult_2;
-				} elseif( isset( $property->difficulty_level ) && $property->difficulty_level == 3 )
-				{
-					$difficulty_multiplier = $setting_details->dlmult_3;
-				} else {
-					$difficulty_multiplier = $setting_details->dlmult_1;
-				}
-
-				//get base fee 
-				if( isset( $job->base_fee_override ))
-				{
-					$base_fee = $job->base_fee_override;
-				} else 
-				{
-					$base_fee = $setting_details->base_service_fee;
-				}
-
-				$cost_per_sqf = $base_fee + ( $job_price * $lawn_sqf * $difficulty_multiplier ) / 1000;
-
-				//get min. service fee
-				if( isset( $job->min_fee_override ))
-				{
-					$min_fee = $job->min_fee_override;
-				} else {
-						$min_fee = $setting_details->minimum_service_fee;
-				}
-
-				// Compare cost per sf with min service fee
-				if ($cost_per_sqf > $min_fee) {
-						$job_cost = $cost_per_sqf;
-				} else {
-						$job_cost = $min_fee;
-				}
-			}
-		}
-		
-		return $job_cost;
-
-	}
+//	public function calculateJobCost( $job_details )
+//	{
+//		$job_cost = 0;
+//		// Currently only tested on invoice pricing 2
+//		$where_arr = array(
+//			'customer_id' => $job_details->customer_id,
+//			'property_id' => $job_details->property_id,
+//			'program_id' => $job_details->program_id,
+//			'job_id' => $job_details->job_id
+//		);
+//        // check estimate price
+//		$estimate_price_override = GetOneEstimateJobPriceOverride( $where_arr );
+//		if( $estimate_price_override && !empty( $estimate_price_override->is_price_override_set ))
+//		{
+//			$job_cost = $estimate_price_override->price_override;
+//		} else {
+//			$where_arr = array(
+//				'property_id' => $job_details->property_id,
+//				'program_id' => $job_details->program_id
+//			);
+//            // Get program price override
+//			$priceOverrideData = $this->Tech->getOnePriceOverride( $where_arr );
+//
+//			if( isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1 )
+//			{
+//				$job_cost = $priceOverrideData->price_override;
+//			} else {
+//				//else no price overrides, then calculate job cost
+//				$job = $this->JobModel->getOneJob(array( 'job_id' => $job_details->job_id ));
+//				$property = $this->PropertyModel->getOneProperty( array( 'property_id' => $job_details->property_id ));
+//				$lawn_sqf = $job_details->yard_square_feet;
+//				$job_price = $job->job_price;
+//
+//				//get property difficulty level
+//				$setting_details = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
+//
+//				if( isset( $property->difficulty_level ) && $property->difficulty_level == 2 )
+//				{
+//					$difficulty_multiplier = $setting_details->dlmult_2;
+//				} elseif( isset( $property->difficulty_level ) && $property->difficulty_level == 3 )
+//				{
+//					$difficulty_multiplier = $setting_details->dlmult_3;
+//				} else {
+//					$difficulty_multiplier = $setting_details->dlmult_1;
+//				}
+//
+//				//get base fee
+//				if( isset( $job->base_fee_override ))
+//				{
+//					$base_fee = $job->base_fee_override;
+//				} else
+//				{
+//					$base_fee = $setting_details->base_service_fee;
+//				}
+//
+//				$cost_per_sqf = $base_fee + ( $job_price * $lawn_sqf * $difficulty_multiplier ) / 1000;
+//
+//				//get min. service fee
+//				if( isset( $job->min_fee_override ))
+//				{
+//					$min_fee = $job->min_fee_override;
+//				} else {
+//						$min_fee = $setting_details->minimum_service_fee;
+//				}
+//
+//				// Compare cost per sf with min service fee
+//				if ($cost_per_sqf > $min_fee) {
+//						$job_cost = $cost_per_sqf;
+//				} else {
+//						$job_cost = $min_fee;
+//				}
+//			}
+//		}
+//
+//		return $job_cost;
+//
+//	}
 	##### ADDED BY (RG) 2/23/22 #####
 	## Sales Pipeline Summary Report
     public function salesPipelineSummary(){   
@@ -7539,6 +7651,279 @@ class Reports extends MY_Controller {
 
     }
 
+    public function getJobInvoiceCostwithCoupon($where_arr)
+    {
+        /* $where_arr example
+         * array(
+                'job_id' => $job_id,
+                'invoice_id' => $invoice_id
+        */
+        // Get number of services from invoice
+        $job_cost = 0;
+        $total_amount_of_services_per_invoice = 0;
+        $this->db->select('*');
+        $this->db->from('property_program_job_invoice');
+        if(is_array($where_arr))
+        {
+            $this->db->where(array('invoice_id' => $where_arr['invoice_id']));
+        }
+        $result = $this->db->get()->result();
+        foreach ($result as $job){
+            if ($job->job_id ==$where_arr['job_id'] ){
+                $job_cost = $job->job_cost;
+            }
+        }
+        $total_amount_of_services_per_invoice = count($result);
+
+        $coupon_array = $this->getJobInvoiceCoupons($where_arr['invoice_id'], $job_cost ?? 0);
+        // Calculate $ discounts before % discounts
+        if ($total_amount_of_services_per_invoice >0) {
+            foreach ($coupon_array as $coupon) {
+                if ($coupon['coupon_amount_calculation'] == 0) {
+                    $job_cost = $job_cost - $coupon['coupon_amount'] / $total_amount_of_services_per_invoice;
+                }
+            }
+        }
+        // now check for % discounts
+        foreach ($coupon_array as $coupon){
+            if ($coupon['coupon_amount_calculation'] == 1){
+                $job_cost = $job_cost - $job_cost*$coupon['coupon_amount']/100;
+            }
+        }
+        return $job_cost;
+
+    }
+
+    public function getJobInvoiceCoupons($invoice_id, $job_cost)
+    {
+        $where_arr = array( 'invoice_id' => $invoice_id);
+        $this->db->select('*');
+        $this->db->from('coupon_invoice');
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+
+        $result = $this->db->get();
+        $data = $result->result_array();
+        return $data;
+    }
+
+    public function getLostRevenue(  $customer_id, $property_id, $program_id,$invoice_id = 0,$job_id, $yard_square_feet )
+    {
+        $job_cost = 0;
+        // Meant to work in all cases. for pricing types.
+        $where_arr = array(
+            'customer_id' => $customer_id,
+            'property_id' => $property_id,
+            'program_id' => $program_id,
+            'job_id' => $job_id
+        );
+        // check estimate price
+        $estimate_price_override = GetOneEstimateJobPriceOverride( $where_arr );
+        if( $estimate_price_override && !empty( $estimate_price_override->is_price_override_set ))
+        {
+            $job_cost = $estimate_price_override->price_override;
+        } else if ( $invoice_id != 0) {
+            $invoice_cost = $this->getJobInvoiceCostwithCoupon(array(
+                'job_id' => $job_id,
+                'invoice_id' => $invoice_id
+            ));
+            //die($invoice_cost);
+            // include coupons
+            $job_cost = $invoice_cost;
+        } else {
+
+            $where_arr = array(
+                'property_id' => $property_id,
+                'program_id' => $program_id
+            );
+            // Get program price override
+            $priceOverrideData = $this->Tech->getOnePriceOverride( $where_arr );
+
+            if( isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1 )
+            {
+                $job_cost = $priceOverrideData->price_override;
+            } else {
+                //else no price overrides, then calculate job cost
+                $job = $this->JobModel->getOneJob(array( 'job_id' => $job_id ));
+                $property = $this->PropertyModel->getOneProperty( array( 'property_id' => $property_id ));
+                $lawn_sqf = $yard_square_feet;
+                $job_price = $job->job_price;
+
+                //get property difficulty level
+                $setting_details = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
+
+                if( isset( $property->difficulty_level ) && $property->difficulty_level == 2 )
+                {
+                    $difficulty_multiplier = $setting_details->dlmult_2;
+                } elseif( isset( $property->difficulty_level ) && $property->difficulty_level == 3 )
+                {
+                    $difficulty_multiplier = $setting_details->dlmult_3;
+                } else {
+                    $difficulty_multiplier = $setting_details->dlmult_1;
+                }
+
+                //get base fee
+                if( isset( $job->base_fee_override ))
+                {
+                    $base_fee = $job->base_fee_override;
+                } else
+                {
+                    $base_fee = $setting_details->base_service_fee;
+                }
+
+                $cost_per_sqf = $base_fee + ( $job_price * $lawn_sqf * $difficulty_multiplier ) / 1000;
+
+                //get min. service fee
+                if( isset( $job->min_fee_override ))
+                {
+                    $min_fee = $job->min_fee_override;
+                } else {
+                    $min_fee = $setting_details->minimum_service_fee;
+                }
+
+                // Compare cost per sf with min service fee
+                if ($cost_per_sqf > $min_fee) {
+                    $job_cost = $cost_per_sqf;
+                } else {
+                    $job_cost = $min_fee;
+                }
+            }
+        }
+
+        return $job_cost;
+
+    }
+
+    function skippedServicesReport() {
+        $company_id = $this->session->userdata['company_id'];
+        $data['users'] = $this->UnassignJobDeleteModal->getAllSkippersUsers(array('users.company_id' => $company_id));
+        $data['user_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
+        $data['service_areas'] = $this->ServiceArea->getAllServiceAreaMarketing(array('company_id'=>$this->session->userdata['company_id']));
+        $where = array('company_id' => $this->session->userdata['company_id']);
+        $data['service_types'] = $this->ServiceTypeModel->getAllServiceType($where);
+        $data['skip_reasons'] = $this->CustomerModel->getSkipReasonsList($this->session->userdata['company_id']);
+        $data['service_list'] = $this->DashboardModel->getUnassignedServiceList(false);
+        $page["active_sidebar"] = "skippedServicesReport";
+        $page["page_name"] = 'Skipped Services Report';
+        $data['active_nav_link'] = 0;
+
+
+        $where = [
+            'jobs.company_id' => $company_id,
+            'property_tbl.company_id' => $company_id,
+            'customer_status !=' => 0,
+            'property_status' => 1,
+            'unassigned_Job_delete.skip_reason_id !=' => null
+        ];
+        $where_like = [];
+        $limit = 10000;
+        $start = 0;
+        $order = 'jobs.job_id';
+        $dir = "ASC";
+
+//        $data = [];
+        // get data (2 separate fns for search and non search)
+        if (empty($this->input->post('search')['value'])) {
+            $tempdata = $this->UnassignJobDeleteModal->getTableDataAjaxSkipped($where, $where_like, $limit, $start, $order, $dir, false, null);
+        } else {
+            $search = $this->input->post('search')['value'];
+            $tempdata = $this->UnassignJobDeleteModal->getTableDataAjaxSearchSkipped($where, $where_like, $limit, $start, $order, $dir, $search, false, null);
+        }
+        $sumSkippedServices = 0;
+        $summarySkipReasons = [];
+        $services = [];
+        if (!empty($tempdata)) {
+            $i = 0;
+            $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+            // filter & mold data for frontend
+            foreach ($tempdata as $key => $value) {
+                $cost = 0;
+                if (!isset($summarySkipReasons[$value->skip_name]))
+                    $summarySkipReasons[$value->skip_name] = [
+                        'value' => 0,
+                        'count' => 0
+                    ];
+                $where = array(
+                    'property_tbl.property_id' => $value->property_id,
+                    'jobs.job_id' => $value->job_id,
+                    'programs.program_id' => $value->program_id,
+                    'customers.customer_id' => $value->customer_id,
+                );
+
+                $check_inv = $this->INV->getOneInvoive($where);
+                $invoiceId = $check_inv ? $check_inv->invoice_id : 0;
+                $value->job_cost = $this->getLostRevenue($value->customer_id, $value->property_id, $value->program_id, $invoiceId, $value->job_id, $value->yard_square_feet);
+//                if ($value->job_cost == NULL) {
+//                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+//
+//                    if ($value->is_price_override_set == 1) {
+//                        // $price = $priceOverrideData->price_override;
+//                        $cost = $value->price_override;
+//                    } else {
+//                        //else no price overrides, then calculate job cost
+//                        $lawn_sqf = $value->yard_square_feet;
+//                        $job_price = $value->job_price;
+//
+//                        //get property difficulty level
+//                        if (isset($value->difficulty_level) && $value->difficulty_level == 2) {
+//                            $difficulty_multiplier = $setting_details->dlmult_2;
+//                        } elseif (isset($value->difficulty_level) && $value->difficulty_level == 3) {
+//                            $difficulty_multiplier = $setting_details->dlmult_3;
+//                        } else {
+//                            $difficulty_multiplier = $setting_details->dlmult_1;
+//                        }
+//
+//                        //get base fee
+//                        if (isset($value->base_fee_override)) {
+//                            $base_fee = $value->base_fee_override;
+//                        } else {
+//                            $base_fee = $setting_details->base_service_fee;
+//                        }
+//
+//                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+//
+//                        //get min. service fee
+//                        if (isset($value->min_fee_override)) {
+//                            $min_fee = $value->min_fee_override;
+//                        } else {
+//                            $min_fee = $setting_details->minimum_service_fee;
+//                        }
+//
+//                        // Compare cost per sf with min service fee
+//                        if ($cost_per_sqf > $min_fee) {
+//                            $cost = $cost_per_sqf;
+//                        } else {
+//                            $cost = $min_fee;
+//                        }
+//                    }
+//                    $value->job_cost = $cost;
+//                }
+                $services[] = [
+                    'service' => $value->job_name,
+                    'service_type' => $value->service_type_name,
+                    'service_area' => $value->category_area_name,
+                    'skip_reason' => $value->skip_name,
+                    'lost_revenue' => $value->job_cost,
+                    'skipped_at' => date("Y-m-d", strtotime($value->skipped_at)),
+                    'customer' => '<a href="' . base_url("admin/editCustomer/") . $value->customer_id . '" style="color:#3379b7;">' . $value->first_name . ' ' . $value->last_name . '</a>',
+                    'property_address' => $value->property_address,
+                    'responsible' => $value->responsible
+                ];
+                $summarySkipReasons[$value->skip_name]['value'] += $value->job_cost;
+                $summarySkipReasons[$value->skip_name]['count']++;
+                $sumSkippedServices += $value->job_cost;
+            }
+        }
+        $data['summary'] = [
+            'summary' => $summarySkipReasons,
+            'total' => $sumSkippedServices
+        ];
+        $data['services'] = $services;
+        $page["page_content"] = $this->load->view("admin/report/view_skipped_services_report", $data, TRUE);
+        $this->layout->superAdminReportTemplateTable($page);
+    }
+
     #cancel report
 	public function cancelReport(){
 		$data['user_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
@@ -7971,6 +8356,165 @@ class Reports extends MY_Controller {
 		$data['report_details'] = $report_data;
 		$body =  $this->load->view('admin/report/ajax_cancel_report', $data, false);
 	}
+
+    public function ajaxServiceSkippedData(){
+        $company_id = $this->session->userdata['company_id'];
+        $start = !empty($this->input->post('date_range_date_from')) ? date('y-m-d',strtotime($this->input->post('date_range_date_from'))).' 00:00:00' : '';
+        $end = !empty($this->input->post('date_range_date_to')) ? date('y-m-d',strtotime($this->input->post('date_range_date_to'))).' 23:59:59' : date('y-m-d',strtotime('now')).' 23:59:59';
+        $page = $this->input->post('page');
+        $job_name = $this->input->post('job_name');
+        $service_area = $this->input->post('service_area');
+        $service_type = $this->input->post('service_type');
+        $skip_reason = $this->input->post('skip_reason');
+        $user = $this->input->post('users');
+
+        if ($job_name != "null" && isset($job_name) && $job_name != '')
+        {
+            $where_in['jobs.job_id'] = explode(',', $job_name);
+        }
+        if ($service_area != "null" && isset($service_area) && $service_area != '')
+        {
+            $where_in['category_property_area.property_area_cat_id'] = explode(',', $service_area);
+        }
+        if ($service_type != "null" && isset($service_type) && $service_type != '')
+        {
+            $where_in['service_type_tbl.service_type_id'] = explode(',', $service_type);
+        }
+        if ($skip_reason != "null" &&  isset($skip_reason) && $skip_reason != '')
+        {
+            $where_in['skip_reasons.skip_id'] = explode(',', $skip_reason);
+        }
+        if ($user != "null" &&  isset($user) && $user != '')
+        {
+            $where_in['unassigned_Job_delete.user_id'] = explode(',', $user);
+        }
+        $search = $this->input->post('search');
+        $where = [
+            'jobs.company_id' => $company_id,
+            'property_tbl.company_id' => $company_id,
+            'customer_status !=' => 0,
+            'property_status' => 1,
+            'skip_reasons.skip_id !=' => null,
+        ];
+
+        if (isset($start) && $start != '') {
+            $where['skipped_at >='] = $start;
+        }
+        if (isset($end) && $end != '') {
+            $where['skipped_at <='] =  $end;
+        }
+
+        $where_like = [];
+        $limit = 10000;
+        $start = 0;
+        $order = 'jobs.job_id';
+        $dir = "ASC";
+
+        $data = [];
+        // get data (2 separate fns for search and non search)
+        if (is_null($search) || $search == '') {
+            $tempdata = $this->UnassignJobDeleteModal->getTableDataAjaxSkipped($where, $where_like, $limit, $start, $order, $dir, false, $where_in);
+        } else {
+//            $search = $this->input->post('search')['value'];
+            $tempdata = $this->UnassignJobDeleteModal->getTableDataAjaxSearchSkipped($where, $where_like, $limit, $start, $order, $dir, $search, false,$where_in);
+        }
+        $sumSkippedServices = 0;
+        $summarySkipReasons = [];
+        $services = [];
+        if (!empty($tempdata)) {
+            $i = 0;
+            $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+            // filter & mold data for frontend
+            foreach ($tempdata as $key => $value) {
+                $cost = 0;
+                if (!isset($summarySkipReasons[$value->skip_name]))
+                    $summarySkipReasons[$value->skip_name] = [
+                        'value' => 0,
+                        'count' => 0
+                    ];
+
+                $where = array(
+                    'property_tbl.property_id' => $value->property_id,
+                    'jobs.job_id' => $value->job_id,
+                    'programs.program_id' => $value->program_id,
+                    'customers.customer_id' => $value->customer_id,
+                );
+
+                $check_inv = $this->INV->getOneInvoive($where);
+                $invoiceId = $check_inv ? $check_inv->invoice_id : 0;
+                $value->job_cost = $this->getLostRevenue($value->customer_id, $value->property_id, $value->program_id, $invoiceId, $value->job_id, $value->yard_square_feet);
+
+//                if ($value->job_cost == NULL) {
+//                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+//
+//                    if ($value->is_price_override_set == 1) {
+//                        // $price = $priceOverrideData->price_override;
+//                        $cost = $value->price_override;
+//                    } else {
+//                        //else no price overrides, then calculate job cost
+//                        $lawn_sqf = $value->yard_square_feet;
+//                        $job_price = $value->job_price;
+//
+//                        //get property difficulty level
+//                        if (isset($value->difficulty_level) && $value->difficulty_level == 2) {
+//                            $difficulty_multiplier = $setting_details->dlmult_2;
+//                        } elseif (isset($value->difficulty_level) && $value->difficulty_level == 3) {
+//                            $difficulty_multiplier = $setting_details->dlmult_3;
+//                        } else {
+//                            $difficulty_multiplier = $setting_details->dlmult_1;
+//                        }
+//
+//                        //get base fee
+//                        if (isset($value->base_fee_override)) {
+//                            $base_fee = $value->base_fee_override;
+//                        } else {
+//                            $base_fee = $setting_details->base_service_fee;
+//                        }
+//
+//                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+//
+//                        //get min. service fee
+//                        if (isset($value->min_fee_override)) {
+//                            $min_fee = $value->min_fee_override;
+//                        } else {
+//                            $min_fee = $setting_details->minimum_service_fee;
+//                        }
+//
+//                        // Compare cost per sf with min service fee
+//                        if ($cost_per_sqf > $min_fee) {
+//                            $cost = $cost_per_sqf;
+//                        } else {
+//                            $cost = $min_fee;
+//                        }
+//                    }
+//                    $value->job_cost = $cost;
+//                }
+                $services[] = [
+                    'service' => $value->job_name,
+                    'service_type' => $value->service_type_name,
+                    'service_area' => $value->category_area_name,
+                    'skip_reason' => $value->skip_name,
+                    'lost_revenue' => $value->job_cost,
+                    'skipped_at' => date("Y-m-d", strtotime($value->skipped_at)),
+                    'customer' => '<a href="' . base_url("admin/editCustomer/") . $value->customer_id . '" style="color:#3379b7;">' . $value->first_name . ' ' . $value->last_name . '</a>',
+                    'property_address' => $value->property_address,
+                    'responsible' => $value->responsible,
+                ];
+                $summarySkipReasons[$value->skip_name]['value'] += $value->job_cost;
+                $summarySkipReasons[$value->skip_name]['count']++;
+                $sumSkippedServices += $value->job_cost;
+            }
+        }
+        $data['summary'] = [
+            'summary' => $summarySkipReasons,
+            'total' => $sumSkippedServices
+        ];
+        $data['services'] = $services;
+        $body =  $this->load->view('admin/report/'.$page, $data, false);
+
+        echo $body;
+    }
+
 
 	public function downloadCancelReport(){
 		$company_id = $this->session->userdata['company_id'];

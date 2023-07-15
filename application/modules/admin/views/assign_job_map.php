@@ -51,8 +51,8 @@
     }
 
     #loading {
-        width: 50%;
-        height: 50%;
+        width: 100%;
+        height: 100%;
         top: 0;
         left: 0;
         position: fixed;
@@ -289,6 +289,8 @@
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/github.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<!-- Option 1: Include in HTML -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
 <div class="content">
     <div class="">
         <div class="mymessage"></div>
@@ -698,6 +700,38 @@
 </div>
 <!-- /primary modal -->
 
+
+<!-- Primary modal -->
+<div id="modal_skip_reason" class="modal fade" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-light">Skip Reasons</h6>
+                <button type="button" class="close text-light modal-skip-dismiss close-modal-skip-reason">&times;</button>
+            </div>
+            <div class="modal-body ">
+                <div class="form-group ">
+                    <select class="form-control" name="skip_id" id="skip_id" >
+                        <option value="" >Select Skip Reason</option>
+
+                        <?php
+                        if (!empty($skip_reasons)) {
+                            foreach ($skip_reasons as $skip_reason) {
+                                echo '<option value="'.$skip_reason->skip_id.'" >'.$skip_reason->skip_name.'</option>';
+                            }
+                        }
+                        ?>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="button-skipp-reason" onclick="handleModalSkip()" type="button" class="btn btn-primary modal-skip-dismiss">Skip</button>
+                <button type="button" class="btn btn-secondary modal-skip-dismiss close-modal-skip-reason" >Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!---  Add Filter Criteria template --->
 <div id="modal_add_filters" class="modal fade">
     <div class="modal-dialog">
@@ -854,7 +888,7 @@
 
 <!--begin edit assign job  -->
 
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAsn6KGL3R5IaZBQnVr5LowBTG9s19cRrc&libraries=drawing,geometry""></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBH7pmiDU016Cg76ffpkYQWcFQ4NaAC2VI&libraries=drawing,geometry"></script>
 
 <script>
     	//console.log('loading job names');	
@@ -1005,10 +1039,10 @@
     $(document).on("change", "table .myCheckBox", function() {
         if ($(".table .myCheckBox").filter(':checked').length < 1) {
             $('#allMessage').prop('disabled', true);
-            $('#multiple-delete-id,#multiple-restore-id').prop('disabled', true);
+            $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', true);
         } else {
             $('#allMessage').prop('disabled', false);
-            $('#multiple-delete-id,#multiple-restore-id').prop('disabled', false);
+            $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', false);
         }
         var costTotal = 0;
         $('#unassigntbl tbody input:checked').each(function() { //iterate all listed checkbox items
@@ -1023,6 +1057,76 @@
 </script>
 
 <script type="text/javascript">
+    function handleOneSkip(event)
+    {
+        $($(event).parent().parent().parent().parent().find("td:first")[0]).find('input').attr('checked', 'checked');
+    }
+
+    function handleModalSkip(e)
+    {
+
+        var group_id = [];
+        var button_id = this.id;
+        var url = "";
+
+        //   $("input:checkbox[name=group_id]:checked").each(function(){
+        //      group_id.push($(this).val());
+        //   });
+
+        var all_checked_boxes = $('input:checkbox[name=group_id]:checked');
+        for (let i = 0; i < all_checked_boxes.length; i++) {
+            var a_checked_box_val = all_checked_boxes[i].getAttribute('data-realvalue');
+            group_id.push(a_checked_box_val);
+        }
+
+        var post_data =  {};
+        var success_message = "";
+        post_data.group_id = group_id;
+
+        post_data.action = 'skip';
+        post_data.skip_id = $("#skip_id").val();
+        success_message = "Skipped Successfully";
+
+        console.log(post_data);
+        swal({
+            title: 'Are you sure?',
+            text: "",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#009402',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No'
+        }).then((result) => {
+            $("#modal_skip_reason").modal('hide');
+            if (result.value) {
+                $("#loading").css("display","block");
+                $.ajax({
+                    type: "POST",
+                    url: "<?= base_url('admin/skipMultiUnassignedJobs') ?>",
+                    data: post_data,
+                    dataType: 'json'
+                }).done(function(data){
+                    $("#loading").css("display","none");
+                    if (data.status==200) {
+                        swal(
+                            'Unassigned Service(s) !',
+                            success_message,
+                            'success'
+                        ).then(function() {
+                            location.reload();
+                        });
+                    } else {
+                        swal({
+                            type: 'error',
+                            title: 'Oops...',
+                            text: 'Something went wrong!'
+                        })
+                    }
+                });
+            }
+        })
+    }
     $(document).on("click", "#multiple-delete-id,#multiple-restore-id", function(e) {
         var group_id = [];
         var button_id = this.id;
@@ -1204,6 +1308,11 @@
         //     allowClear: true,
         //     placeholder: "-- DUE",
         // });
+
+        $(".close-modal-skip-reason").click(function(){
+            $("#modal_skip_reason").modal('hide');
+        })
+
         $("#formTechnicianJobAssign").submit(function(event) {
             let technicianName = $("#technician_id option:selected").text();
             Swal.fire({
@@ -2164,10 +2273,12 @@
 
                         $('#filter-criteria-id').remove();
                         $('#multiple-delete-id').remove();
+                        $('#multiple-skip-id').remove();
                         
                         $(".dataTables_filter")
                             .append('<button id="filter-criteria-id" class="btn btn-primary ">Filters</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>');
-                        
+                        $(".dataTables_filter")
+                            .append('<button disabled="disabled" id="multiple-skip-id" class="ml-5 btn btn-warning" data-toggle="modal" data-target="#modal_skip_reason">Skip</button>');
                         // $("#maintable_filter")
                         //     .append('<button id="filter-criteria-id" class="btn btn-primary ">Filters</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>');
                         // $("div.toolbar")
@@ -3020,11 +3131,11 @@
             //console.log("Select all status is" + JSON.stringify(status));
             if (status) {
                 $('#allMessage').prop('disabled', false);
-                $('#multiple-delete-id,#multiple-restore-id').prop('disabled', false);
+                $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', false);
                 checkAll();
             } else {
                 $('#allMessage').prop('disabled', true);
-                $('#multiple-delete-id,#multiple-restore-id').prop('disabled', true);
+                $('#multiple-delete-id,#multiple-restore-id,#multiple-skip-id').prop('disabled', true);
                 unCheckAll();
             }
 

@@ -14,18 +14,23 @@ class Reports_model extends CI_Model{
 
 
 
-    public function getAllRepots($params = array()){
-        $this->db->select('*, report.report_id as thereportid,jobs.job_name');
-        $this->db->from(self::RPT);
+    public function getCompletedServices($params = array()){
+        $this->db->select('*, report.report_id as thereportid,jobs.job_name,category_area_name');
+        $this->db->from('technician_job_assign');
+        $this->db->join("report","technician_job_assign.technician_job_assign_id = report.technician_job_assign_id","left");
         $this->db->join("report_product","report_product.report_id = report.report_id","left");
-		$this->db->join('technician_job_assign','technician_job_assign.technician_job_assign_id = report.technician_job_assign_id','inner');
 		$this->db->join('jobs','technician_job_assign.job_id = jobs.job_id','left');
-		//$this->db->join("property_program_job_invoice","property_program_job_invoice.report_id = report.report_id","left");
+		$this->db->join('property_tbl','`technician_job_assign`.`property_id` = `property_tbl`.`property_id`','left');
+		$this->db->join('category_property_area','`category_property_area`.`property_area_cat_id` = `property_tbl`.`property_area`','left');
+
+
+        //$this->db->join("property_program_job_invoice","property_program_job_invoice.report_id = report.report_id","left");
 		//$this->db->join('invoice_tbl','technician_job_assign.property_id = invoice_tbl.property_id and technician_job_assign.program_id = invoice_tbl.program_id','inner');
 		//$this->db->join('invoice_tbl','invoice_tbl.job_id = technician_job_assign.job_id and technician_job_assign.property_id = invoice_tbl.property_id and technician_job_assign.program_id = invoice_tbl.program_id','left');
 	
      	//$this->db->where('report.company_id',$this->session->userdata['company_id']);
          $this->db->where('technician_job_assign.company_id',$this->session->userdata['company_id']);
+         $this->db->where('is_complete',1);
 
          if (array_key_exists("where_condition",$params)) {
 
@@ -63,8 +68,21 @@ class Reports_model extends CI_Model{
           
            $this->db->where(" `product_name` LIKE '%".$params['search']['product_name']."%' ");
         }
+        // For available workreport
+        if(!empty($params['jobs.job_id'])){
 
-        $this->db->group_by('report.report_id');
+            $this->db->where_in('jobs.job_id', $params['jobs.job_id']);
+        }
+        //die(print_r($params['programs.program_id']));
+        if(isset($params['programs.program_id']) && (!empty($params['programs.program_id'] || !is_null($params['programs.program_id'][0] )))){
+            $this->db->where_in('technician_job_assign.program_id', $params['programs.program_id']);
+        } // end -- For available workreport
+
+
+
+
+
+        $this->db->group_by('technician_job_assign.technician_job_assign_id');
         $this->db->order_by('report.technician_job_assign_id','desc');
       
         //set start and limit
@@ -75,12 +93,85 @@ class Reports_model extends CI_Model{
         }
          //get records
            $query = $this->db->get();
-		//die($this->db->last_query());
             //return fetched data
          return ($query->num_rows() > 0)?$query->result():FALSE;        
       
     }
 
+    public function getAllRepots($params = array()){
+        $this->db->select('*, report.report_id as thereportid,jobs.job_name');
+        $this->db->from(self::RPT);
+        $this->db->join("report_product","report_product.report_id = report.report_id","left");
+        $this->db->join('technician_job_assign','technician_job_assign.technician_job_assign_id = report.technician_job_assign_id','inner');
+        $this->db->join('jobs','technician_job_assign.job_id = jobs.job_id','left');
+        //$this->db->join("property_program_job_invoice","property_program_job_invoice.report_id = report.report_id","left");
+        //$this->db->join('invoice_tbl','technician_job_assign.property_id = invoice_tbl.property_id and technician_job_assign.program_id = invoice_tbl.program_id','inner');
+        //$this->db->join('invoice_tbl','invoice_tbl.job_id = technician_job_assign.job_id and technician_job_assign.property_id = invoice_tbl.property_id and technician_job_assign.program_id = invoice_tbl.program_id','left');
+
+        //$this->db->where('report.company_id',$this->session->userdata['company_id']);
+        $this->db->where('technician_job_assign.company_id',$this->session->userdata['company_id']);
+
+        if (array_key_exists("where_condition",$params)) {
+
+            $this->db->where($params['where_condition']);
+
+        }
+
+        if(!empty($params['search']['job_completed_date_to']) && empty($params['search']['job_completed_date_from']) ){
+            $this->db->where('technician_job_assign.job_completed_date >=',$params['search']['job_completed_date_to']);
+        }
+        else if(empty($params['search']['job_completed_date_to']) && !empty($params['search']['job_completed_date_from']) ){
+            $this->db->where('technician_job_assign.job_completed_date <=',$params['search']['job_completed_date_from']);
+        }
+
+        else if(!empty($params['search']['job_completed_date_to']) && !empty($params['search']['job_completed_date_from']) ){
+            $this->db->where('technician_job_assign.job_completed_date >=',$params['search']['job_completed_date_to']);
+            $this->db->where('technician_job_assign.job_completed_date <=',$params['search']['job_completed_date_from']);
+        }
+
+
+
+        if(!empty($params['search']['customer_name'])) {
+
+            $this->db->where("(`first_name` LIKE '%".$params['search']['customer_name']."%' OR `last_name` LIKE '%".$params['search']['customer_name']."%')");
+        }
+
+
+        if(!empty($params['search']['technician_name'])){
+
+            $this->db->where("(`user_first_name` LIKE '%".$params['search']['technician_name']."%' OR `user_last_name` LIKE '%".$params['search']['technician_name']."%')");
+        }
+
+
+        if(!empty($params['search']['product_name'])){
+
+            $this->db->where(" `product_name` LIKE '%".$params['search']['product_name']."%' ");
+        }
+        if(!empty($params['jobs.job_id'])){
+
+            $this->db->where_in('jobs.job_id', $params['jobs.job_id']);
+        }
+
+
+
+
+
+        $this->db->group_by('report.report_id');
+        $this->db->order_by('report.technician_job_assign_id','desc');
+
+        //set start and limit
+        if(array_key_exists("start",$params) && array_key_exists("limit",$params)){
+            $this->db->limit($params['limit'],$params['start']);
+        }elseif(!array_key_exists("start",$params) && array_key_exists("limit",$params)){
+            $this->db->limit($params['limit']);
+        }
+        //get records
+        $query = $this->db->get();
+        //die($this->db->last_query());
+        //return fetched data
+        return ($query->num_rows() > 0)?$query->result():FALSE;
+
+    }
 
     public function getOneRepots($where_arr=''){
         $this->db->select('*');
@@ -588,10 +679,12 @@ class Reports_model extends CI_Model{
         $this->db->where($where_arr);
         $this->db->join('property_tbl', 'technician_job_assign.property_id=property_tbl.property_id');
         $this->db->join('category_property_area', 'property_tbl.property_area=category_property_area.property_area_cat_id');
-        // $this->db->join('invoice_tbl', 'technician_job_assign.invoice_id=invoice_tbl.invoice_id');
+        $this->db->join('invoice_tbl', 'technician_job_assign.invoice_id=invoice_tbl.invoice_id');
+        $this->db->join('coupon_invoice', 'coupon_invoice.invoice_id=invoice_tbl.invoice_id');
         $this->db->order_by('technician_job_assign_id','desc');
         $result = $this->db->get();
         $data = $result->result_array();
+        //die($this->db->last_query());
         return $data;
     }
 
@@ -604,6 +697,48 @@ class Reports_model extends CI_Model{
         }
         $result = $this->db->get()->row();
         return $result->job_cost ?? 0;
+    }
+    public function getJobInvoiceCostwithCoupon($where_arr)
+    {
+        /* $where_arr example
+         * array(
+                'job_id' => $job_id,
+                'invoice_id' => $invoice_id
+        */
+        // Get number of services from invoice
+        $job_cost = 0;
+        $total_amount_of_services_per_invoice = 0;
+        $this->db->select('*');
+        $this->db->from('property_program_job_invoice');
+        if(is_array($where_arr))
+        {
+            $this->db->where(array('invoice_id' => $where_arr['invoice_id']));
+        }
+        $result = $this->db->get()->result();
+        foreach ($result as $job){
+            if ($job->job_id ==$where_arr['job_id'] ){
+                $job_cost = $job->job_cost;
+            }
+        }
+        $total_amount_of_services_per_invoice = count($result);
+
+        $coupon_array = $this->RP->getJobInvoiceCoupons($where_arr['invoice_id'], $job_cost ?? 0);
+        // Calculate $ discounts before % discounts
+        if ($total_amount_of_services_per_invoice >0) {
+            foreach ($coupon_array as $coupon) {
+                if ($coupon['coupon_amount_calculation'] == 0) {
+                    $job_cost = $job_cost - $coupon['coupon_amount'] / $total_amount_of_services_per_invoice;
+                }
+            }
+        }
+        // now check for % discounts
+        foreach ($coupon_array as $coupon){
+            if ($coupon['coupon_amount_calculation'] == 1){
+                $job_cost = $job_cost - $job_cost*$coupon['coupon_amount']/100;
+            }
+        }
+        return $job_cost;
+
     }
 
     public function GetServiceName($where_arr) {
@@ -1107,4 +1242,107 @@ class Reports_model extends CI_Model{
         //var_dump("<br /><br />");
         return $data;
     }
+// Added by Alvaro M
+
+    public function getJobInvoiceCoupons($invoice_id, $job_cost)
+    {
+        $where_arr = array( 'invoice_id' => $invoice_id);
+        $this->db->select('*');
+        $this->db->from('coupon_invoice');
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+
+        $result = $this->db->get();
+        $data = $result->result_array();
+        return $data;
+    }
+
+    public function calculateJobCost(  $customer_id, $property_id, $program_id,$invoice_id = 0,$job_id, $yard_square_feet )
+    {
+        $job_cost = 0;
+        // Meant to work in all cases. for pricing types.
+        $where_arr = array(
+            'customer_id' => $customer_id,
+            'property_id' => $property_id,
+            'program_id' => $program_id,
+            'job_id' => $job_id
+        );
+        // check estimate price
+        $estimate_price_override = GetOneEstimateJobPriceOverride( $where_arr );
+        if( $estimate_price_override && !empty( $estimate_price_override->is_price_override_set ))
+        {
+            $job_cost = $estimate_price_override->price_override;
+        } else if ( $invoice_id != 0) {
+            $invoice_cost = $this->getJobInvoiceCostwithCoupon(array(
+                'job_id' => $job_id,
+                'invoice_id' => $invoice_id
+            ));
+            //die($invoice_cost);
+            // include coupons
+            $job_cost = $invoice_cost;
+        } else {
+
+            $where_arr = array(
+                'property_id' => $property_id,
+                'program_id' => $program_id
+            );
+            // Get program price override
+            $priceOverrideData = $this->Tech->getOnePriceOverride( $where_arr );
+
+            if( isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1 )
+            {
+                $job_cost = $priceOverrideData->price_override;
+            } else {
+                //else no price overrides, then calculate job cost
+                $job = $this->JobModel->getOneJob(array( 'job_id' => $job_id ));
+                $property = $this->PropertyModel->getOneProperty( array( 'property_id' => $property_id ));
+                $lawn_sqf = $yard_square_feet;
+                $job_price = $job->job_price;
+
+                //get property difficulty level
+                $setting_details = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
+
+                if( isset( $property->difficulty_level ) && $property->difficulty_level == 2 )
+                {
+                    $difficulty_multiplier = $setting_details->dlmult_2;
+                } elseif( isset( $property->difficulty_level ) && $property->difficulty_level == 3 )
+                {
+                    $difficulty_multiplier = $setting_details->dlmult_3;
+                } else {
+                    $difficulty_multiplier = $setting_details->dlmult_1;
+                }
+
+                //get base fee
+                if( isset( $job->base_fee_override ))
+                {
+                    $base_fee = $job->base_fee_override;
+                } else
+                {
+                    $base_fee = $setting_details->base_service_fee;
+                }
+
+                $cost_per_sqf = $base_fee + ( $job_price * $lawn_sqf * $difficulty_multiplier ) / 1000;
+
+                //get min. service fee
+                if( isset( $job->min_fee_override ))
+                {
+                    $min_fee = $job->min_fee_override;
+                } else {
+                    $min_fee = $setting_details->minimum_service_fee;
+                }
+
+                // Compare cost per sf with min service fee
+                if ($cost_per_sqf > $min_fee) {
+                    $job_cost = $cost_per_sqf;
+                } else {
+                    $job_cost = $min_fee;
+                }
+            }
+        }
+
+        return $job_cost;
+
+    }
+
 }
