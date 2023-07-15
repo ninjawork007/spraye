@@ -1,4 +1,4 @@
-  <!doctype html>
+<!doctype html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width" />
@@ -48,7 +48,7 @@
 
                          $html4  = str_replace("{SCHEDULE_DATE}",'<b>Date</b> :'.$email_send_details->job_assign_date.'<br>',$html3);
                          
-                         $html5  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> :'.$email_send_details->property_address.'<br>',$html4);
+                         $html5  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> :'.constructPropertyAddress($email_data_details).'<br>',$html4);
 
                          $html5 .='<a href="'.base_url('welcome/unSubscibeEmail/').$email_send_details->customer_id.'" target="_blank" >Unsubscribe</a>';
 

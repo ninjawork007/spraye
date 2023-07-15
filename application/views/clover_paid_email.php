@@ -307,7 +307,7 @@
 
                       
 
-                           <p>Hi <?= $invoice_details->first_name.' '.$invoice_details->last_name ?>,</p>
+                           <p>Hi <?= $customer_details['first_name'].' '.$customer_details['last_name'] ?>,</p>
 
                         <p>We have received your payment of <b>$<?= number_format($actual_total_amount, 2) ?></b> on <b><?= date('m/d/Y'); ?></b></p>
                         <p><b>Thank you for your business!</b></p>
@@ -348,10 +348,6 @@
         </td>
         <td>&nbsp;</td>
       </tr>
-    </table>
-
-
-  
-         
+    </table>  
   </body>
 </html>

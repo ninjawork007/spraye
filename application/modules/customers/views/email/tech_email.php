@@ -1,4 +1,4 @@
-  <!doctype html>
+<!doctype html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width" />
@@ -45,7 +45,7 @@
 
                          $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$email_data_details->program_name.'<br>',$html2);
 
-                         $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$email_data_details->property_address.'<br>',$html3);
+                         $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.constructPropertyAddress($email_data_details).'<br>',$html3);
 
                          $html5  = str_replace("{SCHEDULE_DATE}",'<b>Date</b> :'.$assign_date.'<br>',$html4);
 

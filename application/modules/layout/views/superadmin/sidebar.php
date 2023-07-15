@@ -20,7 +20,7 @@
                <li class="<?= $active_sidebar == "customer" ? "active" : "" ?>"><a href="<?= base_url('admin/customerList') ?>"><i class="icon-users"></i> <span>Customers</span></a></li>
                <li class="<?= $active_sidebar == "properties" ? "active" : "" ?>"><a href="<?= base_url('admin/propertyList') ?>"><i class="icon-office"></i> <span>Properties</span></a>
 				   <ul>
-					  <li class="<?= $active_sidebar == "program" ? "active" : "" ?>"><a href="<?= base_url('admin/propertyList') ?>"> <span>Properties</span></a></li>
+					  <li class="<?= $active_sidebar == "properties" ? "active" : "" ?>"><a href="<?= base_url('admin/propertyList') ?>"> <span>Properties</span></a></li>
 					  <li class="<?= $active_sidebar == "prospect" ? "active" : "" ?>"><a href="<?= base_url('admin/prospectProperty') ?>"> <span>Prospects</span></a></li>
 				   </ul>
             	</li>
@@ -87,6 +87,7 @@
                      <ul>
                         <li class="<?= $active_sidebar == "cancelService" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelService');?>" >Cancel Details Report</a></li>
                         <li class="<?= $active_sidebar == "cancelReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelReport');?>">Canceled Properties Report</a></li>
+                        <li class="<?= $active_sidebar == "skippedServicesReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/skippedServicesReport');?>">Skipped Services Report</a></li>
                         <li class="<?= $active_sidebar == "pipelineSummary" ? "active" : "" ?>" ><a href="<?= base_url('admin/reports/salesPipelineSummary') ?>"   >Sales Pipeline Summary Report (real time)</a></li>
                         <li>
                            <a href="#"><span>Sales Summary</span></a>

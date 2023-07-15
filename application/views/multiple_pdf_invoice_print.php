@@ -240,6 +240,9 @@ foreach ($invoice_details as $index=>$invoice_detail) {
                         $customer_address_last = implode(',',$customer_billing_address);
 
                         echo $customer_address_first.'<br>';
+                        if (!empty($invoice_detail->billing_street_2)) {
+                            echo $invoice_detail->billing_street_2 . '<br>';
+                        }
 
                         // support for both kinds of address input
                         if ($customer_address_last) {
@@ -292,6 +295,9 @@ foreach ($invoice_details as $index=>$invoice_detail) {
                             <?php if ($property_street_array && is_array($property_street_array) && !empty($property_street_array) ) {
                                 if (trim($property_street_array['street'])!='') {
                                     echo $property_street_array['street'].'<br>';
+                                }
+                                if (!empty($invoice_detail->property_street_2)) {
+                                    echo $invoice_detail->property_street_2 . '<br>';
                                 }
                                 echo $invoice_detail->property_city.', '.$invoice_detail->property_state.', '.$invoice_detail->property_zip;
                             } ?>

@@ -307,7 +307,7 @@
                       
 
                            <p>Hi <?= $user_details->user_first_name.' '.$user_details->user_last_name ?>,</p>
-                        <p>You have received a payment of <b>$ <?= number_format($actual_total_amount - $convenience_fee, 2) ?></b> from <b><?= $invoice_details[0]->first_name.' '.$invoice_details[0]->last_name ?></b> against the following invoices:<br/> <b><?php foreach($invoice_details as $invoice){ echo $invoice->invoice_id . '<br/>'; } ?></b></p>
+                        <p>You have received a payment of <b>$ <?= number_format($actual_total_amount, 2) ?></b> from <b><?= $invoice_details[0]->first_name.' '.$invoice_details[0]->last_name ?></b> against the following invoices:<br/> <b><?php foreach($invoice_details as $invoice){ echo $invoice->invoice_id . '<br/>'; } ?></b></p>
                       </td>
                     </tr>
 

@@ -262,7 +262,7 @@
          }
          $html7  = str_replace("{PROPERTY_CONDITIONS}",$propertyConditions,$html6);
 
-         $html8  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b>: '.$email_data_details->property_address.'<br>',$html7);
+         $html8  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b>: '.constructPropertyAddress($email_data_details).'<br>',$html7);
 
 
         $html9  = str_replace("{PROPERTY_NAME}",'<b>Property Name</b>: '.$property_data->property_title.'<br>',$html8);

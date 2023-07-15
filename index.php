@@ -9,7 +9,7 @@ define('EXT', '.php');
 
 require_once 'vendor/autoload.php';
 /**
- * CodeIgniter
+ * CodeIgniter.
  *
  * An open source application development framework for PHP
  *
@@ -73,12 +73,10 @@ require_once 'vendor/autoload.php';
  * Different environments will require different levels of error reporting.
  * By default development will show errors but testing and live will hide them.
  */
-
-
 switch (ENVIRONMENT)
 {
 	case 'development':
-		error_reporting(0);
+		error_reporting(-1);
 		ini_set('display_errors', 1);
 	break;
 

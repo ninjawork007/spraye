@@ -36,9 +36,9 @@
                         <h1><?=$company_details->company_name ?></h1>
 
                         <?php
-						if(isset($is_admin_email) && $is_admin_email == 1){
-						echo 'An Estimate has been accepted!<br><br> <b>Estimate #</b> : '.$estimate_id.'<br> <b>Property</b> : '.$property_title.'<br><b>Property Address</b> : '.$email_data_details->property_address;
-						}else{
+                        if(isset($is_admin_email) && $is_admin_email == 1){
+                        echo 'An Estimate has been accepted!<br><br> <b>Estimate #</b> : '.$estimate_id.'<br> <b>Property</b> : '.$property_title.'<br><b>Property Address</b> : '.$email_data_details->property_address;
+                        }else{
                         
 
                          $html = str_replace("{CUSTOMER_NAME}",$customerData->first_name.' '.$customerData->last_name,$company_email_details->estimate_accepted);
@@ -53,14 +53,14 @@
                         }
                          $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$program_names.'<br><br>' . '<p><b>Service</b> : '.$service_names.'</p><br>',$html);
 
-                         $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$email_data_details->property_address.'<br>',$html3);
+                         $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.(!empty($email_data_details->property_address_2))?$email_data_details->property_address.' '.$email_data_details->property_address_2:$email_data_details->property_address.'<br>',$html3);
 
                          $html5  = str_replace("{SCHEDULE_DATE}",'<b>Date</b> :'.$accepted_date.'<br>',$html4);
 
                          $html5 .='<a href="'.base_url('welcome/unSubscibeEmail/').$customerData->customer_id.'" target="_blank" >Unsubscribe</a>';
 
                          echo $html5;
-						}
+                        }
 
                         ?>
                 
