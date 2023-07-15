@@ -9,7 +9,7 @@ define('EXT', '.php');
 
 require_once 'vendor/autoload.php';
 /**
- * CodeIgniter
+ * CodeIgniter.
  *
  * An open source application development framework for PHP
  *

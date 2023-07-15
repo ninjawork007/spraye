@@ -136,7 +136,8 @@ class Estimates extends MY_Controller
         }
         $start = $this->input->post('start');
         $order = $tblColumns[$this->input->post('order')[0]['column']];
-        if ($order == "service_name") $order = "jobs.job_name";
+        if ($order == "service_name")
+            $order = "jobs.job_name";
         $dir = $this->input->post('order')[0]['dir'];
         $company_id = $this->session->userdata['company_id'];
         $search_input = $this->input->post('search');
@@ -224,7 +225,7 @@ class Estimates extends MY_Controller
                 $data[$i]['estimate_id_url'] = '<a href="' . base_url('admin/Estimates/editEstimate/') . $value->estimate_id . '">' . $value->estimate_id . '</a>';
                 $data[$i]['customer_id'] = $value->customer_id;
                 $data[$i]['customer_name'] = $value->first_name . ' ' . $value->last_name;
-//                die(print_r($value));
+                //                die(print_r($value));
                 $data[$i]['user_complete_name'] = ($value->user_first_name != '') ? $value->user_first_name . ' ' . $value->user_last_name : '';
                 $data[$i]['customer_name_url'] = '<a href="' . base_url('admin/editCustomer/') . $value->customer_id . '">' . $value->first_name . ' ' . $value->last_name . '</a>';
                 $data[$i]['property_address'] = $value->property_address;
@@ -318,7 +319,7 @@ class Estimates extends MY_Controller
                     $data[$i]['coupon_details'] = $value->coupon_details;
                 }
                 $total_cost = $line_total;
-//
+                //
                 if (isset($value->coupon_details) && !empty($value->coupon_details)) {
                     foreach ($value->coupon_details as $coupon) {
                         if ($coupon->coupon_amount_calculation == 0) { // flat
@@ -332,16 +333,16 @@ class Estimates extends MY_Controller
                         }
                     }
                 }
-//                echo (print_r($total_cost));
+                //                echo (print_r($total_cost));
 //            die('hola');
                 $line_total = $total_cost;
 
-//                $counter = 0;
+                //                $counter = 0;
 //                foreach($data['estimate_details'] as $key => $estiamte_detail) {
 //                    //echo $key;
 //                    $estimate_id = $estiamte_detail->estimate_id;
 
-//                }
+                //                }
 
                 // apply sales tax
                 $line_tax_amount = 0;
@@ -448,8 +449,10 @@ class Estimates extends MY_Controller
 
         $json_data = array(
             "draw" => intval($this->input->post('draw')),
-            "recordsTotal" => $var_total_item_count_for_pagination, // "(filtered from __ total entries)"
-            "recordsFiltered" => $var_total_item_count_for_pagination, // actual total that determines page counts
+            "recordsTotal" => $var_total_item_count_for_pagination,
+            // "(filtered from __ total entries)"
+            "recordsFiltered" => $var_total_item_count_for_pagination,
+            // actual total that determines page counts
             "data" => $data
         );
         echo json_encode($json_data);
@@ -650,7 +653,7 @@ class Estimates extends MY_Controller
         // $data['sources'] = array_merge($data['source_list'], $data['users']);
         $source = [];
         foreach ($data['users'] as $user) {
-            $source = (object)array(
+            $source = (object) array(
                 'source_name' => $user->user_first_name . ' ' . $user->user_last_name,
                 'user_id' => $user->user_id,
                 'source_id' => $user->id,
@@ -730,8 +733,8 @@ class Estimates extends MY_Controller
         $where = array('company_id' => $this->session->userdata['company_id']);
         $whereSpecial = array('property_tbl.company_id' => $this->session->userdata['company_id'], 'property_status !=' => 0);
         $data['propertylist'] = $this->CustomerModel->getAllpropertyExt($whereSpecial, $customer_id);
-        $oldPropList = $this->CustomerModel->getAllproperty($where);
-        $data['customer_details'] = $this->CustomerModel->get_all_customer($where);
+//        $oldPropList = $this->CustomerModel->getAllproperty($where);
+//        $data['customer_details'] = $this->CustomerModel->get_all_customer($where);
         $data['program_details'] = $this->ProgramModel->get_all_program(array('company_id' => $this->session->userdata['company_id'], 'program_active' => 1, 'ad_hoc' => 0));
         foreach ($data['program_details'] as $key => $val) {
             if (strstr($val->program_name, '-Standalone Service')) {
@@ -772,7 +775,7 @@ class Estimates extends MY_Controller
         // $data['sources'] = array_merge($data['source_list'], $data['users']);
         $source = [];
         foreach ($data['users'] as $user) {
-            $source = (object)array(
+            $source = (object) array(
                 'source_name' => $user->user_first_name . ' ' . $user->user_last_name,
                 'user_id' => $user->user_id,
                 'source_id' => $user->id,
@@ -859,8 +862,8 @@ class Estimates extends MY_Controller
 
         $unmodifiedProgram = false;
 
-        $program_names = (array)[];
-        $service_names = (array)[];
+        $program_names = (array) [];
+        $service_names = (array) [];
         foreach ($listarray->programs as $p) {
             $r = $this->ProgramModel->getProgramDetail($p->program_id)['program_name'];
             $r = trim(explode('-', $r)[0]);
@@ -873,10 +876,10 @@ class Estimates extends MY_Controller
 
         $program_price = $tmpData['program_price'];
 
-        $or = (array)[];
-        $price_overrides = (array)[];
+        $or = (array) [];
+        $price_overrides = (array) [];
         foreach ($priceoverridearray as $ovr) {
-            $tmp = (object)[];
+            $tmp = (object) [];
             $tmp->propertyId = $ovr->propertyId;
             $tmp->price_override = $ovr->price_override;
             $tmp->program_jobs = $ovr->jobIds;
@@ -884,10 +887,10 @@ class Estimates extends MY_Controller
         }
         //die(print_r(json_encode($or)));
         foreach ($or as $o) {
-            $tmp = (object)[];
+            $tmp = (object) [];
             $tmp->propertyId = $o->propertyId;
             for ($i = 0; $i < count($o->price_override); $i++) {
-                $tmp = (object)[];
+                $tmp = (object) [];
                 $tmp->propertyId = $o->propertyId;
                 $tmp->job_id = $o->program_jobs[$i];
                 $tmp->price_override = ($o->price_override[$i] != '') ? $o->price_override[$i] : null;
@@ -919,7 +922,7 @@ class Estimates extends MY_Controller
             $job_ids_for_program_join[$programResults["program_id"]] = $this_service_info->job_id;
             $jobsAll = array_unique(array_merge($jobsAll, array($service->job_id)));
         }
-        $data = (array)[];
+        $data = (array) [];
 
         foreach ($property_array as $property) {
             $tmp = json_decode(json_encode(clone $property), true);
@@ -937,10 +940,10 @@ class Estimates extends MY_Controller
             if (array_key_exists("assign_onetime_coupons", $tmpData)) {
                 $tmp['assign_onetime_coupons'] = $tmpData['assign_onetime_coupons'];
             }
-            $tmp['joblistarray'] = (array)[];
+            $tmp['joblistarray'] = (array) [];
             $jobs = $jobsAll;
             foreach ($jobs as $job) {
-                $tmpJob = (object)[];
+                $tmpJob = (object) [];
                 $tmpJob->job_id = $job;
                 foreach ($price_overrides as $price_override) {
                     if (isset($price_override->propertyId)) {
@@ -955,7 +958,7 @@ class Estimates extends MY_Controller
                 array_push($tmp['joblistarray'], $tmpJob);
             }
             /* --> Insert Property Program Job Price Overrides Function HERE <-- */
-            $priceOverrideResults = (array)[];
+            $priceOverrideResults = (array) [];
             foreach ($tmp['joblistarray'] as $jobOverride) {
                 $arr = array(
                     'program_id' => $job_id_to_program[$jobOverride->job_id],
@@ -974,7 +977,7 @@ class Estimates extends MY_Controller
 
         // die(print_r($data));
         // die(print_r(json_encode($data)));
-        $return_messages = (array)[];
+        $return_messages = (array) [];
         foreach ($data as $submission) {
             $estimate_response = $this->addEstimateData($submission, true, $job_id_to_program, $program_ids_for_join_table);
             $message = $estimate_response['message'];
@@ -998,8 +1001,10 @@ class Estimates extends MY_Controller
                     $success_count++;
                 } elseif ($return_message == '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong> not added. Please try again</div>') {
                     $fail_count++;
-                } elseif ($return_message != '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully</div>'
-                    && $return_message != '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong> not added. Please try again</div>') {
+                } elseif (
+                    $return_message != '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully</div>'
+                    && $return_message != '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong> not added. Please try again</div>'
+                ) {
                     $other_count++;
                 }
             }
@@ -1025,10 +1030,10 @@ class Estimates extends MY_Controller
         }
     }
 
-//////
+    //////
 
 
-// Create New Modified / Bundled Programs for Estimates
+    // Create New Modified / Bundled Programs for Estimates
 // Destructures multiple programs and services and rebundles -
 // them into a single modified program for issuing a new estimate
     public function createModifiedBundledProgram($data)
@@ -1060,7 +1065,7 @@ class Estimates extends MY_Controller
             'program_id' => $program_id,
             'programjob_assign_result' => $programJobAssignResult
         );
-// die(print_r($returnData));
+        // die(print_r($returnData));
         return $returnData;
     }
 
@@ -1128,7 +1133,7 @@ class Estimates extends MY_Controller
 
             // we need to see if there is already an estimate for this person with this program and if there is we do not create a new estimate
             // get all estimates that are tied to this customer
-            $estimate_ids_for_this_customer = $this->EstimateModal->getAllNotAcceptedEstimateIdsByCustomer(array("customer_id" => $data['customer_id']));
+            $estimate_ids_for_this_customer = $this->EstimateModal->getAllNotAcceptedEstimateIdsByCustomer(array("customer_id" => $data['customer_id'], "property_id" => $data['property_id']));
             $estimate_ids_to_check = array();
             $all_new_programs = true;
             foreach ($estimate_ids_for_this_customer as $eif) {
@@ -1244,16 +1249,18 @@ class Estimates extends MY_Controller
                     if ($data["signwell_status"] == "1") {
                         $pdf_link_for_signwell = base_url('welcome/pdfEstimateSignWell/') . base64_encode($estimate_id);
                         $curl = curl_init();
-                        curl_setopt_array($curl, array(
-                            CURLOPT_URL => 'https://www.signwell.com/api/v1/documents/',
-                            CURLOPT_RETURNTRANSFER => true,
-                            CURLOPT_ENCODING => '',
-                            CURLOPT_MAXREDIRS => 10,
-                            CURLOPT_TIMEOUT => 0,
-                            CURLOPT_FOLLOWLOCATION => true,
-                            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                            CURLOPT_CUSTOMREQUEST => 'POST',
-                            CURLOPT_POSTFIELDS => '{
+                        curl_setopt_array(
+                            $curl,
+                            array(
+                                CURLOPT_URL => 'https://www.signwell.com/api/v1/documents/',
+                                CURLOPT_RETURNTRANSFER => true,
+                                CURLOPT_ENCODING => '',
+                                CURLOPT_MAXREDIRS => 10,
+                                CURLOPT_TIMEOUT => 0,
+                                CURLOPT_FOLLOWLOCATION => true,
+                                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                CURLOPT_CUSTOMREQUEST => 'POST',
+                                CURLOPT_POSTFIELDS => '{
                                 "test_mode": ' . SIGNWELL_TEST_MODE . ',
                                 "name": "estimate_' . $estimate_id . '",
                                 "files": [
@@ -1281,19 +1288,19 @@ class Estimates extends MY_Controller
                                 "decline_redirect_url": "' . base_url('welcome/set_signwell_estimate_rejected/' . $estimate_id) . '",
                                 "message": "' . nl2br($data['email_notes']) . '"
                             }',
-                            CURLOPT_HTTPHEADER => array(
-                                'accept: application/json',
-                                'content-type: application/json',
-                                'X-Api-Key: ' . $email_data['setting_details']->signwell_api_key
-                            ),
-                        ));
+                                CURLOPT_HTTPHEADER => array(
+                                    'accept: application/json',
+                                    'content-type: application/json',
+                                    'X-Api-Key: ' . $email_data['setting_details']->signwell_api_key
+                                ),
+                            )
+                        );
 
                         $response = curl_exec($curl);
-
+                        $http_code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
                         curl_close($curl);
                         $response_object = json_decode($response);
-                        if ($response_object->message == "") {
-                            // we should now have an ID for this document within SignWell - need to save that to the estimate in the DB
+                        if ($http_code == 201) {
                             $this->EstimateModal->updateEstimateSignWellID($estimate_id, $response_object->id);
                         }
                     } else {
@@ -1315,7 +1322,7 @@ class Estimates extends MY_Controller
                         $res = Send_Mail_dynamic($company_email_details, $email_data['customer_details']->email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), $body, 'Estimate Details', $email_data['customer_details']->secondary_email);
 
                         if ($data['sales_rep'] != '') {
-///
+                            ///
                             $rep_data['sale_rep'] = $this->Administrator->getOneAdmin(array('id' => $data['sales_rep']));
                             // die(print_r($rep_data));
                             $body = $this->load->view('admin/estimate/assigned_email', $rep_data, true);
@@ -1326,16 +1333,16 @@ class Estimates extends MY_Controller
                 }
 
                 if ($bulk_call) {
-                    if (is_object($response_object) && $response_object->status != "Created" && (isset($response_object->message) && $response_object->message != "")) {
+                    if (isset($http_code) && $http_code != 201) {
                         // this means that the SignWell api got an error and nothing got sent over to them
-                        return array("message" => '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully in Spraye but not at SignWell. (SignWell error message: ' . $response_object->message . ')</div>', "estimate_id" => $estimate_id);
+                        return array("message" => '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully in Spraye but not at SignWell. (SignWell error message: ' . json_encode($response_object) . ')</div>', "estimate_id" => $estimate_id);
                     } else {
                         return array("message" => '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully</div>', "estimate_id" => $estimate_id);
                     }
                 } else {
-                    if (is_object($response_object) && $response_object->status != "Created" && (isset($response_object->message) && $response_object->message != "")) {
+                    if (isset($http_code) && $http_code != 201) {
                         // this means that the SignWell api got an error and nothing got sent over to them
-                        $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully in Spraye but not at SignWell. (SignWell error message: ' . $response_object->message . ')</div>');
+                        $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully in Spraye but not at SignWell. (SignWell error message: ' . json_encode($response_object) . ')</div>');
                         redirect("admin/Estimates");
                     } else {
                         $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully</div>');
@@ -1625,7 +1632,7 @@ class Estimates extends MY_Controller
         // $data['sources'] = array_merge($data['source_list'], $data['users']);
         $source = [];
         foreach ($data['users'] as $user) {
-            $source = (object)array(
+            $source = (object) array(
                 'source_name' => $user->user_first_name . ' ' . $user->user_last_name,
                 'user_id' => $user->user_id,
                 'source_id' => $user->id,
@@ -1846,7 +1853,7 @@ class Estimates extends MY_Controller
                     }
                 }
 
-//        die(print_r($response_object->recipients));
+                //        die(print_r($response_object->recipients));
 
                 if ($bulk_call) {
 
@@ -2036,12 +2043,14 @@ class Estimates extends MY_Controller
     public function calculateServiceCouponCost($param)
     {
         $total_cost = $param['cost'];
-        $coupon_jobs = $this->CouponModel->getAllCouponJob(array(
-            'job_id' => $param['job_id'],
-            'program_id' => $param['program_id'],
-            'property_id' => $param['property_id'],
-            'customer_id' => $param['customer_id']
-        ));
+        $coupon_jobs = $this->CouponModel->getAllCouponJob(
+            array(
+                'job_id' => $param['job_id'],
+                'program_id' => $param['program_id'],
+                'property_id' => $param['property_id'],
+                'customer_id' => $param['customer_id']
+            )
+        );
 
         if (!empty($coupon_jobs)) {
             foreach ($coupon_jobs as $coupon_job) {
@@ -2062,7 +2071,7 @@ class Estimates extends MY_Controller
 
                 if ($expiration_pass == true) {
                     if ($coupon_details->amount_calculation == 0) {
-                        $discount_amm = (float)$coupon_details->amount;
+                        $discount_amm = (float) $coupon_details->amount;
 
                         if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
@@ -2071,8 +2080,8 @@ class Estimates extends MY_Controller
                         }
 
                     } else {
-                        $percentage = (float)$coupon_details->amount;
-                        $discount_amm = (float)$total_cost * ($percentage / 100);
+                        $percentage = (float) $coupon_details->amount;
+                        $discount_amm = (float) $total_cost * ($percentage / 100);
 
                         if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
@@ -2728,7 +2737,7 @@ class Estimates extends MY_Controller
                 if ($property->property_status == 2) {
                     $this->PropertyModel->updatePropertyStatus($estimate_estimate->property_id, 5);
                 }
-//              if ($data['customer_details']->customer_status == 7){
+                //              if ($data['customer_details']->customer_status == 7){
 //                  $this->CustomerModel->updateCustomerStatus($estimate_estimate->property_id, 5);
 //
 //              }
@@ -2819,7 +2828,7 @@ class Estimates extends MY_Controller
         $data['users'] = $this->Administrator->getAllAdmin($where);
         $source = [];
         foreach ($data['users'] as $user) {
-            $source = (object)array(
+            $source = (object) array(
                 'source_name' => $user->user_first_name . ' ' . $user->user_last_name,
                 'user_id' => $user->user_id,
                 'source_id' => $user->id,
@@ -2841,7 +2850,7 @@ class Estimates extends MY_Controller
             $tmpPropertyIds = $this->EstimateModal->getEstimatePropertiesById($programID);
             $data['selectedpropertylist'] = array_map(function ($id) {
                 $r = $this->PropertyModel->getPropertyDetail($id);
-                return (object)$r;
+                return (object) $r;
             }, $tmpPropertyIds);
         }
         $data['selectedjobid'] = array();
@@ -2898,14 +2907,14 @@ class Estimates extends MY_Controller
         //   // die(print_r($prop->priceOverrideData));
         // }
 
-        $propertyJobPriceOverrides = (array)[];
+        $propertyJobPriceOverrides = (array) [];
         if (!empty($selecteddata) && !empty($data['selectedpropertylist'])) {
             foreach ($data['selectedpropertylist'] as $prop) {
 
-                $tmpProp = (object)[];
+                $tmpProp = (object) [];
                 $tmpProp->property_id = $prop->property_id;
                 $tmpProp->program_id = $prop->program_id;
-                $tmpProp->jobs = (array)[];
+                $tmpProp->jobs = (array) [];
                 $where = array(
                     'property_id' => $tmpProp->property_id,
                     'program_id' => $tmpProp->program_id
@@ -2914,7 +2923,7 @@ class Estimates extends MY_Controller
                 $price_set_flag = null;
                 if (!empty($results)) {
                     foreach ($selecteddata as $job) {
-                        $jobDetails = (object)[];
+                        $jobDetails = (object) [];
                         $jobDetails->job_id = $job->job_id;
                         foreach ($results as $result) {
                             if ($result->job_id == $job->job_id && isset($result->is_price_override_set)) {
@@ -2976,7 +2985,7 @@ class Estimates extends MY_Controller
                     $program_name = $data['program_name'] . ' - ' . $pricing_strs[$data['program_price'] - 1];
                 }
             } elseif ($jobsModded) {
-                $diffJobs = (array)[];
+                $diffJobs = (array) [];
                 //Get addtional added job names, if any
                 $originalJobs = explode(',', $data['program_job_original']);
                 $moddedJobs = explode(',', $data['program_job']);
@@ -2991,7 +3000,7 @@ class Estimates extends MY_Controller
                     }
                 }
                 if (count($diffJobs) > 0) {
-                    $jobNames = (array)[];
+                    $jobNames = (array) [];
                     foreach ($diffJobs as $job) {
                         $r = $this->JobModel->getOneJob(array('job_id' => $job));
                         array_push($jobNames, $r->job_name);
@@ -3035,7 +3044,7 @@ class Estimates extends MY_Controller
             }
             // Remove unselected properties from propertylistarray
             $data['propertylistarray'] = json_decode($data['propertylistarray']);
-            $propertyListArrayRebuild = (array)[];
+            $propertyListArrayRebuild = (array) [];
             foreach ($data['propertylistarray'] as $property) {
                 foreach ($data['propertylistarray_temp'] as $pTemp) {
                     if ($property->property_id == $pTemp) {
@@ -3083,7 +3092,7 @@ class Estimates extends MY_Controller
                         'signwell_status' => $data['signwell_status'],
                     );
                     $estimate_id = $this->EstimateModal->CreateOneEstimate($estimateParam);
-                    $messages = (array)[];
+                    $messages = (array) [];
                     if ($estimate_id) {
                         if (isset($data['joblistarray']) && !empty($data['joblistarray'])) {
                             $prop_job_list = array_filter(json_decode($data['joblistarray']), function ($j) use ($estimateParam) {
@@ -3191,16 +3200,18 @@ class Estimates extends MY_Controller
                             if ($data["signwell_status"] == "1") {
                                 $pdf_link_for_signwell = base_url('welcome/pdfEstimateSignWell/') . base64_encode($estimate_id);
                                 $curl = curl_init();
-                                curl_setopt_array($curl, array(
-                                    CURLOPT_URL => 'https://www.signwell.com/api/v1/documents/',
-                                    CURLOPT_RETURNTRANSFER => true,
-                                    CURLOPT_ENCODING => '',
-                                    CURLOPT_MAXREDIRS => 10,
-                                    CURLOPT_TIMEOUT => 0,
-                                    CURLOPT_FOLLOWLOCATION => true,
-                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                    CURLOPT_CUSTOMREQUEST => 'POST',
-                                    CURLOPT_POSTFIELDS => '{
+                                curl_setopt_array(
+                                    $curl,
+                                    array(
+                                        CURLOPT_URL => 'https://www.signwell.com/api/v1/documents/',
+                                        CURLOPT_RETURNTRANSFER => true,
+                                        CURLOPT_ENCODING => '',
+                                        CURLOPT_MAXREDIRS => 10,
+                                        CURLOPT_TIMEOUT => 0,
+                                        CURLOPT_FOLLOWLOCATION => true,
+                                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                        CURLOPT_CUSTOMREQUEST => 'POST',
+                                        CURLOPT_POSTFIELDS => '{
                                     "test_mode": ' . SIGNWELL_TEST_MODE . ',
                                     "name": "estimate_' . $estimate_id . '",
                                     "files": [
@@ -3227,19 +3238,19 @@ class Estimates extends MY_Controller
                                     "redirect_url": "' . base_url('welcome/set_signwell_estimate_accepted/' . $estimate_id) . '",
                                     "decline_redirect_url": "' . base_url('welcome/set_signwell_estimate_rejected/' . $estimate_id) . '"
                                 }',
-                                    CURLOPT_HTTPHEADER => array(
-                                        'accept: application/json',
-                                        'content-type: application/json',
-                                        'X-Api-Key: ' . $email_data['setting_details']->signwell_api_key
-                                    ),
-                                ));
+                                        CURLOPT_HTTPHEADER => array(
+                                            'accept: application/json',
+                                            'content-type: application/json',
+                                            'X-Api-Key: ' . $email_data['setting_details']->signwell_api_key
+                                        ),
+                                    )
+                                );
 
                                 $response = curl_exec($curl);
-
+                                $http_code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
                                 curl_close($curl);
                                 $response_object = json_decode($response);
-                                if ($response_object->message == "") {
-                                    // we should now have an ID for this document within SignWell - need to save that to the estimate in the DB
+                                if ($http_code == 201) {
                                     $this->EstimateModal->updateEstimateSignWellID($estimate_id, $response_object->id);
                                 }
                             } else {
@@ -3287,9 +3298,9 @@ class Estimates extends MY_Controller
 
                         // apply assigned coupons
 
-                        if ($response_object->message != "") {
+                        if (isset($http_code) && $http_code != 201) {
                             // this means that the SignWell api got an error and nothing got sent over to them
-                            array_push($messages, '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully in Spraye but not at SignWell. (SignWell error message: ' . $response_object->message . ')</div>');
+                            array_push($messages, '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Estimate </strong>created successfully in Spraye but not at SignWell. (SignWell error message: ' . json_encode($response_object) . ')</div>');
                         } else {
                             array_push($messages, '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Program </strong> added successfully</div>');
                         }
@@ -3444,7 +3455,7 @@ class Estimates extends MY_Controller
 
                 if ($expiration_pass == true) {
                     if ($coupon_details->amount_calculation == 0) {
-                        $discount_amm = (float)$coupon_details->amount;
+                        $discount_amm = (float) $coupon_details->amount;
 
                         if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
@@ -3453,8 +3464,8 @@ class Estimates extends MY_Controller
                         }
 
                     } else {
-                        $percentage = (float)$coupon_details->amount;
-                        $discount_amm = (float)$total_cost * ($percentage / 100);
+                        $percentage = (float) $coupon_details->amount;
+                        $discount_amm = (float) $total_cost * ($percentage / 100);
 
                         if (($total_cost - $discount_amm) < 0) {
                             $total_cost = 0;
@@ -3539,15 +3550,17 @@ class Estimates extends MY_Controller
         $company_details = $this->checkQuickbook();
         if ($company_details) {
             try {
-                $dataService = DataService::Configure(array(
-                    'auth_mode' => 'oauth2',
-                    'ClientID' => $company_details->quickbook_client_id,
-                    'ClientSecret' => $company_details->quickbook_client_secret,
-                    'accessTokenKey' => $company_details->access_token_key,
-                    'refreshTokenKey' => $company_details->refresh_token_key,
-                    'QBORealmID' => $company_details->qbo_realm_id,
-                    'baseUrl' => "Production",
-                ));
+                $dataService = DataService::Configure(
+                    array(
+                        'auth_mode' => 'oauth2',
+                        'ClientID' => $company_details->quickbook_client_id,
+                        'ClientSecret' => $company_details->quickbook_client_secret,
+                        'accessTokenKey' => $company_details->access_token_key,
+                        'refreshTokenKey' => $company_details->refresh_token_key,
+                        'QBORealmID' => $company_details->qbo_realm_id,
+                        'baseUrl' => "Production",
+                    )
+                );
 
                 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
@@ -3590,15 +3603,17 @@ class Estimates extends MY_Controller
 
             try {
 
-                $dataService = DataService::Configure(array(
-                    'auth_mode' => 'oauth2',
-                    'ClientID' => $company_details->quickbook_client_id,
-                    'ClientSecret' => $company_details->quickbook_client_secret,
-                    'accessTokenKey' => $company_details->access_token_key,
-                    'refreshTokenKey' => $company_details->refresh_token_key,
-                    'QBORealmID' => $company_details->qbo_realm_id,
-                    'baseUrl' => "Production",
-                ));
+                $dataService = DataService::Configure(
+                    array(
+                        'auth_mode' => 'oauth2',
+                        'ClientID' => $company_details->quickbook_client_id,
+                        'ClientSecret' => $company_details->quickbook_client_secret,
+                        'accessTokenKey' => $company_details->access_token_key,
+                        'refreshTokenKey' => $company_details->refresh_token_key,
+                        'QBORealmID' => $company_details->qbo_realm_id,
+                        'baseUrl' => "Production",
+                    )
+                );
 
                 $dataService->setLogLocation("/Users/hlu2/Desktop/newFolderForLog");
 
@@ -3720,16 +3735,18 @@ class Estimates extends MY_Controller
                 $pdf_link = base_url('welcome/pdfEstimateSignWell/') . base64_encode($estimate_id);
 
                 $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => 'https://www.signwell.com/api/v1/documents/',
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS => '{
+                curl_setopt_array(
+                    $curl,
+                    array(
+                        CURLOPT_URL => 'https://www.signwell.com/api/v1/documents/',
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_ENCODING => '',
+                        CURLOPT_MAXREDIRS => 10,
+                        CURLOPT_TIMEOUT => 0,
+                        CURLOPT_FOLLOWLOCATION => true,
+                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                        CURLOPT_CUSTOMREQUEST => 'POST',
+                        CURLOPT_POSTFIELDS => '{
                             "test_mode": ' . SIGNWELL_TEST_MODE . ',
                             "name": "estimate_' . $estimate_id . '",
                             "files": [
@@ -3758,35 +3775,55 @@ class Estimates extends MY_Controller
                             "message": "' . $customer_message . '"
                         }',
 
-                    CURLOPT_HTTPHEADER => array(
-                        'accept: application/json',
-                        'content-type: application/json',
-                        'X-Api-Key: ' . $data['setting_details']->signwell_api_key
-                    ),
-                ));
+                        CURLOPT_HTTPHEADER => array(
+                            'accept: application/json',
+                            'content-type: application/json',
+                            'X-Api-Key: ' . $data['setting_details']->signwell_api_key
+                        ),
+                    )
+                );
 
                 $response = curl_exec($curl);
-
+                $http_code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
                 curl_close($curl);
                 $response_object = json_decode($response);
-                //var_dump($response_object->recipients[0]);
-                //exit();
-
-                if (isset($response_object->recipients)) {
-                    $error_message .= $response_object->recipients[0]->message;
-                } else {
-                    $error_message .= $response_object->message;
-
-
-                }
-                if ($error_message == '') {
+                if ($http_code == 201) {
                     //Update estimate info to mark as sent.
                     $where = array('estimate_id' => $estimate_id);
                     $param = array('status' => 1, 'estimate_update' => date("Y-m-d H:i:s"));
                     $this->EstimateModal->updateEstimate($where, $param);
+                } else if ($http_code == 400) {
+                    array_push($status_array, array('message' => $response_object->errors->message, 'estimate_id' => $estimate_id));
+                } else if ($http_code == 422) {
+                    if (isset($response_object->errors->recipients)) {
+                        $message = 'Error of Recipient: ';
+                        $recipient1 = $response_object->errors->recipients->recipient_1;
+                        foreach ($recipient1 as $key => $value) {
+                            $message .= 'Error(s) from ' . $key . ': ';
+                            foreach ($recipient1->$key as $k => $error) {
+                                $message .= $error;
+                            }
+                        }
+                        array_push($status_array, array('message' => $message, 'estimate_id' => $estimate_id));
+                    }
+                    if (isset($response_object->errors->files)) {
+                        $message = 'Error of File: ';
+                        $file1 = $response_object->errors->files->file_1;
+                        foreach ($file1 as $key => $value) {
+                            $message .= 'Error(s) from ' . $key . ': ';
+                            foreach ($file1->$key as $k => $error) {
+                                $message .= $error;
+                            }
+                        }
+                        array_push($status_array, array('message' => $message, 'estimate_id' => $estimate_id));
+                    }
+
                 }
-                echo json_encode($status_array);
+
+                //var_dump($response_object->recipients[0]);
+                //exit();
             }
+            echo json_encode($status_array);
         } else {
             $status_array[] = array('status' => 'fail', 'message' => 'You must select at least one(1) estimate to send to SignWell', 'estimate_id' => '');
             return json_encode($status_array);
@@ -3896,8 +3933,10 @@ class Estimates extends MY_Controller
 
         $json_data = array(
             "draw" => intval($this->input->post('draw')),
-            "recordsTotal" => $var_total_item_count_for_pagination, // "(filtered from __ total entries)"
-            "recordsFiltered" => $var_total_item_count_for_pagination, // actual total that determines page counts
+            "recordsTotal" => $var_total_item_count_for_pagination,
+            // "(filtered from __ total entries)"
+            "recordsFiltered" => $var_total_item_count_for_pagination,
+            // actual total that determines page counts
             "data" => $data
         );
         echo json_encode($json_data);

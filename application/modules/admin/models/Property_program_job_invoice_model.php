@@ -34,6 +34,7 @@ class Property_program_job_invoice_model extends CI_Model{
     public function getPropertyProgramJobInvoiceCoupon($where_arr='', $where_in='', $get_job_count = false, $invoice_id = '') {
         $this->db->select('*');
         $this->db->from('property_program_job_invoice');
+        //$this->db->join('technician_job_assign','technician_job_assign.customer_id = property_program_job_invoice.customer_id and technician_job_assign.job_id = property_program_job_invoice.job_id and technician_job_assign.program_id = property_program_job_invoice.program_id and technician_job_assign.property_id = property_program_job_invoice.property_id','inner');
         // $this->db->join('coupon_job', 'property_program_job_invoice.job_id = coupon_job.job_id AND property_program_job_invoice.program_id = coupon_job.program_id AND property_program_job_invoice.property_id = coupon_job.property_id AND property_program_job_invoice.customer_id = coupon_job.customer_id', 'left');
         if (is_array($where_arr)) {
                 $this->db->where($where_arr);
@@ -44,6 +45,37 @@ class Property_program_job_invoice_model extends CI_Model{
         $this->db->order_by('property_program_job_invoice.job_id','desc');
         $result = $this->db->get();
 		$data = $result->result_array();
+        //var_dump($this->db->last_query());
+        //exit();
+		 //die(print_r($data));
+        if($get_job_count == true) {
+            $this->db->select('job_id');
+            $this->db->from('technician_job_assign');
+            $this->db->where("invoice_id = '".$invoice_id."'");
+            $result2 = $this->db->get();
+		    $count = count($result2->result_array());
+            $data['total_job_count'] = $count;
+        }
+
+        return $data;
+    }
+
+    public function getPropertyProgramJobInvoiceCouponReporting($where_arr='', $where_in='', $get_job_count = false, $invoice_id = '') {
+        $this->db->select('*');
+        $this->db->from('property_program_job_invoice');
+        $this->db->join('technician_job_assign','technician_job_assign.customer_id = property_program_job_invoice.customer_id and technician_job_assign.job_id = property_program_job_invoice.job_id and technician_job_assign.program_id = property_program_job_invoice.program_id and technician_job_assign.property_id = property_program_job_invoice.property_id','inner');
+        // $this->db->join('coupon_job', 'property_program_job_invoice.job_id = coupon_job.job_id AND property_program_job_invoice.program_id = coupon_job.program_id AND property_program_job_invoice.property_id = coupon_job.property_id AND property_program_job_invoice.customer_id = coupon_job.customer_id', 'left');
+        if (is_array($where_arr)) {
+                $this->db->where($where_arr);
+        }
+        if(isset($where_in) && $where_in != '') {
+            $this->db->where($where_in);
+        }
+        $this->db->order_by('property_program_job_invoice.job_id','desc');
+        $result = $this->db->get();
+		$data = $result->result_array();
+        //var_dump($this->db->last_query());
+        //exit();
 		 //die(print_r($data));
         if($get_job_count == true) {
             $this->db->select('job_id');

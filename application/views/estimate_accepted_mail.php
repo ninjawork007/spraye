@@ -53,7 +53,7 @@
                         }
                          $html3  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$program_names.'<br><br>' . '<p><b>Service</b> : '.$service_names.'</p><br>',$html);
 
-                         $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$email_data_details->property_address.'<br>',$html3);
+                         $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.(!empty($email_data_details->property_address_2))?$email_data_details->property_address.' '.$email_data_details->property_address_2:$email_data_details->property_address.'<br>',$html3);
 
                          $html5  = str_replace("{SCHEDULE_DATE}",'<b>Date</b> :'.$accepted_date.'<br>',$html4);
 

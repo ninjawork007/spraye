@@ -78,7 +78,7 @@ label.control-label.col-lg-3 {
                     <div class="form-group">
                       <label class="control-label col-lg-3">Select Property Address</label>
                       <div class="col-lg-9" style="padding-left: 5px;">
-						<input type="hidden" name="property_id" id="property_id" value="<?= $invoice_details->property_id ?>"> 
+						            <input type="hidden" name="property_id" id="property_id" value="<?= $invoice_details->property_id ?>"> 
 						
 
 
@@ -87,10 +87,8 @@ label.control-label.col-lg-3 {
                         if (!empty($property_address)) {
 
                           foreach ($property_address as $key => $value) {
-
                               if ($invoice_details->property_id==$value->property_id) {
-
-								?>  <input type="text" class="form-control" name="property" id="property" value="<?= $value->property_address ?>" readonly> <?php
+								?>  <input type="text" class="form-control" name="property" id="property" value="<?= constructPropertyAddress($value); ?>" readonly> <?php
                               } else {
 
                               }                            

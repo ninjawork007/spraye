@@ -922,8 +922,6 @@ class Admin extends MY_Controller
 //            $file = fopen("test.txt","w");
 //            fwrite($file,"We are inside getTableDataAjax function");
 //            fclose($file);
-
-
             if (isset($where['program_services']) || (isset($where_like['program_services']) && is_array($where_like['program_services']))) {
 
                 $property_outstanding_services = $this->DashboardModel->getOutstandingServicesFromProperty_forTable($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where);
@@ -941,17 +939,17 @@ class Admin extends MY_Controller
 
         } else {
             $search = $this->input->post('search')['value'];
-            if (empty($where_in)) {
-                if (isset($where['program_services']) || (isset($where_like['program_services']) && is_array($where_like['program_services']))) {
-                    $property_outstanding_services = $this->DashboardModel->getOutstandingServicesFromProperty_forTable($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where);
-                    $tempdata = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in, $or_where, $property_outstanding_services);
-                    $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in, $or_where, $property_outstanding_services);
+            //if (empty($where_in)) {
+            if (isset($where['program_services']) || (isset($where_like['program_services']) && is_array($where_like['program_services']))) {
+                $property_outstanding_services = $this->DashboardModel->getOutstandingServicesFromProperty_forTable($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where);
+                $tempdata = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in, $or_where, $property_outstanding_services);
+                $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in, $or_where, $property_outstanding_services);
 
-                } else {
-                    $tempdata = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in, $or_where);
-                    $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in, $or_where);
-                }
+            } else {
+                $tempdata = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, false, $where_in, $or_where);
+                $var_total_item_count_for_pagination = $this->DashboardModel->getTableDataAjaxSearch($where, $where_like, $limit, $start, $order, $dir, $search, true, $where_in, $or_where);
             }
+            //}
         }
         //---------------------------------------------------------------------------------
         //  $var_last_query = $this->db->last_query ();
@@ -1192,7 +1190,7 @@ class Admin extends MY_Controller
 
                 $data[$i]['property_longitude'] = $value->property_longitude;
                 $data[$i]['property_latitude'] = $value->property_latitude;
-                $data[$i]['action'] = "<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='unassigned-services-element confirm_delete_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$prop_id'  ><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li></ul>";
+                $data[$i]['action'] = "<ul style='list-style-type: none; padding-left: 0px;display:flex;'><li title='Delete Service' style='display: inline; padding-right: 10px;'><a  class='unassigned-services-element confirm_delete_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$prop_id'  ><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li><li title='Skip Service' style='display: inline; padding-right: 10px;'><a data-toggle='modal' data-target='#modal_skip_reason' onclick='handleOneSkip(this)' style='color:gray' class='unassigned-services-element confirm_skip_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$value->property_id'  ><svg xmlns='http://www.w3.org/2000/svg' width='21' height='21' fill='currentColor' class='bi bi-skip-end' viewBox='0 0 16 16'><path d='M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.713 3.31 4 3.655 4 4.308v7.384c0 .653.713.998 1.233.696L11.5 8.752V12a.5.5 0 0 0 1 0V4zM5 4.633 10.804 8 5 11.367V4.633z'/></svg></a></li></ul>";
                 $data[$i]['index'] = $i;
                 $data[$i]['lat'] = $value->property_latitude;
                 $data[$i]['lng'] = $value->property_longitude;
@@ -1962,6 +1960,7 @@ class Admin extends MY_Controller
         $page["active_sidebar"] = "unass_serv_routing";
         $page["page_name"] = "Unassigned Services";
         $data['tecnician_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
+        $data['skip_reasons'] = $this->CustomerModel->getSkipReasonsList($this->session->userdata['company_id']);
         $data['service_list'] = $this->getUnassignedServiceList(false);
         // die(print_r($this->db->last_query()));
         // die(print_r($data['service_list']));
@@ -2009,7 +2008,7 @@ class Admin extends MY_Controller
         $page["assign_job_view"] = 1;
         $data['tecnician_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
         $data['service_list'] = $this->getUnassignedServiceList(false);
-
+        $data['skip_reasons'] = $this->CustomerModel->getSkipReasonsList($this->session->userdata['company_id']);
         $service_area_list = $this->ServiceArea->getAllServiceArea(array('company_id' => $this->session->userdata['company_id']));
         $data['service_area_list'] = $service_area_list;
         // die(print_r($this->db->last_query()));
@@ -2334,6 +2333,44 @@ class Admin extends MY_Controller
         }
     }
 
+
+    public function skipMultiUnassignedJobs()
+    {
+        $group_ids = $this->input->post('group_id');
+        $action = $this->input->post('action');
+        $skip = $this->input->post('skip_id');
+        $row_counter = 0;
+
+        if (count($group_ids) > 0) {
+            foreach ($group_ids as $group_id) {
+                $group_id_parts = explode(':', $group_id);
+                $customer_id = $group_id_parts[0];
+                $job_id = $group_id_parts[1];
+                $program_id = $group_id_parts[2];
+                $property_id = $group_id_parts[3];
+                $param_arr = array(
+                    'customer_id' => $customer_id,
+                    'job_id' => $job_id,
+                    'program_id' => $program_id,
+                    'property_id' => $property_id,
+                    'skip_reason_id' => $skip,
+                    'skipped_at' => Date("Y-m-d H:i:s"),
+                    'user_id' => $this->session->userdata['user_id']
+                );
+                $result = $this->UnassignJobDeleteModal->createDeleteRow($param_arr);
+                if ($result) {
+                    $row_counter++;
+                }
+            }
+        }
+        if ($row_counter == count($group_ids)) {
+            $msg = 'Unassign Service(s) skipped successfully';
+
+            echo json_encode(array('status' => 200, 'msg' => $msg));
+        } else {
+            echo json_encode(array('status' => 400, 'msg' => 'Something went wrong'));
+        }
+    }
 
     public function deleteRestoreUnassignedJob($value = '')
     {
@@ -13097,6 +13134,18 @@ class Admin extends MY_Controller
             redirect('admin/setting');
         }
     }
+    
+    public function createSkipReason()
+    {
+        $company_id = $this->session->userdata['company_id'];
+        $param['skip_name'] = $_POST['skip_name'];
+        $param['company_id'] = $company_id;
+        if ($company_id && $param['skip_name'] && $param['company_id']) {
+            $skip_reasons = $this->CustomerModel->addSkipReasons($param);
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Skip </strong> Reason Added Successfully</div>');
+            redirect('admin/setting');
+        }
+    }
 
     public function updateCustomerPortalPreference()
     {
@@ -13380,6 +13429,20 @@ class Admin extends MY_Controller
             redirect('admin/setting');
         }
     }
+    
+    public function editSkipReason()
+    {
+        $data = $this->input->post();
+        $result = $this->CustomerModel->editSkipReason(array('skip_name' => $data['edit_skip_name']), array('skip_id' => $data['edit_skip_id']));
+
+        if ($result) {
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000">Skip Reason <strong>Edited</strong> Successfully!</div>');
+            redirect('admin/setting');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">editSkipReason Reason Edit <strong>NOT</strong> Successful!</div>');
+            redirect('admin/setting');
+        }
+    }
 
     public function deleteRescheduleReason()
     {
@@ -13391,6 +13454,20 @@ class Admin extends MY_Controller
             redirect('admin/setting');
         } else {
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">Reschedule Reason <strong>NOT DELETED</strong> Successfully!</div>');
+            redirect('admin/setting');
+        }
+    }
+
+    public function deleteSkipReason()
+    {
+        $data = $this->input->post();
+        $result = $this->CustomerModel->deleteSkipReason(array('skip_id' => $data['delete_skip_id']));
+
+        if ($result) {
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000">Skip Reason <strong>Deleted</strong> Successfully!</div>');
+            redirect('admin/setting');
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">ip Reason <strong>NOT DELETED</strong> Successfully!</div>');
             redirect('admin/setting');
         }
     }
@@ -14243,7 +14320,7 @@ class Admin extends MY_Controller
                 $available_days = formatAvailableDays($value->available_days);
                 $data[$i]['available_days'] = implode(", ", $available_days);
 
-                $data[$i]['action'] = "<ul style='list-style-type: none; padding-left: 0px;'><li style='display: inline; padding-right: 10px;'><a  class='unassigned-services-element confirm_delete_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$value->property_id'  ><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li></ul>";
+                $data[$i]['action'] = "<ul style='list-style-type: none; padding-left: 0px; display: flex'><li title='Delete Service' style='display: inline; padding-right: 10px;'><a  class='unassigned-services-element confirm_delete_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$value->property_id'  ><i class='icon-trash position-center' style='color: #9a9797;'></i></a></li><li title='Skip Service' style='display: inline; padding-right: 10px;'><a data-toggle='modal' data-target='#modal_skip_reason' onclick='handleOneSkip(this)' style='color:gray' class='unassigned-services-element confirm_skip_unassign_job button-next' grd_ids='$value->customer_id:$value->job_id:$value->program_id:$value->property_id'  ><svg xmlns='http://www.w3.org/2000/svg' width='21' height='21' fill='currentColor' class='bi bi-skip-end' viewBox='0 0 16 16'><path d='M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.713 3.31 4 3.655 4 4.308v7.384c0 .653.713.998 1.233.696L11.5 8.752V12a.5.5 0 0 0 1 0V4zM5 4.633 10.804 8 5 11.367V4.633z'/></svg></a></li></ul>";
                 $data[$i]['index'] = $i;
                 $i++;
             }

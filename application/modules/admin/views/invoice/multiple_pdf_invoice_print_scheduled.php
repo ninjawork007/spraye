@@ -315,7 +315,7 @@ if(isset($invoice_detail->is_group_billing) && $invoice_detail->is_group_billing
 
             <table width="100%" class="table table-condensed" style="margin-bottom: 0px !important;">
                 <tr class="first_tr" style="padding:5px!important;">
-                    <td><strong>INVOICE NO : #<?= $invoice_detail->invoice_id ?></strong> </td>
+                    <td><strong>INVOICE NO : #<?= ($invoice_detail->invoice_id != '')?$invoice_detail->invoice_id:'' ?></strong> </td>
                     <td><strong>PAYMENT TERMS: <?php 
                             switch ($setting_details->payment_terms) {
                                 case 1 :
@@ -399,128 +399,14 @@ if(isset($invoice_detail->is_group_billing) && $invoice_detail->is_group_billing
 
             </table>
             <!-- END TOP FOLD -->
-            <!-- START PAY STUB -->
-            <!-- <div class="page-break-avoid" style="height: 280px;"> -->
-            <!-- <div style="position: absolute; bottom: 0; margin-bottom: -320px;"> -->
-            <div id="paystub-container" style="position:absolute; bottom:0; margin-bottom: 0px;">
-                <div>
-                    <table width="100%" class="table table-condensed" style="margin: -10px 0 20px 0; font-size: 12px;"
-                        id="paystub-table">
-                        <tr class="first_tr">
-                            <td align="left" width="50%" style="padding: 5px 20px 5px 5px!important;">
-                                <b>CUSTOMER</b>
-                                <p style="float: right;margin:0px;">
-                                    <?= $invoice_detail->first_name.' '.$invoice_detail->last_name ?></p>
-                            </td>
-                            <td align="left" width="50%" style="padding: 5px 5px 5px 20px!important;">
-                                <b>PAYMENT STUB</b>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="left" width="50%" style="padding-right:20px;">
-                                <div style="height: 1px; width: 100%; margin-top: 10px;"></div>
-                                <b>For</b>
-                                <p style="float:right;text-align:right; margin:0px; display:inline-block;">
-                                    <?php
-							  if ($property_street_array && is_array($property_street_array) && !empty($property_street_array) ) {
-							  if (trim($property_street_array['street'])!='') {
-								echo $property_street_array['street'].'<br>';
-							  }
-							  echo $invoice_detail->property_city.', '.$invoice_detail->property_state.', '.$invoice_detail->property_zip;
-							}
-							//echo $invoice_detail->billing_street.'&nbsp;<br>';
-							//echo $invoice_detail->billing_city.'&nbsp;';
-							//echo $invoice_detail->billing_state.', '.$invoice_detail->billing_zipcode.'&nbsp;';
-						  ?>
-                                </p>
-                                <div style="height: 1px; width: 100%; margin-top: 20px;"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="left" width="50%" style="padding-right: 20px;">
-                                <b>Invoice #</b>
-                                <p style="float:right; margin:0px;"><?= $invoice_detail->invoice_id ?></p>
-                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="left" width="50%" style="padding-right: 20px;">
-                                <b>Invoice Date</b>
-                                <p style="float:right; margin:0px;">
-                                <?php if(isset($invoice_detail->invoice_date)) {
-                                echo date('m/d/Y', strtotime($invoice_detail->invoice_date));
-                                } else if(isset($invoice_detail->job_assign_date)){
-                                echo date('m/d/Y', strtotime($invoice_detail->job_assign_date));
-                            } else if(isset($invoice_detail->job_completed)) {
-                                echo date('m/d/Y', strtotime($invoice_detail->job_completed)); 
-                            } else if(isset($invoice_detail->invoice_created)) {
-                                echo date('m/d/Y', strtotime($invoice_detail->invoice_created));  
-                            }?></p>
-                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="left" width="50%" style="padding-right: 20px;">
-                                <b>Invoice Amount</b>
-                                <p style="float:right; margin:0px;">$
-                                    <?php echo number_format($invoice_detail->total_invoice_cost_calc, 2);?>
-                                </p>
-                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td align="left" width="50%" style="padding-right: 20px;">
-                                <b>Amount Enclosed</b>
-                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
-                                </div>
-                            </td>
-                            <td align="left" width="50%" style="padding-left: 20px;">
-                                <div style="position: absolute; padding-bottom: 25px; margin-top: -40px;">
-                                    <strong><?= $setting_details->company_name ?></strong><br>
-                                    <?php
-							  if( isset($setting_address_array) ) {
-								if( isset($setting_address_array[0]) ) {
-								  echo $setting_address_array[0];
-								}
-								if( isset($setting_address_array[1]) ) {
-								  echo '<br/>'.$setting_address_array[1];
-								}
-							  }
-							?>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                    <table width="100%" class="table table-condensed" style="color: #B11212; margin-top: -15px;">
-                        <tr>
-                            <td align="left" width="100%">
-                                To pay by credit card, visit our website
-                                <?php if ($setting_details->web_address!='') { echo 'at '.$setting_details->web_address;}; ?>
-                                OR pay directly by the invoice we sent to your email address after work is completed
-                                (check your spam folder). If you would like to receive email invoices and we don't have
-                                your email address on file, contact us at <?= $setting_details->company_email ?>
-                            </td>
-                        </tr>
-                    </table>
 
-
-
-                </div>
-                <!-- <div class="page-break-avoid" style="position: absolute; display: block; bottom: 0;"> -->
-                <!-- <div class="page-break-avoid" style="display: block; bottom: 0; position: relative; top: 100%; transform: translateY(-100%);"> -->
-
-            </div>
-            <!-- END PAY STUB -->
 
 
             <!-- START PROPERTY PROGRAM SERVICE DETAILS -->
             <br>
             <table width="100%" class="table table-condensed" style="padding-bottom: 260px !important; font-size: 12px;" cellspacing="0"
                 id="main_table">
-                <?php if (count($invoice_detail->jobs) < 9){?>
+                <?php if ( isset($invoice_detail->jobs) && is_array($invoice_detail->jobs) && count($invoice_detail->jobs) < 9){?>
                 <tr class="first_tr">
                     <td class="text-left" width="10%">
                         PROPERTY
@@ -772,7 +658,7 @@ if(isset($invoice_detail->is_group_billing) && $invoice_detail->is_group_billing
 
                                 <?php } ?>
 
-                                <?php  if ( $invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>
+                                <?php  if ( isset($invoice_detail->partial_payment) && $invoice_detail->partial_payment > 0 && $invoice_detail->payment_status != 2) { ?>
 
                                     <tr>
                                         <td></td>
@@ -814,7 +700,130 @@ if(isset($invoice_detail->is_group_billing) && $invoice_detail->is_group_billing
                 </tfoot>
             </table>
             <!-- END PROPERTY PROGRAM SERVICES SECTION -->
+            <!-- START PAY STUB -->
+            <div id="paystub-container" style="position:absolute; bottom:0; margin-bottom: 0px;">
+                <div>
+                    <table width="100%" class="table table-condensed" style="margin: -10px 0 20px 0; font-size: 12px;"
+                           id="paystub-table">
+                        <tr class="first_tr">
+                            <td align="left" width="50%" style="padding: 5px 20px 5px 5px!important;">
+                                <b>CUSTOMER</b>
+                                <p style="float: right;margin:0px;">
+                                    <?= $invoice_detail->first_name.' '.$invoice_detail->last_name ?></p>
+                            </td>
+                            <td align="left" width="50%" style="padding: 5px 5px 5px 20px!important;">
+                                <b>PAYMENT STUB</b>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" width="50%" style="padding-right:20px;">
+                                <div style="height: 1px; width: 100%; margin-top: 10px;"></div>
+                                <b>For</b>
+                                <p style="float:right;text-align:right; margin:0px; display:inline-block;">
+                                    <?php
+                                    if ($property_street_array && is_array($property_street_array) && !empty($property_street_array) ) {
+                                        if (trim($property_street_array['street'])!='') {
+                                            echo $property_street_array['street'].'<br>';
+                                        }
+                                        echo $invoice_detail->property_city.', '.$invoice_detail->property_state.', '.$invoice_detail->property_zip;
+                                    }
+                                    //echo $invoice_detail->billing_street.'&nbsp;<br>';
+                                    //echo $invoice_detail->billing_city.'&nbsp;';
+                                    //echo $invoice_detail->billing_state.', '.$invoice_detail->billing_zipcode.'&nbsp;';
+                                    ?>
+                                </p>
+                                <div style="height: 1px; width: 100%; margin-top: 20px;"></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" width="50%" style="padding-right: 20px;">
+                                <b>Invoice #</b>
+                                <p style="float:right; margin:0px;"><?= $invoice_detail->invoice_id ?></p>
+                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" width="50%" style="padding-right: 20px;">
+                                <b>Invoice Date</b>
+                                <p style="float:right; margin:0px;">
+                                    <?php if(isset($invoice_detail->invoice_date)) {
+                                        echo date('m/d/Y', strtotime($invoice_detail->invoice_date));
+                                    } else if(isset($invoice_detail->job_assign_date)){
+                                        echo date('m/d/Y', strtotime($invoice_detail->job_assign_date));
+                                    } else if(isset($invoice_detail->job_completed)) {
+                                        echo date('m/d/Y', strtotime($invoice_detail->job_completed));
+                                    } else if(isset($invoice_detail->invoice_created)) {
+                                        echo date('m/d/Y', strtotime($invoice_detail->invoice_created));
+                                    }?></p>
+                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" width="50%" style="padding-right: 20px;">
+                                <b>Invoice Amount</b>
+                                <p style="float:right; margin:0px;">$
+                                    <?php
+                                    //die(print_r($invoice_detail));
+                                    if($invoice_detail->payment_status == 2)  {
+                                        echo number_format(0,2);
+                                    } else if(isset($invoice_detail->partial_payment)) {
+                                        echo number_format($invoice_total_cost -$invoice_detail->partial_payment,2, '.', ',');
+                                    } else {
+                                        echo number_format($invoice_total_cost,2, '.', ',');
 
+                                    }
+                                    ?>
+                                    <!--                                    --><?php //echo number_format($invoice_detail->total_invoice_cost_calc, 2);?>
+                                </p>
+                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left" width="50%" style="padding-right: 20px;">
+                                <b>Amount Enclosed</b>
+                                <div style="height: 1px; width: 100%; background-color: #E3E3E3; margin-top: 10px;">
+                                </div>
+                            </td>
+                            <td align="left" width="50%" style="padding-left: 20px;">
+                                <div style="position: absolute; padding-bottom: 25px; margin-top: -40px;">
+                                    <strong><?= $setting_details->company_name ?></strong><br>
+                                    <?php
+                                    if( isset($setting_address_array) ) {
+                                        if( isset($setting_address_array[0]) ) {
+                                            echo $setting_address_array[0];
+                                        }
+                                        if( isset($setting_address_array[1]) ) {
+                                            echo '<br/>'.$setting_address_array[1];
+                                        }
+                                    }
+                                    ?>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <table width="100%" class="table table-condensed" style="color: #B11212; margin-top: -15px;">
+                        <tr>
+                            <td align="left" width="100%">
+                                To pay by credit card, visit our website
+                                <?php if ($setting_details->web_address!='') { echo 'at '.$setting_details->web_address;}; ?>
+                                OR pay directly by the invoice we sent to your email address after work is completed
+                                (check your spam folder). If you would like to receive email invoices and we don't have
+                                your email address on file, contact us at <?= $setting_details->company_email ?>
+                            </td>
+                        </tr>
+                    </table>
+
+
+
+                </div>
+                <!-- <div class="page-break-avoid" style="position: absolute; display: block; bottom: 0;"> -->
+                <!-- <div class="page-break-avoid" style="display: block; bottom: 0; position: relative; top: 100%; transform: translateY(-100%);"> -->
+
+            </div>
+            <!-- END PAY STUB -->
         </div>
 
  <?php } }?>

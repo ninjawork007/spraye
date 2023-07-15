@@ -973,6 +973,7 @@ public function getTableDataAjaxSearchEstimateProp($where_arr = '', $where_like 
         $this->db->select("estimate_id");
         $this->db->from('t_estimate');
         $this->db->where('customer_id',$where_arr["customer_id"]);
+        $this->db->where('property_id',$where_arr["property_id"]);
         $this->db->where_in('status',array('0', '1', '2'));
         $result = $this->db->get();
         $data = $result->result();

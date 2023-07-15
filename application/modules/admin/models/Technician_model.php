@@ -340,7 +340,7 @@ class Technician_model extends CI_Model{
 
 
     public function getjobTechEmailData($wherearr) {
-       $this->db->select('first_name,last_name,job_name,program_name,property_address');
+       $this->db->select('first_name,last_name,job_name,program_name,property_address,property_address_2,property_city,property_state,property_zip');
        $this->db->from('customers,jobs,programs,property_tbl');
         if (is_array($wherearr)) {
             $this->db->where($wherearr);
@@ -476,7 +476,7 @@ class Technician_model extends CI_Model{
     }
 
 	public function getProgramPropertyEmailData($wherearr) {
-       $this->db->select('first_name,last_name,program_name,property_address');
+       $this->db->select('first_name,last_name,program_name,property_address,property_address_2,property_city,property_state,property_zip');
        $this->db->from('customers,programs,property_tbl');
         if (is_array($wherearr)) {
             $this->db->where($wherearr);
@@ -490,7 +490,7 @@ class Technician_model extends CI_Model{
     }
 
     public function getPropertyEmailData($wherearr) {
-        $this->db->select('first_name,last_name,property_address');
+        $this->db->select('first_name,last_name,property_address,property_address_2,property_city,property_state,property_zip');
         $this->db->from('customers,property_tbl');
          if (is_array($wherearr)) {
              $this->db->where($wherearr);

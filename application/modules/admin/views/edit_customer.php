@@ -1072,9 +1072,22 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
         color: #000;
     }
 
+    .isCanceled {
+        text-decoration: line-through;
+        color: gray;
+    }
+
     .asap_row {
         background: #FBE9E7 !important;
         border: 1px solid #FF5722;
+    }
+
+    .skipped_row {
+        color: #8080804f !important;
+    }
+
+    .label-skipped {
+        background-color: #868686 !important;
     }
 
     .wrapper_pagination {
@@ -3685,7 +3698,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                     <th>Sales Rep</th>
                                     <th>Coupons</th>
                                     <th>Hold Until Date</th>
-                                    <th>Active Status</th>
+                                    <th>Actions</th>
                                     <?php if (isset($customerData['billing_type']) && $customerData['billing_type'] == 1) { ?>
                                         <th>Action</th><?php } ?>
                                 </tr>
@@ -3697,15 +3710,18 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                 if (!empty($all_services)) {
 
                                     foreach ($all_services as $value) {
+                                        $isSkipped = !is_null($value->skip_name) && $value->skip_name != '';
                                         $asapClass = empty($value->on_hold_status) && $value->asap == 1 ? 'asap_row' : '';
+                                        $skippedClass = $isSkipped ? 'skipped_row' : '';
+                                        $disabled = $skippedClass != '' ? "disabled='disabled'" : '';
                                         ?>
 
-                                        <tr class="<?= $asapClass ?>">
+                                        <tr class="<?= $asapClass ?> <?=$skippedClass?>">
 
                                             <td><input name='group_id' type='checkbox'
 
                                                        value="<?php echo $value->customer_id . "," . $value->job_id . "," . $value->program_id . "," . $value->property_id ?>"
-
+                                                       <?= $disabled ?>"
                                                        class='myCheckBox'/></td>
 
                                             <td><?= $value->user_first_name . ' ' . $value->user_last_name; ?></td>
@@ -3732,25 +3748,38 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                             <td>
 
                                                 <?php
-                                                if ($value->technician_job_assign_id != 0){
+                                                $strStatus = '';
+                                                if ($value->skip_name != '') {
+                                                    $strStatus = 'Skipped - '.$value->skip_name;
+                                                } else if ($value->technician_job_assign_id != 0){
                                                     switch ($value->is_job_mode) {
                                                         case 0:
-                                                            echo 'Scheduled';
+                                                            $strStatus = 'Scheduled';
                                                             break;
                                                         case 1:
-                                                            echo "Completed";
+                                                            $strStatus = "Completed";
                                                             break;
                                                         case 2:
-                                                            echo "Rescheduled";
+                                                            $strStatus = "Rescheduled";
                                                             break;
                                                         default:
-                                                            echo "Default";
+                                                            $strStatus = "Default";
                                                             break;
                                                     }
                                                 } else {
-                                                    echo "Pending";
+                                                    $strStatus = "Pending";
                                                 }
-                                                
+                                                $isCanceledClass = '';
+                                                if (isset($value->cancelled) && $value->cancelled == 1) {
+                                                    $strStatus = 'Canceled';
+                                                    $isCanceledClass = "isCanceled";
+                                                } else if (!$isSkipped) {
+                                                    if(!empty($value->on_hold_status))
+                                                        $strStatus = $strStatus .' - '. 'On Hold';
+                                                    else if($value->asap == 1)
+                                                        $strStatus = $strStatus .' - '. 'ASAP';
+                                                }
+                                                echo $strStatus;
                                                 ?>
                                             </td>
                                             <td><?php if (isset($value->sales_rep_name)) {
@@ -3758,7 +3787,7 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 } ?></td>
 
                                             <td><?= $value->coupon_code_csv ?></td>
-                                            <td><?php if (isset($value->hold_until_date) && $value->hold_until_date != '0000-00-00') {
+                                            <td class="<?=$isCanceledClass?>"><?php if (isset($value->hold_until_date) && $value->hold_until_date != '0000-00-00') {
                                                     echo date('m-d-Y', strtotime($value->hold_until_date));
                                                 } ?>
                                             </td>
@@ -3766,52 +3795,55 @@ $secondary_content_hieght = 10 + ((count($prop_programs) >= 6) ? 30 : count($pro
                                                 <ul style="list-style-type: none; padding-left: 0px;">
                                                     <li>
                                                         <?php if (isset($value->cancelled) && $value->cancelled == 1) { ?>
-                                                            <span class="label label-danger">Canceled</span>
+<!--                                                            <span class="label label-danger">Canceled</span>-->
                                                         <?php } else { ?>
                                                             <?php if (!empty($value->on_hold_status)) { ?>
-                                                                <span class="label label-refunded">On Hold</span>
+<!--                                                                <span class="label label-refunded">On Hold</span>-->
+                                                            <?php } else if ($isSkipped) { ?>
+<!--                                                                <span class="label label-skipped">Skipped</span>-->
+                                                            <?php } else if($value->asap == 1) { ?>
+<!--                                                                <span class="label label-danger">ASAP</span>-->
                                                             <?php } else { ?>
-                                                                <span class="label label-success">Active</span>
-                                                                <?php if ($value->asap == 1) { ?>
-                                                                    <span class="label label-danger">ASAP</span>
-                                                                <?php } ?>
+<!--                                                                <span class="label label-success">Active</span>-->
                                                             <?php } ?>
                                                         <?php }
                                                         ?>
                                                     </li>
-                                                    <li style="display: flex; gap: 10px;">
-                                                    <?php if ($value->cancelled == 0 && $value->is_job_mode != 1) { ?>
-                                                        <a href="#" class="confirm_cancellation"
-                                                           onclick="cancelService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                            <i class="fa fa-remove position-center"
-                                                               title="Cancel Service"
-                                                               style="color: #9a9797; size: 16px"></i>
-                                                        </a>
-                                                        <?php if (empty($value->on_hold_status) && $value->asap == 0) { ?>
-                                                            <a href="#" class="confirm_asap"
-                                                               onclick="markAsAsap(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                                <i class="fa fa-level-up position-center"
-                                                                   title="Mark as ASAP"
+                                                    <?php if (!$isSkipped): ?>
+                                                        <li style="display: flex; gap: 10px;">
+                                                        <?php if ($value->cancelled == 0 && $value->is_job_mode != 1) { ?>
+                                                            <a href="#" class="confirm_cancellation"
+                                                               onclick="cancelService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                <i class="fa fa-remove position-center"
+                                                                   title="Cancel Service"
                                                                    style="color: #9a9797; size: 16px"></i>
                                                             </a>
+                                                            <?php if (empty($value->on_hold_status) && $value->asap == 0) { ?>
+                                                                <a href="#" class="confirm_asap"
+                                                                   onclick="markAsAsap(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                    <i class="fa fa-level-up position-center"
+                                                                       title="Mark as ASAP"
+                                                                       style="color: #9a9797; size: 16px"></i>
+                                                                </a>
+                                                            <?php } ?>
+                                                            <?php if (empty($value->on_hold_status)) { ?>
+                                                                <a href="#" class="confirm_asap"
+                                                                   onclick="holdUntilService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                    <i class="fa fa-pause position-center"
+                                                                       title="Hold This Service"
+                                                                       style="color: #9a9797; size: 16px"></i>
+                                                                </a>
+                                                            <?php } else { ?>
+                                                                <a href="#" class="confirm_asap"
+                                                                   onclick="stopHoldingService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
+                                                                    <i class="fa fa-play position-center"
+                                                                       title="Stop Holding Service"
+                                                                       style="color: #9a9797; size: 16px"></i>
+                                                                </a>
+                                                            <?php } ?>
                                                         <?php } ?>
-                                                        <?php if (empty($value->on_hold_status)) { ?>
-                                                            <a href="#" class="confirm_asap"
-                                                               onclick="holdUntilService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                                <i class="fa fa-pause position-center"
-                                                                   title="Hold This Service"
-                                                                   style="color: #9a9797; size: 16px"></i>
-                                                            </a>
-                                                        <?php } else { ?>
-                                                            <a href="#" class="confirm_asap"
-                                                               onclick="stopHoldingService(<?= $value->property_id ?>,<?= $value->customer_id ?>,<?= $value->program_id ?>,<?= $value->job_id ?>)">
-                                                                <i class="fa fa-play position-center"
-                                                                   title="Stop Holding Service"
-                                                                   style="color: #9a9797; size: 16px"></i>
-                                                            </a>
-                                                        <?php } ?>
-                                                    <?php } ?>
-                                                    </li>
+                                                        </li>
+                                                    <?php endif;?>
                                                 </ul>
                                             </td>
                                             <?php if (isset($value->billing_type) && $value->billing_type == 1) { ?>

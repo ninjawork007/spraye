@@ -607,16 +607,34 @@ class AdminTbl_customer_model extends CI_Model{
         $query = $this->db->insert("reschedule_reasons", $param);
         return $this->db->insert_id();
     }
+
+    public function addSkipReasons($param) {
+        $query = $this->db->insert("skip_reasons", $param);
+        return $this->db->insert_id();
+    }
+
     public function editRescheduleReason($data, $where)
     {
         $this->db->where($where);
         return $this->db->update("reschedule_reasons", $data);
     }
 
+    public function editSkipReason($data, $where)
+    {
+        $this->db->where($where);
+        return $this->db->update("skip_reasons", $data);
+    }
+
     public function deleteRescheduleReason($where)
     {
         $this->db->where($where);
         return $this->db->delete("reschedule_reasons", $where);
+    }
+
+    public function deleteSkipReason($where)
+    {
+        $this->db->where($where);
+        return $this->db->delete("skip_reasons", $where);
     }
 
     public function getCancelReasons ($company_id) {
@@ -632,6 +650,15 @@ class AdminTbl_customer_model extends CI_Model{
       }
     public function getRescheduleReasonsList($company_id) {
         $this->db->from("reschedule_reasons");
+        $this->db->where('company_id', $company_id);
+        //die($this->db->last_query());
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
+
+    public function getSkipReasonsList($company_id) {
+        $this->db->from("skip_reasons");
         $this->db->where('company_id', $company_id);
         //die($this->db->last_query());
         $result = $this->db->get();

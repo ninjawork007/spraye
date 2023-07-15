@@ -1623,7 +1623,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 			  </div>
 			  <div class="col-lg-3 col-md-3 col-sm-12">
 				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
 					</div>
 			  </div>
 			  <div class="col-lg-3 col-md-3 col-sm-12">
@@ -1651,7 +1651,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 			  </div>
 			  <div class="col-lg-4 col-md-3 col-sm-12">
 				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
 					</div>
 			  </div>
 		  </div>
@@ -1671,7 +1671,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 			  </div>
 			  <div class="col-lg-4 col-md-3 col-sm-12">
 				  <div class="tecnician-btn" style="padding-bottom: 10px !important;">
-					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Skip Service/Reschedule</a>
+					<a class="btn-technician btn-reschedule" data-toggle="modal" data-target="#modal_reschedule"id='reschedulejob' >Reschedule</a>
 					</div>
 			  </div>
 		  </div>

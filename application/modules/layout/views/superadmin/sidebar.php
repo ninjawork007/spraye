@@ -20,7 +20,7 @@
                <li class="<?= $active_sidebar == "customer" ? "active" : "" ?>"><a href="<?= base_url('admin/customerList') ?>"><i class="icon-users"></i> <span>Customers</span></a></li>
                <li class="<?= $active_sidebar == "properties" ? "active" : "" ?>"><a href="<?= base_url('admin/propertyList') ?>"><i class="icon-office"></i> <span>Properties</span></a>
 				   <ul>
-					  <li class="<?= $active_sidebar == "program" ? "active" : "" ?>"><a href="<?= base_url('admin/propertyList') ?>"> <span>Properties</span></a></li>
+					  <li class="<?= $active_sidebar == "properties" ? "active" : "" ?>"><a href="<?= base_url('admin/propertyList') ?>"> <span>Properties</span></a></li>
 					  <li class="<?= $active_sidebar == "prospect" ? "active" : "" ?>"><a href="<?= base_url('admin/prospectProperty') ?>"> <span>Prospects</span></a></li>
 				   </ul>
             	</li>
@@ -68,6 +68,7 @@
                   <a href="#"><i class="icon-stack2"></i> <span>Reports</span></a>
                   <ul>
                     <li class="<?= $active_sidebar == "cancelReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/cancelReport');?>">Cancel Report</a></li>
+                    <li class="<?= $active_sidebar == "skippedServicesReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/skippedServicesReport');?>">Skipped Services Report</a></li>
                     <li class="<?= $active_sidebar == "marketingCustomerDataReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/marketingCustomerDataReport');?>">Marketing / Customer Data Report</a></li>
                     <li class="<?= $active_sidebar == "customerGrowthReport" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports/customerGrowthReport');?>">Customer Growth Analysis Report</a></li> 
                     <li class="<?= $active_sidebar == "reports" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/reports');?>" >Completed Service Log</a></li>

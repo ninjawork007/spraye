@@ -307,7 +307,7 @@
                       
 
                            <p>Hi <?= $user_details->user_first_name.' '.$user_details->user_last_name ?>,</p>
-                        <p>You have received payment of <b>$ <?= number_format($actual_total_amount, 2) ?></b> from <b><?= $invoice_details->first_name.' '.$invoice_details->last_name ?></b> against invoice no. <b><?= $invoice_details->invoice_id ?></b></p>
+                        <p>You have received payment of <b>$ <?= number_format($actual_total_amount, 2) ?></b> from <b><?= $customer_details['first_name'].' '.$customer_details['last_name'] ?></b> against invoice no. <b><?= $invoice_details->invoice_id ?></b></p>
                       </td>
                     </tr>
 

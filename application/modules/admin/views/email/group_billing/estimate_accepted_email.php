@@ -44,7 +44,7 @@
 
                          $html2  = str_replace("{PROGRAM_NAME}",'<b>Program</b> : '.$programData['program_name'].'<br>',$html);
 
-                         $html3  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$propertyData->property_address.'<br>',$html2);
+                         $html3  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.constructPropertyAddress($propertyData).'<br>',$html2);
 
                          $html4  = str_replace("{SCHEDULE_DATE}",'<b>Date</b> :'.$accepted_date.'<br>',$html3);
 

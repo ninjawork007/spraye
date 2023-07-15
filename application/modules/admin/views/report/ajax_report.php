@@ -46,7 +46,6 @@
 
 
                   <?php if (!empty($report_details)) {  foreach ($report_details as $value) { ?>
-
                       <tr>
                           <td><?= $value->user_first_name.' '.$value->user_last_name ?></td>
                           <td><?= $value->applicator_number ?></td>

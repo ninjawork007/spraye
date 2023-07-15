@@ -100,13 +100,16 @@ td:nth-child(2) {
                       <tr>
                         <th>Service Area</th>
                         <th>Total Services Assigned</th>
+                        <th>Total Services Scheduled</th>
                         <th>Total Services Completed</th>
                         <th>Total Service Outstanding</th>
                         <th>% Services Completed</th>
                         <th>Total Sqft</th>
+                        <th>Total Sqft Scheduled</th>
                         <th>Total Sqft Completed</th>
                         <th>Total Sqft Outstanding</th>
                         <th>% Sqft Completed</th>
+                        <th>Total Revenue Scheduled</th>
                         <th>Total Revenue Produced</th>
                         <th>Total Revenue Outstanding</th>
                         <th>% Revenue Produced</th>
@@ -117,7 +120,7 @@ td:nth-child(2) {
                   </tbody>
                   <tfoot align="right">
                     <tr>
-                      <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                      <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
                     </tr>
                   </tfoot>                  
               </table>
@@ -140,6 +143,7 @@ td:nth-child(2) {
     columns: [
       { data:  'service_area'},
       { data:  't_serv_assgn'},
+      { data:  't_serv_scheduled'},
       { data:  't_serv_comp'},
       { data:  't_serv_out'},
       { 
@@ -154,6 +158,13 @@ td:nth-child(2) {
         render: function(data, type) {
           var number = $.fn.dataTable.render.number( ','). display(data);
           return number;
+        }
+      },
+      {
+        data:  'total_sqft_scheduled',
+        render: function(data, type) {
+            var number = $.fn.dataTable.render.number( ','). display(data);
+            return number;
         }
       },
       { 
@@ -177,6 +188,13 @@ td:nth-child(2) {
           return number;
         }      
       },
+        {
+            data:  'total_rev_scheduled',
+            render: function(data, type) {
+                var number = $.fn.dataTable.render.number( ',', '.', 2, '$'). display(data);
+                return number;
+            }
+        },
       { 
         data:  'total_rev_prod',
         render: function(data, type) {
@@ -184,7 +202,7 @@ td:nth-child(2) {
           return number;
         }
       },
-      { 
+      {
         data:  'total_rev_out',
         render: function(data, type) {
           var number = $.fn.dataTable.render.number( ',', '.', 2, '$'). display(data);
@@ -228,22 +246,28 @@ td:nth-child(2) {
         .reduce( function (a, b) {
             return intVal(a) + intVal(b);
         }, 0 );
-      // # Total Services Compl
       var col2 = api
         .column( 2 )
         .data()
         .reduce( function (a, b) {
             return intVal(a) + intVal(b);
         }, 0 );
-      // # Total Services Out
+      // # Total Services Compl
       var col3 = api
         .column( 3 )
         .data()
         .reduce( function (a, b) {
             return intVal(a) + intVal(b);
         }, 0 );
+      // # Total Services Out
+      var col4 = api
+        .column( 4 )
+        .data()
+        .reduce( function (a, b) {
+            return intVal(a) + intVal(b);
+        }, 0 );
       // % Services Completed
-      var col4 = ( isNaN(( intVal( col2 ) / intVal( col1 )) * 100 )) ? 0 + '%' : Math.round(( intVal( col2 ) / intVal( col1 )) * 100 ) + '%';
+      var col5 = ( isNaN(( intVal( col3 ) / intVal( col1 )) * 100 )) ? 0 + '%' : Math.round(( intVal( col3 ) / intVal( col1 )) * 100 ) + '%';
       // var col4 = api
       //   .column( 4 )
       //   .data()
@@ -252,51 +276,57 @@ td:nth-child(2) {
       //   }, 0 );
       //   col4 = Math.round(((col4 / api.rows().count()) + Number.EPSILON) * 100) / 100 + '%';
       // # Total SqFt
-      var col5 = api
-        .column( 5 )
-        .data()
-        .reduce( function (a, b) {
-            return (intVal(a) + intVal(b)).toLocaleString("en-US");
-        }, 0 );
-      // # Total SqFt Completed 
       var col6 = api
         .column( 6 )
         .data()
         .reduce( function (a, b) {
             return (intVal(a) + intVal(b)).toLocaleString("en-US");
         }, 0 );
-      // Total SqFt Out
+      // # Total SqFt Completed 
       var col7 = api
         .column( 7 )
         .data()
         .reduce( function (a, b) {
             return (intVal(a) + intVal(b)).toLocaleString("en-US");
         }, 0 );
-      // % SqFt Completed
-      var col8 = ( isNaN(( intVal( col6 ) / intVal( col5 )) * 100 )) ? 0 + '%' : Math.round(( intVal( col6 ) / intVal( col5 )) * 100 ) + '%';
-      // var col8 = api
-      //   .column( 8 )
-      //   .data()
-      //   .reduce( function (a, b) {
-      //       return intVal(a) + intVal(b);
-      //   }, 0 );
-      //   col8 = Math.round(((col8 / api.rows().count()) + Number.EPSILON) * 100) / 100 + '%';
-      // # Total Rev Prod
+      // Total SqFt Out
+      var col8 = api
+        .column( 8 )
+        .data()
+        .reduce( function (a, b) {
+            return (intVal(a) + intVal(b)).toLocaleString("en-US");
+        }, 0 );
       var col9 = api
         .column( 9 )
+        .data()
+        .reduce( function (a, b) {
+            return (intVal(a) + intVal(b)).toLocaleString("en-US");
+        }, 0 );
+      // % SqFt Completed
+      var col10 = (  intVal( col6 ) == 0) ? 0 + '%' : Math.round(( intVal( col7 ) / intVal( col6 )) * 100 ) + '%';
+      // # Total Rev Schedule
+      var col11 = api
+        .column( 11 )
+        .data()
+        .reduce( function (a, b) {
+            return '$' + (intVal(a) + intVal(b)).toLocaleString("en-US",{ minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }, 0 );
+      // # Total Rev Prod
+      var col12 = api
+        .column( 12 )
         .data()
         .reduce( function (a, b) {
             return '$' + (intVal(a) + intVal(b)).toLocaleString("en-US",{ minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }, 0 );
       // Total Rev Out
-      var col10 = api
-        .column( 10 )
+      var col13 = api
+        .column( 13 )
         .data()
         .reduce( function (a, b) {
             return '$' + (intVal(a) + intVal(b)).toLocaleString("en-US",{ minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }, 0 );        
       // % Rev Prod
-      var col11 = ( isNaN( intVal( col9 ) / ( intVal( col9 ) + intVal( col10 )) * 100 )) ? 0 + '%' : Math.round(( intVal( col9 ) / ( intVal( col9 ) + intVal( col10 ))) * 100 ) + '%';
+      var col14 = ( isNaN( intVal( col12 ) / ( intVal( col12 ) + intVal( col13 )) * 100 )) ? 0 + '%' : Math.round(( intVal( col12 ) / ( intVal( col12 ) + intVal( col13 ))) * 100 ) + '%';
       // var col11 = api
       //   .column( 11 )
       //   .data()
@@ -317,6 +347,9 @@ td:nth-child(2) {
       $( api.column( 9 ).footer() ).html(col9);
       $( api.column( 10 ).footer() ).html(col10);
       $( api.column( 11 ).footer() ).html(col11);
+      $( api.column( 12 ).footer() ).html(col12);
+      $( api.column( 13 ).footer() ).html(col13);
+      $( api.column( 14 ).footer() ).html(col14);
     },
     
   });
