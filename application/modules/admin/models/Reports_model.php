@@ -137,9 +137,12 @@ class Reports_model extends CI_Model{
         }
 
 
+//        if(!empty($params['search']['technician_name'])){
+//
+//            $this->db->where("(`user_first_name` LIKE '%".$params['search']['technician_name']."%' OR `user_last_name` LIKE '%".$params['search']['technician_name']."%')");
+//        }
         if(!empty($params['search']['technician_name'])){
-
-            $this->db->where("(`user_first_name` LIKE '%".$params['search']['technician_name']."%' OR `user_last_name` LIKE '%".$params['search']['technician_name']."%')");
+            $this->db->where_in('technician_job_assign.user_id', $params['search']['technician_name']);
         }
 
 

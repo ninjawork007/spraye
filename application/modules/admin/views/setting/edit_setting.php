@@ -1762,6 +1762,33 @@ line-height: normal;
 
     <!-- ///////////////////////////////////////// end toggle assign job //////////////////////////////// -->
 
+            <!-- ///////////////////////////////////////// start toggle assign job //////////////////////////////// -->
+
+
+
+    <form class="form-horizontal form2" action="<?= base_url('admin/Admin/updatePopulationProductsAmount') ?>" method="post" name="populationProductsAmount" enctype="multipart/form-data">
+        <fieldset class="content-group">
+            <legend class="text-bold">Automatic Chemical Use Calculations</legend>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label class="togglebutton  col-lg-7" style="font-size:13px">
+                                Off&nbsp;<input name="toggle_population_products_amount" type="checkbox" class="switchery-automatic-chemical-calculation" <?php echo $setting_details->automatic_chemical_calculation == 1 ? 'checked' : '';  ?>>&nbsp;On
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </fieldset>
+        <div class="text-right">
+            <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
+        </div>
+    </form>
+
+    <!-- ///////////////////////////////////////// end toggle assign job //////////////////////////////// -->
+
     <!-- ///////////////////////////////////////// Invoice fee area //////////////////////////////// -->
     <form class="form-horizontal form2" action="<?= base_url('admin/setting/invoiceFees') ?>" method="post" name="setservicefees" enctype="multipart/form-data">
 
@@ -2445,7 +2472,7 @@ line-height: normal;
                         <label class="control-label col-lg-3">Your API Key</label>
                         <div class="col-lg-9">
                             <div class="input-group">
-                                <input type="text" class="form-control" name="signwell_api_key" placeholder="API Key" value="<?= $setting_details->signwell_api_key ?>">
+                                <input type="text" class="form-control" name="signwell_api_key" placeholder="API Key" value="<?= (isset($setting_details->signwell_api_key)?$setting_details->signwell_api_key:"") ?>">
                             </div>
                         </div>
                     </div>
@@ -2456,6 +2483,7 @@ line-height: normal;
             <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
         </div>
     </form>
+
 
     <div class="form1">
         <legend class="text-bold">Purchase Order Settings</legend>
@@ -2488,6 +2516,54 @@ line-height: normal;
             ?>
         </div>
     </div>
+
+    <form class="form-horizontal form2" action="<?= base_url('admin/setting/setVerizonSettings') ?>" method="post" name="setverizonsettings" enctype="multipart/form-data">
+        <fieldset class="content-group">
+            <legend class="text-bold">Verizon Connect</legend>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label col-lg-3">Username</label>
+                        <div class="col-lg-9">
+                            <input type="text" class="form-control" name="vc_username" placeholder="VC Username" value="<?= (isset($setting_details->vc_username)?$setting_details->vc_username:"") ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label col-lg-3">Password</label>
+                        <div class="col-lg-9">
+                            <input type="password" class="form-control" name="vc_password" placeholder="VC Password" value="<?= (isset($setting_details->vc_password)?$setting_details->vc_password:"") ?>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label col-lg-3">App ID</label>
+                        <div class="col-lg-9">
+                            <input type="text" class="form-control" name="vc_app_id" placeholder="App ID" value="<?= (isset($setting_details->vc_app_id)?$setting_details->vc_app_id:"") ?>">
+                        </div>
+                    </div>
+                </div>    
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <div class="checkbox">
+                        <label class="togglebutton" style="font-size:13px">
+                            Don't Show Vehicles&nbsp;<input name="vc_show_vehicle" type="checkbox" class="switchery" <?php echo $setting_details->vc_show_vehicle == 1 ? 'checked' : '';  ?>>&nbsp;Show Vehicles
+                        </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <div class="text-right">
+            <button type="submit" class="btn btn-success">Submit <i class="icon-arrow-right14 position-right"></i></button>
+        </div>
+    </form>
+
 </div>
 <!-- /form horizontal -->
 </div>
@@ -3362,6 +3438,18 @@ tags_input.onpaste = e => e.preventDefault();
                                 </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <label>Colour</label>
+                                    <select class="bootstrap-select  form-control" id="service_type_color" name="service_type_color">
+                                        <?php foreach($serviceTypeAllowedColors as $key=>$value): ?>
+                                            <option value="<?=$key?>" style="color: white; background-color: <?=$key?>;"><?=$value?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
                             <button type="submit" id="saveservicetype" class="btn btn-success">Save</button>
@@ -3602,6 +3690,18 @@ tags_input.onpaste = e => e.preventDefault();
                                         <option value="">Select Type</option>
                                         <option value="1">Primary</option>
                                         <option value="2">Secondary</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <label>Colour</label>
+                                    <select class="bootstrap-select  form-control" id="service_type_color" name="service_type_color">
+                                        <?php foreach($serviceTypeAllowedColors as $key=>$value): ?>
+                                            <option value="<?=$key?>" style="color: white; background-color: <?=$key?>;"><?=$value?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                             </div>
@@ -4513,6 +4613,12 @@ tags_input.onpaste = e => e.preventDefault();
     var switchery = new Switchery(job_assign, {
         color: '#36c9c9',
         secondaryColor: "#36c9c9",
+    });
+
+    var automatic_chemical_calculation = document.querySelector('.switchery-automatic-chemical-calculation');
+    var switchery = new Switchery(automatic_chemical_calculation, {
+        color: '#36c9c9',
+        secondaryColor: "#dfdfdf",
     });
 
     var tech_standalone = document.querySelector('.switchery-tech-add-standalone-service');

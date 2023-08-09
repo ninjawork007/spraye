@@ -308,7 +308,7 @@
 
                            <p>Hi <?= $user_details->user_first_name.' '.$user_details->user_last_name ?>,</p>
                            <?php if(isset($actual_total_amount)) { ?>
-                            <p>you have received payment of <b>$ <?= number_format($actual_total_amount, 2); ?></b> from <?= $customer_details['first_name'].' '.$customer_details['last_name'] ?> against invoice no. <b><?= $invoice_details[0]->invoice_id ?></b></p>
+                            <p>you have received payment of <b>$ <?= number_format($actual_total_amount, 2); ?></b> from <?= $invoice_details->first_name.' '.$invoice_details->last_name ?> against invoice no. <b><?= $invoice_details->invoice_id ?></b></p>
                            <?php } else { ?>
                         <p>you have received payment of <b>$ <?= number_format(($invoice_details->cost + $invoice_details->tax_amount + $invoice_details->convenience_fee - $invoice_details->partial_payment), 2); ?></b> from <?= $invoice_details->first_name.' '.$invoice_details->last_name ?> against invoice no. <b><?= $invoice_details->invoice_id ?></b></p>
                         <?php } ?>

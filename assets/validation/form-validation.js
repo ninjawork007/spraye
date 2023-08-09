@@ -1200,7 +1200,23 @@ $(function () {
         if (data.status == 200) {
           swal('Scheduled Services !', 'Updated Successfully ', 'success').then(
               function () {
-                location.reload();
+                if ($('input[name=changeview]')) {
+                  let checked = $('input[name=changeview]').prop("checked");
+                  let page = '';
+                  if (checked === true) {
+                    page = 'calendar';
+                  } else {
+                    page = 'schedule';
+                  }
+                  var url = window.location.href;
+
+                  var newParameter = 'page='+page;
+                  var newUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + newParameter;
+
+                  window.location.href = newUrl;
+                } else {
+                  location.reload();
+                }
               }
           );
         } else if (data.status == 400) {
@@ -1265,7 +1281,7 @@ $(function () {
     errorPlacement: function (error, element) {
       error.appendTo(element.parent('div').parent('div'));
     },
-    submitHandler: function (form) {
+    submitHandler: function (form, event) {
       $('#modal_mixture_application').modal('toggle');
       var is_group_billing = $('#is_group_billing').val();
       var basys_autocharge = $('#basys_autocharge').val();
@@ -1277,6 +1293,28 @@ $(function () {
       var post_url = $(form).attr('action');
       var request_method = $(form).attr('method'); //get form GET/POST method
       var form_data = $(form).serialize(); //Encode form elements for submission
+
+      event.stopPropagation();
+      event.preventDefault();
+      let requiredEmptyInputs = $('#productList input').filter(function() {
+        return this.value == '' && $(this).is(":visible");
+      }).length;
+
+      if (requiredEmptyInputs !== undefined && requiredEmptyInputs > 0) {
+
+        Swal.fire({
+          confirmButtonColor: '#d9534f',
+          type: 'warning',
+          title: 'Oops...',
+          text: "Please fill out product amount",
+          showDenyButton: true,
+          denyButtonText: `oK`,
+        }).then((result) => {
+          /* Read more about isConfirmed, isDenied below */
+          $("#completejob").click();
+        })
+        return;
+      }
 
       var program_price = document.getElementById('prog_price').value;
       if(program_price != 3 && basys_autocharge != 1 && customerEmail == 1 && clover_autocharge != 1 && is_group_billing !=1) {

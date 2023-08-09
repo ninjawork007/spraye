@@ -467,6 +467,7 @@ class Technician extends MY_Controller
         $wind = $this->getWindSpeed($data['property_details']->property_latitude, $data['property_details']->property_longitude);
 
         $data['current_wind_speed'] = $wind['speed'];
+        $data["automatic_chemical_calculation"] = $data['setting_details']->automatic_chemical_calculation;
 
         //get all services for property
 
@@ -499,7 +500,13 @@ class Technician extends MY_Controller
 
             $services[$key]['technician_job_assign_id'] = $row['technician_job_assign_id'];
             $services[$key]['product_details'] = $product_details;
-            $services[$key]['product_details_for_cal'] = $this->Tech->getAllProductDetails(array('job_id' => $jobAssign->job_id, 'mixture_application_rate !=' => 0, 'application_rate !=' => 0));
+            $productsDetailsForCal = $this->Tech->getAllProductDetails(array('job_id' => $jobAssign->job_id, 'mixture_application_rate !=' => 0, 'application_rate !=' => 0));
+            $services[$key]['no_products'] = false;
+            if (empty($productsDetailsForCal)) {
+                $productsDetailsForCal = $this->Tech->getAllProductDetails(array('mixture_application_rate !=' => 0, 'application_rate !=' => 0));
+                $services[$key]['no_products'] = true;
+            }
+            $services[$key]['product_details_for_cal'] = $productsDetailsForCal;
             $services[$key]['product_details_dif'] = $this->Tech->getAllProductDetails_diff(array('company_id' => $this->session->userdata['spraye_technician_login']->company_id));
 
             $services[$key]['job_details'] = $this->Tech->getJobDetails(array('job_id' => $jobAssign->job_id));
@@ -1997,123 +2004,124 @@ class Technician extends MY_Controller
                         //die(print_r($product_details));
                         if ($product_details) {
                             foreach ($product_details as $key => $value) {
-                                $param = array(
-                                    'report_id' => $report_id,
-                                    'product_id' => $value->product_id,
-                                    'product_name' => $value->product_name,
-                                    'epa_reg_nunber' => $value->epa_reg_nunber,
-                                    'weed_pest_prevented' => $value->weed_pest_prevented,
-                                    're_entry_time' => $value->re_entry_time,
-                                    'restricted_product' => $value->restricted_product
-                                );
-                                if ($value->application_method == 1) {
-                                    $param['application_method'] = 'Ride On';
-                                } else if ($value->application_method == 2) {
-                                    $param['application_method'] = 'Skid Spray';
-                                } else if ($value->application_method == 3) {
-                                    $param['application_method'] = 'Backback';
-                                } else if ($value->application_method == 4) {
-                                    $param['application_method'] = 'Walk Behind Spreader';
-                                }
-                                if ($value->application_type == 1) {
-                                    $param['application_type'] = 'Broadcast';
-                                } else if ($value->application_type == 2) {
-                                    $param['application_type'] = 'Spot Spray';
-                                } elseif ($value->application_type == 3) {
-                                    $param['application_type'] = 'Granular';
-                                }
-                                if ($value->chemical_type == 1) {
-                                    $param['chemical_type'] = 'Herbicide';
-                                } else if ($value->chemical_type == 2) {
-                                    $param['chemical_type'] = 'Fungicide';
-                                } else if ($value->chemical_type == 3) {
-                                    $param['chemical_type'] = 'Insecticide';
-                                } else if ($value->chemical_type == 4) {
-                                    $param['chemical_type'] = 'Fertilizer';
-                                } else if ($value->chemical_type == 5) {
-                                    $param['chemical_type'] = 'Wetting Agent';
-                                } else if ($value->chemical_type == 6) {
-                                    $param['chemical_type'] = 'Surfactant/Tank Additive';
-                                } else if ($value->chemical_type == 7) {
-                                    $param['chemical_type'] = 'Aquatics';
-                                } else if ($value->chemical_type == 8) {
-                                    $param['chemical_type'] = 'Growth Regulator';
-                                } else if ($value->chemical_type == 9) {
-                                    $param['chemical_type'] = 'Biostimulants';
-                                }
-                                $active_ingredients = array();
-                                $ingredientDatails = getActiveIngredient(array('product_id' => $value->product_id));
-                                if ($ingredientDatails) {
-                                    foreach ($ingredientDatails as $key2 => $value2) {
-                                        $active_ingredients[] = $value2->active_ingredient . ' : ' . $value2->percent_active_ingredient . ' %';
+                                if (in_array($value->product_id, array_keys($post_data[$technician_job_assign_id]))) {
+                                    $param = array(
+                                        'report_id' => $report_id,
+                                        'product_id' => $value->product_id,
+                                        'product_name' => $value->product_name,
+                                        'epa_reg_nunber' => $value->epa_reg_nunber,
+                                        'weed_pest_prevented' => $value->weed_pest_prevented,
+                                        're_entry_time' => $value->re_entry_time,
+                                        'restricted_product' => $value->restricted_product
+                                    );
+                                    if ($value->application_method == 1) {
+                                        $param['application_method'] = 'Ride On';
+                                    } else if ($value->application_method == 2) {
+                                        $param['application_method'] = 'Skid Spray';
+                                    } else if ($value->application_method == 3) {
+                                        $param['application_method'] = 'Backback';
+                                    } else if ($value->application_method == 4) {
+                                        $param['application_method'] = 'Walk Behind Spreader';
                                     }
-                                }
-                                $param['active_ingredients'] = implode(', ', $active_ingredients);
-                                if (!empty($value->application_rate) && $value->application_rate != 0) {
-                                    $param['application_rate'] = $value->application_rate . ' ' . $value->application_unit . ' / ' . $value->application_per;
-                                }
-                                $param['estimate_of_pesticide_used'] = amountOfChemicalUsed($value, $post_data[$technician_job_assign_id], $oneJobDetails->yard_square_feet);
-                                $param['amount_of_mixture_applied'] = $post_data[$technician_job_assign_id][$value->product_id] . ' ' . $value->mixture_application_unit;
+                                    if ($value->application_type == 1) {
+                                        $param['application_type'] = 'Broadcast';
+                                    } else if ($value->application_type == 2) {
+                                        $param['application_type'] = 'Spot Spray';
+                                    } elseif ($value->application_type == 3) {
+                                        $param['application_type'] = 'Granular';
+                                    }
+                                    if ($value->chemical_type == 1) {
+                                        $param['chemical_type'] = 'Herbicide';
+                                    } else if ($value->chemical_type == 2) {
+                                        $param['chemical_type'] = 'Fungicide';
+                                    } else if ($value->chemical_type == 3) {
+                                        $param['chemical_type'] = 'Insecticide';
+                                    } else if ($value->chemical_type == 4) {
+                                        $param['chemical_type'] = 'Fertilizer';
+                                    } else if ($value->chemical_type == 5) {
+                                        $param['chemical_type'] = 'Wetting Agent';
+                                    } else if ($value->chemical_type == 6) {
+                                        $param['chemical_type'] = 'Surfactant/Tank Additive';
+                                    } else if ($value->chemical_type == 7) {
+                                        $param['chemical_type'] = 'Aquatics';
+                                    } else if ($value->chemical_type == 8) {
+                                        $param['chemical_type'] = 'Growth Regulator';
+                                    } else if ($value->chemical_type == 9) {
+                                        $param['chemical_type'] = 'Biostimulants';
+                                    }
+                                    $active_ingredients = array();
+                                    $ingredientDatails = getActiveIngredient(array('product_id' => $value->product_id));
+                                    $param['active_ingredients'] = '';
+                                    if ($ingredientDatails) {
+                                        foreach ($ingredientDatails as $key2 => $value2) {
+                                            $active_ingredients[] = $value2->active_ingredient . ' : ' . $value2->percent_active_ingredient . ' %';
+                                        }
+                                        $param['active_ingredients'] = implode(', ', $active_ingredients);
+                                    }
+                                    if (!empty($value->application_rate) && $value->application_rate != 0) {
+                                        $param['application_rate'] = $value->application_rate . ' ' . $value->application_unit . ' / ' . $value->application_per;
+                                    }
+                                    $param['estimate_of_pesticide_used'] = amountOfChemicalUsed($value, $post_data[$technician_job_assign_id], $oneJobDetails->yard_square_feet);
+                                    $param['amount_of_mixture_applied'] = $post_data[$technician_job_assign_id][$value->product_id] . ' ' . $value->mixture_application_unit;
 
-                                $item_info = $this->Tech->getItemInfoByProductId($value->product_id);
+                                    $item_info = $this->Tech->getItemInfoByProductId($value->product_id);
 
-                                $tech_id = $oneJobDetails->id;
+                                    $tech_id = $oneJobDetails->id;
 
-                                $fleet_info = $this->Tech->getFleetInfoByAssignedUser($tech_id);
-                                // die(print_r($fleet_info));
-                                $sub_info = '';
+                                    $fleet_info = $this->Tech->getFleetInfoByAssignedUser($tech_id);
+                                    // die(print_r($fleet_info));
+                                    $sub_info = '';
 
-                                $fleet_id = '';
+                                    $fleet_id = '';
 
-                                if (!empty($fleet_info)) {
-                                    $fleet_id = $fleet_info->fleet_id;
-                                }
+                                    if (!empty($fleet_info)) {
+                                        $fleet_id = $fleet_info->fleet_id;
+                                    }
 
-                                if ($fleet_id != '') {
-                                    $sub_info = $this->Tech->getFleetSubLocationInfo($fleet_id);
-                                }
+                                    if ($fleet_id != '') {
+                                        $sub_info = $this->Tech->getFleetSubLocationInfo($fleet_id);
+                                    }
 
-                                // die(print_r($item_info));
-                                // die(print_r($sub_info));
-                                if (!empty($sub_info)) {
+                                    // die(print_r($item_info));
+                                    // die(print_r($sub_info));
+                                    if (!empty($sub_info)) {
 
 
-                                    if (!empty($item_info)) {
-                                        foreach ($item_info as $info) {
+                                        if (!empty($item_info)) {
+                                            foreach ($item_info as $info) {
 
-                                            $item_id = $info->item_id;
-                                            $sub_id = $sub_info->sub_location_id;
-                                            $item_unit_type = $info->unit_type;
-                                            $item_unit_amount = $info->unit_amount;
-                                            $product_type = $info->product_type;
-                                            $product_unit_type = $info->application_unit;
-                                            //   die(print_r($item_unit_type));
-                                            $product_app_rate = $info->application_rate;
-                                            $product_mix_rate = $info->mixture_application_rate;
+                                                $item_id = $info->item_id;
+                                                $sub_id = $sub_info->sub_location_id;
+                                                $item_unit_type = $info->unit_type;
+                                                $item_unit_amount = $info->unit_amount;
+                                                $product_type = $info->product_type;
+                                                $product_unit_type = $info->application_unit;
+                                                //   die(print_r($item_unit_type));
+                                                $product_app_rate = $info->application_rate;
+                                                $product_mix_rate = $info->mixture_application_rate;
 
-                                            $amount_used = explode(' ', $param['amount_of_mixture_applied'])[0];
+                                                $amount_used = explode(' ', $param['amount_of_mixture_applied'])[0];
 
-                                            $current_quantity = $this->Tech->getCurrentItemQuantityInSubLocation($item_id, $sub_id);
+                                                $current_quantity = $this->Tech->getCurrentItemQuantityInSubLocation($item_id, $sub_id);
 
-                                            if ($current_quantity->quantity > 0) {
+                                                if ($current_quantity->quantity > 0) {
 
-                                                $amount_converted = ($amount_used / $product_mix_rate) * $product_app_rate;
+                                                    $amount_converted = ($amount_used / $product_mix_rate) * $product_app_rate;
 
-                                                $amount_item_converted = unitConversion($amount_converted, $item_unit_type, $product_unit_type, $product_type);
-                                                $new_quantity = $current_quantity->quantity - ($amount_item_converted / $item_unit_amount);
-                                                $this->db->where('quantity_id', $current_quantity->quantity_id);
-                                                $this->db->update('quantities', array('quantity' => $new_quantity));
+                                                    $amount_item_converted = unitConversion($amount_converted, $item_unit_type, $product_unit_type, $product_type);
+                                                    $new_quantity = $current_quantity->quantity - ($amount_item_converted / $item_unit_amount);
+                                                    $this->db->where('quantity_id', $current_quantity->quantity_id);
+                                                    $this->db->update('quantities', array('quantity' => $new_quantity));
 
+                                                }
                                             }
                                         }
                                     }
+                                    $this->db->insert("report_product", $param);
+                                    //die(print_r($param));
+                                    //$this->modify_product_inventory($param['product_id'], $param['estimate_of_pesticide_used']);
                                 }
-                                $this->db->insert("report_product", $param);
-                                //die(print_r($param));
-                                //$this->modify_product_inventory($param['product_id'], $param['estimate_of_pesticide_used']);
-
                             }
-
                         }
                     }
 
@@ -2791,7 +2799,7 @@ class Technician extends MY_Controller
 
                 //webhook_trigger
                 $user_info = $this->Administrator->getOneAdmin(array("user_id" => $this->session->userdata('user_id')));
-                if ($user_info->webhook_service_completed) {
+                if (isset($user_info->webhook_service_completed) && $user_info->webhook_service_completed) {
                     $this->load->model('api/Webhook');
                     $webhook_data = ['property_id' => $data->property_id, 'property_name' => $report_data['property_title'], 'property_address' => $report_data['property_address'], 'property_square_footage' => $report_data['yard_square_feet'], 'program_id' => $report_data['program_id'], 'service_name' => $report_data['program_name'], 'customer_email' => $customer_details['email'], 'customer_name' => $customer_details['first_name'] . " " . $customer_details['last_name'], 'address' => $customer_details['billing_street'] . " " . $customer_details['billing_city'] . ", " . $customer_details['billing_state'] . " " . $customer_details['billing_zipcode'], 'phone' => $customer_details['phone']];
                     $response = $this->Webhook->callTrigger($user_info->webhook_service_completed, $webhook_data);
@@ -4302,158 +4310,160 @@ class Technician extends MY_Controller
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $company_id));
 
         $tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax($where);
+        
+        // ////////////////////////////////////
 
-        ////////////////////////////////////
+        // // START INVOICE CALCULATION COST //
 
-        // START INVOICE CALCULATION COST //
+        // $tmp_invoice_id = $invoice_id;
 
-        $tmp_invoice_id = $invoice_id;
+        // // invoice cost
+        // // $invoice_total_cost = $invoice->cost;
+        // // cost of all services (with price overrides) - service coupons
+        // $job_cost_total = 0;
+        // $where = array(
+        //     'property_program_job_invoice.invoice_id' => $tmp_invoice_id
+        // );
 
-        // invoice cost
-        // $invoice_total_cost = $invoice->cost;
-        // cost of all services (with price overrides) - service coupons
-        $job_cost_total = 0;
-        $where = array(
-            'property_program_job_invoice.invoice_id' => $tmp_invoice_id
-        );
+        // $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
 
-        $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
 
+        // if (!empty($proprojobinv)) {
 
-        if (!empty($proprojobinv)) {
+        //     foreach ($proprojobinv as $job) {
 
-            foreach ($proprojobinv as $job) {
+        //         $job_cost = $job['job_cost'];
+        //         $job_where = array(
 
-                $job_cost = $job['job_cost'];
-                $job_where = array(
+        //             'job_id' => $job['job_id'],
+        //             'customer_id' => $job['customer_id'],
+        //             'property_id' => $job['property_id'],
+        //             'program_id' => $job['program_id']
 
-                    'job_id' => $job['job_id'],
-                    'customer_id' => $job['customer_id'],
-                    'property_id' => $job['property_id'],
-                    'program_id' => $job['program_id']
+        //         );
 
-                );
+        //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
+        //         if (!empty($coupon_job_details)) {
 
-                if (!empty($coupon_job_details)) {
+        //             foreach ($coupon_job_details as $coupon) {
 
-                    foreach ($coupon_job_details as $coupon) {
+        //                 // $nestedData['email'] = json_encode($coupon->coupon_amount);
 
-                        // $nestedData['email'] = json_encode($coupon->coupon_amount);
+        //                 $coupon_job_amm_total = 0;
 
-                        $coupon_job_amm_total = 0;
+        //                 $coupon_job_amm = $coupon->coupon_amount;
 
-                        $coupon_job_amm = $coupon->coupon_amount;
+        //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
 
-                        $coupon_job_calc = $coupon->coupon_amount_calculation;
 
+        //                 if ($coupon_job_calc == 0) { // flat amm
 
-                        if ($coupon_job_calc == 0) { // flat amm
+        //                     $coupon_job_amm_total = (float)$coupon_job_amm;
 
-                            $coupon_job_amm_total = (float)$coupon_job_amm;
+        //                 } else { // percentage
 
-                        } else { // percentage
+        //                     $coupon_job_amm_total = ((float)$coupon_job_amm / 100) * $job_cost;
 
-                            $coupon_job_amm_total = ((float)$coupon_job_amm / 100) * $job_cost;
+        //                 }
 
-                        }
 
+        //                 $job_cost = $job_cost - $coupon_job_amm_total;
 
-                        $job_cost = $job_cost - $coupon_job_amm_total;
 
+        //                 if ($job_cost < 0) {
 
-                        if ($job_cost < 0) {
+        //                     $job_cost = 0;
 
-                            $job_cost = 0;
+        //                 }
 
-                        }
+        //             }
 
-                    }
+        //         }
 
-                }
 
+        //         $job_cost_total += $job_cost;
 
-                $job_cost_total += $job_cost;
+        //     }
 
-            }
+        //     $invoice_total_cost = $job_cost_total;
 
-            $invoice_total_cost = $job_cost_total;
+        // } else {
 
-        } else {
+        //     $invoice_total_cost = $invoice_details->cost;
 
-            $invoice_total_cost = $invoice_details->cost;
+        // }
 
-        }
+        // // - invoice coupons
 
-        // - invoice coupons
+        // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id));
 
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id));
+        // foreach ($coupon_invoice_details as $coupon_invoice) {
 
-        foreach ($coupon_invoice_details as $coupon_invoice) {
+        //     if (!empty($coupon_invoice)) {
 
-            if (!empty($coupon_invoice)) {
+        //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
 
-                $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+        //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
-                $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
+        //         if ($coupon_invoice_amm_calc == 0) { // flat amm
 
-                if ($coupon_invoice_amm_calc == 0) { // flat amm
+        //             $invoice_total_cost -= (float)$coupon_invoice_amm;
 
-                    $invoice_total_cost -= (float)$coupon_invoice_amm;
+        //         } else { // percentage
 
-                } else { // percentage
+        //             $coupon_invoice_amm = ((float)$coupon_invoice_amm / 100) * $invoice_total_cost;
 
-                    $coupon_invoice_amm = ((float)$coupon_invoice_amm / 100) * $invoice_total_cost;
+        //             $invoice_total_cost -= $coupon_invoice_amm;
 
-                    $invoice_total_cost -= $coupon_invoice_amm;
+        //         }
 
-                }
+        //         if ($invoice_total_cost < 0) {
 
-                if ($invoice_total_cost < 0) {
+        //             $invoice_total_cost = 0;
 
-                    $invoice_total_cost = 0;
+        //         }
 
-                }
+        //     }
 
-            }
+        // }
 
-        }
+        // // + tax cost
 
-        // + tax cost
+        // $invoice_total_tax = 0;
 
-        $invoice_total_tax = 0;
+        // $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id));
 
-        $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id));
+        // if (!empty($invoice_sales_tax_details)) {
 
-        if (!empty($invoice_sales_tax_details)) {
+        //     foreach ($invoice_sales_tax_details as $tax) {
 
-            foreach ($invoice_sales_tax_details as $tax) {
+        //         if (array_key_exists("tax_value", $tax)) {
 
-                if (array_key_exists("tax_value", $tax)) {
+        //             $tax_amm_to_add = ((float)$tax['tax_value'] / 100) * $invoice_total_cost;
 
-                    $tax_amm_to_add = ((float)$tax['tax_value'] / 100) * $invoice_total_cost;
+        //             $invoice_total_tax += $tax_amm_to_add;
 
-                    $invoice_total_tax += $tax_amm_to_add;
+        //         }
 
-                }
+        //     }
 
-            }
+        // }
 
-        }
+        $invoice_cost_data = calculateInvoiceCost($invoice_details);
 
-        $invoice_total_cost += $invoice_total_tax;
+        $invoice_total_cost = $invoice_cost_data->balance_due;
 
-        $total_tax_amount = $invoice_total_tax;
+        $total_tax_amount = $invoice_cost_data->invoice_total_tax;
 
 
         // WITH COUPONS CALC
+        
+        $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_total_cost) / 100), 2);
 
-        $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_total_cost - $invoice_details->partial_payment) / 100), 2);
-
-        $total_amount = $invoice_total_cost + $convenience_fee - $invoice_details->partial_payment;
+        $total_amount = $invoice_total_cost + $convenience_fee;
 
 
         $order_id = (string)strtotime("now");
@@ -4582,30 +4592,32 @@ class Technician extends MY_Controller
             if ($result['data']['response_code'] == 100) {
 
                 //if payment is successful and approved
-
-
+                $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
+                    'invoice_id' => $invoice_id,
+                    'payment_amount' => $invoice_cost_data->balance_due,
+                    'payment_applied' => $invoice_cost_data->balance_due,
+                    'payment_datetime' => date("Y-m-d H:i:s"),
+                    'payment_method' => 2,
+                    'customer_id' => $invoice_details->customer_id,
+                ));
+                //KT and EE add status, opened_date, and sent date
                 $updatearr = array(
-
                     'payment_status' => 2,
-
-                    'status' => 1,
-
-                    'basys_transaction_id' => $result['data']['id'],
-
                     'payment_created' => date("Y-m-d H:i:s"),
-
-                    'partial_payment' => $invoice_details->cost + $total_tax_amount + $invoice_details->partial_payment,
-
-                    'basys_order_id' => $order_id
-
+                    'payment_method' => 2,
+                    'partial_payment' => $invoice_cost_data->balance_due + $invoice_cost_data->partial,
+                    'basys_order_id' => $order_id,
+                    'basys_transaction_id' => $result['data']['id'],
+                    'refund_amount_total' => 0.00,
+                    'status' => 2,
+                    'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
+                    'sent_date' => $invoice_details->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->sent_date
                 );
-
-                $this->INV->updateInvovice(array('invoice_id' => $invoice_id), $updatearr);
+                $this->INV->updateInvoive(array('invoice_id' => $invoice_id), $updatearr);
 
                 //send email to company admin
 
                 $data['user_details'] = $this->CompanyModel->getOneAdminUser(array('company_id' => $company_id, 'role_id' => 1));
-
 
                 $data['setting_details'] = $setting_details;
 
@@ -6233,155 +6245,157 @@ class Technician extends MY_Controller
         $tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax($where);
         ////////////////////////////////////
 
-        // START INVOICE CALCULATION COST //
+        // // START INVOICE CALCULATION COST //
 
-        $tmp_invoice_id = $invoice_id;
+        // $tmp_invoice_id = $invoice_id;
 
 
-        $job_cost_total = 0;
+        // $job_cost_total = 0;
 
-        $where = array(
+        // $where = array(
 
-            'property_program_job_invoice.invoice_id' => $tmp_invoice_id
+        //     'property_program_job_invoice.invoice_id' => $tmp_invoice_id
 
-        );
+        // );
 
-        $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
+        // $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
 
-        if (!empty($proprojobinv)) {
+        // if (!empty($proprojobinv)) {
 
-            foreach ($proprojobinv as $job) {
+        //     foreach ($proprojobinv as $job) {
 
-                $job_cost = $job['job_cost'];
+        //         $job_cost = $job['job_cost'];
 
-                $job_where = array(
+        //         $job_where = array(
 
-                    'job_id' => $job['job_id'],
+        //             'job_id' => $job['job_id'],
 
-                    'customer_id' => $job['customer_id'],
+        //             'customer_id' => $job['customer_id'],
 
-                    'property_id' => $job['property_id'],
+        //             'property_id' => $job['property_id'],
 
-                    'program_id' => $job['program_id']
+        //             'program_id' => $job['program_id']
 
-                );
+        //         );
 
-                $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+        //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                if (!empty($coupon_job_details)) {
+        //         if (!empty($coupon_job_details)) {
 
-                    foreach ($coupon_job_details as $coupon) {
+        //             foreach ($coupon_job_details as $coupon) {
 
-                        // $nestedData['email'] = json_encode($coupon->coupon_amount);
+        //                 // $nestedData['email'] = json_encode($coupon->coupon_amount);
 
-                        $coupon_job_amm_total = 0;
+        //                 $coupon_job_amm_total = 0;
 
-                        $coupon_job_amm = $coupon->coupon_amount;
+        //                 $coupon_job_amm = $coupon->coupon_amount;
 
-                        $coupon_job_calc = $coupon->coupon_amount_calculation;
+        //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
 
 
-                        if ($coupon_job_calc == 0) { // flat amm
+        //                 if ($coupon_job_calc == 0) { // flat amm
 
-                            $coupon_job_amm_total = (float)$coupon_job_amm;
+        //                     $coupon_job_amm_total = (float)$coupon_job_amm;
 
-                        } else { // percentage
+        //                 } else { // percentage
 
-                            $coupon_job_amm_total = ((float)$coupon_job_amm / 100) * $job_cost;
+        //                     $coupon_job_amm_total = ((float)$coupon_job_amm / 100) * $job_cost;
 
-                        }
+        //                 }
 
-                        $job_cost = $job_cost - $coupon_job_amm_total;
+        //                 $job_cost = $job_cost - $coupon_job_amm_total;
 
-                        if ($job_cost < 0) {
+        //                 if ($job_cost < 0) {
 
-                            $job_cost = 0;
+        //                     $job_cost = 0;
 
-                        }
-                    }
-                }
+        //                 }
+        //             }
+        //         }
 
-                $job_cost_total += $job_cost;
+        //         $job_cost_total += $job_cost;
 
-            }
+        //     }
 
-            $invoice_total_cost = $job_cost_total;
+        //     $invoice_total_cost = $job_cost_total;
 
-        } else {
+        // } else {
 
-            $invoice_total_cost = $invoice_details->cost;
+        //     $invoice_total_cost = $invoice_details->cost;
 
-        }
+        // }
 
 
-        // check price override -- any that are not stored in just that ^^.
+        // // check price override -- any that are not stored in just that ^^.
 
 
-        // - invoice coupons
+        // // - invoice coupons
 
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id));
+        // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id));
 
-        foreach ($coupon_invoice_details as $coupon_invoice) {
+        // foreach ($coupon_invoice_details as $coupon_invoice) {
 
-            if (!empty($coupon_invoice)) {
+        //     if (!empty($coupon_invoice)) {
 
-                $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+        //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
 
-                $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+        //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
 
-                if ($coupon_invoice_amm_calc == 0) { // flat amm
+        //         if ($coupon_invoice_amm_calc == 0) { // flat amm
 
-                    $invoice_total_cost -= (float)$coupon_invoice_amm;
+        //             $invoice_total_cost -= (float)$coupon_invoice_amm;
 
-                } else { // percentage
+        //         } else { // percentage
 
-                    $coupon_invoice_amm = ((float)$coupon_invoice_amm / 100) * $invoice_total_cost;
+        //             $coupon_invoice_amm = ((float)$coupon_invoice_amm / 100) * $invoice_total_cost;
 
-                    $invoice_total_cost -= $coupon_invoice_amm;
+        //             $invoice_total_cost -= $coupon_invoice_amm;
 
-                }
+        //         }
 
-                if ($invoice_total_cost < 0) {
+        //         if ($invoice_total_cost < 0) {
 
-                    $invoice_total_cost = 0;
+        //             $invoice_total_cost = 0;
 
-                }
+        //         }
 
-            }
+        //     }
 
-        }
+        // }
 
 
-        //   //Resetting invoice_total_cost with installment_amount
-        //   if($installment_amount != 0){
-        //     $invoice_total_cost = $installment_amount;
-        //   }
-        // + tax cost
+        // //   //Resetting invoice_total_cost with installment_amount
+        // //   if($installment_amount != 0){
+        // //     $invoice_total_cost = $installment_amount;
+        // //   }
+        // // + tax cost
 
-        $invoice_total_tax = 0;
+        // $invoice_total_tax = 0;
 
-        $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id));
+        // $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id));
 
-        if (!empty($invoice_sales_tax_details)) {
+        // if (!empty($invoice_sales_tax_details)) {
 
-            foreach ($invoice_sales_tax_details as $tax) {
+        //     foreach ($invoice_sales_tax_details as $tax) {
 
-                if (array_key_exists("tax_value", $tax)) {
+        //         if (array_key_exists("tax_value", $tax)) {
 
-                    $tax_amm_to_add = ((float)$tax['tax_value'] / 100) * $invoice_total_cost;
+        //             $tax_amm_to_add = ((float)$tax['tax_value'] / 100) * $invoice_total_cost;
 
-                    $invoice_total_tax += $tax_amm_to_add;
+        //             $invoice_total_tax += $tax_amm_to_add;
 
-                }
+        //         }
 
-            }
+        //     }
 
-        }
+        // }
 
-        $invoice_total_cost += $invoice_total_tax;
+        $invoice_cost_data = calculateInvoiceCost($invoice_details);
 
-        $total_tax_amount = $invoice_total_tax;
+        $invoice_total_cost = $invoice_cost_data->balance_due;
+
+        $total_tax_amount = $invoice_cost_data->invoice_total_tax;
 
 
         // END TOTAL INVOICE CALCULATION COST //
@@ -6390,9 +6404,9 @@ class Technician extends MY_Controller
 
         // WITH COUPONS CALC
 
-        $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_total_cost - $invoice_details->partial_payment) / 100), 2);
+        $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_total_cost) / 100), 2);
 
-        $total_amount = $invoice_total_cost + $convenience_fee - $invoice_details->partial_payment;
+        $total_amount = $invoice_total_cost + $convenience_fee;
 
         $order_id = (string)strtotime("now");
 
@@ -6441,25 +6455,29 @@ class Technician extends MY_Controller
             if (strcmp($cc_authorize['result']->respstat, 'A') == 0) {
 
                 //if payment is successful and approved
-
-
+                $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
+                    'invoice_id' => $invoice_id,
+                    'payment_amount' => $invoice_cost_data->balance_due,
+                    'payment_applied' => $invoice_cost_data->balance_due,
+                    'payment_datetime' => date("Y-m-d H:i:s"),
+                    'payment_method' => 4,
+                    'customer_id' => $invoice_details->customer_id,
+                ));
+                //KT and EE add status, opened_date, and sent date
                 $updatearr = array(
-
                     'payment_status' => 2,
-
-                    'status' => 1,
-
-                    'clover_transaction_id' => $cc_authorize['result']->retref,
-
                     'payment_created' => date("Y-m-d H:i:s"),
-
-                    'partial_payment' => $invoice_details->cost + $total_tax_amount + $invoice_details->partial_payment,
-
-                    'clover_order_id' => $order_id
-
+                    'payment_method' => 4,
+                    'partial_payment' => $invoice_cost_data->balance_due + $invoice_cost_data->partial,
+                    'clover_order_id' => $order_id,
+                    'clover_transaction_id' => $cc_authorize['result']->retref,
+                    'refund_amount_total' => 0.00,
+                    'status' => 2,
+                    'opened_date' => $invoice_details->opened_date == '' ? date("Y-m-d H:i:s") : $invoice_details->opened_date,
+                    'sent_date' => $invoice_details->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice_details->sent_date
                 );
 
-                $this->INV->updateInvovice(array('invoice_id' => $invoice_id), $updatearr);
+                $this->INV->updateInvoive(array('invoice_id' => $invoice_id), $updatearr);
 
 
                 //for installment payment
@@ -7327,6 +7345,9 @@ class Technician extends MY_Controller
 
     {
 
+        ini_set( 'upload_max_size' , '256M' );
+        ini_set( 'post_max_size', '256M');
+        ini_set( 'memory_limit', '-1');
         $data = (empty($data)) ? $this->input->post() : $data;
 
         $post_data = $this->input->post();
@@ -7416,6 +7437,10 @@ class Technician extends MY_Controller
     public function addNoteFilesAjax($noteId)
 
     {
+        
+        ini_set( 'upload_max_size' , '256M' );
+        ini_set( 'post_max_size', '256M');
+        ini_set( 'memory_limit', '-1');
 
         if (!empty($_FILES['files']['name'])) {
 

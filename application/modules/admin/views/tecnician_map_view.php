@@ -226,7 +226,7 @@ echo                  '<div class="col-lg-12 col-md-12 col-sm-12">
 
 var showmap = true;
 $('#routeMap').show();
-var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+var resturl = 'https://optimizer.routesavvy.com/RSAPI.svc/';
 
 function post_BasicOptimizeStops() {
 

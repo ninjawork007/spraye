@@ -791,4 +791,14 @@ class AdminTbl_company_model extends CI_Model{
         $data = $result->row();
         return $data;
     }
+
+    public function getVerizonInformation($company_id)
+    {
+      $this->db->select("vc_username, vc_password, vc_app_id");
+      $this->db->from('t_company');
+      $this->db->where('company_id', $company_id);
+      $result = $this->db->get();
+      $data = $result->result();
+      return $data;
+    }
 }

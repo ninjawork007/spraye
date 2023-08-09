@@ -140,26 +140,9 @@ a {
                                   <div class="form-group has-feedback has-feedback-left card-form">
                                       
                                   </div>
-
-
-
                                   <div class="form-group login-options">
                                       <div class="row">
-                                      <?php
-
-                                        $total_tax_amount = 0; 
-
-
-                                        if ($tax_details) {
-                
-                                          $total_tax_amount =  array_sum(array_column($tax_details, 'tax_amount')) ; 
-                                        }
-                                        // die(print_r($total_tax_amount));
-                                       $convenience_fee = $setting_details->convenience_fee*($invoice_details->cost + $total_tax_amount - $invoice_details->partial_payment)/100;
-                                       $total_payment_final = $actual_total_cost_miunus_partial + $convenience_fee - $invoice_details->partial_payment;
-
-                                       ?>
-                                      <span class="text-center no-margin" >Total Amount : <b>$<?= number_format($total_payment_final,2)  ?></b></span>
+                                      <span class="text-center no-margin" >Total Amount : <b>$<?= number_format($actual_total_cost_miunus_partial,2)  ?></b></span>
                                   
                                       </div>
                                   </div>    
@@ -250,10 +233,11 @@ a {
 
         <script>
      var example = new Tokenizer({
+      url: '<?= BASYS_URL ?>',
   apikey: '<?= $basys_details->publuc_key ?>',
   container: document.querySelector('.card-form'),
   submission: (resp) => {
-
+    console.log(resp);
           // Figure out what response you got back
     switch(resp.status) {
       case 'success':
@@ -284,7 +268,7 @@ a {
                    }, 2000);
 
  
-                } else if (response.status==400)  {
+                } else if (response.status == 400)  {
 
                  swal({
                      type: 'error',
@@ -305,7 +289,6 @@ a {
              error: function(response) {
                  console.log(response);
                 $("#loading").css("display","none");
- 
                  swal({
                      type: 'error',
                      title: 'Oops...',
@@ -319,11 +302,11 @@ a {
         break;
       case 'error':
         // Encountered an error while performing submission
-        console.log(resp.message)
+        console.log(resp.msg)
           swal({
                           type: 'error',
                           title: 'Oops...',
-                          text: resp.message
+                          text: resp.msg
               })
 
         break;

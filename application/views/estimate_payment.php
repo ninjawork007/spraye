@@ -309,6 +309,7 @@ a {
 
         <script>
      var example = new Tokenizer({
+      url: '<?= BASYS_URL ?>',
   apikey: '<?= $basys_details->publuc_key ?>',
   container: document.querySelector('.card-form'),
   submission: (resp) => {

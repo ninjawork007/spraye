@@ -679,6 +679,15 @@ class AdminTbl_customer_model extends CI_Model{
         $data = $result->result();
         return $data;
     }
+    public function getRescheduleReasonsListWhere($where_arr = '') {
+        $this->db->from("reschedule_reasons");
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+        $result = $this->db->get();
+        $data = $result->row();
+        return $data;
+    }
 
     public function getSkipReasonsList($company_id) {
         $this->db->from("skip_reasons");

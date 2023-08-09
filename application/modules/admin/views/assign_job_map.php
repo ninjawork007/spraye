@@ -1,10 +1,158 @@
 <style>
+    body, html {
+        overflow-x: hidden!important;
+    }
+    @media (max-width: 1920px) and (max-height: 1080px) {
+        .overflow-hidden {
+            overflow-x: hidden;
+        }
+    }
+    .wrapper.modal-body {
+        background: white!important;
+    }
+    .wrapper {
+        display: flex;
+        width: 100%;
+        align-items: flex-start;
+        position: absolute;
+        z-index: 2;
+        justify-content: flex-end;
+        height: 63vh;
+        overflow-y: auto;
+        width: 583px;
+        left: 69%;
+    }
+
+    .wrapper.inactive {
+        /*width: 50px!important;*/
+        /*height: 25px!important;*/
+        /*left: 98%!important;*/
+        width: 155px!important;
+        height: 40px!important;
+        left: 93%!important;
+    }
+
+
+    @media (max-width: 1538px) and (max-height: 826px) {
+        .wrapper {
+            height: 63vh!important; /* Adjust the height as needed */
+            width: 579px!important; /* Adjust the width as needed */
+            left: 56%!important; /* Remove the left positioning */
+            right: 10px!important; /* Position it from the right side */
+        }
+        .wrapper.inactive {
+            width: 59px!important; /* Adjust the width as needed */
+            height: 25px!important; /* Adjust the height as needed */
+            left: 96%!important; /* Remove the left positioning */
+            right: 10px!important; /* Position it from the right side */
+        }
+    }
+
+    @media (max-width: 1920px) and (max-height: 1080px) {
+        .wrapper {
+            height: 63vh; /* Adjust the height as needed */
+            width: 603px; /* Adjust the width as needed */
+            left: 64%; /* Remove the left positioning */
+            right: 10px; /* Position it from the right side */
+        }
+        .wrapper.inactive {
+            width: 59px!important; /* Adjust the width as needed */
+            height: 25px!important; /* Adjust the height as needed */
+            left: 96%!important; /* Remove the left positioning */
+            right: 10px!important; /* Position it from the right side */
+        }
+    }
+
+    #sidebar{
+        /*min-width:250px;*/
+        /*max-width: 250px;*/
+        background: white;
+        color:#fff;
+        transition: all 0.3s
+    }
+    #sidebar.active{
+        margin-left:-250px
+    }
+    #sidebar .sidebar-header{
+        padding:20px;
+        background: #005086
+    }
+    #sidebar ul.components{
+        padding:20px 0px;
+        border-bottom:1px solid #47748b
+    }
+    #sidebar ul p{
+        padding:10px;
+        font-size:15px;
+        display: block;
+        color:#fff
+    }
+    #sidebar ul li a{
+        padding:10px;
+        font-size: 1.1em;
+        display: block
+    }
+    #sidebar ul li a:hover{
+        color:#fff;
+        background: #318fb5
+    }
+    #sidebar ul li.active>a, a[aria-expanded="true"]{
+        color:#fff;
+        background: #318fb5
+    }
+    #content{
+        width:100%;
+        padding:20px;
+        min-height: 100vh;
+        transition: all 0.3s
+    }
+    .content-wrapper{
+        /*padding:15px*/
+    }
+    @media(maz-width:768px){
+        #sidebar{
+            margin-left:-250px
+        }
+        #sidebar.active{
+            margin-left:0px
+        }
+        #sidebarCollapse span{
+            display:none
+        }
+    }
+
+    .custom-row {
+        background-color: #00689F;
+        /*display: flex;*/
+        /*align-items: center;*/
+        /*justify-content: center;*/
+        padding: 10px 5px 15px;
+    }
+
+    .custom-row .form-group {
+        margin-right: 10px;
+        flex: 1;
+    }
+    .custom-row label {
+        color: white;
+        display: block;
+        float: left;
+    }
+
+    .custom-row .form-control {
+        background-color: white;
+    }
+    modal-body .form-control {
+        background-color: white;
+    }
+
     .togglebutton {
         font-size: 13px;
     }
 
     .content {
-        padding: 20px 20px 60px !important;
+        padding: 0px 10px 60px !important;
+        margin-top: 0px!important;
     }
 
     .test {
@@ -51,8 +199,8 @@
     }
 
     #loading {
-        width: 100%;
-        height: 100%;
+        width: 50%;
+        height: 50%;
         top: 0;
         left: 0;
         position: fixed;
@@ -173,6 +321,7 @@
 
         #filter-criteria-id {
             float: left;
+            display: none;
         }
     }
 
@@ -254,7 +403,7 @@
     }
 
     #unassigntbl {
-        margin-top:10px;
+        margin-top:15px;
     }
     #unassigntbl_processing {
         margin-top: 40px;
@@ -271,9 +420,70 @@
         background: #FBE9E7 !important;
         border: 1px solid #FF5722;
     }
+    .row {
+        margin-left: -20px!important;
+        margin-right: -20px!important;
+    }
+    .rowAssign {
+        margin-left: -14px!important;
+        margin-right: -14px!important;
+    }
+
+    /* Google Map legend CSS >> */
+    .marker {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+    }
+
+    .blue {
+        /* background-color: blue; */
+        fill: blue;
+    }
+
+    .green {
+        /* background-color: green; */
+        fill: green;
+    }
+
+    .red {
+        /* background-color: red; */
+        fill: red;
+    }
+
+    .yellow {
+        /* background-color: yellow; */
+        fill: yellow;
+    }
+    /* << Google Map legend CSS */
+
+    .legendbox {
+        background-color: #000;
+        color: #fff;
+        opacity: 0.5;
+
+        padding: 10px;
+        border: 1px solid #fff;
+        border-radius: 5px;
+    }
 </style>
+
+<!-- Map legend >> -->
+<div id="legend" class="legendbox">
+    <div><svg class="marker green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 959.35 959.35"><path d="M451 863h55v-52q61-7 95-37.5t34-81.5q0-51-29-83t-98-61q-58-24-84-43t-26-51q0-31 22.5-49t61.5-18q30 0 52 14t37 42l48-23q-17-35-45-55t-66-24v-51h-55v51q-51 7-80.5 37.5T343 454q0 49 30 78t90 54q67 28 92 50.5t25 55.5q0 32-26.5 51.5T487 763q-39 0-69.5-22T375 681l-51 17q21 46 51.5 72.5T451 809v54Zm29 113q-82 0-155-31.5t-127.5-86Q143 804 111.5 731T80 576q0-83 31.5-156t86-127Q252 239 325 207.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 82-31.5 155T763 858.5q-54 54.5-127 86T480 976Z"/></svg> NewCustomer</div>
+    <div><svg class="marker yellow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 959.35 959.35"><path d="M479 974q-74 0-139.5-28t-114-77q-48.5-49-77-114T120 615q0-74 28.5-139.5t77-114.5q48.5-49 114-77T479 256q74 0 139.5 28T733 361q49 49 77 114.5T838 615q0 75-28 140t-77 114q-49 49-114.5 77T479 974Zm121-196 42-42-130-130V416h-60v214l148 148ZM214 189l42 42L92 389l-42-42 164-158Zm530 0 164 158-42 42-164-158 42-42Z"/></svg> PastDue</div>
+    <div><svg class="marker blue" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37.5 37.5"><path d="m18.75,36.99C8.67,36.99.5,28.82.5,18.75S8.67.5,18.75.5s18.25,8.17,18.25,18.25-8.17,18.25-18.25,18.25Zm3.36-26.67l-1.47.51c-5.22,1.89-8.9,10.69-7.39,15.2l.51,1.47c.14.4.58.65,1.02.49l2.97-1.07c.4-.14.63-.62.49-1.02l-1.05-3.29-2.42-.94c-.36-1.03,2.38-6.65,3.44-7.06l2.36,1.28,3.11-1.17c.4-.14.63-.62.49-1.02l-1.04-2.89c-.15-.44-.58-.65-1.02-.49Z"/></svg> PreNotified / Call Ahead</div>
+    <div><svg class="marker red" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 959.35 959.35"><path d="M479.982 776q14.018 0 23.518-9.482 9.5-9.483 9.5-23.5 0-14.018-9.482-23.518-9.483-9.5-23.5-9.5-14.018 0-23.518 9.482-9.5 9.483-9.5 23.5 0 14.018 9.482 23.518 9.483 9.5 23.5 9.5ZM453 623h60V370h-60v253Zm27.266 353q-82.734 0-155.5-31.5t-127.266-86q-54.5-54.5-86-127.341Q80 658.319 80 575.5q0-82.819 31.5-155.659Q143 347 197.5 293t127.341-85.5Q397.681 176 480.5 176q82.819 0 155.659 31.5Q709 239 763 293t85.5 127Q880 493 880 575.734q0 82.734-31.5 155.5T763 858.316q-54 54.316-127 86Q563 976 480.266 976Z"/></svg> ASAP</div>
+</div>
+<!-- << Map legend -->
+
+
 <script>
     var AllMarkers = [];
+    var MapInfoIcons = [];
+    var MapMarkerIcons = [];
+    var MapMarkerIconsAddressArray = [];
     var global_r = '';
     $priority_filter_input = '';
     var initial_load = true;
@@ -289,6 +499,7 @@
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/github.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <!-- Option 1: Include in HTML -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
 <div class="content">
@@ -301,80 +512,57 @@
             <img id="loading-image" src="<?= base_url() ?>assets/loader.gif" /> <!-- Loading Image -->
         </div>
 
-        <div class="panel-heading" style="padding-left: 0px;">
-            <h5 class="panel-title">
-                <div class="form-group">
-                    <a href="<?= base_url('admin') ?>" id="save" class="btn btn-success"><i class=" icon-arrow-left7"> </i> Back to Dashboard</a>
+<!--        <div class="panel-heading" style="padding-left: 0px;">-->
+<!--            <h5 class="panel-title">-->
+<!--                <div class="form-group">-->
+<!--                    <a href=" base_url('admin') " id="save" class="btn btn-success"><i class=" icon-arrow-left7"> </i> Back to Dashboard</a>-->
+<!--                    <a href=" base_url('admin/manageJobs') " id="save" class="btn btn-primary"></i>Manage Scheduled Services</a>-->
+<!--                    <div class="pull-right">-->
+<!--                                 <label class="togglebutton">-->
+<!--                                 Map View&nbsp;<input id="change-view-type" type="checkbox" onclick="window.location=' base_url('admin/assignJobs') '" class="switchery-primary">-->
+<!--                                 Table View-->
+<!--                                 </label>-->
+<!--                    </div>-->
+<!--                    <button id="multiple-restore-id" disabled="disabled" class=" hidden btn btn-primary archived-services-element">Restore Services</button>-->
+<!--                </div>-->
+<!--            </h5>-->
+<!--        </div>-->
 
-                    <a href="<?= base_url('admin/manageJobs') ?>" id="save" class="btn btn-primary"></i>Manage Scheduled Services</a>
-
-                    
-
-                    <!-- <button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>
-                    <button disabled="disabled" id="filter-criteria-id" class="btn btn-danger ">Filters</button> -->
-
-                    <!-- switch to table view -->
-                    <!-- <a href="<?= base_url('admin/assignJobs') ?>" id="change-view-type" class="btn btn-primary" ​​​​​>Click for Table View</a> -->
-
-
-                    <div class="pull-right">
-                                 <label class="togglebutton">
-                                 Map View&nbsp;<input id="change-view-type" type="checkbox" onclick="window.location='<?= base_url('admin/assignJobs') ?>'" class="switchery-primary">
-                                 Table View
-                                 </label>
-                    </div>
-                    
-
-
-
-                    <button id="multiple-restore-id" disabled="disabled" class=" hidden btn btn-primary archived-services-element">Restore Services</button>
-                    <!-- <div class="pull-right"> 
-                                 <label class="togglebutton">
-                                 Archived Services&nbsp;<input name="changeview" type="checkbox" class="switchery-primary"  checked="">
-                                 Unassigned Services
-                                 </label>
-                     </div>                              -->
-                     
-                </div>
-            </h5>
-        </div>
-
-        <div class="panel panel-flat">
-            <div class="panel-heading">
-                <h5 class="panel-title">
-                    <div class="form-group">
-
-                        <div class="row">
-
-                            <div class="col-md-6">
-
-                            </div>
-
-                            <div class="col-md-6 toggle-btn">
-                                <div style="float: right;">
-                                    <label hidden>
-                                        Map view&nbsp;<input id= "changeview" name="changeview" type="checkbox" class="switchery-primary">
-                                        Table view
-                                    </label>
-                                    <!-- <a href="<?php //echo base_url('admin/assignJobs/') ?>">Click for Table View</a> -->
-
-                                    
-
-
-                                </div>
-                                <div>
-                            
-                            </div>
-                            </div>
-
-                        </div>
-
-
-                    </div>
-
-                </h5>
-            </div>
-        </div>
+<!--        <div class="panel panel-flat">-->
+<!--            <div class="panel-heading">-->
+<!--                <h5 class="panel-title">-->
+<!--                    <div class="form-group">-->
+<!---->
+<!--                        <div class="row">-->
+<!---->
+<!--                            <div class="col-md-6">-->
+<!---->
+<!--                            </div>-->
+<!---->
+<!--                            <div class="col-md-6 toggle-btn">-->
+<!--                                <div style="float: right;">-->
+<!--                                    <label hidden>-->
+<!--                                        Map view&nbsp;<input id= "changeview" name="changeview" type="checkbox" class="switchery-primary">-->
+<!--                                        Table views-->
+<!--                                    </label>-->
+<!---->
+<!--                                    -->
+<!---->
+<!---->
+<!--                                </div>-->
+<!--                                <div>-->
+<!--                            -->
+<!--                            </div>-->
+<!--                            </div>-->
+<!---->
+<!--                        </div>-->
+<!---->
+<!---->
+<!--                    </div>-->
+<!---->
+<!--                </h5>-->
+<!--            </div>-->
+<!--        </div>-->
 
         <!-- <div class="panel-body">
          <h5 class="panel-title">Users Details</h5>
@@ -383,50 +571,7 @@
             <div class="col-lg-12 col-md-12">
                 <div class="col-lg-12 col-md-12 col-sm-12">
                     <div class="panel panel-flat">
-                        <div style="background: #fafafa;padding-top: 10px;padding-bottom: 20px;color: #333;padding-left: 12px;">
-                            <span class="unassigned-services-element text-semibold" style="font-size:20px;margin-right:18px;display:flex;align-items: center;justify-content: center;">Unassigned Services</span>
-                            <span class="archived-services-element text-semibold hidden" style="font-size:15px;">Archived Services</span>
-                            <span class="unassigned-services-element" style="margin-right:18px;display:flex;align-items: center;justify-content: center;">Highlighted jobs indicate this job has been skipped and needs to be rescheduled</span>
-                            <div class="row "  style="margin-top: 10px;align-items:center;">
 
-                                <div class="unassigned-services-element " style="margin-right:18px;display:flex;align-items:center;justify-content: center;">
-                                <!-- <div class="unassigned-services-element " style="display:flex;"> -->
-                                    <div data-toggle="tooltip" data-placement="top" title="Property Sq Feet combines service applications sqft that are applied on a single property, for example if 2 service applications are applied to one property the sum of the sqft will only be equivalent to one of those applications.  Application Sq Feet is the sum of all service applications sqft, no matter if being applied to multiple properties or on a single property.">
-                                        
-                                            <div class="row">
-                                                <div class="col-md-3" style="text-align:right;">
-                                                    <label for="appllicationSqFt" >Property Sq Feet</label>
-                                                </div>
-                                                <div class="col-md-3"style="text-align:right;">
-                                                    <input placeholder="" id="applicationSqFt" type="text" size="15">
-                                                </div>
-                                                <div class="col-md-3"style="text-align:right;">
-                                                    <label for="totalSqFt" >Application Sq Feet</label>
-                                                </div>
-                                                <div class="col-md-3"style="text-align:right;">
-                                                    <input placeholder="" id="totalSqFt" type="text"  size="15">
-                                                </div>
-                                            </div>
-                                            <div class="row">
-                                                <div class="col-md-3" style="text-align:right;">
-                                                    <label for="appllicationCost">Application Cost</label>
-                                                </div>
-                                                <div class="col-md-3" style="text-align:right;">
-                                                    <input placeholder="" id="totalApplicationCost" type="text"  size="15">
-                                                </div>
-                                            </div>
-                                        
-                                    </div>
-                                    <button type="submit" disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage" style="margin-left:15px;">
-                                        Assign Technician</button>
-                                </div>
-                            </div>
-                            <div class="unassigned-services-element" style="float: right;margin-right: 18px;">
-                                <button type="button" class="btn btn-success" id="resetMap">
-                                    Update Map</button>
-                            </div>
-                            
-                        </div>
 
                         <!-- <div class="container">
                         <div class="row"> -->
@@ -438,7 +583,7 @@
                         <!-- </div>
                         </div> -->
 
-                        <div class="panel-body" style="padding: 20px 0px;">
+                        <div class="panel-body" style="padding: 0px 0px;">
 
                             <!-- <div  class="table-responsive table-spraye dash-tbl" style="height: unset;">
                         <table  class="table" id="unassigntbl" >
@@ -482,38 +627,256 @@
                         </table>
                      </div>  -->
 
+<!--                            <div class="row">-->
+<!--                                <div class="col-md-4">-->
+<!--                                    <div  id="update-map-div-two" style="padding-left: 4px; margin-bottom: 10px;">-->
+                                        <!-- <span class="update-map-note text-semibold" style="color:red;background-color:yellow;">Update Map View</span> -->
+
+
+<!--                                    </div>-->
+
+<!--                                <div>-->
+
+<!--                                </div>-->
+<!--                                    -->
+<!--                                </div>-->
+<!--                    -->
+<!--                                -->
+<!--                            </div>-->
+
                             <div class="row">
-                                <div class="col-md-4">
-                                <div  id="update-map-div-two" style="padding-left: 4px; margin-bottom: 10px;">
-                                    <!-- <span class="update-map-note text-semibold" style="color:red;background-color:yellow;">Update Map View</span> -->
-                                
-                                
-                                </div>
+                                <div class="col-md-12 col-lg-12 col-sm-12" id="mapdiv">
+                                    <div class="wrapper">
+<!--                                        <div class="sidebar-header" style="margin-right: 20px">-->
+<!--                                            <button id="collapse-toggler" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">-->
+<!--                                                <span class="on">Collapse&nbsp;<i class="fa-solid fa-arrow-right"></i></span>-->
+<!--                                                <span id="collapse-toggler" class="hide">&nbsp;Expand<i class="fa-solid fa-arrow-left"></i></span>-->
+<!--                                                <span class="navbar-toggler-icon"><i class="icon-paragraph-justify3"></i></span>-->
+<!--                                            </button>-->
+<!--                                            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">-->
+<!--                                                <span>Filter Criteria<i class="fa-solid fa-arrow-right"></i></span>-->
+<!--                                            </button>-->
+<!--                                        </div>-->
+                                        <nav id="sidebar" class="collapse in" aria-expanded="true" style="">
+                                            <div class="modal-body" style="background: white!important;">
+                                                <div class="form-group ">
 
-                                <div>
-                                    
-                                </div>
-                                    
-                                </div>
-                    
-                                
-                            </div>
+                                                    <div class="container-mt-2">
+                                                        <!-- <div class="row"> -->
+                                                        <div class="col-md-12 col-lg-12 col-sm-12">
+                                                            <h6 class="modal-title" style="color: #12689b">Filter Criteria</h6>
+                                                        </div>
+                                                        <div class="col-md-12 col-lg-12 col-sm-12">
+                                                            <div class="priority-filter">
+                                                                <label>Priority</label>
+                                                                <input type="text" id = "pfilter" name = "pfilter" class="form-control dtatableInput" placeholder="PRIORITY">
+                                                            </div>
 
-                            <div class="row">
-                                
+                                                            <div class="property-type-filter">
+                                                                <label>Property Type</label>
+                                                                <input type="text" id = "propertyTypefilter" name = "propertyTypefilter" class="form-control dtatableInput" placeholder="PROPERTY TYPE">
+                                                            </div>
 
-                                <div class="col-md-4" id="mapdiv">
-                                    <div id="dvMap" style="height:57vh;">map div area</div>
-                                    <div style="display:flex;align-items:center;justify-content:center;padding-top:10px;">
+                                                            <div class="service-name-filter">
+                                                                <label>Service Name</label>
+                                                                <input type="text" id = "snfilter" name = "snfilter" class="form-control dtatableInput" placeholder="SERVICE NAME">
+                                                            </div>
+
+                                                            <!-- <div class="service-area-filter">
+                                                                 <label>Service Area</label>
+                                                                 <input type="text" id = "safilter" name = "safilter" class="form-control dtatableInput" placeholder="SERVICE AREA">
+                                                             </div>-->
+                                                            <div class="multi-select-full" id="service-area-filter_parent" >
+                                                                <label for="service-area-filter">Service Area
+                                                                </label>
+                                                                <select class="multiselect-select-all-filtering form-control" name="service-area-filter[]" id="service-area-filter" multiple="multiple">
+
+                                                                    <?php foreach ($service_area_list as $value): ?>
+                                                                        <option value="<?= $value->category_area_name ?>"> <?= $value->category_area_name ?> </option>
+                                                                    <?php endforeach ?>
+
+                                                                </select>
+
+                                                            </div>
+                                                            <div class="service-name-filter">
+                                                                <label>Show Only ASAP?</label>
+                                                                <select class="form-control" name="asap_reason" id="asap-reason">
+                                                                    <option value="0">No</option>
+                                                                    <option value="1">Yes</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+
+
+
+                                                        <div class="col-md-12 col-lg-12 col-sm-12">
+                                                            <div class="notify-customer-filter">
+                                                                <label>Notify</label>
+                                                                <select class="form-control dtatableInput" id = "ncfilter" name = "ncfilter" placeholder="NOTIFY CUSTOMER" ><option value="0" class="default-option">-- NOTIFY</option><option value="1">CALL AHEAD</option><option value="2">TEXT ETA</option><option value="3">PRE-NOTIFIED</option></select>
+                                                            </div>
+
+                                                            <div class="tags-filter">
+                                                                <label>Tags</label>
+                                                                <?php echo $filter_tags; ?>
+                                                            </div>
+                                                            <div class="multi-select-full" id="service_ids_filter_parent" >
+                                                                <label for="service_ids_filter">Due
+                                                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose status below you would like to filter."><i class=" icon-info22 tooltip-icon"></i></span>
+                                                                </label>
+                                                                <div class="service-due-filter">
+                                                                    <select name="services_statuses_filter[]" id="sdfilter" multiple style="width: 100%;" class="multiselect-select-all-filtering form-control><option value="0" class="default-option" style="width: 100%;">-- DUE</option><option value="1">Due</option><option value="2">Overdue</option><option value="3">Not Due</option></select>
+                                                                    <!--                                            <select class="form-control dtatableInput" id = "sdfilter" name = "sdfilter" placeholder="SERVICE DUE" ><option value="0" class="default-option">-- DUE</option><option value="1">Due</option><option    value="2">Overdue</option><option value="3">Not Due</option></select>-->
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="multi-select-full" id="service_ids_filter_parent" >
+                                                                <label for="service_ids_filter">Filter Services
+                                                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Choose the service(s) below you would like to schedule."><i class=" icon-info22 tooltip-icon"></i></span>
+                                                                </label>
+                                                                <select class="multiselect-select-all-filtering form-control" name="services_multi_filter[]" id="services_multi_filter" multiple="multiple">
+
+                                                                    <?php foreach ($service_list as $value): ?>
+                                                                        <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
+                                                                    <?php endforeach ?>
+
+                                                                </select>
+
+                                                            </div>
+                                                            <div class="multi-select-full " id="program_service_ids_filter_parent" >
+                                                                <label for="programs_service_ids_filter">Filter Properties by Outstanding Services (require all)
+                                                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing any of the services below, Spraye will show only properties that have all of the chosen services outstanding in their account."><i class=" icon-info22 tooltip-icon"></i></span>
+                                                                </label>
+                                                                <select class="multiselect-select-all-filtering form-control" name="program_services_multi_filter[]" id="program_services_multi_filter" multiple="multiple">
+                                                                    <?php foreach ($service_list as $value): ?>
+
+                                                                        <option value="<?= $value['job_name'] ?>"> <?= $value['job_name'] ?> </option>
+
+                                                                    <?php endforeach ?>
+                                                                </select>
+                                                            </div>
+                                                            <div class="multi-select-full col-md-12 col-lg-12 col-sm-12" id="service_ids_filter_parent" style="padding-left: 4px; margin-top: 10px; margin-bottom: 10px;">
+                                                                <label for="programs_service_ids_filter">Available Days
+                                                                    <span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="By choosing the days below, Spraye will show only properties that are available on all of the chosen days."><i class=" icon-info22 tooltip-icon"></i></span>
+                                                                </label>
+                                                                <select class="multiselect-select-all-filtering form-control" name="available_days_filter[]" id="available_days_filter" multiple="multiple">
+                                                                    <?php foreach ($available_days_list as $key => $value): ?>
+                                                                        <option value="<?= $value ?>" > <?= $key ?> </option>
+                                                                    <?php endforeach ?>
+                                                                </select>
+                                                            </div>
+
+
+                                                        </div>
+                                                        <!-- </div> -->
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="row modal-footer" style="background-color:white">
+                                                    <!-- <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button> -->
+                                                    <div  id="update-map-div" class= "col-md-12 col-lg-12 col-sm-12" style="padding-top:10px">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </nav>
+
+                                    </div>
+                                    <div id="dvMap" style="height:63vh;">map div area</div>
+                                    <div style="display:none;align-items:center;justify-content:center;padding-top:10px;">
                                         <span class="chtn" ><a href="" data-toggle="modal" data-target="#help_message" >This map feature is currently in beta. Please send us your feedback here</a></span>
-                                    </div>                                
+                                    </div>
+
                                 </div>
 
-                                
 
-                                <div class="col-md-8" id="tablediv">
-									<p id="filter_message" style="width: 100%; background-color: #F44336; padding:5px;  text-align: center; display: block; color:white">Limited locations loaded.  Please enter Filter Criteria</p>
-                                    
+                            </div>
+                            <div class="row custom-row d-flex">
+                                <div class="col-md-2 col-lg-2 col-sm-2">
+                                    <div class="form-group d-flex">
+                                        <div class="col-md-10 col-lg-10 col-sm-10">
+                                            <label for="property">Property Sq.Ft.</label>
+                                            <input type="text" class="form-control" id="applicationSqFt">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group d-flex">
+                                        <div class="col-md-10 col-lg-10 col-sm-10">
+                                            <label for="application">Application Sq.Ft</label>
+                                            <input type="text" class="form-control" id="totalSqFt">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group d-flex">
+                                        <div class="col-md-10 col-lg-10 col-sm-10">
+                                            <label for="revenue">Revenue&nbsp;<span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Services with no invoice won't reflect price override or coupons until invoice is created."><i class=" icon-info22 tooltip-icon"></i></span></label>
+                                            <input type="text" class="form-control" id="totalApplicationCost">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="unassigned-services-element" style="float: right;margin-right: 18px;">
+                                    <button type="button" class="btn btn-success" id="resetMap">
+                                        Update Map</button>
+                                </div>
+                                <div class="col-md-2 col-lg-2 col-sm-2" style="padding-top:25px ">
+                                    <div class="form-group d-flex">
+                                        <button type="submit" disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" id="allMessage"  class="btn btn-success ml-2" style="float:left">Assign Technician</button>
+                                    </div>
+                                </div>
+                            </div>
+<!--                            <div class="row">-->
+<!--                                <div style="background: #fafafa;padding-top: 10px;padding-bottom: 20px;color: #333;padding-left: 12px;">-->
+<!--                                    <span class="unassigned-services-element text-semibold" style="font-size:20px;margin-right:18px;display:flex;align-items: center;justify-content: center;">Unassigned Services</span>-->
+<!--                                    <span class="archived-services-element text-semibold hidden" style="font-size:15px;">Archived Services</span>-->
+<!--                                    <span class="unassigned-services-element" style="margin-right:18px;display:flex;align-items: center;justify-content: center;">Highlighted jobs indicate this job has been skipped and needs to be rescheduled</span>-->
+<!--                                    <div class="row "  style="margin-top: 10px;align-items:center;">-->
+<!---->
+<!--                                        <div class="unassigned-services-element " style="margin-right:18px;display:flex;align-items:center;justify-content: center;">-->
+<!--                                             <div class="unassigned-services-element " style="display:flex;"> -->
+<!--                                            <div data-toggle="tooltip" data-placement="top" title="Property Sq Feet combines service applications sqft that are applied on a single property, for example if 2 service applications are applied to one property the sum of the sqft will only be equivalent to one of those applications.  Application Sq Feet is the sum of all service applications sqft, no matter if being applied to multiple properties or on a single property.">-->
+<!---->
+<!--                                                <div class="row">-->
+<!--                                                    <div class="col-md-3" style="text-align:right;">-->
+<!--                                                        <label for="appllicationSqFt" >Property Sq Feet</label>-->
+<!--                                                    </div>-->
+<!--                                                    <div class="col-md-3"style="text-align:right;">-->
+<!--                                                        <input placeholder="" id="applicationSqFt" type="text" size="15">-->
+<!--                                                    </div>-->
+<!--                                                    <div class="col-md-3"style="text-align:right;">-->
+<!--                                                        <label for="totalSqFt" >Application Sq Feet</label>-->
+<!--                                                    </div>-->
+<!--                                                    <div class="col-md-3"style="text-align:right;">-->
+<!--                                                        <input placeholder="" id="totalSqFt" type="text"  size="15">-->
+<!--                                                    </div>-->
+<!--                                                </div>-->
+<!--                                                <div class="row">-->
+<!--                                                    <div class="col-md-3" style="text-align:right;">-->
+<!--                                                        <label for="appllicationCost">Application Cost</label>-->
+<!--                                                    </div>-->
+<!--                                                    <div class="col-md-3" style="text-align:right;">-->
+<!--                                                        <input placeholder="" id="totalApplicationCost" type="text"  size="15">-->
+<!--                                                    </div>-->
+<!--                                                </div>-->
+<!---->
+<!--                                            </div>-->
+<!--                                            <button type="submit" disabled="disabled" data-toggle="modal" data-target="#modal_theme_primary" class="btn btn-success" id="allMessage" style="margin-left:15px;">-->
+<!--                                                Assign Technician</button>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                    <div class="unassigned-services-element" style="float: right;margin-right: 18px;">-->
+<!--                                        <button type="button" class="btn btn-success" id="resetMap">-->
+<!--                                            Update Map</button>-->
+<!--                                    </div>-->
+<!---->
+<!--                                </div>-->
+<!--                            </div>-->
+                            <div class="row" style="padding-top: 15px;">
+                                <div class="col-md-12 col-lg-12 col-sm-12" id="tablediv">
+                                    <p id="filter_message" style="width: 100%; background-color: #F44336; padding:5px;  text-align: center; display: none; color:white">Limited locations loaded.  Please enter Filter Criteria</p>
+
                                     <div class="table-responsive table-spraye dash-tbl" style="height: unset;">
                                         <table class="table" id="unassigntbl">
                                             <thead>
@@ -543,41 +906,40 @@
                                                 </tr>
                                             </thead>
                                             <tfoot>
-                                                <tr>
-                                                    <!-- <td></td>
-                                                    <td id="priority_filter">PRIORITY</td>
-                                                    <td id="service_name_filter">SERVICE NAME</td>
-                                                    <td id="notify_filter">NOTIFY CUSTOMER</td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td id="service_due_filter">SERVICE DUE</td>
-                                                    <td></td>
-                                                    <td id="property_type_filter">PROPERTY TYPE</td>
-                                                    <td></td>
-                                                    <td id="service_area_filter">SERVICE AREA</td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td id="tag_filter">TAG</td>
-                                                    <td></td>
-                                                    <td></td> -->
-                                                </tr>
-                                                <!-- <tr>
-                                       
-                                    </tr> -->
+                                            <tr>
+                                                <!-- <td></td>
+                                                <td id="priority_filter">PRIORITY</td>
+                                                <td id="service_name_filter">SERVICE NAME</td>
+                                                <td id="notify_filter">NOTIFY CUSTOMER</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td id="service_due_filter">SERVICE DUE</td>
+                                                <td></td>
+                                                <td id="property_type_filter">PROPERTY TYPE</td>
+                                                <td></td>
+                                                <td id="service_area_filter">SERVICE AREA</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td id="tag_filter">TAG</td>
+                                                <td></td>
+                                                <td></td> -->
+                                            </tr>
+                                            <!-- <tr>
+
+                                </tr> -->
                                             </tfoot>
 
                                         </table>
-                                        
+
                                     </div>
-                                    
+
                                     <input type="hidden" name="checkbox_realvalues_array" id="checkbox_realvalues_array" value"">
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -622,9 +984,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="row">
+                        <div class="row rowAssign">
                             <div class="col-sm-7 col-md-7">
-                                <div class="row label-row">
+                                <div class="row rowAssign">
                                     <div class="col-sm-12 col-md-12">
                                         <label class="radio-inline">
                                             <input type="radio" name="changerouteview" class="primary-assign styled" checked="checked" value="1">
@@ -636,7 +998,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row rowAssign">
                                     <div class="col-sm-12 col-md-12">
                                         <select name="route_select" class="form-control" id="route_select">
                                         </select>
@@ -888,7 +1250,7 @@
 
 <!--begin edit assign job  -->
 
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBH7pmiDU016Cg76ffpkYQWcFQ4NaAC2VI&libraries=drawing,geometry"></script>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBH7pmiDU016Cg76ffpkYQWcFQ4NaAC2VI&libraries=drawing,geometry""></script>
 
 <script>
     	//console.log('loading job names');	
@@ -976,7 +1338,7 @@
     $(".modal-mileage-dismiss").click(function() {
         $("#modal_mileage").modal('hide');
     })
-   $("#select_all").change(function(){  //"select all" change 
+   $("#select_all").change(function(){  //"select all" change
 
       var status = this.checked; // "select all" checked status
 
@@ -1301,13 +1663,48 @@
 </script>
 
 
+<script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
 
 <script>
+    //Reset the map within modal
+    $('body').on("click", "#collapse-toggler", function(){
+
+        if ($(this).find('span').hasClass("on"))
+        {
+            $('.wrapper').hide();
+            $('.collapse').collapse("hide");
+            const html = 'Show Filters&nbsp;<i class="fa-solid fa-arrow-down">';
+            $(this).find('span').removeClass("on");
+            $(this).find('span').addClass("off");
+            $(this).find('span').html(html);
+        } else {
+            $('.wrapper').show();
+            $('.collapse').collapse("show");
+            const html = 'Hide Filters&nbsp;<i class="fa-solid fa-arrow-up">';
+            $(this).find('span').addClass("on");
+            $(this).find('span').removeClass("off");
+            $(this).find('span').html(html);
+        }
+    });
+
+    $(window).on('resize', function() {
+        if($(window).width() < 1024) {
+            $(".custom-row").removeClass("d-flex");
+            $("#allMessage").attr("style", "left: 22%!important");
+            $(".custom-row").addClass("d-flex align-content-stretch flex-wrap-wrap flex-column align-items-stretch");
+        } else {
+            $(".custom-row").attr('style', 'display: flex!important; align-items: center!important; justify-content: center!important;');
+        }
+    });
+
     $(document).ready(function() {
         // $('#service_statuses_filter_filter').select2({
         //     allowClear: true,
         //     placeholder: "-- DUE",
         // });
+        $('.collapse').collapse("show");
+
+
 
         $(".close-modal-skip-reason").click(function(){
             $("#modal_skip_reason").modal('hide');
@@ -1324,7 +1721,9 @@
                 },
             });
         });
+
         $(".service-due-filter").find(".btn-group").css("width", "100%");
+
         function getRowNum() {
             let e = new Error();
             e = e.stack.split("\n")[2].split(":");
@@ -1422,7 +1821,7 @@
             // send it along
             return $.ajax(poptions);
         }
-        
+
         function kmToMiles(km) {
             return km / 1.60934;
         }
@@ -1438,9 +1837,9 @@
 
             return formattedTime;
         }
-        
+
         function post_BasicOptimizeStops(request) {
-            var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+            var resturl = 'https://optimizer.routesavvy.com/RSAPI.svc/';
             postit(resturl + 'POSTOptimize', {
                 data: JSON.stringify(request),
                 success: function(data) {
@@ -1461,17 +1860,15 @@
                 }
             });
         }
-        
+
 
         var MapMarkers = [];
         var addressMarkers = {};
-
 
         var map;
         var marker;
         var markers = [];
         var filteredMarkers = [];
-
 
         var tableData = [];
         var filteredData = [];
@@ -1528,7 +1925,7 @@
                 //  $("#mapdiv").addClass('col-md-12');
                 //  $("#tablediv").removeClass('col-md-8');
 
-                $("#tablediv").addClass('col-md-8');
+                // $("#tablediv").addClass('col-md-8');
                 
 
 
@@ -1568,10 +1965,17 @@
             
             var mapOptions = {
                 //center: new google.maps.LatLng(41.881832, -87.623177), //coordinates for Chicago
-                zoom: 25,
+                zoom: 10,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
                 disableAutoPan: true,
-				maxZoom:25
+				maxZoom:25,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.LEFT_BOTTOM
+                },
+                streetViewControl: true,
+                streetViewControlOptions: {
+                    position: google.maps.ControlPosition.LEFT_BOTTOM,
+                },
             };
 
 
@@ -1596,8 +2000,28 @@
                     zIndex: 10,
                 },
             });
+            // Define custom styles for the map
+            var styles = [
+                {
+                    featureType: 'poi',
+                    stylers: [{ visibility: 'off' }] // Remove points of interest (POI)
+                },
+                {
+                    featureType: 'poi.business',
+                    stylers: [{ visibility: 'off' }] // Remove business markers
+                }
+            ];
+
+            // Apply the custom styles to the map
+            map.setOptions({ styles: styles });
 
             drawingManager.setMap(map);
+
+            // Map Legend
+            const mapLegend = document.getElementById('legend');
+            //map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(mapLegend);
+            //map.controls[google.maps.ControlPosition.TOP_LEFT].push(mapLegend);
+            map.controls[google.maps.ControlPosition.BOTTOM_LEFT].push(mapLegend);
 
            var markers = MapMarkers;
            let selectedMarkers = [];
@@ -1646,7 +2070,8 @@
             }
             google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
 
-           
+                console.log('drawing Overlay');
+
                 let overlay = event.overlay;
                 allOverlays.push(overlay);
                 google.maps.event.addListener(overlay, 'click', function() {
@@ -1832,6 +2257,8 @@
             }
             google.maps.event.addListener(map, 'dragend', function boundsChanged() {
 
+                console.log("");
+                console.log("Start");
                 console.log("This is initial load(dragend): " + initial_load);
                 var validmarkers = [];
                 var passmarkers = [];
@@ -1846,10 +2273,11 @@
                     bounds = map.getBounds();
                 
                 /////
+                console.log("table == "+ (typeof table) );
 				if(typeof table !== 'undefined')
 					{
 						// console.log("this is our filteredMarkers:"+filteredMarkers);
-                        console.log("table undefined");
+                        console.log("table NOT undefined");
 
                         filteredMarkers = [];
 
@@ -1877,6 +2305,7 @@
                         var southEastLng = southWestLng;
                         var southEastLat = northEastLat;
                         console.log("Typeof");
+
                         for (let i = 0; i < tableData.length; i++) {
 
                             var data = tableData[i];
@@ -1910,7 +2339,7 @@
 
 
 						}
-				
+
                     }
 				
 				//////
@@ -1964,9 +2393,7 @@
                     
                     
                 }
-                console.log("makearray MARKER "+markerarray);
-				//console.log("VALID MARKER COUNT "+count);
-
+                //console.log("makearray MARKER "+markerarray);
                 console.log("THIS IS COUNT OF VALID MARKERS " + count);
                // //console.log(count);
                 // for (var i = 0; i < validmarkers.length; i++) {
@@ -1984,7 +2411,7 @@
            
 
                     
-				console.log("inside load map table init");
+				//console.log("inside load map table init");
 
                 
                 table = $('#unassigntbl').on( 'draw.dt', function () {
@@ -2168,12 +2595,13 @@
                     processing: true,
                      
                     dom: 'Bl<"toolbar">frti',
-                    initComplete: function() {
-
+                    initComplete: function(data2) {
                         // $('#loading').show();
 
-                        console.log("this is our filteredMarkers2");
-                       
+                        //console.log("this is our filteredMarkers2");
+
+                        console.log("datatable initComplete function");
+
                         // deleteAllShape();
 
                         addressMarkers = {};
@@ -2186,6 +2614,11 @@
                         })
 
                         MapMarkers = [];
+                        clearMapInfoIcons();
+                        clearMapMarkerIcons();
+                        clearMapMarkerClusters();
+                        removeAllMapActiveMarkerIcon();
+
                         var tableData = table.data();
                         var latlngbounds = new google.maps.LatLngBounds();
 
@@ -2210,18 +2643,18 @@
                                 content: tableData[i].address
                             });
 
-                            var marker = new google.maps.Marker({
-                                icon: '<?= base_url("assets/img/default.png") ?>',
-                                position: new google.maps.LatLng(tableData[i].property_latitude, tableData[i].property_longitude),
-                                lat: tableData[i].property_latitude,
-                                lng: tableData[i].property_longitude,
-                                map: map,
-                                title: tableData[i].address,
-                                realval: gudid,
-                                index: i
+                            addMapInactiveMarkerIcon(map,
+                                tableData[i].property_latitude,
+                                tableData[i].property_longitude,
+                                tableData[i].address,
+                                tableData[i].service_type_color,
+                            );
+                            addMapInfoIcons(tableData[i]);
 
-                            });
-
+                            var marker = getOverlayMapMarker(map,i,
+                                tableData[i].property_latitude,
+                                tableData[i].property_longitude
+                            );
 
                             var address = tableData[i].address;
 
@@ -2232,19 +2665,20 @@
                             }
 
                             (function(marker, data) {
-                            google.maps.event.addListener(marker, "click", function(e) {
-                                infoWindow.setContent(tableData[i].address);
-                                if (tableData[i].address in addressMarkers)
-                                {
-                                    for(j = 0; j < addressMarkers[tableData[i].address].length; j++)
+                                google.maps.event.addListener(marker, "click", function(e) {
+                                    console.log("clicked");
+                                    infoWindow.setContent(tableData[i].address);
+                                    if (tableData[i].address in addressMarkers)
                                     {
-                                        if (i !== tableData[addressMarkers[tableData[i].address][j]].index)
-                                            $("#"+tableData[addressMarkers[tableData[i].address][j]].index).click();
+                                        for(j = 0; j < addressMarkers[tableData[i].address].length; j++)
+                                        {
+                                            if (i !== tableData[addressMarkers[tableData[i].address][j]].index)
+                                                $("#"+tableData[addressMarkers[tableData[i].address][j]].index).click();
+                                        }
                                     }
-                                }
-                                $("#"+tableData[i].index).click();
-                                infoWindow.open(map, marker);
-                            });
+                                    $("#"+tableData[i].index).click();
+                                    infoWindow.open(map, marker);
+                                });
                             })(marker, data);
 
                             latlngbounds.extend(marker.position);
@@ -2252,10 +2686,34 @@
 
                             MapMarkers.push(marker);
                             AllMarkers.push(marker);
+
 							//console.log('placing marker '+marker.position);
 
                         }
+                        console.log("For datatable data complete.");
 
+                        addMapMarkerClusters(map,MapMarkers);
+
+
+                        if(data2.json.possible_errors != "") {
+                            swal("Verizon Connect Error", data2.json.possible_errors, "error");
+                        }
+                        var full_vehicle_data = data2.json.full_vehicle_data
+                        full_vehicle_data.forEach(function(vehicle) {
+                            var marker = new google.maps.Marker({
+                                icon: '<?= base_url("assets/img/driver.png") ?>',
+                                position: new google.maps.LatLng(vehicle.Latitude, vehicle.Longitude),
+                                lat: vehicle.Latitude,
+                                lng: vehicle.Longitude,
+                                map: map,
+                                title: vehicle.DriverName,
+                                realval: gudid,
+                                index: i
+
+                            });
+                            latlngbounds.extend(marker.position);
+                            MapMarkers.push(marker);
+                        });
 
 
                         if (set_initial_center == true) {
@@ -2266,7 +2724,7 @@
                             set_initial_center = false;
                         
                         }
-                        console.log(addressMarkers);
+                        //console.log(addressMarkers);
 						//console.log("zoom level "+map.getZoom());
                      
                         // $("div.toolbar").html('');
@@ -2274,9 +2732,14 @@
                         $('#filter-criteria-id').remove();
                         $('#multiple-delete-id').remove();
                         $('#multiple-skip-id').remove();
-                        
+
+                        // $(".dataTables_filter")
+                        //     .append('<button id="filter-criteria-id" class="btn btn-primary ">Filters</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>');
+
                         $(".dataTables_filter")
-                            .append('<button id="filter-criteria-id" class="btn btn-primary ">Filters</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>');
+                            .append('&nbsp;&nbsp;&nbsp;<button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>');
+
+                            //.append('<button id="filter-criteria-id" class="btn btn-primary ">Filters</button> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button disabled="disabled" id="multiple-delete-id" class="btn btn-danger unassigned-services-element">Delete Services</button>');
                         $(".dataTables_filter")
                             .append('<button disabled="disabled" id="multiple-skip-id" class="ml-5 btn btn-warning" data-toggle="modal" data-target="#modal_skip_reason">Skip</button>');
                         // $("#maintable_filter")
@@ -2294,8 +2757,10 @@
             
                         var sqftTotal = 0;
                         var applicationSqft = 0;
+                        var costTotal = 0;
                         $('#totalSqFt').val(sqftTotal);
                         $('#applicationSqFt').val(applicationSqft);
+                        $('#totalApplicationCost').val(costTotal);
 
                         //console.log("This is application square feet:");
                         //console.log(applicationSqft);
@@ -2676,7 +3141,6 @@
                         // FIRE EVERYTIME AFTER TABLE HAS RENDERED
                         table.on('draw', function() {
 
-                            
 
                             $('#loading-image').hide();
 
@@ -2771,12 +3235,10 @@
 
 
             });
-
             google.maps.event.addListener(map, 'idle', function() {
             //console.log("Initial load entering idle listener");
                 $("#select_all")[0].checked = false;
                  //google.maps.event.trigger(this, 'dragend');
-                 
             });
 
 
@@ -2820,6 +3282,7 @@
 
         //Reset the map within modal
         $('body').on("click", "#update-map-note", function(){
+            $( ".navbar-toggler").trigger('click');
             $( "#resetMap" ).trigger('click');
         });
 
@@ -2834,8 +3297,7 @@
             updateMapNote.classList.toggle('show');
         }
 
-        function sumSqrFeet()
-        {
+        function sumSqrFeet(){
             var sqftTotal = 0;
             $('#unassigntbl tbody input:checked').each(function() {
                 sqftTotal = sqftTotal + parseInt($(this).parent().parent().find('td').eq(6).html());
@@ -2861,7 +3323,7 @@
             });
             $('#applicationSqFt').val(applicationSqft);
             $('#totalApplicationCost').val(costTotal.toFixed(2));
-            
+
         
             if(this.checked == false){ //if this item is unchecked
                 $("#select_all")[0].checked = false; //change "select all" checked status to false
@@ -2873,8 +3335,9 @@
             }
         }
         
-        function checkMany(ids)
-        {
+        function checkMany(ids){
+            console.log("checkMany()");
+            console.log(ids);
             for (j = 0; j < ids.length; j++)
             {
                 var checked_realvalue = [];
@@ -2919,25 +3382,28 @@
 
                 if (!$("#"+ids[j]).is(":checked")) {
 
-                    //console.log("in inactive marker");
+                    console.log("[] inactive marker");
 
-                    marker = new google.maps.Marker({
-                        icon: '<?= base_url("assets/img/default.png") ?>',
-                        position: myLatlng,
-                        map: map,
-                        title: data.address
-                    });
+                    removeMapActiveMarkerIcon(data.lat, data.lng, data.job_id);
+
+                    var marker = getOverlayMapMarker(map,null,
+                        data.lat, data.lng
+                    );
+
 
                     MapMarkers[position] = marker;
                 } else {
+                    console.log("[] active marker");
 
-                    marker = new google.maps.Marker({
-                        icon: '<?= base_url("assets/img/free-8-red.png") ?>',
-                        icon: image,
-                        position: myLatlng,
-                        map: map,
-                        title: data.address
-                    });
+                    addMapActiveMarkerIcon(map,
+                        data.lat, data.lng, data.address,
+                        data.service_type_color, data.job_id
+                    );
+
+                    var marker = getOverlayMapMarker(map,null,
+                        data.lat, data.lng
+                    );
+
                     MapMarkers[position] = marker;
 
                 }
@@ -2949,16 +3415,13 @@
 
         }
         function addCheckBoxEvent() {
-            ////console.log("entered addCheckBoxEvent");
+            console.log("addCheckBoxEvent() >>");
 
 
 
             $(document).on("input paste", "input:checkbox.map", function() {
                 //$(document).on("click", "input:checkbox.map", function(){
                 //$(document).on("click", ".myCheckBox", function(){
-
-
-                ////console.log("entered checkbox input click inside addCheckBoxEvent");
 
                 // LF - shouldnt we get values of all checked checkboxes each time an event occurs and store
                 var checked_realvalue = [];
@@ -3025,32 +3488,41 @@
                     mapMarker.setMap(null);
                 }
 
-                if (!$(this).is(":checked")) {
-                    //console.log("in inactive marker");
+                clearMapMarkerClusters();
 
-                    marker = new google.maps.Marker({
-                        icon: '<?= base_url("assets/img/default.png") ?>',
-                        position: myLatlng,
-                        map: map,
-                        title: data.address
-                    });
+                if (!$(this).is(":checked")) {
+                    console.log("in inactive marker");
+
+                    removeMapActiveMarkerIcon(data.lat, data.lng, data.job_id);
+
+                    var marker = getOverlayMapMarker(map,null,
+                        data.lat, data.lng
+                    );
 
                     MapMarkers[position] = marker;
+
+
                 } else {
-                    //console.log("in active marker");
+                    console.log("in active marker");
                     //var data = markers[position];
                     //var myLatlng = new google.maps.LatLng(data.lat, data.lng);
-                    marker = new google.maps.Marker({
-                        // icon: '<?= base_url("assets/img/free-8-red.png") ?>',
-                        icon: image,
-                        position: myLatlng,
-                        map: map,
-                        title: data.address
-                    });
+
+
+                    addMapActiveMarkerIcon(map,
+                        data.lat, data.lng, data.address,
+                        data.service_type_color, data.job_id
+                    );
+
+
+                    var marker = getOverlayMapMarker(map,null,
+                        data.lat, data.lng
+                    );
+
                     MapMarkers[position] = marker;
 
                 }
                 var tableData = table.data();
+                // Additional Event Listener
                 google.maps.event.addListener(marker, "click", function(e) {
                     $("#"+tableData[position].index).click();
                 });
@@ -3105,6 +3577,8 @@
                     $("#select_all")[0].checked = true; //change "select all" checked status to true
                 }
             });
+
+            console.log("<< addCheckBoxEvent");
         }
 
        
@@ -3178,9 +3652,9 @@
             $('.myCheckBox.map').each(function(){ //iterate all listed checkbox items
                 //this.checked = status; //change ".checkbox" checked status
                 var has_customer_in_hold=$(this).hasClass("customer_in_hold");
-                console.log(has_customer_in_hold);
+                //console.log(has_customer_in_hold);
                 if(!has_customer_in_hold){
-                    console.log(this)
+                    //console.log(this)
                     $(this).checked = status; //change ".checkbox" checked status
                 }
                 if ($(this).is(':checked')) {
@@ -3193,6 +3667,7 @@
 
         //changes map marker highlights back to original
         function unCheckAll() {
+            console.log("unCheckAll()");
             allchecked = false;
             var infoWindow = new google.maps.InfoWindow();
 
@@ -3207,13 +3682,11 @@
                 var data = filteredMarkers[i]
                 var myLatlng = new google.maps.LatLng(data.lat, data.lng);
 
+                removeMapActiveMarkerIcon(data.lat, data.lng, data.job_id);
 
-                marker = new google.maps.Marker({
-                    icon: '<?= base_url("assets/img/default.png") ?>',
-                    position: myLatlng,
-                    map: map,
-                    title: data.address
-                });
+                var marker = getOverlayMapMarker(map,i,
+                    data.lat, data.lng
+                );
 
                 MapMarkers.push(marker);
             }
@@ -3226,7 +3699,7 @@
 
 
         function allunchecked() {
-            //console.log("entered allunchecked");
+            console.log("entered allunchecked");
             allchecked = false;
 
             var infoWindow = new google.maps.InfoWindow();
@@ -3251,17 +3724,12 @@
                 var split2 = splitstring[1].split("'");
                 var gudid = split2[0];
 
+                removeMapActiveMarkerIcon(data.lat, data.lng, data.job_id);
 
-                var marker = new google.maps.Marker({
-                    icon: '<?= base_url("assets/img/default.png") ?>',
-                    position: myLatlng,
-                    map: map,
-                    title: data.address,
-                    realval: gudid
+                var marker = getOverlayMapMarker(map,i,
+                    data.lat, data.lng
+                );
 
-                });
-
-                    
                 latlngbounds.extend(marker.position);
 
                 MapMarkers.push(marker);
@@ -3288,16 +3756,17 @@
                 var data = filteredMarkers[i];
                 var myLatlng = new google.maps.LatLng(data.lat, data.lng);
 
-                var marker = new google.maps.Marker({
-                    //icon: '<?= base_url("assets/img/free-8-red.png") ?>',
-                    icon: image,
-                    position: myLatlng,
-                    map: map,
-                    title: data.address
-                });
+                addMapActiveMarkerIcon(map,
+                    data.lat, data.lng, data.address,
+                    data.service_type_color, data.job_id
+                );
 
-                
+                var marker = getOverlayMapMarker(map,i,
+                    data.lat, data.lng
+                );
+
                 MapMarkers.push(marker);
+
             }
         }
 
@@ -3326,7 +3795,7 @@
             //  $("#mapdiv").addClass('col-md-12');
             //  $("#tablediv").removeClass('col-md-8');
 
-            $("#tablediv").addClass('col-md-8');
+            // $("#tablediv").addClass('col-md-8');
            
 
             //show the red update map button on left side
@@ -3369,6 +3838,531 @@
         
         sessionStorage.setItem("serv_name_input", "");
         sessionStorage.removeItem("serv_name_input");
+
+
+        /**
+         * This function returns the definition of a
+         * google map marker for an ACTIVE property.
+         */
+        function __getActiveMapMarker(map,index,latitude,longitude,title,markerColor='#c9c9c9')
+        {
+            const image = "http://mt.googleapis.com/vt/icon/name=icons/spotlight/spotlight-poi.png";
+
+            var svgActivePinMarker = {
+                // with middle circle
+                //path: 'M12,2L12,2C8.13,2,5,5.13,5,9c0,1.74,0.5,3.37,1.41,4.84c0.95,1.54,2.2,2.86,3.16,4.4c0.47,0.75,0.81,1.45,1.17,2.26 C11,21.05,11.21,22,12,22h0c0.79,0,1-0.95,1.25-1.5c0.37-0.81,0.7-1.51,1.17-2.26c0.96-1.53,2.21-2.85,3.16-4.4 C18.5,12.37,19,10.74,19,9C19,5.13,15.87,2,12,2z M12,11.75c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5 S13.38,11.75,12,11.75z',
+                // without middle circle
+                path: 'M 12 2 L 12 2 C 8.13 2 5 5.13 5 9 c 0 1.74 0.5 3.37 1.41 4.84 c 0.95 1.54 2.2 2.86 3.16 4.4 c 0.47 0.75 0.81 1.45 1.17 2.26 C 11 21.05 11.21 22 12 22 h 0 c 0.79 0 1 -0.95 1.25 -1.5 c 0.37 -0.81 0.7 -1.51 1.17 -2.26 c 0.96 -1.53 2.21 -2.85 3.16 -4.4 C 18.5 12.37 19 10.74 19 9 C 19 5.13 15.87 2 12 2 z z',
+
+                strokeColor: 'black',  // highlight
+                strokeWeight: 1.2,
+
+                fillColor: markerColor,
+                fillOpacity: 0, // no fill colour
+                scale: 1.5,
+
+                origin: new google.maps.Point(0,0),
+                anchor: new google.maps.Point(12, 24),
+
+                labelOrigin: new google.maps.Point(10,10),
+            };
+
+            return new google.maps.Marker({
+                icon: svgActivePinMarker,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+                title: title,
+                index: index,
+            });
+        }
+
+        /**
+         * PRIVATE FUNCTION
+         * This function returns the definition of a
+         * google map marker for an IN-ACTIVE property.
+         *
+         * default marker color #c9c9c9
+         */
+        function __getInactiveMapMarker(map,index,latitude,longitude,title,markerColor='#c9c9c9')
+        {
+            var svgInactivePinMarker = {
+                path: 'M12,2L12,2C8.13,2,5,5.13,5,9c0,1.74,0.5,3.37,1.41,4.84c0.95,1.54,2.2,2.86,3.16,4.4c0.47,0.75,0.81,1.45,1.17,2.26 C11,21.05,11.21,22,12,22h0c0.79,0,1-0.95,1.25-1.5c0.37-0.81,0.7-1.51,1.17-2.26c0.96-1.53,2.21-2.85,3.16-4.4 C18.5,12.37,19,10.74,19,9C19,5.13,15.87,2,12,2z M12,11.75c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5 S13.38,11.75,12,11.75z',
+
+                strokeColor: 'black',  // highlight
+                strokeWeight: 0.0,
+
+                fillColor: markerColor,
+                fillOpacity: 1,
+                scale: 1.5,
+
+                origin: new google.maps.Point(0,0),
+                anchor: new google.maps.Point(12, 24),
+
+                labelOrigin: new google.maps.Point(10,10),
+            };
+
+            return new google.maps.Marker({
+                icon: svgInactivePinMarker,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+                title: title,
+                index: index
+            });
+        }
+
+        /**
+         * PRIVATE FUNCTION
+         * This function returns the definition dot circle
+         */
+        function __getDotCircleMapMarker(map,latitude,longitude,dotColour,dotScale)
+        {
+            var svgSmallCircleMarker = {
+                path: 'M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Z',
+                fillColor: dotColour,
+                fillOpacity: 1,
+                scale: dotScale,
+                strokeColor: 'white',
+                strokeWeight: 0.5,
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(12, 12),
+            };
+
+            return new google.maps.Marker({
+                icon: svgSmallCircleMarker,
+                position: new google.maps.LatLng(latitude, longitude),
+                map: map,
+            });
+        }
+
+        /**
+         * PUBLIC
+         * This function returns an overlay marker
+         * This marker is used to act as a click on ALL elements.
+         */
+        function getOverlayMapMarker(map,index,latitude,longitude)
+        {
+            var svgOverlayPinMarker = {
+                path: 'M12,2L12,2C8.13,2,5,5.13,5,9c0,1.74,0.5,3.37,1.41,4.84c0.95,1.54,2.2,2.86,3.16,4.4c0.47,0.75,0.81,1.45,1.17,2.26 C11,21.05,11.21,22,12,22h0c0.79,0,1-0.95,1.25-1.5c0.37-0.81,0.7-1.51,1.17-2.26c0.96-1.53,2.21-2.85,3.16-4.4 C18.5,12.37,19,10.74,19,9C19,5.13,15.87,2,12,2z M12,11.75c-1.38,0-2.5-1.12-2.5-2.5s1.12-2.5,2.5-2.5s2.5,1.12,2.5,2.5 S13.38,11.75,12,11.75z',
+
+                strokeColor: 'black',  // highlight
+                strokeWeight: 0.0,
+
+                fillColor: 'yellow',
+                fillOpacity: 0.1,
+                scale: 1.5,
+
+                origin: new google.maps.Point(0,0),
+                anchor: new google.maps.Point(12, 24),
+
+            };
+
+            return new google.maps.Marker({
+                icon: svgOverlayPinMarker,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+                index: index
+            });
+        }
+
+        /**
+         * NewCustomer (NewSale)
+         */
+        function __getNewCustomerMapMarkerIcon(map,latitude,longitude)
+        {
+            const symbolNewCustomer = {
+                path: 'M451 863h55v-52q61-7 95-37.5t34-81.5q0-51-29-83t-98-61q-58-24-84-43t-26-51q0-31 22.5-49t61.5-18q30 0 52 14t37 42l48-23q-17-35-45-55t-66-24v-51h-55v51q-51 7-80.5 37.5T343 454q0 49 30 78t90 54q67 28 92 50.5t25 55.5q0 32-26.5 51.5T487 763q-39 0-69.5-22T375 681l-51 17q21 46 51.5 72.5T451 809v54Zm29 113q-82 0-155-31.5t-127.5-86Q143 804 111.5 731T80 576q0-83 31.5-156t86-127Q252 239 325 207.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 82-31.5 155T763 858.5q-54 54.5-127 86T480 976Z',
+                fillColor: 'green',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 0.2,
+                scale: 0.015,
+                anchor: new google.maps.Point(1400, 2500)
+            }
+
+            return new google.maps.Marker({
+                icon: symbolNewCustomer,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+            });
+        }
+
+        /**
+         * PastDue
+         * service_due == "Overdue"
+         */
+        function __getPastDueMapMarkerIcon(map,latitude,longitude)
+        {
+            const symbolPastDue = {
+                path: 'M479 974q-74 0-139.5-28t-114-77q-48.5-49-77-114T120 615q0-74 28.5-139.5t77-114.5q48.5-49 114-77T479 256q74 0 139.5 28T733 361q49 49 77 114.5T838 615q0 75-28 140t-77 114q-49 49-114.5 77T479 974Zm121-196 42-42-130-130V416h-60v214l148 148ZM214 189l42 42L92 389l-42-42 164-158Zm530 0 164 158-42 42-164-158 42-42Z',
+                fillColor: 'yellow',
+                fillOpacity: 1,
+                strokeColor: 'black',
+                strokeWeight: 0.2,
+                scale: 0.015,
+                anchor: new google.maps.Point(-200, 2500)
+            }
+
+            return new google.maps.Marker({
+                icon: symbolPastDue,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+            });
+        }
+
+        /**
+         * PRIVATE PreNotified (CallAhead)
+         */
+        function __getPreNotifiedMapMarkerIcon(map,latitude,longitude)
+        {
+            const symbolPreNotified = {
+                path: 'm18.75,36.99C8.67,36.99.5,28.82.5,18.75S8.67.5,18.75.5s18.25,8.17,18.25,18.25-8.17,18.25-18.25,18.25Zm3.36-26.67l-1.47.51c-5.22,1.89-8.9,10.69-7.39,15.2l.51,1.47c.14.4.58.65,1.02.49l2.97-1.07c.4-.14.63-.62.49-1.02l-1.05-3.29-2.42-.94c-.36-1.03,2.38-6.65,3.44-7.06l2.36,1.28,3.11-1.17c.4-.14.63-.62.49-1.02l-1.04-2.89c-.15-.44-.58-.65-1.02-.49Z',
+                fillColor: 'blue',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 0.4,
+                scale: 0.3,
+                anchor: new google.maps.Point(23,132)
+            }
+
+            return new google.maps.Marker({
+                icon: symbolPreNotified,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+            });
+        }
+
+        /**
+         * PRIVATE ASAP
+         */
+        function __getAsapMapMarkerIcon(map,latitude,longitude)
+        {
+            const symbolAsap = {
+                path: 'M479.982 776q14.018 0 23.518-9.482 9.5-9.483 9.5-23.5 0-14.018-9.482-23.518-9.483-9.5-23.5-9.5-14.018 0-23.518 9.482-9.5 9.483-9.5 23.5 0 14.018 9.482 23.518 9.483 9.5 23.5 9.5ZM453 623h60V370h-60v253Zm27.266 353q-82.734 0-155.5-31.5t-127.266-86q-54.5-54.5-86-127.341Q80 658.319 80 575.5q0-82.819 31.5-155.659Q143 347 197.5 293t127.341-85.5Q397.681 176 480.5 176q82.819 0 155.659 31.5Q709 239 763 293t85.5 127Q880 493 880 575.734q0 82.734-31.5 155.5T763 858.316q-54 54.316-127 86Q563 976 480.266 976Z',
+                fillColor: 'red',
+                fillOpacity: 1,
+                strokeColor: 'white',
+                strokeWeight: 0.2,
+                scale: 0.015,
+                anchor: new google.maps.Point(-200, 2500)
+            }
+
+            return new google.maps.Marker({
+                icon: symbolAsap,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+            });
+        }
+
+        /**
+         *  PRIVATE Days Since
+         */
+        function __daysSince(map,latitude,longitude,numberValue=' ')
+        {
+            const daysSinceNumberBackground = {
+                path: 'M480 976q-82 0-155-31.5t-127.5-86Q143 804 111.5 731T80 576q0-83 31.5-156t86-127Q252 239 325 207.5T480 176q83 0 156 31.5T763 293q54 54 85.5 127T880 576q0 82-31.5 155T763 858.5q-54 54.5-127 86T480 976Z',
+                fillColor: 'white',
+                fillOpacity: 1,
+                strokeColor: 'black',
+                strokeWeight: 0.2,
+                scale: 0.02,
+                anchor: new google.maps.Point(500, 1600),
+                labelOrigin: new google.maps.Point(450,530),
+            }
+            //console.log("number value = "+numberValue);
+            return new google.maps.Marker({
+                icon: daysSinceNumberBackground,
+                position: new google.maps.LatLng(latitude,longitude),
+                map: map,
+
+                label: {
+                    text: numberValue,
+                    color: 'black',
+                    fontSize: "8.5px",
+                },
+            });
+        }
+
+        /**
+         *  PRIVATE
+         */
+        function __dateDaysDifference(dateValue)
+        {
+            var diffInDays = NaN;
+            var daysValue = ' ';
+
+            if(!dateValue){return daysValue;}
+
+            var lastProgramServiceDate = new Date(dateValue);
+
+            if (isNaN(lastProgramServiceDate)) {
+                return daysValue;
+            }
+
+            var today = new Date();
+            const diffInMs = today - lastProgramServiceDate;
+            diffInDays = Math.ceil( diffInMs / (1000 * 60 * 60 * 24) );
+
+            // convert to string, or return blank string.
+            if(diffInDays){ daysValue = ''+diffInDays.toString();}
+
+            return daysValue;
+        }
+
+        /**
+         * PUBLIC
+         */
+        function addMapInfoIcons(data)
+        {
+            if(data.newcustomer==1) {
+                var markerNewCustomer = __getNewCustomerMapMarkerIcon(map,
+                    data.property_latitude, data.property_longitude);
+                MapInfoIcons.push(markerNewCustomer);
+            }
+            if(data.pastdue==1) {
+                var markerPastDue = __getPastDueMapMarkerIcon(map,
+                    data.property_latitude, data.property_longitude);
+                MapInfoIcons.push(markerPastDue);
+            }
+
+            if(data.prenotified==1) {
+                var markerPreNotified = __getPreNotifiedMapMarkerIcon(map,
+                    data.property_latitude, data.property_longitude);
+                MapInfoIcons.push(markerPreNotified);
+            }
+
+            if(data.asap==1) {
+                var markerAsap = __getAsapMapMarkerIcon(map,
+                    data.property_latitude, data.property_longitude);
+                MapInfoIcons.push(markerAsap);
+            }
+
+            //daysValue = dateDaysDifference(data.last_program_service_date);
+            daysValue  = ' ';
+            daysValue1 = __dateDaysDifference(data.completed_date_last_service_by_type);
+            //daysValue2 = __dateDaysDifference(data.last_service_date);
+            //daysValue2 = __dateDaysDifference(data.last_program_service_date);
+            daysValue2 = __dateDaysDifference(data.property_program_date_value);
+
+            daysValue=daysValue1;
+            if(daysValue1==' ')
+            {daysValue=daysValue2;}
+
+            var markerDaysSince = __daysSince(map,
+                data.property_latitude, data.property_longitude,
+                daysValue
+            );
+
+            MapInfoIcons.push(markerDaysSince);
+
+        }
+
+
+        /**
+         * PUBLIC
+         */
+        function clearMapInfoIcons()
+        {
+            MapInfoIcons.forEach(item => {
+                item.setMap(null);
+                item.setVisible(false);
+                item = null
+            })
+            MapInfoIcons=[]
+        }
+
+        /**
+         * PUBLIC
+         */
+        var propertyArray=[];
+        var MapMarkerDotIcons=[];
+        function addMapInactiveMarkerIcon(map,latitude,longitude,title,markerColor)
+        {
+            console.log("addMapInactiveMarkerIcon() >>");
+
+            if(propertyArray.hasOwnProperty(title))
+            {
+                var result = propertyArray[title];
+                propertyArray[title] = result+1;
+
+                var dotColour=markerColor;
+                var dotScale=0.6;
+
+                if(propertyArray[title] ==2){
+                    //dotColour='red';
+                    dotScale=0.6;
+                }
+
+                if(propertyArray[title] == 3){
+                    //dotColour='green';
+                    dotScale=0.4;
+                }
+
+                if(propertyArray[title] == 4){
+                    //dotColour='blue';
+                    dotScale=0.2;
+                }
+
+                if(propertyArray[title] > 4){
+                    return null;
+                }
+
+                var dot = __getDotCircleMapMarker(map,latitude,longitude,dotColour,dotScale);
+                MapMarkerDotIcons.push(dot);
+
+            }else {
+                propertyArray[title] = 1;
+
+                // normal execution
+                var markerImage = __getInactiveMapMarker(map, null,
+                    latitude,
+                    longitude,
+                    title,
+                    markerColor,
+                );
+                MapMarkerIcons.push(markerImage);
+
+            }
+        }
+
+        /**
+         * PUBLIC
+         */
+        function addMapActiveMarkerIcon(map,latitude,longitude,title,markerColor,jobid)
+        {
+            var existingMarkerArray = MapMarkerIconsAddressArray[latitude+longitude];
+
+            if(existingMarkerArray==undefined)
+            {
+                var existingMarker = undefined;
+                existingMarkerArray=[];
+            }
+            else {
+                var existingMarker = existingMarkerArray[jobid]
+            }
+
+
+            if(existingMarker==undefined)
+            {
+                var markerImage = __getActiveMapMarker(map,null,
+                    latitude,
+                    longitude,
+                    title,
+                    markerColor
+                );
+                existingMarkerArray[jobid] = markerImage;
+            }
+            else
+            {
+                var markerImage = existingMarkerArray[jobid];
+            }
+
+            MapMarkerIcons.push(markerImage);
+            MapMarkerIconsAddressArray[latitude+longitude]=existingMarkerArray;
+
+        }
+
+        function removeMapActiveMarkerIcon(latitude,longitude,jobid)
+        {
+            console.log("removeMapActiveMarkerIcon >>");
+
+            var existingMarkerArray = MapMarkerIconsAddressArray[latitude+longitude]
+
+            if(existingMarkerArray==undefined)
+            {}
+            else
+            {
+                for (let index = 0; index < existingMarkerArray.length; ++index) {
+                    const item = existingMarkerArray[index];
+
+                    if(item) {
+                        item.setMap(null);
+                        item.setVisible(false);
+                        //item = null;
+                    }
+
+                }
+
+                MapMarkerIconsAddressArray[latitude+longitude] = undefined;
+            }
+
+            console.log("<< removeMapActiveMarkerIcon");
+        }
+
+
+        function removeAllMapActiveMarkerIcon()
+        {
+            for (var key in MapMarkerIconsAddressArray)
+            {
+                console.log(MapMarkerIconsAddressArray[key]);
+                var existingMarkerArray = MapMarkerIconsAddressArray[key];
+
+                for (var key1 in existingMarkerArray)
+                {
+                    var item = existingMarkerArray[key1];
+
+                    if (item) {
+                        item.setMap(null);
+                        item.setVisible(false);
+                        //item = null;
+                    }
+                }
+            }
+
+            MapMarkerIconsAddressArray=[];
+        }
+
+
+        /**
+         * PUBLIC
+         */
+        function clearMapMarkerIcons()
+        {
+            MapMarkerIcons.forEach(item => {
+                item.setMap(null);
+                item.setVisible(false);
+                item = null
+            })
+            MapMarkerIcons=[];
+
+            // Also, clear dot icons
+            MapMarkerDotIcons.forEach(item => {
+                item.setMap(null);
+                item.setVisible(false);
+                item = null
+            })
+
+            MapMarkerDotIcons=[];
+
+            // reset property array
+            propertyArray=[];
+        }
+
+        /**
+         * PUBLIC
+         */
+        var MapMarkerCluster=null;
+        function addMapMarkerClusters(map,mapMarkers)
+        {
+            // COMMENTED OUT // TURNED OFF
+            /*
+            MapMarkerCluster = new markerClusterer.MarkerClusterer({ map, markers: mapMarkers,
+                algorithmOptions: {
+                    maxZoom: 10,
+                }
+            });
+            */
+        }
+
+        function clearMapMarkerClusters()
+        {
+            try {
+                MapMarkerCluster.clearMarkers();
+            }
+            catch(err){}
+
+            MapMarkerCluster=null;
+        }
+
 	});
 
 

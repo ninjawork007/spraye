@@ -1,9 +1,10 @@
-<!doctype html>
+  <!doctype html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Requset For Basys Account</title>
+    <title>Simple Transactional Email</title>
     <style>
       /* -------------------------------------
           GLOBAL RESETS
@@ -283,13 +284,12 @@
     </style>
   </head>
   <body class="">
-
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
       <tr>
         <td>&nbsp;</td>
         <td class="container">
           <div class="content">
-          
+
             <!-- START CENTERED WHITE CONTAINER -->
             
            
@@ -301,24 +301,33 @@
                   <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                     <tr>
                       <td>
-                         <img  src="<?= CLOUDFRONT_URL.'uploads/company_logo/'.$setting_details->company_logo ?>"><br>
-                        <h1>Invoice Payment </h1>
+                         <img  src="<?= CLOUDFRONT_URL.'uploads/company_logo/'.$company_details->company_logo ?>"><br>
+                        <h1>Service reschedule</h1>
+                        <p>Hi admin,</p>
 
-                      
-
-                           <p>Hi <?= $user_details->user_first_name.' '.$user_details->user_last_name ?>,</p>
-                           <p>You have received a payment of <b>$ <?= number_format($total_payment_final, 2) ?></b> from <b><?= $invoice_details[0]->first_name.' '.$invoice_details[0]->last_name ?></b> against the following invoices:<br/> <b><?php foreach($invoice_details as $invoice){ echo $invoice->invoice_id . '<br/>'; } ?></b></p>
+                        <p>The service has been rescheduled by <b><?= $this->session->userdata('spraye_technician_login')->user_first_name.' '.$this->session->userdata('spraye_technician_login')->user_last_name ?></b>.</p>
+						<p>Service details are given below.</p>
+                                   
                       </td>
                     </tr>
+                    <tr>
+                      <td><b>Service name</b> : <span><?= $job_name ?></span></td>
+                     </tr>
+                     <tr> 
+                      <td><b>Property address</b> : <span><?=$property_address  ?></span></td>
+                     </tr>
+                     <tr> 
+                      <td><b>Customer Name</b> : <span><?=$contactData['first_name'].' '.$contactData['last_name'] ?></span></td>
+                     </tr>
+                     <tr> 
+                      <td><b>Reschedule Reason </b> : <span><?= $reschedule_reason  ?></span></td>
+                     </tr>
 
                   </table>
                 </td>
               </tr>
 
-               
-
-
-
+              
 
            </table>
            
@@ -328,7 +337,7 @@
               <table role="presentation" border="0" cellpadding="0" cellspacing="0">
                 <tr>
                   <td class="content-block">
-                    <span class="apple-link"> &copy; <?= $setting_details->company_name ?> <?= date("Y")  ?> . All rights reserved.</span>
+                    <span class="apple-link"> &copy; <?= $company_details->company_name ?> <?= date("Y")  ?> . All rights reserved.</span>
                   </td>
                 </tr>
               </table>
@@ -340,6 +349,6 @@
         </td>
         <td>&nbsp;</td>
       </tr>
-    </table>  
+    </table>
   </body>
 </html>

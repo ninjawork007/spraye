@@ -7323,7 +7323,7 @@ public function checkQuickbook() {
 
 			$alldata['Locations'] = $Locations;
 			$alldata['OptimizeParameters'] = $OptimizeParameters;
-			$url = "https://optimizer3.routesavvy.com/RSAPI.svc/POSTOptimize";
+			$url = "https://optimizer.routesavvy.com/RSAPI.svc/POSTOptimize";
 			$handle = curl_init($url);
 			$query = $alldata;
 			//die(print_r($query));

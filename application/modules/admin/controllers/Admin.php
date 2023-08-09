@@ -77,6 +77,7 @@ class Admin extends MY_Controller
         $this->load->model('AdminTbl_product_model', 'ProductModel');
         $this->load->model('Dashboard_model', 'DashboardModel');
         $this->load->model("Administrator");
+        $this->load->model('Reports_model', 'RP');
         $this->load->model('Job_model', 'JobModel');
         $this->load->model('Technician_model', 'Tech');
         $this->load->model('AdminTbl_company_model', 'CompanyModel');
@@ -386,6 +387,8 @@ class Admin extends MY_Controller
 
     public function ajaxGetCustomer()
     {
+        $this->invoice_customer_hold();
+        $this->customerHoldPayments();
         $tblColumns = array(
             0 => 'checkbox',
             1 => 'customer_id',
@@ -723,7 +726,10 @@ class Admin extends MY_Controller
     // THIS IS THE CORRECT ONE FOR NEWER MAP CHANGES COMING
     public function ajaxGetRoutingFORMAPS()
     { // all I had to do to remove server-side to work with maps is change the last option in getTableDataAjax model to true. this removes the limits.
+        $setting['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+
         ini_set('memory_limit', '2048M');
+
         $tblColumns = array(
             0 => 'checkbox',
             1 => 'priority',
@@ -755,6 +761,7 @@ class Admin extends MY_Controller
         $start = $this->input->post('start');
         $order = $tblColumns[$this->input->post('order')[0]['column']];
         $dir = $this->input->post('order')[0]['dir'];
+
         $northEastLng = $this->input->post('northEastLng');
         $northEastLat = $this->input->post('northEastLat');
         $northWestLng = $this->input->post('northWestLng');
@@ -939,9 +946,9 @@ class Admin extends MY_Controller
             } else {
                 $tempdata = $this->DashboardModel->getMapDataAjax($where, $where_like, $limit, $start, $order, $dir, false, $where_in, $or_where, $northEastLng, $northEastLat, $northWestLng, $northWestLat, $southWestLng, $southWestLat, $southEastLng, $southEastLat);
                 $var_total_item_count_for_pagination = $this->DashboardModel->getMapDataAjax($where, $where_like, $limit, $start, $order, $dir, true, $where_in, $or_where, $northEastLng, $northEastLat, $northWestLng, $northWestLat, $southWestLng, $southWestLat, $southEastLng, $southEastLat);
-            }
 
 
+			}
 //            $var_total_item_count_for_pagination = count($var_total_item_count_for_pagination);
 
         } else {
@@ -981,8 +988,8 @@ class Admin extends MY_Controller
                         continue;
                     }
                 }
-                $prop_id = $value->property_id;
 
+                $prop_id = $value->property_id;
 
                 // $generate_row = true;
                 $arrayName = array(
@@ -1004,51 +1011,60 @@ class Admin extends MY_Controller
 //                }
 
                 $cost = 0;
-                if ($value->job_cost == NULL) {
-                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-
-                    if ($value->is_price_override_set == 1) {
-                        // $price = $priceOverrideData->price_override;
-                        $cost = $value->price_override;
-                    } else {
-                        //else no price overrides, then calculate job cost
-                        $lawn_sqf = $value->yard_square_feet;
-                        $job_price = $value->job_price;
-
-                        //get property difficulty level
-                        if (isset($value->difficulty_level) && $value->difficulty_level == 2) {
-                            $difficulty_multiplier = $setting_details->dlmult_2;
-                        } elseif (isset($value->difficulty_level) && $value->difficulty_level == 3) {
-                            $difficulty_multiplier = $setting_details->dlmult_3;
-                        } else {
-                            $difficulty_multiplier = $setting_details->dlmult_1;
-                        }
-
-                        //get base fee
-                        if (isset($value->base_fee_override)) {
-                            $base_fee = $value->base_fee_override;
-                        } else {
-                            $base_fee = $setting_details->base_service_fee;
-                        }
-
-                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                        //get min. service fee
-                        if (isset($value->min_fee_override)) {
-                            $min_fee = $value->min_fee_override;
-                        } else {
-                            $min_fee = $setting_details->minimum_service_fee;
-                        }
-
-                        // Compare cost per sf with min service fee
-                        if ($cost_per_sqf > $min_fee) {
-                            $cost = $cost_per_sqf;
-                        } else {
-                            $cost = $min_fee;
-                        }
-                    }
-                    $value->job_cost = $cost;
-                }
+                $where = array(
+                    'property_tbl.property_id' => $value->property_id,
+                    'jobs.job_id' => $value->job_id,
+                    'programs.program_id' => $value->program_id,
+                    'customers.customer_id' => $value->customer_id,
+                );
+                $check_inv = $this->INV->getOneInvoive($where);
+                $invoiceId = $check_inv ? $check_inv->invoice_id : 0;
+                $value->job_cost = $this->getLostRevenue($value->customer_id, $value->property_id, $value->program_id, $invoiceId, $value->job_id, $value->yard_square_feet);
+//                if ($value->job_cost == NULL) {
+//                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+//
+//                    if ($value->is_price_override_set == 1) {
+//                        // $price = $priceOverrideData->price_override;
+//                        $cost = $value->price_override;
+//                    } else {
+//                        //else no price overrides, then calculate job cost
+//                        $lawn_sqf = $value->yard_square_feet;
+//                        $job_price = $value->job_price;
+//
+//                        //get property difficulty level
+//                        if (isset($value->difficulty_level) && $value->difficulty_level == 2) {
+//                            $difficulty_multiplier = $setting_details->dlmult_2;
+//                        } elseif (isset($value->difficulty_level) && $value->difficulty_level == 3) {
+//                            $difficulty_multiplier = $setting_details->dlmult_3;
+//                        } else {
+//                            $difficulty_multiplier = $setting_details->dlmult_1;
+//                        }
+//
+//                        //get base fee
+//                        if (isset($value->base_fee_override)) {
+//                            $base_fee = $value->base_fee_override;
+//                        } else {
+//                            $base_fee = $setting_details->base_service_fee;
+//                        }
+//
+//                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+//
+//                        //get min. service fee
+//                        if (isset($value->min_fee_override)) {
+//                            $min_fee = $value->min_fee_override;
+//                        } else {
+//                            $min_fee = $setting_details->minimum_service_fee;
+//                        }
+//
+//                        // Compare cost per sf with min service fee
+//                        if ($cost_per_sqf > $min_fee) {
+//                            $cost = $cost_per_sqf;
+//                        } else {
+//                            $cost = $min_fee;
+//                        }
+//                    }
+//                    $value->job_cost = $cost;
+//                }
 
                 $concat_is_rescheduled = 0;
                 if ($value->is_job_mode == 2) {
@@ -1076,7 +1092,12 @@ class Admin extends MY_Controller
                         $value->reschedule_message = "Unassigned by System";
                     }
                 } else {
-                    $value->reschedule_message = '';
+                    if (isset($value->reschedule_name))
+                        $value->reschedule_message = $value->reschedule_name;
+                    else if(isset($value->reschedule_message2) && $value->reschedule_message2)
+                        $value->reschedule_message = $value->reschedule_message2;
+                    else
+                        $value->reschedule_message = '';
                 }
 
                 // set row data
@@ -1204,6 +1225,25 @@ class Admin extends MY_Controller
                 // Available days
                 $available_days = formatAvailableDays($value->available_days);
                 $data[$i]['available_days'] = implode(", ", $available_days);
+
+                // newcustomer for map marker
+                $data[$i]['newcustomer'] = $value->newcustomer;
+                // PreNotified for Map Marker
+                $data[$i]['prenotified'] = $value->prenotified;
+                // pastdue for map marker
+                $data[$i]['pastdue'] = "0";
+                if($value->service_due=="Overdue"){ $data[$i]['pastdue'] = "1";}
+                // ASAP for map marker (defined previously above)
+                // service_type_color for Map Marker
+                $data[$i]['service_type_color'] = $value->service_type_color;
+                // For days since calculation
+                $data[$i]['completed_date_last_service_by_type'] = $value->completed_date_last_service_by_type;
+                // try to uniquely identify rows in table data
+                $data[$i]['job_id'] = $value->job_id;
+                //  property_program_assign.property_program_date (property_program_date_value)
+                $data[$i]['property_program_date_value'] = isset($value->property_program_date_value) ? date('Y-m-d', strtotime($value->property_program_date_value)) : '';
+
+
                 // easy way to console log out
                 // $data[$i]['note'] = json_encode($_POST);
                 // $data[$i]['note'] = json_encode($this->input->post('columns')[1]['search']['value']);
@@ -1218,12 +1258,134 @@ class Admin extends MY_Controller
             //die(" Execution time of script = ".$execution_time." sec");
             // die(print_r($property_id_array));
         }
+        $full_vehicle_data = array(); 
+        $possible_errors = "";
+        if($setting['setting_details']->vc_show_vehicle == 1) {
+            //setup for api token
+            $username = $setting['setting_details']->vc_username;
+            $password = $setting['setting_details']->vc_password;
+            $FIM_endpoint_token = 'https://fim.api.us.fleetmatics.com/token';
+
+            //Call method and set variable to authorization string
+            $token = $this->get_token($FIM_endpoint_token, $username, $password);
+            
+            // check if the token has spaces in it - if so it's an error message and needs to be shown to the user
+            if (strpos($token, " ") !== false) {
+                $possible_errors = $token;
+            } else {
+                $FIM_app_id = $setting['setting_details']->vc_app_id;
+                $vehicleData = $this->DashboardModel->get_fleet_numbers(array('v_company_id' => $company_id));
+
+                //setup for api calls        
+                $FIM_endpoint_vehicle = 'https://fim.api.us.fleetmatics.com/rad/v1/vehicles/%s/location';
+                $FIM_endpoint_driver = 'https://fim.api.us.fleetmatics.com/rad/v1/vehicles/%s/status';       
+
+                //loop through vehicles and get and store locations
+                foreach($vehicleData as $vehicle){            
+                    //Call method and set variable to location string 
+                    if($vehicle->fleet_number != "") {
+                        $vehicle_number = $vehicle->fleet_number; 
+                        $location = $this->get_vehicle_location($vehicle_number, $FIM_endpoint_vehicle, $FIM_app_id, $token);
+                        $locationData = json_decode($location, true);
+                        if(isset($locationData["faultstring"])) {
+                            $possible_errors = "AppID ".$locationData["faultstring"];
+                        } else {
+
+                            $tmp = new stdClass;
+                            $tmp->Latitude = $locationData['Latitude'];
+                            $tmp->Longitude = $locationData['Longitude'];
+
+                            $driver = $this->get_driver_data($vehicle_number, $FIM_endpoint_driver, $FIM_app_id, $token);
+                            $driverData = json_decode($driver, true);
+                            $tmp->DriverName = $driverData['DriverName'];
+
+                            $full_vehicle_data[] = $tmp;
+                        }
+                    }
+
+                    //die(print_r($full_vehicle_data[0]));             
+                } 
+            }
+        }
+
 
         $json_data = array(
             "draw" => intval($this->input->post('draw')),
             "recordsTotal" => $var_total_item_count_for_pagination, // "(filtered from __ total entries)"
             "recordsFiltered" => $var_total_item_count_for_pagination, // actual total that determines page counts
-            "data" => $data
+            "data"            => $data,
+            "full_vehicle_data" => $full_vehicle_data,
+            "possible_errors" => $possible_errors
+        );
+        echo json_encode($json_data);
+    }
+
+    public function ajaxGetRoutingFORMAPSVERIZONONLY()
+    { // all I had to do to remove server-side to work with maps is change the last option in getTableDataAjax model to true. this removes the limits.
+        $setting['setting_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+        $company_id = $this->session->userdata['company_id'];
+        $possible_errors = '';
+        $full_vehicle_data = array();
+        
+        if($setting['setting_details']->vc_show_vehicle == 1) {
+            //setup for api token
+            $username = $setting['setting_details']->vc_username;
+            $password = $setting['setting_details']->vc_password;
+            $FIM_endpoint_token = 'https://fim.api.us.fleetmatics.com/token';
+
+            //Call method and set variable to authorization string
+            $token = $this->get_token($FIM_endpoint_token, $username, $password);
+            
+            
+            // check if the token has spaces in it - if so it's an error message and needs to be shown to the user
+            if (strpos($token, " ") !== false) {
+                $possible_errors = $token;
+            } else {
+                $FIM_app_id = $setting['setting_details']->vc_app_id;
+                $vehicleData = $this->DashboardModel->get_fleet_numbers(array('v_company_id' => $company_id));
+
+                //setup for api calls        
+                $FIM_endpoint_vehicle = 'https://fim.api.us.fleetmatics.com/rad/v1/vehicles/%s/location';
+                $FIM_endpoint_driver = 'https://fim.api.us.fleetmatics.com/rad/v1/vehicles/%s/status';
+
+                //loop through vehicles and get and store locations
+                foreach($vehicleData as $vehicle){            
+                    //Call method and set variable to location string 
+                    if($vehicle->fleet_number != "") {
+                        $vehicle_number = $vehicle->fleet_number; 
+                        $location = $this->get_vehicle_location($vehicle_number, $FIM_endpoint_vehicle, $FIM_app_id, $token);
+                        $locationData = json_decode($location, true);
+                        if(isset($locationData["faultstring"])) {
+                            $possible_errors = "AppID ".$locationData["faultstring"];
+                        } else {
+
+                            $tmp = new stdClass;
+                            if(isset($locationData['Latitude'])) {
+                                $tmp->Latitude = $locationData['Latitude'];
+                                $tmp->Longitude = $locationData['Longitude'];
+                            } else {
+                                // Noticed that if the latitude was not set at this point was because location data was an error and is just a string - so show that error instead
+                                $possible_errors = $locationData;
+                            }
+
+                            if($possible_errors == "") {
+                                $driver = $this->get_driver_data($vehicle_number, $FIM_endpoint_driver, $FIM_app_id, $token);
+                                $driverData = json_decode($driver, true);
+                                $tmp->DriverName = $driverData['DriverName'];
+                                
+                                $full_vehicle_data[] = $tmp;
+                            }
+                        }
+                    }
+
+                    //die(print_r($full_vehicle_data[0]));             
+                } 
+            }
+        }
+
+        $json_data = array(
+            "full_vehicle_data" => $full_vehicle_data,
+            "possible_errors" => $possible_errors
         );
         echo json_encode($json_data);
     }
@@ -2033,10 +2195,131 @@ class Admin extends MY_Controller
         // Available days for filter list
         $data['available_days_list'] = availableDaysArrayForTableFilter();
         // die(print_r($data['service_list']));
+
         $page["page_content"] = $this->load->view("admin/assign_job_map", $data, TRUE);
         //$page["page_content"] = $this->load->view("admin/assign_job_clone", $data, TRUE);
         $this->layout->superAdminTemplateTable($page);
     }
+
+
+    
+    public function get_driver_data($vehicle_number, $endpoint, $app_id, $token)
+   {
+      //Inserts vehicle_number into '%s" space in endpoint     
+      $url = sprintf($endpoint, $vehicle_number);  
+
+      //Get necessary headers for REST call     	  
+      $headers = $this->get_call_headers($app_id, $token);
+    
+      $session = curl_init($url);                                 //Initialize transfer with URL   
+      curl_setopt($session, CURLOPT_HEADER, false);               //Exclude header info in response      
+      curl_setopt($session, CURLOPT_RETURNTRANSFER, true);        //Return transfer as a string of the return value of curl_exec()      
+      curl_setopt($session, CURLOPT_HTTPHEADER, $headers);        //Pass in headers      
+
+      //Execute transfer of $session     	  
+      $response = curl_exec($session); 
+    
+       //Get http code outcome of the #session transfer	     
+      $http_code = curl_getinfo($session, CURLINFO_HTTP_CODE);
+    
+      //ALWAYS close transfer connection      
+      curl_close($session);
+    
+      return $response;    
+   }
+
+   
+
+
+
+
+
+   public function get_vehicle_location($vehicle_number, $endpoint, $app_id, $token)
+   {
+      //Inserts vehicle_number into '%s" space in endpoint    
+      $url = sprintf($endpoint, $vehicle_number);  
+
+      //Get necessary headers for REST call     	  
+      $headers = $this->get_call_headers($app_id, $token);
+      $session = curl_init($url);                                 //Initialize transfer with URL  
+       
+      curl_setopt($session, CURLOPT_HEADER, false);               //Exclude header info in response      
+      curl_setopt($session, CURLOPT_RETURNTRANSFER, true);        //Return transfer as a string of the return value of curl_exec()      
+      curl_setopt($session, CURLOPT_HTTPHEADER, $headers);        //Pass in headers      
+
+      //Execute transfer of $session     	  
+      $response = curl_exec($session); 
+      
+    
+       //Get http code outcome of the #session transfer	     
+      $http_code = curl_getinfo($session, CURLINFO_HTTP_CODE);
+      //ALWAYS close transfer connection      
+      curl_close($session);
+    
+      return $response;    
+   }
+
+   public function get_call_headers($app_id, $token)
+   {
+      //Inserts app_id and token into respective '%s' spaces in the auth header      
+      $auth_header = sprintf('Authorization: Atmosphere atmosphere_app_id=%s, Bearer %s', $app_id, $token);
+    
+      //Create necessary headers for REST call      
+      $headers = array();
+      $headers[] = $auth_header;  
+      $headers[] = 'Accept: application/json';                      //alternatively 'Accept: application/xml'     
+    
+      return $headers;
+   }
+
+
+
+    public function  get_token($url, $username, $password)
+   {
+	  //Create necessary headers for REST call
+	  $headers = array();
+	  $headers[] = $this->make_authorization_header($username, $password);    //Send to function to Base64 encode
+	  $headers[] = 'Accept: text/plain';                               //Authorization token comes back as plain text
+   
+	  $session = curl_init($url);                             //Initialize transfer with URL
+	  curl_setopt($session, CURLOPT_HEADER, false);           //Exclude header info in response
+	  curl_setopt($session, CURLOPT_RETURNTRANSFER, true);    //Return transfer as a string of the return value of curl_exec()
+	  curl_setopt($session, CURLOPT_HTTPHEADER, $headers);    //Pass in headers
+	
+	  //Execute transfer of $session
+	  $response = curl_exec($session); 
+
+	  //Get http code outcome of the #session transfer	  
+	  $http_code = curl_getinfo($session, CURLINFO_HTTP_CODE);
+
+	  //Measure false response/error	  	  
+	  if($response === false)
+	  {
+		 echo 'Error: '. curl_error($session);
+	  }
+	  
+	  //ALWAYS close transfer connection 	  	
+	  curl_close($session);
+
+	  //Evaluate variable for non 200(OK) http code	  	  
+	  if($http_code !== 200)
+	  {
+		 echo 'Error: Http Status Code returned '.$http_code;
+	  }    
+   
+	  return $response;    
+   }
+   
+   public function make_authorization_header($username, $password)
+   {
+	  //Base64 encode username:password; note: the ':' must be present between them	  
+	  $encodedString = base64_encode($username.':'.$password);
+	  
+	  //Return concatenated Authorization string	  
+	  return 'Authorization: Basic '.$encodedString;
+   }
+
+
 
     public function assignJobsArchived()
     {
@@ -2080,6 +2363,7 @@ class Admin extends MY_Controller
         $where_ar = array(
             'company_id' => $company_id
         );
+        $data['reschedule_reasons'] = $this->CustomerModel->getRescheduleReasonsList($this->session->userdata['company_id']);
         $data['tecnician_details'] = $this->Administrator->getAllAdmin(array('company_id' => $this->session->userdata['company_id']));
         $page["page_content"] = $this->load->view("admin/manage_jobs", $data, TRUE);
         $this->layout->superAdminTemplateTable($page);
@@ -2779,6 +3063,27 @@ class Admin extends MY_Controller
                                 }
                             }
                         } //end if program price = at completion
+                        if (isset($data['reschedule_reason_id_edit']) && $data['reschedule_reason_id_edit'] != '') {
+                            $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
+                            $whereReason = [
+                                'program_id' => $details->program_id,
+                                'property_id' => $details->property_id,
+                                'customer_id' => $details->customer_id,
+                                'job_id' => $details->job_id,
+                                'reschedule_reason_id' => $data['reschedule_reason_id_edit'],
+                                'rescheduled_at' => date('Y-m-d H:i:s')
+                            ];
+                            if (isset($data['hold_until_date_id_edit']) && $data['hold_until_date_id_edit'] !== '') {
+
+                                $whereReason['hold_until_date'] = $data['hold_until_date_id_edit'];
+                            }
+                            if (isset($data['reason_other_id_edit']) && $data['reason_other_id_edit'] !== '') {
+                                $whereReason['reschedule_message'] = $data['reason_other_id_edit'];
+                            }
+                            $updated = $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($whereReason);
+                        }
+                        if (isset($data['send_email_edit']) && $data['send_email_edit'] == 'on')
+                            $sendEmail = $this->jobResceduleEmail($data['technician_job_assign_id'], ['reschedule_reason_id' => $data['reschedule_reason_id_edit'], 'edit' => true, 'job_assign_date' => $data['job_assign_date']]);
                     }
                 } //end if date change
                 // die(print_r($data));
@@ -2789,7 +3094,13 @@ class Admin extends MY_Controller
                     'job_assign_notes' => $data['job_assign_notes'],
                     'job_assign_updated_date' => date("Y-m-d H:i:s")
                 );
-
+                if (isset($data['reschedule_reason_id_edit']) && $data['reschedule_reason_id_edit'] != '') {
+                    $param['reschedule_reason_id'] = $data['reschedule_reason_id_edit'];
+                    if ($data['reschedule_reason_id_edit'] == '-1') {
+                        $rescheduleMessage = 'Other: '.$data['reason_other_id_edit'];
+                        $param['reschedule_message'] = $rescheduleMessage;
+                    }
+                }
                 if (array_key_exists('specific_time_check', $data)) {
                     $param['is_time_check'] = 1;
                     $param['specific_time'] = $data['specific_time'];
@@ -2807,14 +3118,14 @@ class Admin extends MY_Controller
 
                 if ($result) {
                     $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Scheduled </strong> Service updated successfully</div>');
-                    redirect("admin/index");
+                    redirect("admin/manageJobs");
                 } else {
                     $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Scheduled </strong>Service not updated. Please try again.</div>');
-                    redirect("admin/index");
+                    redirect("admin/manageJobs");
                 }
             } else {
                 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">Already exists specific time in this date please change time</div>');
-                redirect("admin/index");
+                redirect("admin/manageJobs");
             }
         }
     }
@@ -2848,6 +3159,22 @@ class Admin extends MY_Controller
             $result = $this->DashboardModel->updateAssignJob($where, $param);
 
             if ($result) {
+                if (isset($data['reschedule_reason_id']) && $data['reschedule_reason_id'] != '') {
+                    //get tech assign job details
+                    $details = $this->Tech->GetOneRow(array('technician_job_assign_id' => $data['technician_job_assign_id']));
+                    $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
+                    $whereReason = [
+                        'program_id' => $details->program_id,
+                        'property_id' => $details->property_id,
+                        'customer_id' => $details->customer_id,
+                        'job_id' => $details->job_id,
+                        'reschedule_reason_id' => $data['reschedule_reason_id'],
+                        'rescheduled_at' => date('Y-m-d H:i:s')
+                    ];
+                    $updated = $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($whereReason);
+                }
+                if (isset($data['send_email']) && $data['send_email'] == 'on')
+                    $sendEmail = $this->jobResceduleEmail($data['technician_job_assign_id'], ['reschedule_reason_id' => $data['reschedule_reason_id'], 'edit' => true, 'job_assign_date' => $data['job_assign_date']]);
                 $return_array = array('status' => 200, 'msg' => 'Service updated successfully');
             } else {
                 $return_array = array('status' => 400, 'msg' => 'Something went wrong!');
@@ -2878,6 +3205,9 @@ class Admin extends MY_Controller
             if ($checkAlreadyTime) {
 
                 foreach ($multiple_technician_job_assign_id as $value) {
+                    //die(print_r($multiple_technician_job_assign_id));
+                    $job_cost = 0;
+                    $jobs = array();
                     //if job assign date changed, then handle the invoice
                     $old_details = $this->Tech->GetOneRow(array('technician_job_assign_id' => $value));
 
@@ -2891,15 +3221,20 @@ class Admin extends MY_Controller
 
                         //Get Job Cost
                         $jobDetails = $this->JobModel->getOneJob(array('job_id' => $job_id));
+                        array_push($jobs,$job_id);
                         $estimate_price_override = GetOneEstimateJobPriceOverride(array('customer_id' => $customer_id, 'property_id' => $property_id, 'program_id' => $program_id, 'job_id' => $job_id));
-                        if ($estimate_price_override) {
+
+
+                        if ($estimate_price_override && $estimate_price_override->is_price_override_set == 1) {
                             $job_cost = $estimate_price_override->price_override;
                         } else {
-                            $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
 
+                            $priceOverrideData = $this->Tech->getOnePriceOverride(array('property_id' => $property_id, 'program_id' => $program_id));
                             if ($priceOverrideData->is_price_override_set == 1) {
+
                                 $job_cost = $priceOverrideData->price_override;
                             } else {
+
                                 $propertyDetails = $this->PropertyModel->getOnePropertyDetail($property_id);
                                 $price = $jobDetails->job_price;
 
@@ -2934,8 +3269,11 @@ class Admin extends MY_Controller
                                 } else {
                                     $job_cost = $min_fee;
                                 }
+
+                                //die(print_r($job_cost));
                             }
                         }
+
                         //get program invoice method
                         $checkInvMethod = $this->ProgramModel->getOneProgramForCheck(array('program_id' => $program_id));
 
@@ -3077,6 +3415,92 @@ class Admin extends MY_Controller
                                     $update = $this->DashboardModel->updateAssignJob(array('technician_job_assign_id' => $value), array('invoice_id' => $invoice));
                                 }
                             } else {
+                                // jobs json
+                                //die(print_r($jobs));
+                                foreach($jobs as $job){
+
+                                    if( isset($data['jobcost']) && is_array($data['jobcost']) && array_key_exists($job, $data['jobcost'])){
+
+
+
+                                        //get property program job invoice data
+
+                                        $exist_ppjobinv = $this->PropertyProgramJobInvoiceModel->getOnePropertyProgramJobInvoiceDetails(array('property_id' =>$data['property_id'],'program_id' => $data['program_id'],'job_id'=>$job,'invoice_id'=>$invoice_id));
+                                       // die(print_r($exist_ppjobinv));
+                                        //create and update
+
+                                        if($exist_ppjobinv){
+
+                                            //update job cost
+                                            //die(print_r($data['jobcost'][$job]));
+                                            $this->PropertyProgramJobInvoiceModel->updatePropertyProgramJobInvoice(array('invoice_id'=>$invoice_id, 'job_id'=>$job), array('job_cost'=>$data['jobcost'][$job], 'updated_at'=>date("Y-m-d H:i:s")));
+
+                                        }else{
+
+                                            //get property_program_id
+
+                                            $propProg = $this->PropertyModel->getOnePropertyProgram(array('property_id' =>$data['property_id'],'program_id' => $data['program_id']));
+
+                                            //create new row
+
+                                            $PPJOBINVparams = array(
+
+                                                'customer_id' => $data['customer_id'],
+
+                                                'property_program_id'=> $propProg->property_program_id,
+
+                                                'property_id' => $data['property_id'],
+
+                                                'program_id' => $data['program_id'],
+
+                                                'job_id'=>$job,
+
+                                                'job_cost'=> $data['jobcost'][$job],
+
+                                                'invoice_id'=>$invoice_id,
+
+                                                'created_at'=>date("Y-m-d H:i:s"),
+
+                                                'updated_at'=>date("Y-m-d H:i:s"),
+
+                                            );
+
+                                            $PPJOBINV_ID = $this->PropertyProgramJobInvoiceModel->CreateOnePropertyProgramJobInvoice($PPJOBINVparams);
+
+                                        }
+
+                                    }
+
+                                    //get job details
+
+                                    $job_details =  $this->JobModel->getOneJob(array('job_id'=>$job));
+
+                                    if($job_details){
+
+                                        $description[]=$job_details->job_name;
+
+
+
+                                    }
+
+                                    $jobarray[] = array(
+
+                                        'job_id' => $job,
+
+                                        'job_cost'=> $data['jobcost'][$job],
+
+                                        'job_name'=>$job_details->job_name,
+
+
+
+                                    );
+
+                                }
+                                $json = array(
+
+                                    'jobs'=>$jobarray,
+
+                                );
                                 // else no other jobs, then create new invoice, update tech_job_assign table, insert new row into PPJOBINV table
                                 $invParams = array(
                                     'customer_id' => $customer_id,
@@ -3089,7 +3513,7 @@ class Admin extends MY_Controller
                                     'cost' => ($job_cost),
                                     'is_created' => 0,
                                     'invoice_created' => date("Y-m-d H:i:s"),
-                                    //'json'=>json_encode($json),
+                                    'json'=>json_encode($json),
                                 );
                                 $invoice = $this->INV->createOneInvoice($invParams);
 
@@ -3169,7 +3593,27 @@ class Admin extends MY_Controller
                                 }
                             }
                         } //end if program price = at completion
+                        if (isset($data['reschedule_reason_id_bulk_edit']) && $data['reschedule_reason_id_bulk_edit'] != '') {
+                            $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
+                            $whereReason = [
+                                'program_id' => $program_id,
+                                'property_id' => $property_id,
+                                'customer_id' => $customer_id,
+                                'job_id' => $job_id,
+                                'reschedule_reason_id' => $data['reschedule_reason_id_bulk_edit'],
+                                'rescheduled_at' => date('Y-m-d H:i:s')
+                            ];
+                            if (isset($data['hold_until_date_bulk_edit']) && $data['hold_until_date_bulk_edit'] !== '') {
 
+                                $whereReason['hold_until_date'] = $data['hold_until_date_bulk_edit'];
+                            }
+                            if (isset($data['reason_other_bulk_edit']) && $data['reason_other_bulk_edit'] !== '') {
+                                $whereReason['reschedule_message'] = $data['reason_other_bulk_edit'];
+                            }
+                            $updated = $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($whereReason);
+                        }
+                        if (isset($data['send_email_bulk_edit']) && $data['send_email_bulk_edit'] == 'on')
+                            $sendEmail = $this->jobResceduleEmail($value, ['reschedule_reason_id' => $data['reschedule_reason_id_bulk_edit'], 'edit' => true, 'job_assign_date' => $data['job_assign_date']]);
                     } //end if change job assign date
 
                     $param = array(
@@ -3177,8 +3621,15 @@ class Admin extends MY_Controller
                         'job_assign_date' => $data['job_assign_date'],
                         'job_assign_notes' => $data['job_assign_notes'],
                         'route_id' => $route_id
-
                     );
+
+                    if (isset($data['reschedule_reason_id_bulk_edit']) && $data['reschedule_reason_id_bulk_edit'] != '') {
+                        $param['reschedule_reason_id'] = $data['reschedule_reason_id_bulk_edit'];
+                        if ($data['reschedule_reason_id_bulk_edit'] == '-1') {
+                            $rescheduleMessage = 'Other: '.$data['reason_other_bulk_edit'];
+                            $param['reschedule_message'] = $rescheduleMessage;
+                        }
+                    }
 
                     if (count($multiple_technician_job_assign_id) == 1 && array_key_exists('specific_time_check', $data)) {
                         $param['is_time_check'] = 1;
@@ -3214,12 +3665,118 @@ class Admin extends MY_Controller
         return $result;
     }
 
+    public function jobResceduleEmail($technician_job_assign_id, $data = array())
+    {
+        $tech_job_assign_details = $this->Tech->getOneJobAssign(array('technician_job_assign_id' => $technician_job_assign_id));
+
+        //die(print_r($tech_job_assign_details->pre_service_notification));
+        $pre_service_notification_email = 0;
+        $pre_service_notification_text = 0;
+        if (strpos($tech_job_assign_details->pre_service_notification, '"2"') != 0) {
+            //die("Yes, it has a preservice notification to send an email");
+            $pre_service_notification_email = 1;
+        }
+        if (strpos($tech_job_assign_details->pre_service_notification, '"3"') != 0) {
+            //die("Yes, it has a preservice notification to send an email");
+            $pre_service_notification_text = 1;
+        }
+        //die(print_r($tech_job_assign_details));
+        if (!empty($tech_job_assign_details)) {
+            $rescheduleReasonMessage = $tech_job_assign_details->reschedule_message;
+            if (isset($data['reschedule_reason_id'])) {
+                $rescheduleReason = $this->CustomerModel->getRescheduleReasonsListWhere(['reschedule_id' => $data['reschedule_reason_id']]);
+                $rescheduleReasonMessage = $rescheduleReason->reschedule_name;
+            }
+
+            $emaildata['company_details'] = $this->CompanyModel->getOneCompany(array('company_id' => $tech_job_assign_details->company_id));
+            $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $tech_job_assign_details->company_id));
+            $emaildata['property_address'] = $tech_job_assign_details->property_address;
+            $emaildata['job_name'] = $tech_job_assign_details->job_name;
+            $emaildata['reschedule_reason'] = $rescheduleReasonMessage;
+            $emaildata['property_details'] = $this->PropertyModel->getOneProperty(array('property_id' => $tech_job_assign_details->property_id));
+            $emaildata['job_details'] = $this->JobModel->getOneJob(array('job_id' => $tech_job_assign_details->job_id));
+            $emaildata['propertyData'] = $this->PropertyModel->getOneProperty(array('property_id' => $tech_job_assign_details->property_id));
+            $emaildata['program_name'] = $tech_job_assign_details->program_name;
+            $emaildata['property_address'] = $emaildata['propertyData']->property_address;
+
+
+            #check if customer billing type is Group Billing
+            $checkGroupBilling = $this->CustomerModel->checkGroupBilling($tech_job_assign_details->customer_id);
+            if (isset($checkGroupBilling) && $checkGroupBilling == "true") {
+                $groupBillingDetails = $this->PropertyModel->getGroupBillingByProperty($tech_job_assign_details->property_id);
+                $emaildata['contactData'] = array(
+                    'first_name' => $groupBillingDetails['first_name'],
+                    'last_name' => $groupBillingDetails['last_name'],
+                    'contact_id' => $groupBillingDetails['group_billing_id'],
+                    'email_opt_in' => $groupBillingDetails['email_opt_in'],
+                    'email' => $groupBillingDetails['email'],
+                    'group_billing' => 1,
+                );
+            } else {
+                $emaildata['contactData'] = array(
+                    'first_name' => $tech_job_assign_details->first_name,
+                    'last_name' => $tech_job_assign_details->last_name,
+                    'contact_id' => $tech_job_assign_details->customer_id,
+                    'email_opt_in' => $tech_job_assign_details->is_email,
+                    'email' => $tech_job_assign_details->email,
+                    'group_billing' => 0,
+                );
+            }
+            //die(print_r($emaildata));
+            $body = $this->load->view('email/job_skipped_email', $emaildata, true);
+            //$body  = $this->load->view('email/reschedule_email', $emaildata, true);
+            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $tech_job_assign_details->company_id, 'is_smtp' => 1));
+            //$company_email_details = false;
+            if (!$company_email_details) {
+                $company_email_details = $this->Administratorsuper->getOneDefaultEmailArray();
+            }
+            if ($emaildata['company_email_details']->job_sheduled_skipped_status == 1 && $emaildata['contactData']['email_opt_in'] == 1 && $pre_service_notification_email) {
+                $emaildata['customerData'] = $this->CustomerModel->getOneCustomer(array('customer_id' => $tech_job_assign_details->customer_id));
+
+                $where = array('company_id' => $this->session->userdata['company_id']);
+                $emaildata['company_details'] = $this->CompanyModel->getOneCompany($where);
+                $emaildata['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail($where);
+                $emaildata['job_details'] = $this->JobModel->getOneJob(array('job_id' => $tech_job_assign_details->job_id));
+
+                $subject = '';
+                $email_details['reschedule_message'] = $tech_job_assign_details->reschedule_message;
+                if (isset($data['edit']) && $data['edit']) {
+                    $emaildata['assign_date'] = $data['job_assign_date'];
+                    $subject = 'Service is scheduled';
+                    $body = $this->load->view('email/group_billing/tech_email', $emaildata, true);
+                } else {
+//                    $body = $this->load->view('email/reschedule_email', $email_details, true);
+                    $body = $this->load->view('email/job_skipped_email', $emaildata, true);
+                    $subject = 'Service Rescheduled';
+                }
+                #send email to customer
+                $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['contactData']['email'], array("name" => $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $body, 'Service Rescheduled');
+//                $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['company_details']->company_email, array("name" => $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $body, 'Service Rescheduled');
+                #send email to admin
+                $body = $this->load->view('email/reschedule_email', $email_details, true);
+                $sendEmail = Send_Mail_dynamic($company_email_details, $emaildata['company_details']->company_email, array("name" => $emaildata['company_details']->company_name, "email" => $emaildata['company_details']->company_email), $body, $subject);
+
+            } else {
+                $sendEmail = [];
+            }
+
+            return $sendEmail;
+
+        }
+
+    }
+
 
     public function ScheduledJobDetete($technician_job_assign_id)
     {
         //  echo $technician_job_assign_id;
         // die();
-
+        $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
+        $reason_id = $this->input->get('reschedule_reason');
+        $sendEmail = $this->input->get('send_email');
+        $otherReason = $this->input->get('otherReason');
+        $holdUntilDate = $this->input->get('holdUntilDate');
+        $page = $this->input->get('page');
         $oneTimeInvoice = 0;
         $where = array('technician_job_assign_id' => $technician_job_assign_id);
         $details = $this->Tech->GetOneRow($where);
@@ -3290,6 +3847,26 @@ class Admin extends MY_Controller
 
                 }
             }
+            if ($reason_id) {
+                $whereReason = [
+                    'program_id' => $details->program_id,
+                    'property_id' => $details->property_id,
+                    'customer_id' => $details->customer_id,
+                    'job_id' => $details->job_id,
+                    'reschedule_reason_id' => $reason_id,
+                    'rescheduled_at' => date('Y-m-d H:i:s')
+                ];
+                if ($holdUntilDate && $holdUntilDate !== '') {
+
+                    $whereReason['hold_until_date'] = $holdUntilDate;
+                }
+                if ($otherReason && $otherReason !== '') {
+                    $whereReason['reschedule_message'] = $otherReason;
+                }
+                $updated = $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($whereReason);
+            }
+            if ($sendEmail)
+                $sendEmail = $this->jobResceduleEmail($technician_job_assign_id, ['reschedule_reason_id' => $reason_id]);
 
 
             $result = $this->DashboardModel->deleteAssignJob($where);
@@ -3298,25 +3875,49 @@ class Admin extends MY_Controller
 
                 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Something </strong> went wrong.</div>');
 
-                redirect("admin/index");
+                redirect("admin/manageJobs"."?page=".$page);
             } else {
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Scheduled </strong>Service deleted successfully</div>');
-                redirect("admin/index");
+                redirect("admin/manageJobs"."?page=".$page);
             }
         } else {
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Something </strong> went wrong.</div>');
-            redirect("admin/index");
+            redirect("admin/manageJobs"."?page=".$page);
         }
     }
 
     public function deletemultipleJobAssign()
     {
+        $data = $this->input->post();
         $job_assign_ids = $this->input->post('job_assign_ids');
         // var_dump($job_assign_ids);
         //die(print_r($job_assign_ids));
 
         if (!empty($job_assign_ids)) {
             foreach ($job_assign_ids as $key => $value) {
+                if (isset($data['reschedule_reason_id']) && $data['reschedule_reason_id'] != '') {
+                    //get tech assign job details
+                    $details = $this->Tech->GetOneRow(array('technician_job_assign_id' => $value));
+                    $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
+                    $whereReason = [
+                        'program_id' => $details->program_id,
+                        'property_id' => $details->property_id,
+                        'customer_id' => $details->customer_id,
+                        'job_id' => $details->job_id,
+                        'reschedule_reason_id' => $data['reschedule_reason_id'],
+                        'rescheduled_at' => date('Y-m-d H:i:s')
+                    ];
+                    if (isset($data['holdUntilDate']) && $data['holdUntilDate'] !== '') {
+
+                        $whereReason['hold_until_date'] = $data['holdUntilDate'];
+                    }
+                    if (isset($data['otherReason']) && $data['otherReason'] !== '') {
+                        $whereReason['reschedule_message'] = $data['otherReason'];
+                    }
+                    $updated = $this->PJACPM->createOrUpdateProgramJobAssignedCustomerProperty($whereReason);
+                }
+                if (isset($data['send_reschedule_email']) && ($data['send_reschedule_email'] != 'false' || $data['send_reschedule_email'] == 'on'))
+                    $sendEmail = $this->jobResceduleEmail($value, ['reschedule_reason_id' => $data['reschedule_reason_id']]);
                 $where = $this->ScheduledJobDeteteFun($value);
             }
             echo 1;
@@ -4350,7 +4951,7 @@ class Admin extends MY_Controller
                                                     } else {
 
                                                         //else no price overrides, then calculate job cost
-                                                        $lawn_sqf = $property_details->yard_square_feet;
+                                                        $lawn_sqf = isset($property_details->yard_square_feet)?$property_details->yard_square_feet:0;
                                                         $job_price = $es_job->job_price;
 
                                                         //get property difficulty level
@@ -4668,7 +5269,7 @@ class Admin extends MY_Controller
                     //print_r($assigned_data);
                 }
 
-                echo json_encode(array('status' => 200, 'msg' => 'Assigned Successfully ', 'route_id' => $data['route_select'], 'technician_assigned' => $tech_assigned_jobs));
+                echo json_encode(array('status' => 200, 'msg' => 'Assigned Successfully ', 'route_id' => isset($data['route_select'])?$data['route_select']:"none", 'technician_assigned' => isset($tech_assigned_jobs)?$tech_assigned_jobs:"none"));
             } else {
                 //$log = "Already exists specific time in this date please change time\n";
                 //fwrite($errorLog,$log);
@@ -4827,6 +5428,9 @@ class Admin extends MY_Controller
         //auto status update
         $this->CustomerModel->autoStatusCheck(0, $this->session->userdata['company_id']);
         $this->PropertyModel->autoStatusCheck();
+        // call customer hold service scheduler
+        $this->invoice_customer_hold();
+        $this->customerHoldPayments();
         $this->layout->superAdminTemplateTable($page);
         //$this->output->enable_profiler(FALSE);
     }
@@ -5353,6 +5957,7 @@ class Admin extends MY_Controller
                 $all_services->job_cost = $cost;
             }
         }
+
 
         $data['alerts'] = json_decode($data['customerData']['alerts']);
         //$data['propertylist'] = $this->CustomerModel->getPropertyList($where);
@@ -13246,6 +13851,24 @@ class Admin extends MY_Controller
             );
             //    die(print_r($param));
             $result = $this->CompanyModel->updateAssignJobView($where, $param);
+           // }
+            
+           
+        //else if customer portal button !$checked, delete the slug
+        } else {
+        // $no_cust_portal = (isset($data['slug'])) ? $data['slug'] : '';
+        //echo $data['slug'];
+        $where = array('company_id'=>$this->session->userdata['company_id']);
+        //$slugwhere = array('company_id'=>$this->session->userdata['slug']);
+        //print_r($slugwhere);
+        $param = array('assign_job_view' => 0);
+        
+        $result = $this->CompanyModel->updateAssignJobView($where, $param);
+      // }
+    }
+        
+        if ($result) 
+        {
             // }
             $this->session->set_userdata('assign_job_view', 1);
 
@@ -13273,6 +13896,59 @@ class Admin extends MY_Controller
 
     }
 
+    public function updatePopulationProductsAmount()
+    {
+        //$data = $this->input->post();
+        // $sessiondata = $this->load->library('session');
+        // print_r($sessiondata);
+        $company_name = $this->session->userdata['compny_details']->company_name;
+        // $slug = $this->session->userdata['compny_details']->slug;
+
+        //die(print_r($_SESSION));
+        //die(print_r($company_name));
+
+        $checked = $this->input->post('toggle_population_products_amount');
+
+
+        //echo $checked;
+
+        //if button post value is on default view is maps.
+        if (isset($checked) && $checked == 'on') {
+
+            $where = array('company_id' => $this->session->userdata['company_id']);
+
+            $param = array(
+                'automatic_chemical_calculation' => 1,
+            );
+            //    die(print_r($param));
+            $result = $this->CompanyModel->updateAssignJobView($where, $param);
+            // }
+            $this->session->set_userdata('automatic_chemical_calculation', 1);
+
+            //else if customer portal button !$checked, delete the slug
+        } else {
+            // $no_cust_portal = (isset($data['slug'])) ? $data['slug'] : '';
+            //echo $data['slug'];
+            $where = array('company_id' => $this->session->userdata['company_id']);
+            //$slugwhere = array('company_id'=>$this->session->userdata['slug']);
+            //print_r($slugwhere);
+            $param = array('automatic_chemical_calculation' => 0);
+
+            $result = $this->CompanyModel->updateAssignJobView($where, $param);
+            $this->session->set_userdata('automatic_chemical_calculation', 0);
+            // }
+        }
+
+        if ($result) {
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Automatic Chemical Calculation settings</strong> updated successfully.</div>');
+            redirect("admin/setting");
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-warning alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Automatic Chemical Calculation settings</strong> not updated. Please try again.</div>');
+            redirect("admin/setting");
+        }
+
+    }
+
     public function invoice_customer_hold()
     {
         $company_id = $this->session->userdata['company_id'];
@@ -13292,6 +13968,7 @@ class Admin extends MY_Controller
                 'status !=' => 0,
                 'is_archived' => 0,
                 'payment_status !=' => 2,
+                'customers.customer_status != 2 AND customers.customer_status !=' => 0,
                 //'invoice_date >' => $year . '-01-01',
                 'invoice_date <' => $new_date
             );
@@ -13378,22 +14055,69 @@ class Admin extends MY_Controller
                 $today = strtotime('now');
                 $hold_days_setting = $data_company_email->email_scheduling_indays;
                 $hold_date_marker = date('Y-m-d', strtotime('-' . $hold_days_setting . 'days', $today));
-                foreach ($hold_customers as $customer) {
-                    #get customer unpaid customer invoices older than 45 days
-                    $where_unpaid = array(
-                        'invoice_tbl.company_id' => $this->session->userdata['company_id'],
-                        'invoice_tbl.customer_id' => $customer->customer_id,
-                        'invoice_tbl.status !=' => 0,
-                        'invoice_tbl.is_archived' => 0,
-                        'invoice_tbl.payment_status !=' => 2,
-                        'invoice_tbl.invoice_date <' => $hold_date_marker
-                    );
-                    $unpaid_invoices = $this->INV->getInvoices($where_unpaid);
-                    #remove customer hold if customer has 0 unpaid invoices within date range
-                    if (empty($unpaid_invoices)) {
-                        $removeHold = $this->CustomerModel->updateAdminTbl($customer->customer_id, array('customer_status' => 1));
+                $start_time = microtime(true);
+                $customer_ids = [];
+                $customer_names = [];
+                foreach ($hold_customers as $_data) {
+                    if (!in_array($_data->customer_id, $customer_ids))
+                        $customer_ids[] = $_data->customer_id;
+                }
+                if (!empty($customer_ids)) {
+                    $customer_ids_str = implode(",", $customer_ids);
+                    $hasUnpaidInvoices = $this->INV->ajaxActiveInvoicesCustomers($company_id, $customer_ids_str, $hold_date_marker);
+                    foreach($hasUnpaidInvoices as $unpaid) {
+                        $index = array_search($unpaid->customer_id, $customer_ids);
+                        if ($index >= 0)
+                            unset($customer_ids[$index]);
+                    }
+                    if (!empty($customer_ids)) {
+                        $customer_ids_str = implode(",", $customer_ids);
+                        $hasUnpaidInvoices = $this->INV->ajaxActiveInvoicesTechUpdateCustomer($customer_ids_str);
                     }
                 }
+//                $i = 0;
+//                foreach ($hold_customers as $customer) {
+//                    #get customer unpaid customer invoices older than 45 days
+//                    $where_unpaid = array(
+//                        'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+//                        'invoice_tbl.customer_id' => $customer->customer_id,
+//                        'invoice_tbl.status !=' => 0,
+//                        'invoice_tbl.is_archived' => 0,
+//                        'invoice_tbl.payment_status !=' => 2,
+//                        'invoice_tbl.invoice_date <' => $hold_date_marker
+//                    );
+//                    // WHERE NOT: all of the below true
+//                    $whereArrExclude = array(
+//                        "programs.program_price" => 2,
+//                        // "technician_job_assign.is_complete" => 0,
+//                        "technician_job_assign.is_complete !=" => 1,
+//                        "technician_job_assign.is_complete IS NOT NULL" => null,
+//                    );
+//
+//                    // WHERE NOT: all of the below true
+//                    $whereArrExclude2 = array(
+//                        "programs.program_price" => 2,
+//                        "technician_job_assign.invoice_id IS NULL" => null,
+//                        "invoice_tbl.report_id" => 0,
+//                        "property_program_job_invoice2.report_id IS NULL" => null,
+//                    );
+//                    $limit = 0;
+//
+//                    $start = 0;
+//                    $order = 'invoice_id';
+//
+//                    $dir = 'DESC';
+//                    $orWhere = [];
+//
+////                    $unpaid_invoices = $this->INV->getInvoices($where_unpaid);
+//                    $unpaid_invoices = $this->INV->ajaxActiveInvoicesTech($where_unpaid, $limit, $start, $order, $dir, $whereArrExclude, $whereArrExclude2, $orWhere, true);
+//                    #remove customer hold if customer has 0 unpaid invoices within date range
+//                    if (empty($unpaid_invoices)) {
+//                        error_log("Customer id\n: ".$customer->customer_id);
+//                        $removeHold = $this->CustomerModel->updateAdminTbl($customer->customer_id, array('customer_status' => 1));
+//                        $i++;
+//                    }
+//                }
             }
         }
     }
@@ -13956,6 +14680,136 @@ class Admin extends MY_Controller
 
     }
 
+    public function getJobInvoiceCostwithCoupon($where_arr)
+    {
+        /* $where_arr example
+         * array(
+                'job_id' => $job_id,
+                'invoice_id' => $invoice_id
+        */
+        // Get number of services from invoice
+        $job_cost = 0;
+        $total_amount_of_services_per_invoice = 0;
+        $this->db->select('*');
+        $this->db->from('property_program_job_invoice');
+        if(is_array($where_arr))
+        {
+            $this->db->where(array('invoice_id' => $where_arr['invoice_id']));
+        }
+        $result = $this->db->get()->result();
+        foreach ($result as $job){
+            if ($job->job_id ==$where_arr['job_id'] ){
+                $job_cost = $job->job_cost;
+            }
+        }
+        $total_amount_of_services_per_invoice = count($result);
+
+        $coupon_array = $this->RP->getJobInvoiceCoupons($where_arr['invoice_id'], $job_cost ?? 0);
+        // Calculate $ discounts before % discounts
+        if ($total_amount_of_services_per_invoice >0) {
+            foreach ($coupon_array as $coupon) {
+                if ($coupon['coupon_amount_calculation'] == 0) {
+                    $job_cost = $job_cost - $coupon['coupon_amount'] / $total_amount_of_services_per_invoice;
+                }
+            }
+        }
+        // now check for % discounts
+        foreach ($coupon_array as $coupon){
+            if ($coupon['coupon_amount_calculation'] == 1){
+                $job_cost = $job_cost - $job_cost*$coupon['coupon_amount']/100;
+            }
+        }
+        return $job_cost;
+
+    }
+
+    public function getLostRevenue(  $customer_id, $property_id, $program_id,$invoice_id = 0,$job_id, $yard_square_feet )
+    {
+        $job_cost = 0;
+        // Meant to work in all cases. for pricing types.
+        $where_arr = array(
+            'customer_id' => $customer_id,
+            'property_id' => $property_id,
+            'program_id' => $program_id,
+            'job_id' => $job_id
+        );
+        // check estimate price
+        $estimate_price_override = GetOneEstimateJobPriceOverride( $where_arr );
+        if( $estimate_price_override && !empty( $estimate_price_override->is_price_override_set ))
+        {
+            $job_cost = $estimate_price_override->price_override;
+        } else if ( $invoice_id != 0) {
+            $invoice_cost = $this->getJobInvoiceCostwithCoupon(array(
+                'job_id' => $job_id,
+                'invoice_id' => $invoice_id
+            ));
+            //die($invoice_cost);
+            // include coupons
+            $job_cost = $invoice_cost;
+        } else {
+
+            $where_arr = array(
+                'property_id' => $property_id,
+                'program_id' => $program_id
+            );
+            // Get program price override
+            $priceOverrideData = $this->Tech->getOnePriceOverride( $where_arr );
+
+            if( isset($priceOverrideData->is_price_override_set) && $priceOverrideData->is_price_override_set == 1 )
+            {
+                $job_cost = $priceOverrideData->price_override;
+            } else {
+                //else no price overrides, then calculate job cost
+                $job = $this->JobModel->getOneJob(array( 'job_id' => $job_id ));
+                $property = $this->PropertyModel->getOneProperty( array( 'property_id' => $property_id ));
+                $lawn_sqf = $yard_square_feet;
+                $job_price = $job->job_price;
+
+                //get property difficulty level
+                $setting_details = $this->CompanyModel->getOneCompany( array( 'company_id' => $this->session->userdata['company_id'] ));
+
+                if( isset( $property->difficulty_level ) && $property->difficulty_level == 2 )
+                {
+                    $difficulty_multiplier = $setting_details->dlmult_2;
+                } elseif( isset( $property->difficulty_level ) && $property->difficulty_level == 3 )
+                {
+                    $difficulty_multiplier = $setting_details->dlmult_3;
+                } else {
+                    $difficulty_multiplier = $setting_details->dlmult_1;
+                }
+
+                //get base fee
+                if( isset( $job->base_fee_override ))
+                {
+                    $base_fee = $job->base_fee_override;
+                } else
+                {
+                    $base_fee = $setting_details->base_service_fee;
+                }
+
+                $cost_per_sqf = $base_fee + ( $job_price * $lawn_sqf * $difficulty_multiplier ) / 1000;
+
+                //get min. service fee
+                if( isset( $job->min_fee_override ))
+                {
+                    $min_fee = $job->min_fee_override;
+                } else {
+                    $min_fee = $setting_details->minimum_service_fee;
+                }
+
+                // Compare cost per sf with min service fee
+                if ($cost_per_sqf > $min_fee) {
+                    $job_cost = $cost_per_sqf;
+                } else {
+                    $job_cost = $min_fee;
+                }
+            }
+        }
+
+        return $job_cost;
+
+    }
+
     public function ajaxGetRoutingFORTABLE()
     { // all I had to do to remove server-side to work with maps is change the last option in getTableDataAjax model to true. this removes the limits.
 
@@ -14170,51 +15024,60 @@ class Admin extends MY_Controller
                 }
 
                 $cost = 0;
-                if ($value->job_cost == NULL) {
-                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
-
-                    if ($value->is_price_override_set == 1) {
-                        // $price = $priceOverrideData->price_override;
-                        $cost = $value->price_override;
-                    } else {
-                        //else no price overrides, then calculate job cost
-                        $lawn_sqf = $value->yard_square_feet;
-                        $job_price = $value->job_price;
-
-                        //get property difficulty level
-                        if (isset($value->difficulty_level) && $value->difficulty_level == 2) {
-                            $difficulty_multiplier = $setting_details->dlmult_2;
-                        } elseif (isset($value->difficulty_level) && $value->difficulty_level == 3) {
-                            $difficulty_multiplier = $setting_details->dlmult_3;
-                        } else {
-                            $difficulty_multiplier = $setting_details->dlmult_1;
-                        }
-
-                        //get base fee
-                        if (isset($value->base_fee_override)) {
-                            $base_fee = $value->base_fee_override;
-                        } else {
-                            $base_fee = $setting_details->base_service_fee;
-                        }
-
-                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
-
-                        //get min. service fee
-                        if (isset($value->min_fee_override)) {
-                            $min_fee = $value->min_fee_override;
-                        } else {
-                            $min_fee = $setting_details->minimum_service_fee;
-                        }
-
-                        // Compare cost per sf with min service fee
-                        if ($cost_per_sqf > $min_fee) {
-                            $cost = $cost_per_sqf;
-                        } else {
-                            $cost = $min_fee;
-                        }
-                    }
-                    $value->job_cost = $cost;
-                }
+                $where = array(
+                    'property_tbl.property_id' => $value->property_id,
+                    'jobs.job_id' => $value->job_id,
+                    'programs.program_id' => $value->program_id,
+                    'customers.customer_id' => $value->customer_id,
+                );
+                $check_inv = $this->INV->getOneInvoive($where);
+                $invoiceId = $check_inv ? $check_inv->invoice_id : 0;
+                $value->job_cost = $this->getLostRevenue($value->customer_id, $value->property_id, $value->program_id, $invoiceId, $value->job_id, $value->yard_square_feet);
+//                if ($value->job_cost == NULL) {
+//                    // got this math from updateProgram - used to calculate price of job when not pulling it from an invoice
+//
+//                    if ($value->is_price_override_set == 1) {
+//                        // $price = $priceOverrideData->price_override;
+//                        $cost = $value->price_override;
+//                    } else {
+//                        //else no price overrides, then calculate job cost
+//                        $lawn_sqf = $value->yard_square_feet;
+//                        $job_price = $value->job_price;
+//
+//                        //get property difficulty level
+//                        if (isset($value->difficulty_level) && $value->difficulty_level == 2) {
+//                            $difficulty_multiplier = $setting_details->dlmult_2;
+//                        } elseif (isset($value->difficulty_level) && $value->difficulty_level == 3) {
+//                            $difficulty_multiplier = $setting_details->dlmult_3;
+//                        } else {
+//                            $difficulty_multiplier = $setting_details->dlmult_1;
+//                        }
+//
+//                        //get base fee
+//                        if (isset($value->base_fee_override)) {
+//                            $base_fee = $value->base_fee_override;
+//                        } else {
+//                            $base_fee = $setting_details->base_service_fee;
+//                        }
+//
+//                        $cost_per_sqf = $base_fee + ($job_price * $lawn_sqf * $difficulty_multiplier) / 1000;
+//
+//                        //get min. service fee
+//                        if (isset($value->min_fee_override)) {
+//                            $min_fee = $value->min_fee_override;
+//                        } else {
+//                            $min_fee = $setting_details->minimum_service_fee;
+//                        }
+//
+//                        // Compare cost per sf with min service fee
+//                        if ($cost_per_sqf > $min_fee) {
+//                            $cost = $cost_per_sqf;
+//                        } else {
+//                            $cost = $min_fee;
+//                        }
+//                    }
+//                    $value->job_cost = $cost;
+//                }
 
                 // if no resschedule message, set default
                 if ($value->is_job_mode == 2) {
@@ -14234,7 +15097,12 @@ class Admin extends MY_Controller
                         }
                     }
                 } else {
-                    $value->reschedule_message = '';
+                    if (isset($value->reschedule_name))
+                        $value->reschedule_message = $value->reschedule_name;
+                    else if(isset($value->reschedule_message2) && $value->reschedule_message2)
+                        $value->reschedule_message = $value->reschedule_message2;
+                    else
+                        $value->reschedule_message = '';
                 }
 
                 // set row data
@@ -14718,6 +15586,16 @@ class Admin extends MY_Controller
 
             print_r($response);
         }
+    }
+    public function verizonRevealMap()
+    {
+        $company_id = $this->session->userdata['company_id'];
+        $data['verizon_connect_info'] = $this->CompanyModel->getVerizonInformation($company_id);
+        
+	    $page["active_sidebar"] = "verizonRevealMap";
+        $page["page_name"] = 'Verizon Reveal Map';
+        $page["page_content"] = $this->load->view("admin/fleet/verizon_reveal_map", $data, TRUE);
+        $this->layout->superAdminReportTemplateTable($page);
     }
 
     private function getCompanyTimeZoneString()

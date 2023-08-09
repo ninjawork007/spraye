@@ -144,6 +144,127 @@ td.fc-day.fc-past {
 <link rel="stylesheet" href="<?php echo base_url(); ?>assets/weather/css/responsive.css">
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/bootstrap-clockpicker.min.css">
 <link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>assets/clock/css/github.min.css">
+<!-- Primary modal -->
+<div id="modal_reschedule_reason_bulk" class="modal fade" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-light">Reschedule Reasons</h6>
+                <button type="button" class="close text-light modal-skip-dismiss close-modal-reschedule-reason">&times;</button>
+            </div>
+            <div class="modal-body ">
+                <div class="form-group ">
+                    <select class="form-control" name="reschedule_reason_id_bulk" id="reschedule_reason_id_bulk" >
+                        <option value="">Select Reschedule Reason</option>
+
+                        <?php
+                        if (!empty($reschedule_reasons)) {
+                            foreach ($reschedule_reasons as $reschedule_reason) {
+                                echo '<option value="'.$reschedule_reason->reschedule_id.'" >'.$reschedule_reason->reschedule_name.'</option>';
+                            }
+                        }
+                        ?>
+                        <option value="-1">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" id="reschedule_reason_other_bulk" hidden>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="reason_other">Add more details</label>
+                            <input type="text" class="form-control" name="reason_other_bulk" id="reason_other_bulk">
+
+                        </div>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="reason_other">Hold Service Until</label>
+                            <input type="date"
+                                   id="hold_until_date_bulk"
+                                   name="hold_until_date_bulk"
+                                   value=""
+                                   class="form-control pickadate note-filter"
+                                   placeholder="YYYY-MM-DD"
+                                   >
+                        </div>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Send Rescheduled Email</label>
+                    <input type="checkbox" name="send_email_bulk" id="send_email_bulk" >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="button-reschedule-reason-bulk" onclick="handleModalRescheduleBulk()" type="button" class="btn btn-primary modal-reschedule-dismiss">Save</button>
+                <button type="button" class="btn btn-secondary modal-reschedule-dismiss close-modal-reschedule-reason" >Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Primary modal -->
+<div id="modal_reschedule_reason" class="modal fade" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-light">Reschedule Reasons</h6>
+                <button type="button" class="close text-light modal-skip-dismiss close-modal-reschedule-reason">&times;</button>
+            </div>
+            <div class="modal-body ">
+                <div class="form-group ">
+                    <select class="form-control" name="reschedule_reason_id" id="reschedule_reason_id" >
+                        <option value="">Select Reschedule Reason</option>
+
+                        <?php
+                        if (!empty($reschedule_reasons)) {
+                            foreach ($reschedule_reasons as $reschedule_reason) {
+                                echo '<option value="'.$reschedule_reason->reschedule_id.'" >'.$reschedule_reason->reschedule_name.'</option>';
+                            }
+                        }
+                        ?>
+                        <option value="-1">Other</option>
+                    </select>
+                </div>
+                <div class="form-group" id="reschedule_reason_other_handle" hidden>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="reason_other">Add more details</label>
+                            <input type="text" class="form-control" name="reason_other_handle" id="reason_other_handle">
+
+                        </div>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="reason_other">Hold Service Until</label>
+                            <input type="date"
+                                   id="hold_until_date_handle"
+                                   name="hold_until_date_handle"
+                                   value=""
+                                   class="form-control pickadate note-filter"
+                                   placeholder="YYYY-MM-DD"
+                                   >
+                        </div>
+
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Send Rescheduled Email</label>
+                    <input type="checkbox" name="send_email" id="send_email_handle" >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="button-reschedule-reason" onclick="handleModalReschedule()" type="button" class="btn btn-primary modal-reschedule-dismiss">Save</button>
+                <button type="button" class="btn btn-secondary modal-reschedule-dismiss close-modal-reschedule-reason" >Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="content">
     <div class="">
         <div class="mymessage"></div>
@@ -270,7 +391,7 @@ td.fc-day.fc-past {
                                                     </li>
 
                                                     <li style="display: inline; padding-right: 10px;">
-                                                        <a href="<?=base_url("admin/ScheduledJobDetete/").$value->technician_job_assign_id ?>"
+                                                        <a href="<?=base_url("admin/ScheduledJobDetete/").$value->technician_job_assign_id ?>" title="Remove from schedule"
                                                             class="confirm_delete button-next"><i
                                                                 class="icon-trash   position-center"
                                                                 style="color: #9a9797;"></i></a>
@@ -301,7 +422,7 @@ td.fc-day.fc-past {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close close-modal-edit-assign-job" data-dismiss="modal">&times;</button>
                 <h6 class="modal-title">Update Assign Service to Technician</h6>
             </div>
             <form action="<?= base_url('admin/editTecnicianJobAssign') ?>" name="tecnicianjobassignedit" method="post">
@@ -321,7 +442,7 @@ td.fc-day.fc-past {
                                  }
                                  
                                  
-                                 ?> 
+                                 ?>
                                     </select>
                                 </div>
                             </div>
@@ -368,11 +489,55 @@ td.fc-day.fc-past {
                             </div>
                         </div>
                     </div>
+                    <div class="form-group ">
+                        <label>Select Reschedule Reason</label>
+                        <select class="form-control" name="reschedule_reason_id_edit" id="reschedule_reason_id_edit" >
+                            <option value="">Select Reschedule Reason</option>
+
+                            <?php
+                            if (!empty($reschedule_reasons)) {
+                                foreach ($reschedule_reasons as $reschedule_reason) {
+                                    echo '<option value="'.$reschedule_reason->reschedule_id.'" >'.$reschedule_reason->reschedule_name.'</option>';
+                                }
+                            }
+                            ?>
+                            <option value="-1">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="reschedule_reason_other_id_edit" hidden>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="reason_other">Add more details</label>
+                                <input type="text" class="form-control" name="reason_other_id_edit" id="reason_other_id_edit">
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="reason_other">Hold Service Until</label>
+                                <input type="date"
+                                       id="hold_until_date_id_edit"
+                                       name="hold_until_date_id_edit"
+                                       value=""
+                                       class="form-control pickadate note-filter"
+                                       placeholder="YYYY-MM-DD"
+                                       >
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Send Rescheduled Email</label>
+                        <input type="checkbox" name="send_email_edit" id="send_email_edit" >
+                    </div>
                     <div class="specificTimeDivisionEdit form-group">
                     </div>
                     <input type="hidden" name="technician_job_assign_id" id="technician_job_assign_id">
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-link" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-link close-modal-edit-assign-job" data-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary" id="job_assign_bt">Save</button>
                     </div>
                 </div>
@@ -455,6 +620,50 @@ td.fc-day.fc-past {
                             </div>
                         </div>
                     </div>
+                    <div class="form-group ">
+                        <label>Select Reschedule Reason</label>
+                        <select class="form-control" name="reschedule_reason_id_bulk_edit" id="reschedule_reason_id_bulk_edit" >
+                            <option value="">Select Reschedule Reason</option>
+
+                            <?php
+                            if (!empty($reschedule_reasons)) {
+                                foreach ($reschedule_reasons as $reschedule_reason) {
+                                    echo '<option value="'.$reschedule_reason->reschedule_id.'" >'.$reschedule_reason->reschedule_name.'</option>';
+                                }
+                            }
+                            ?>
+                            <option value="-1">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="reschedule_reason_other_bulk_edit" hidden>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="reason_other">Add more details</label>
+                                <input type="text" class="form-control" name="reason_other_bulk_edit" id="reason_other_bulk_edit">
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label for="reason_other">Hold Service Until</label>
+                                <input type="date"
+                                       id="hold_until_date_bulk_edit"
+                                       name="hold_until_date_bulk_edit"
+                                       value=""
+                                       class="form-control pickadate note-filter"
+                                       placeholder="YYYY-MM-DD"
+                                       >
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Send Rescheduled Email</label>
+                        <input type="checkbox" name="send_email_bulk_edit" id="send_email_bulk_edit" >
+                    </div>
                     <div class="specificTimeDivisionEditMultiple form-group">
                     </div>
                     <input type="hidden" name="multiple_technician_job_assign_id"
@@ -527,6 +736,24 @@ td.fc-day.fc-past {
                             </div>
                         </div>
                     </div>
+                    <div class="form-group ">
+                        <label>Select Reschedule Reason</label>
+                        <select class="form-control" name="reschedule_reason_id" id="reschedule_reason_id" >
+                            <option value="">Select Reschedule Reason</option>
+
+                            <?php
+                            if (!empty($reschedule_reasons)) {
+                                foreach ($reschedule_reasons as $reschedule_reason) {
+                                    echo '<option value="'.$reschedule_reason->reschedule_id.'" >'.$reschedule_reason->reschedule_name.'</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Send Rescheduled Email</label>
+                        <input type="checkbox" name="send_email" id="send_email" >
+                    </div>
                     <div class="specificTimeDivisionEditDrop form-group">
                     </div>
                     <input type="hidden" name="technician_job_assign_id" id="technician_job_assign_id_drop">
@@ -544,6 +771,7 @@ td.fc-day.fc-past {
 <!--end edit assign job  -->
 
 <script type="text/javascript">
+
 var $input = $('.pickadate2').pickadate({
 
     min: new Date(),
@@ -551,28 +779,104 @@ var $input = $('.pickadate2').pickadate({
     formatSubmit: 'yyyy-mm-dd',
 });
 var picker = $input.pickadate('picker')
-
 $(document).on("click", ".confirm_delete", function(e) {
     e.preventDefault();
     var url = $(this).attr('href');
-    swal({
-        title: 'Are you sure?',
-        text: "You won't be able to recover this !",
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#009402',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-    }).then((result) => {
-
-        if (result.value) {
-            window.location = url;
-        }
-    })
-
-
+    $('#modal_reschedule_reason').modal('show');
+    $('#modal_default').modal('hide');
+    $('#modal_default').modal('hide');
+    $('#button-reschedule-reason').attr('onclick', 'handleModalReschedule("'+url+'")');
 });
+
+$('#reschedule_reason_id_bulk').on('change', function (e) {
+    if ($('#reschedule_reason_id_bulk').val() == "-1") {
+        $('#reschedule_reason_other_bulk').show();
+        $('#reason_other_bulk').attr("required","required");
+    } else {
+        $('#reschedule_reason_other_bulk').hide();
+        $('#reason_other_bulk').attr("required", "");
+    }
+});
+$('#reschedule_reason_id_bulk_edit').on('change', function (e) {
+    if ($('#reschedule_reason_id_bulk_edit').val() == "-1") {
+        $('#reschedule_reason_other_bulk_edit').show();
+        $('#reason_other_bulk_edit').attr("required","required");
+    } else {
+        $('#reschedule_reason_other_bulk_edit').hide();
+        $('#reason_other_bulk_edit').attr("required", "");
+    }
+});
+$('#reschedule_reason_id_edit').on('change', function (e) {
+    if ($('#reschedule_reason_id_edit').val() == "-1") {
+        $('#reschedule_reason_other_id_edit').show();
+        $('#reason_other_id_edit').attr("required","required");
+    } else {
+        $('#reschedule_reason_other_id_edit').hide();
+        $('#reason_other_id_edit').attr("required", "");
+    }
+});
+$('#reschedule_reason_id').on('change', function (e) {
+    if ($('#reschedule_reason_id').val() == "-1") {
+        $('#reschedule_reason_other_handle').show();
+        $('#reason_other_handle').attr("required","required");
+    } else {
+        $('#reschedule_reason_other_handle').hide();
+        $('#reason_other_handle').attr("required", "");
+    }
+});
+
+function handleModalReschedule(url) {
+    $('#modal_default').modal('hide');
+    let reschedule_reason_id = $("#reschedule_reason_id").val();
+    let otherReason = '';
+    if (reschedule_reason_id == '-1') {
+        otherReason = $("#reason_other_handle").val();
+    }
+    let holdUntilDate = $("#hold_until_date_handle").val();
+    let send_reschedule_email = $("#send_email_handle").is(':checked');
+
+    if (reschedule_reason_id || send_reschedule_email || holdUntilDate || send_reschedule_email)
+    {
+        url = url + '?';
+    }
+    if (reschedule_reason_id)
+        url = url + '&reschedule_reason='+reschedule_reason_id;
+
+    if (send_reschedule_email)
+        url = url + '&send_email='+send_reschedule_email;
+
+    if (holdUntilDate)
+        url = url + '&holdUntilDate='+holdUntilDate;
+
+    if (otherReason)
+        url = url + '&otherReason='+otherReason;
+
+    let checked = $('input[name=changeview]').prop("checked");
+    let page = '';
+    if (checked === true) {
+        page = 'calendar';
+    } else {
+        page = 'schedule';
+    }
+    url = url + '&page='+page;
+
+    window.location = url;
+    // swal({
+    //     title: 'Are you sure?',
+    //     text: "You won't be able to recover this !",
+    //     type: 'warning',
+    //     showCancelButton: true,
+    //     confirmButtonColor: '#009402',
+    //     cancelButtonColor: '#d33',
+    //     confirmButtonText: 'Yes',
+    //     cancelButtonText: 'No'
+    // }).then((result) => {
+    //
+    //     if (result.value) {
+    //         window.location = url;
+    //     }
+    // })
+}
 </script>
 
 <script type="text/javascript">
@@ -717,7 +1021,7 @@ $('#assigntbl').DataTable({
     initComplete: function() {
         $("div.btndivdelete")
             .html(
-                '<div class="btn-group"><button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultiple()" disabled ><i class="icon-trash"></i> Delete</button><div class="alleditbtn"><a data-toggle="modal" data-target="#modal_multiple_edit_assign_job"><button type="submit"  class="btn btn-success" id="editallbutton"  disabled ><i class="icon-pencil"></i> Edit</button></a></div>  <div class="alleditbtn" ><button type="submit"  class="btn btn-success" id="allPrintPS"  disabled ><i class="icon-printer2"></i> Print w/ Pay Stub</button></div><div class="alleditbtn" ><button type="submit"  class="btn btn-success" id="allPrintBCD"  disabled ><i class="icon-printer2"></i> Print w/ Blank Compliance Data</button></div>   </div>'
+                '<div class="btn-group"><button type="submit"  class="btn btn-danger" id="deletebutton" onclick="deletemultipleLoader()" disabled ><i class="icon-trash"></i> Remove from schedule</button><div class="alleditbtn"><a data-toggle="modal" data-target="#modal_multiple_edit_assign_job"><button type="submit"  class="btn btn-success" id="editallbutton"  disabled ><i class="icon-pencil"></i> Edit</button></a></div>  <div class="alleditbtn" ><button type="submit"  class="btn btn-success" id="allPrintPS"  disabled ><i class="icon-printer2"></i> Print w/ Pay Stub</button></div><div class="alleditbtn" ><button type="submit"  class="btn btn-success" id="allPrintBCD"  disabled ><i class="icon-printer2"></i> Print w/ Blank Compliance Data</button></div>   </div>'
             );
     }
 });
@@ -733,7 +1037,8 @@ $('input[name=changeview]').click(function() {
 
         $('.calederview').css('display', 'block');
         $('.sheduletable').css('display', 'none');
-        // $('.btndivdelete').css('display','none');    
+        // $('.btndivdelete').css('display','none');
+        $('.fullcalendar-basic').find('.fc-month-button').click()
 
     } else if ($(this).prop("checked") == false) {
         $('.calederview').css('display', 'none');
@@ -924,66 +1229,127 @@ $(document).on("change", "table .myCheckBoxDelete", function(e) {
 // checkBoxes2.change();  
 
 
+$(".close-modal-reschedule-reason").click(function () {
+    $("#reschedule_reason_id").val($("#reschedule_reason_id option:first").val());
+    $("#send_email").prop("checked", false);
+    $("#modal_reschedule_reason").modal('hide');
+})
+$(".close-modal-edit-assign-job").click(function () {
+    $("#reschedule_reason_id").val($("#reschedule_reason_id option:first").val());
+    $("#reschedule_reason_id_edit").val($("#reschedule_reason_id_edit option:first").val());
+    $("#send_email").prop("checked", false);
+    $("#send_email_edit").prop("checked", false);
+})
+
+function deletemultipleLoader() {
+    $('#modal_reschedule_reason_bulk').modal('show');
+    $('#modal_default').modal('hide');
+    $('#modal_default').modal('hide');
+}
+function handleModalRescheduleBulk() {
+    $('#modal_default').modal('hide');
+    let reschedule_reason_id = $("#reschedule_reason_id_bulk").val();
+    let send_reschedule_email = $("#send_email_bulk").is(":checked");
+    let otherReason = '';
+    if (reschedule_reason_id == '-1') {
+        otherReason = $("#reason_other_bulk").val();
+    }
+    let holdUntilDate = $("#hold_until_date_bulk").val();
+
+    deletemultiple(reschedule_reason_id, send_reschedule_email, otherReason, holdUntilDate);
+}
+
+function deletemultiple(reschedule_reason_id, send_reschedule_email, otherReason, holdUntilDate) {
+    debugger
+    debugger
+    var selectcheckbox = [];
+    $("input:checkbox[name=selectcheckbox]:checked").each(function() {
+        selectcheckbox.push($(this).attr('technician_job_assign_ids'));
+    });
+
+    // alert(selectcheckbox);
 
 
-function deletemultiple() {
-
-    swal({
-        title: 'Are you sure?',
-        text: "You won't be able to recover this !",
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#009402',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes',
-        cancelButtonText: 'No'
-    }).then((result) => {
-
-        if (result.value) {
-
-            var selectcheckbox = [];
-            $("input:checkbox[name=selectcheckbox]:checked").each(function() {
-                selectcheckbox.push($(this).attr('technician_job_assign_ids'));
-            });
-
-            // alert(selectcheckbox);
-
-
-            $.ajax({
-                type: "POST",
-                url: "<?= base_url('admin/deletemultipleJobAssign') ?>",
-                data: {
-                    job_assign_ids: selectcheckbox
-                }
-            }).done(function(data) {
-
-                // alert(data);
-
-                if (data == 1) {
-                    swal(
-                        'Scheduled Services !',
-                        'Deleted Successfully ',
-                        'success'
-                    ).then(function() {
-                        location.reload();
-                    });
-
-
-                } else {
-                    swal({
-                        type: 'error',
-                        title: 'Oops...',
-                        text: 'Something went wrong!'
-                    })
-                }
-
-
-            });
+    $.ajax({
+        type: "POST",
+        url: "<?= base_url('admin/deletemultipleJobAssign') ?>",
+        data: {
+            job_assign_ids: selectcheckbox,
+            reschedule_reason_id: reschedule_reason_id,
+            send_reschedule_email: send_reschedule_email,
+            otherReason: otherReason,
+            holdUntilDate: holdUntilDate
         }
-    })
+    }).done(function(data) {
+
+        // alert(data);
+
+        if (data == 1) {
+            swal(
+                'Scheduled Services !',
+                'Service rescheduled successfully ',
+                'success'
+            ).then(function() {
+                let checked = $('input[name=changeview]').prop("checked");
+                let page = '';
+                if (checked === true) {
+                    page = 'calendar';
+                } else {
+                    page = 'schedule';
+                }
+                var url = window.location.href;
+
+                var newParameter = 'page='+page;
+                var newUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + newParameter;
+
+                window.location.href = newUrl;
+                // location.reload();
+            });
+
+
+        } else {
+            swal({
+                type: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong!'
+            })
+        }
+
+
+    });
+    // swal({
+    //     title: 'Are you sure?',
+    //     text: "You won't be able to recover this !",
+    //     type: 'warning',
+    //     showCancelButton: true,
+    //     confirmButtonColor: '#009402',
+    //     cancelButtonColor: '#d33',
+    //     confirmButtonText: 'Yes',
+    //     cancelButtonText: 'No'
+    // }).then((result) => {
+    //
+    //     if (result.value) {
+    //     }
+    // })
 
 }
 
+$(document).ready(function (){
+
+    var url = new URL(window.location.href);
+
+    var params = new URLSearchParams(url.search);
+    $('input[name=changeview]').prop("checked", "");
+
+    if (params.has('page')) {
+        // Get the value of the parameter
+        var value = params.get('page');
+        if (value === 'schedule') {
+            $('input[name=changeview]').click();
+            $('input[name=changeview]').click();
+        }
+    }
+})
 
 
 $('#allMessage').click(function() { //iterate all listed checkbox items    

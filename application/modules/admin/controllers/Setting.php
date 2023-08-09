@@ -1,5 +1,11 @@
 <?php
+
+
+
 defined('BASEPATH') or exit('No direct script access allowed');
+
+
+
 require_once APPPATH . '/third_party/smtp/Send_Mail.php';
 
 
@@ -27,6 +33,8 @@ class Setting extends MY_Controller
         $this->load->helper('invoice_helper');
 
         $this->load->helper('cardconnect_helper');
+
+        $this->load->helper('service_types_helper');
 
         $this->loadModel();
     }
@@ -105,29 +113,6 @@ class Setting extends MY_Controller
         $this->load->model('Program_job_assigned_customer_property_model', 'PJACPM');
     }
 
-    public function SearchUser(){
-        if(isset($_POST['searchTerm']) && $_POST['searchTerm'] != ""){
-            $where = array('role_id !=' => 1,'company_id' => $this->session->userdata['company_id']);
-            $data = $this->Administrator->getAllAdmin($where);
-
-            $Array = array();
-            foreach($data as $Cust){
-                if (strpos($Cust->email, $_POST['searchTerm']) !== false) {
-                    $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
-                }
-            }
-            echo json_encode($Array);
-        }else{
-            $where = array('role_id !=' => 1,'company_id' => $this->session->userdata['company_id']);
-            $data = $this->Administrator->getAllAdmin($where);
-            $Array = array();
-            foreach($data as $Cust){
-                $Array[] = array("text" => $Cust->email, "id" => $Cust->email);
-            }
-            echo json_encode($Array);
-        }
-    }
-
     public function index()
     {
 
@@ -135,9 +120,6 @@ class Setting extends MY_Controller
 		log_message('info', 'settings index');
 
         $where = array('company_id' =>$this->session->userdata['company_id']);
-        $data['customers'] = $this->CustomerModel->getCustomerEmails();
-        $data['vendors'] = $this->CustomerModel->getVendorEmails();
-
         $data['setting_details'] = $this->CompanyModel->getOneCompany($where);
         $data['setting_details']->company_logo = ($data['setting_details']->company_resized_logo) ? $data['setting_details']->company_resized_logo : $data['setting_details']->company_logo;
         $data['company_email_details'] = $this->CompanyEmail->getOneCompanyEmail($where);
@@ -150,6 +132,7 @@ class Setting extends MY_Controller
         $data['service_types'] = $this->ServiceTypeModel->getAllServiceType($where);
 		$data['property_conditions'] =  $this->PropertyModel->getCompanyPropertyConditions(array('company_id' => $this->session->userdata['company_id']));
         $data['sales_tax_details'] = $this->SalesTax->getAllSalesTaxArea($where);
+        $data['serviceTypeAllowedColors'] = getServiceTypeAllowedColors();
         $messageData = array(
 
             "job_sheduled" => "<p><br></p><p>Hi  {CUSTOMER_NAME},</p><p><br>Below are your service details.</p><p><br></p><p>{SERVICE_NAME} {PROGRAM_NAME} {PROPERTY_ADDRESS} {SCHEDULE_DATE}</p><p><br></p><p>Thanks,<br></p><p><br> </p>",
@@ -363,13 +346,27 @@ class Setting extends MY_Controller
         $this->form_validation->set_rules('invoice_color', 'invoice_color', '');
 
         if ($this->form_validation->run() == FALSE) {
+
             echo validation_errors();
+
             $this->index();
         } elseif ($check = $this->CompanyModel->getOneCompany(array('company_id !=' => $this->session->userdata['company_id'], 'company_email' => $data['company_email']))) {
+
+
+
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Email </strong> already exists </div>');
+
             redirect("admin/setting");
         } else {
+
+
+
+
+
             $company_geo = $this->getLatLongByAddress($data['company_address']);
+
+
+
             if (!$company_geo) {
 
                 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Invalid</strong> company address. Please try again</div>');
@@ -554,43 +551,9 @@ class Setting extends MY_Controller
 
             redirect("admin/setting");
         }
-    }
 
-    public function SavePOEmails(){
-        $data = $this->input->post();
-        $where = array('company_id' => $this->session->userdata['company_id']);
-        $SettingData = $this->CompanyModel->getOneCompany($where);
-        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
-        $data["email"] = trim($data["email"]);
-        if($data["email"] != ""){
-            $POEmails[] = $data["email"];
-        }
 
-        $Emails = array_unique($POEmails);
-        $param = array("ready_for_payment_po_email" => implode(",", $Emails));
-        $result = $this->CompanyModel->updateCompany($where, $param);
 
-        $SettingData = $this->CompanyModel->getOneCompany($where);
-        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
-        echo json_encode($POEmails);
-    }
-
-    public function RemovePOEmails(){
-        $data = $this->input->post();
-        $where = array('company_id' => $this->session->userdata['company_id']);
-        $SettingData = $this->CompanyModel->getOneCompany($where);
-        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
-        $POEmails = array_map('trim', $POEmails);
-        unset($POEmails[$data["email"]]);
-
-        $Emails = array_unique($POEmails);
-        $param = array("ready_for_payment_po_email" => implode(",", $Emails));
-        $result = $this->CompanyModel->updateCompany($where, $param);
-
-        $SettingData = $this->CompanyModel->getOneCompany($where);
-        $POEmails = explode(",", $SettingData->ready_for_payment_po_email);
-        $POEmails = array_map('trim', $POEmails);
-        echo json_encode($POEmails);
     }
 
     public function updateSettingData()
@@ -754,6 +717,183 @@ class Setting extends MY_Controller
         } else {
 
             echo 0;
+        }
+    }
+
+
+    public function invoice_customer_hold()
+    {
+        $company_id = $this->session->userdata['company_id'];
+        $where = array('company_id' => $this->session->userdata['company_id']);
+        $data_company_email = $this->CompanyEmail->getOneCompanyEmail($where);
+
+        @$Is_enable_hold_service = $data_company_email->is_email_scheduling_indays;
+        if ($Is_enable_hold_service) {
+            $curent_date = date("Y-m-d");
+            $days = $data_company_email->email_scheduling_indays;
+            $new_date = date('Y-m-d', strtotime('-' . $days . 'days', strtotime($curent_date)));
+
+            $expire_paid = "";
+            $year = date("Y");
+            $where_unpaid = array(
+                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+                'status !=' => 0,
+                'is_archived' => 0,
+                'payment_status !=' => 2,
+                'customers.customer_status != 2 AND customers.customer_status !=' => 0,
+                //'invoice_date >' => $year . '-01-01',
+                'invoice_date <' => $new_date
+            );
+            $data_invoice_details = $this->INV->getAllInvoive($where_unpaid);
+            $customer_ids = [];
+            $customer_names = [];
+            foreach ($data_invoice_details as $_data) {
+                if (!in_array($_data->customer_id, $customer_ids))
+                    $customer_ids[] = $_data->customer_id;
+            }
+            foreach ($customer_ids as $customer_id) {
+                $customer = $this->CustomerModel->getOneCustomer(array('customer_id' => $customer_id));
+                if ($customer->customer_status != 2 && $customer->customer_status != 0) {
+                    $param = array(
+                        'customer_status' => 2
+                    );
+                    $result = $this->CustomerModel->updateAdminTbl($customer_id, $param);
+                    $first = isset($customer->first_name) ? $customer->first_name : "";
+                    $last = isset($customer->last_name) ? $customer->last_name : "";
+                    $customer_names[] = $first . " " . $last;
+                    // send email account hold
+                    $is_email_hold_templete = $data_company_email->is_email_hold_templete;
+                    $email_array = [];
+                    if ($is_email_hold_templete) {
+
+                        $email_hold_template = $data_company_email->email_hold_templete;
+                        $hold_notification = $data_company_email->hold_notification;
+
+
+                        $email_hold_template = str_replace("{CUSTOMER_NAME}", $customer->first_name . ' ' . $customer->last_name, $email_hold_template);
+                        $email_array['email_body_text'] = $email_hold_template;
+                        if ($customer->email) {
+                            $email_array['customer_details'] = $customer;
+                            $where['is_smtp'] = 1;
+                            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where);
+                            if (!$company_email_details) {
+                                $company_email_details = $this->CompanyModel->getOneDefaultEmailArray();
+                            }
+
+                            $where = array('company_id' => $company_id);
+                            $company_details = $this->CompanyModel->getOneCompany($where);
+                            $email_array['company_details'] = $company_details;
+                            $subject = "Your Account is On Hold";
+                            $to_email = $customer->email;
+                            $body = $this->load->view('email/customer_hold_email', $email_array, TRUE);
+                            $res = Send_Mail_dynamic($company_email_details, $to_email, array("name" => $company_details->company_name, "email" => $company_details->company_email), $body, $subject);
+
+                        }
+
+                    }
+
+                }
+
+            }
+            $admin_email = [];
+            if (count($customer_names) > 0) {
+                #send email to admin
+                $company_details = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+                $admin_email['company_details'] = $company_details;
+                $user_details = $this->CompanyModel->getOneAdminUser(array('company_id' => $this->session->userdata['company_id'], 'role_id' => 1));
+                $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $this->session->userdata['company_id'], 'is_smtp' => 1));
+                if (!$company_email_details) {
+                    $company_email_details = $this->CompanyModel->getOneDefaultEmailArray();
+                }
+                $admin_email['customer_names'] = $customer_names;
+                $body = $this->load->view('email/customer_hold_admin_email', $admin_email, TRUE);
+                if ($company_email_details) {
+                    $res = Send_Mail_dynamic($company_email_details, $user_details->email, array("name" => $company_details->company_name, "email" => $company_details->company_email), $body, 'Customer Acount Holds');
+                }
+            }
+        }
+    }
+
+    public function customerHoldPayments()
+    {
+        $company_id = $this->session->userdata['company_id'];
+        $data_company_email = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $this->session->userdata['company_id']));
+
+        @$automatic_hold_enabled = $data_company_email->is_email_scheduling_indays;
+        if ($automatic_hold_enabled) {
+            #get all customers on hold
+            $hold_customers = $this->CustomerModel->get_all_customer(array('company_id' => $this->session->userdata['company_id'], 'customer_status' => 2));
+            if (count($hold_customers) > 0) {
+                $today = strtotime('now');
+                $hold_days_setting = $data_company_email->email_scheduling_indays;
+                $hold_date_marker = date('Y-m-d', strtotime('-' . $hold_days_setting . 'days', $today));
+                $start_time = microtime(true);
+                $customer_ids = [];
+                $customer_names = [];
+                foreach ($hold_customers as $_data) {
+                    if (!in_array($_data->customer_id, $customer_ids))
+                        $customer_ids[] = $_data->customer_id;
+                }
+
+                if (!empty($customer_ids)) {
+                    $customer_ids_str = implode(",", $customer_ids);
+                    $hasUnpaidInvoices = $this->INV->ajaxActiveInvoicesCustomers($company_id, $customer_ids_str, $hold_date_marker);
+                    foreach($hasUnpaidInvoices as $unpaid) {
+                        $index = array_search($unpaid->customer_id, $customer_ids);
+                        if ($index >= 0)
+                            unset($customer_ids[$index]);
+                    }
+                    if (!empty($customer_ids)) {
+                        $customer_ids_str = implode(",", $customer_ids);
+                        $hasUnpaidInvoices = $this->INV->ajaxActiveInvoicesTechUpdateCustomer($customer_ids_str);
+                    }
+                }
+
+
+//                $i = 0;
+//                foreach ($hold_customers as $customer) {
+//                    #get customer unpaid customer invoices older than 45 days
+//                    $where_unpaid = array(
+//                        'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+//                        'invoice_tbl.customer_id' => $customer->customer_id,
+//                        'invoice_tbl.status !=' => 0,
+//                        'invoice_tbl.is_archived' => 0,
+//                        'invoice_tbl.payment_status !=' => 2,
+//                        'invoice_tbl.invoice_date <' => $hold_date_marker
+//                    );
+//                    // WHERE NOT: all of the below true
+//                    $whereArrExclude = array(
+//                        "programs.program_price" => 2,
+//                        // "technician_job_assign.is_complete" => 0,
+//                        "technician_job_assign.is_complete !=" => 1,
+//                        "technician_job_assign.is_complete IS NOT NULL" => null,
+//                    );
+//
+//                    // WHERE NOT: all of the below true
+//                    $whereArrExclude2 = array(
+//                        "programs.program_price" => 2,
+//                        "technician_job_assign.invoice_id IS NULL" => null,
+//                        "invoice_tbl.report_id" => 0,
+//                        "property_program_job_invoice2.report_id IS NULL" => null,
+//                    );
+//                    $limit = 0;
+//
+//                    $start = 0;
+//                    $order = 'invoice_id';
+//
+//                    $dir = 'DESC';
+//                    $orWhere = [];
+//
+////                    $unpaid_invoices = $this->INV->getInvoices($where_unpaid);
+//                    $unpaid_invoices = $this->INV->ajaxActiveInvoicesTech($where_unpaid, $limit, $start, $order, $dir, $whereArrExclude, $whereArrExclude2, $orWhere, true);
+//                    #remove customer hold if customer has 0 unpaid invoices within date range
+//                    if (empty($unpaid_invoices)) {
+//                        error_log("Customer id\n: ".$customer->customer_id);
+//                        $removeHold = $this->CustomerModel->updateAdminTbl($customer->customer_id, array('customer_status' => 1));
+//                        $i++;
+//                    }
+//                }
+            }
         }
     }
 
@@ -1218,7 +1358,9 @@ class Setting extends MY_Controller
 
             if ($result) {
 
-
+                // call customer hold service scheduler
+                $this->invoice_customer_hold();
+                $this->customerHoldPayments();
 
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Settings </strong>updated successfully</div>');
 
@@ -1232,65 +1374,89 @@ class Setting extends MY_Controller
         }
     }
 
-    public function updateSmtp(){
+    public function updateSmtp()
+    {
+
         $data = $this->input->post();
+
         $this->form_validation->set_rules('smtp_host', 'smtp_host', 'required');
+
         $this->form_validation->set_rules('smtp_port', 'smtp_port', 'required');
+
         $this->form_validation->set_rules('smtp_username', 'smtp_username', 'required');
+
         $this->form_validation->set_rules('smtp_password', 'smtp_password', 'required');
-        
+
+
+
         if ($this->form_validation->run() == FALSE) {
+
+
+
             $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">' . validation_errors() . '</div>');
+
             $this->index();
         } else {
+
+
+
             $param = array(
+
                 'smtp_host' => $data['smtp_host_type'] . $data['smtp_host'],
+
                 'smtp_port' => $data['smtp_port'],
+
                 'smtp_username' => $data['smtp_username'],
-                'smtp_password' => $data['smtp_password']
+
+                'smtp_password' => $data['smtp_password'],
+
+
+
             );
+
+
+
+
 
             $checksmtp =   Send_Mail_dynamic($param, $this->session->userdata['compny_details']->company_email, array("name" => $this->session->userdata['compny_details']->company_name, "email" => $this->session->userdata['compny_details']->company_email), 'This mail has been made for smtp credential check, please ignore it', 'Check SMTP credential');
 
 
+
+
+
             if ($checksmtp['status']) {
+
                 $where = array('company_id' => $this->session->userdata['company_id']);
+
                 $param['is_smtp'] = 1;
+
                 $param['updated_at'] = date('Y-m-d H:i:s');
+
+
+
                 $result = $this->CompanyEmail->updateCompanyEmail($where, $param);
+
+
+
                 if ($result) {
+
+
+
                     $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>SMTP </strong>details updated successfully</div>');
+
                     redirect("admin/setting");
                 } else {
+
                     $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>SMTP </strong>Details not updated. Please try again</div>');
+
                     redirect("admin/setting");
                 }
             } else {
+
                 $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">' . $checksmtp['message'] . '<a href="http://support.spraye.io/support/solutions/articles/47001135041-smtp-settings-how-to-send-emails-from-your-company-domain" target="_blank" class="info"  >learn more</a>' . '</div>');
+
                 redirect("admin/setting");
             }
-        }
-    }
-
-    public function MassEmail(){
-        $data = $this->input->post();
-        $this->form_validation->set_rules('mass_email_id', 'mass_email_id', 'required');
-        if ($this->form_validation->run() == FALSE) {
-            $this->session->set_flashdata('message', '<div class="alert alert-danger alert-dismissible" role="alert" data-auto-dismiss="4000">' . validation_errors() . '</div>');
-            $this->index();
-        } else {
-            $param = array(
-                'mass_email_id' => $data['mass_email_id'],
-                'mass_smtp_host' => $data['mass_smtp_host_type'].$data['mass_smtp_host'],
-                'mass_smtp_port' => $data['mass_smtp_port'],
-                'mass_smtp_username' => $data['mass_smtp_username'],
-                'mass_smtp_password' => $data['mass_smtp_password'],
-                'updated_at' => date('Y-m-d H:i:s')
-            );
-            $where = array('company_id' => $this->session->userdata['company_id']);
-            $result = $this->CompanyEmail->updateCompanyEmail($where, $param);
-            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>SMTP </strong>details updated successfully</div>');
-            redirect("admin/setting");
         }
     }
 
@@ -1675,15 +1841,23 @@ class Setting extends MY_Controller
 
         $data = $this->input->post();
 
-
-
         $param = array(
 
             'tearm_condition' => $data['tearm_condition'],
 
         );
 
+        if (array_key_exists('show_estimate_totals', $data)) {
 
+            $param['show_estimate_totals'] = 1;
+        } else {
+
+            $param['show_estimate_totals'] = 0;
+        }
+
+
+
+    //die(print_r($param));
 
         $where = array('company_id' => $this->session->userdata['company_id']);
 
@@ -3008,6 +3182,7 @@ class Setting extends MY_Controller
             'user_id' => $this->session->userdata['user_id'],
             'service_type_name' => $data['service_type_name'],
             'service_type' => $data['service_type'],
+            'service_type_color' => $data['service_type_color'],
             'created_at' => Date("Y-m-d H:i:s")
         );
         $result = $this->ServiceTypeModel->CreateOneServiceType($param);
@@ -3024,6 +3199,7 @@ class Setting extends MY_Controller
         $data = array();
         $where = array('company_id' => $this->session->userdata['company_id']);
         $data['service_type'] = $this->ServiceTypeModel->getAllServiceType($where);
+        $data['serviceTypeAllowedColors'] = getServiceTypeAllowedColors();
         // die(print_r($data['source_details']));
         $body = $this->load->view("admin/setting/view_service_type", $data, false);
 
@@ -3045,6 +3221,7 @@ class Setting extends MY_Controller
         $param = array(
             'service_type_name' => $data['service_type_name'],
             'service_type' => $data['service_type'],
+            'service_type_color' => $data['service_type_color'],
             'created_at' => Date("Y-m-d H:i:s")
         );
         $where = array(
@@ -3476,6 +3653,52 @@ class Setting extends MY_Controller
         }
     }
 
+    public function setVerizonSettings()
+    {
 
+        $data = $this->input->post();
+
+        // $where = array('property_area_cat_id' =>$data['property_area_cat_id']); 
+
+
+
+        //$this->form_validation->set_rules('base_service_fee', 'base_service_fee', 'required');
+
+        //$this->form_validation->set_rules('minimum_service_fee', 'minimum_service_fee', 'required');
+
+
+
+        if(isset($data["vc_show_vehicle"]) && $data["vc_show_vehicle"] == "on") {
+            $show_vehicle = 1;
+        } else {
+            $show_vehicle = 0;
+        }
+        $param = array(
+            'vc_username' => $data['vc_username'] == '' ? "" : $data['vc_username'],
+            'vc_password' => $data['vc_password'] == '' ? "" : $data['vc_password'],
+            'vc_app_id' => $data['vc_app_id'] == '' ? "" : $data['vc_app_id'],
+            'vc_show_vehicle' => $show_vehicle == '' ? "" : $show_vehicle,
+        );
+
+
+
+        $where = array('company_id' => $this->session->userdata['company_id']);
+
+
+
+        $result = $this->CompanyModel->updateCompany($where, $param);
+
+        if ($result) {
+
+            $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Verizon Connect info </strong>updated successfully.</div>');
+
+            redirect("admin/setting");
+        } else {
+
+            $this->session->set_flashdata('message', '<div class="alert alert-warning alert-dismissible" role="alert" data-auto-dismiss="4000"><strong>Verizon Connect info </strong> not updated. Please try again.</div>');
+
+            redirect("admin/setting");
+        }
+    }
 
 }

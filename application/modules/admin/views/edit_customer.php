@@ -6108,7 +6108,7 @@ $data = array(
                 totalMbSize += mbSize;
             }
             console.log(totalMbSize);
-            if (totalMbSize > 5) {
+            if (totalMbSize > 20) {
                 event.preventDefault();
                 console.log('ERROR! File Upload Limit Exceeded!');
             } else {
@@ -6126,8 +6126,8 @@ $data = array(
                 totalMbSize += mbSize;
             }
             console.log(totalMbSize);
-            if (totalMbSize > 5) {
-                $(el).next().text('file(s) exceed the max 5MB limit');
+            if (totalMbSize > 20) {
+                $(el).next().text('file(s) exceed the max 20MB limit');
             } else {
                 $(el).next().text('');
             }

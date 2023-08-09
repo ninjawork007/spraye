@@ -160,6 +160,8 @@ class Invoices extends MY_Controller
         $page["active_sidebar"] = "invoicenav";
         $page["page_name"] = 'Invoices';
         $page["page_content"] = $this->load->view("admin/invoice/view_invoice", $data, true);
+        $this->invoice_customer_hold();
+        $this->customerHoldPayments();
         $this->layout->superAdminInvoiceTemplateTable($page);
     }
     
@@ -3125,6 +3127,29 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
 
                         $param['partial_payment'] = 0;
                         $param['payment_status'] = 0;
+
+                        if ($data['sent_status'] == 2) {
+                            if ($invoice_details->opened_date == '') {
+                                $param['opened_date'] = date("Y-m-d H:i:s");
+                            } else {
+                                $param['opened_date'] = $invoice_details->opened_date;
+                            }
+                            if ($invoice_details->sent_date == '') {
+                                $param['sent_date'] = date("Y-m-d H:i:s");
+                            } else {
+                                $param['sent_date'] = $invoice_details->sent_date;
+                            }
+                        } else if ($data['sent_status'] == 1) {
+                            if (empty($invoice->first_sent_date)) {
+                                $param['first_sent_date'] = date("Y-m-d H:i:s");
+                            }
+                            if ($invoice_details->sent_date == '') {
+                                $param['sent_date'] = date("Y-m-d H:i:s");
+                            } else {
+                                $param['sent_date'] = $invoice_details->sent_date;
+                            }
+                        }
+                        
                     } else if ($data['payment_status'] == 1) {
 
                         $param['partial_payment'] = $total_invoice_partial_logs;
@@ -3155,9 +3180,9 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                             $param['opened_date'] = $invoice_details->opened_date;
                         }
                         if ($invoice_details->sent_date == '') {
-                            $updateArr['sent_date'] = date("Y-m-d H:i:s");
+                            $param['sent_date'] = date("Y-m-d H:i:s");
                         } else {
-                            $updateArr['sent_date'] = $invoice_details->sent_date;
+                            $param['sent_date'] = $invoice_details->sent_date;
                         }
                         //...
                     } else if ($data['payment_status'] == 4) {
@@ -4876,8 +4901,14 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             'invoice_tbl.status !=' => 0
             // 'payment_status !=' => 2
         );
+
+        $orWhere = array();
         if (isset($post_data['start_date']) && !empty($post_data['start_date'])) {
-            $whereArr['invoice_tbl.sent_date >='] = $post_data['start_date'];
+            //$whereArr['invoice_tbl.sent_date >='] = $post_data['start_date'];
+            $orWhere['start_date'] = array(
+                'invoice_tbl.sent_date >=' => $post_data['start_date'],
+                'invoice_tbl.invoice_date >=' => $post_data['start_date'],
+            );
         }
         if (isset($post_data['end_date']) && !empty($post_data['end_date'])) {
 
@@ -4887,9 +4918,11 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
            
                 
                 // die(print_r($end_of_day));
-                $whereArr['invoice_tbl.sent_date <='] = $end_of_day;
-
-            
+            //$whereArr['invoice_tbl.sent_date <='] = $end_of_day;
+            $orWhere['end_date'] = array(
+                'invoice_tbl.sent_date <=' => $end_of_day,
+                'invoice_tbl.invoice_date <=' => $end_of_day,
+            );            
         }
 
         // WHERE NOT: all of the below true
@@ -4926,114 +4959,119 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                 'is_archived' => 0,
                 'invoice_tbl.customer_id' => $customer_id,
                 // 'payment_status !=' => 2,
+            );
+            $orWhereBefore = array();
+            $orWhereBefore['start_date'] = array(
                 'invoice_tbl.sent_date <' => $post_data['start_date'],
+                'invoice_tbl.invoice_date <' => $post_data['start_date'],
             );
 
-            $data_before_period = $this->INV->ajaxActiveInvoicesTechWithSalesTax($whereArrBefore, "", "", "", "", $whereArrExclude, $whereArrExclude2, "", false);
+            $data_before_period = $this->INV->ajaxActiveInvoicesTechWithSalesTax($whereArrBefore, "", "", "", "", $whereArrExclude, $whereArrExclude2, $orWhereBefore, false);
 
             // die(print_r($data_before_period));
 
             if (!empty($data_before_period)) {
                 foreach ($data_before_period as $invoice_details) {
+                    
+                    // ////////////////////////////////////
+                    // // START INVOICE CALCULATION COST //
 
-                    ////////////////////////////////////
-                    // START INVOICE CALCULATION COST //
+                    // // vars
+                    // $tmp_invoice_id = $invoice_details->invoice_id;
 
-                    // vars
-                    $tmp_invoice_id = $invoice_details->invoice_id;
+                    // // cost of all services (with price overrides) - service coupons
+                    // $job_cost_total = 0;
+                    // $where = array(
+                    //     'property_program_job_invoice.invoice_id' => $tmp_invoice_id,
+                    // );
+                    // $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
 
-                    // cost of all services (with price overrides) - service coupons
-                    $job_cost_total = 0;
-                    $where = array(
-                        'property_program_job_invoice.invoice_id' => $tmp_invoice_id,
-                    );
-                    $proprojobinv = $this->PropertyProgramJobInvoiceModel->getPropertyProgramJobInvoiceCoupon($where);
+                    // if (!empty($proprojobinv)) {
+                    //     foreach ($proprojobinv as $job) {
 
-                    if (!empty($proprojobinv)) {
-                        foreach ($proprojobinv as $job) {
+                    //         $job_cost = $job['job_cost'];
 
-                            $job_cost = $job['job_cost'];
+                    //         $job_where = array(
+                    //             'job_id' => $job['job_id'],
+                    //             'customer_id' => $job['customer_id'],
+                    //             'property_id' => $job['property_id'],
+                    //             'program_id' => $job['program_id'],
+                    //         );
+                    //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                            $job_where = array(
-                                'job_id' => $job['job_id'],
-                                'customer_id' => $job['customer_id'],
-                                'property_id' => $job['property_id'],
-                                'program_id' => $job['program_id'],
-                            );
-                            $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+                    //         if (!empty($coupon_job_details)) {
 
-                            if (!empty($coupon_job_details)) {
+                    //             foreach ($coupon_job_details as $coupon) {
+                    //                 // $nestedData['email'] = json_encode($coupon->coupon_amount);
+                    //                 $coupon_job_amm_total = 0;
+                    //                 $coupon_job_amm = $coupon->coupon_amount;
+                    //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
 
-                                foreach ($coupon_job_details as $coupon) {
-                                    // $nestedData['email'] = json_encode($coupon->coupon_amount);
-                                    $coupon_job_amm_total = 0;
-                                    $coupon_job_amm = $coupon->coupon_amount;
-                                    $coupon_job_calc = $coupon->coupon_amount_calculation;
+                    //                 if ($coupon_job_calc == 0) { // flat amm
+                    //                     $coupon_job_amm_total = (float) $coupon_job_amm;
+                    //                 } else { // percentage
+                    //                     $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                    //                 }
 
-                                    if ($coupon_job_calc == 0) { // flat amm
-                                        $coupon_job_amm_total = (float) $coupon_job_amm;
-                                    } else { // percentage
-                                        $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
-                                    }
+                    //                 $job_cost = $job_cost - $coupon_job_amm_total;
 
-                                    $job_cost = $job_cost - $coupon_job_amm_total;
+                    //                 if ($job_cost < 0) {
+                    //                     $job_cost = 0;
+                    //                 }
+                    //             }
+                    //         }
 
-                                    if ($job_cost < 0) {
-                                        $job_cost = 0;
-                                    }
-                                }
-                            }
+                    //         $job_cost_total += $job_cost;
+                    //     }
+                    //     $invoice_total_cost = $job_cost_total;
+                    //     //die(print_r("Inside Conditional: " . $invoice_total_cost));
+                    // } else {
+                    //     $invoice_total_cost = $invoice_details->cost;
 
-                            $job_cost_total += $job_cost;
-                        }
-                        $invoice_total_cost = $job_cost_total;
-                        //die(print_r("Inside Conditional: " . $invoice_total_cost));
-                    } else {
-                        $invoice_total_cost = $invoice_details->cost;
+                    // }
 
-                    }
+                    // // check price override -- any that are not stored in just that ^^.
 
-                    // check price override -- any that are not stored in just that ^^.
+                    // // - invoice coupons
+                    // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id));
+                    // foreach ($coupon_invoice_details as $coupon_invoice) {
+                    //     if (!empty($coupon_invoice)) {
+                    //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                    //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
-                    // - invoice coupons
-                    $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $tmp_invoice_id));
-                    foreach ($coupon_invoice_details as $coupon_invoice) {
-                        if (!empty($coupon_invoice)) {
-                            $coupon_invoice_amm = $coupon_invoice->coupon_amount;
-                            $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+                    //         if ($coupon_invoice_amm_calc == 0) { // flat amm
+                    //             $invoice_total_cost -= (float) $coupon_invoice_amm;
+                    //         } else { // percentage
+                    //             $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                    //             $invoice_total_cost -= $coupon_invoice_amm;
+                    //         }
+                    //         if ($invoice_total_cost < 0) {
+                    //             $invoice_total_cost = 0;
+                    //         }
+                    //     }
+                    // }
 
-                            if ($coupon_invoice_amm_calc == 0) { // flat amm
-                                $invoice_total_cost -= (float) $coupon_invoice_amm;
-                            } else { // percentage
-                                $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
-                                $invoice_total_cost -= $coupon_invoice_amm;
-                            }
-                            if ($invoice_total_cost < 0) {
-                                $invoice_total_cost = 0;
-                            }
-                        }
-                    }
+                    // // + tax cost
+                    // $invoice_total_tax = 0;
+                    // $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id));
+                    // if (!empty($invoice_sales_tax_details)) {
+                    //     foreach ($invoice_sales_tax_details as $tax) {
+                    //         if (array_key_exists("tax_value", $tax)) {
+                    //             $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
+                    //             $invoice_total_tax += $tax_amm_to_add;
+                    //         }
+                    //     }
+                    // }
+                    // $invoice_total_cost += $invoice_total_tax;
+                    // $total_tax_amount = $invoice_total_tax;
 
-                    // + tax cost
-                    $invoice_total_tax = 0;
-                    $invoice_sales_tax_details = $this->InvoiceSalesTax->getAllInvoiceSalesTax(array('invoice_id' => $tmp_invoice_id));
-                    if (!empty($invoice_sales_tax_details)) {
-                        foreach ($invoice_sales_tax_details as $tax) {
-                            if (array_key_exists("tax_value", $tax)) {
-                                $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
-                                $invoice_total_tax += $tax_amm_to_add;
-                            }
-                        }
-                    }
-                    $invoice_total_cost += $invoice_total_tax;
-                    $total_tax_amount = $invoice_total_tax;
-
-                    // END TOTAL INVOICE CALCULATION COST //
-                    ////////////////////////////////////////
+                    // // END TOTAL INVOICE CALCULATION COST //
+                    // ////////////////////////////////////////
 
                     // $total = $invoice_details->cost - $invoice_details->partial_payment + $invoice_details->tax_amm;
-                    $total = $invoice_total_cost - $invoice_details->partial_payment;
-
+                    $invoice_cost_data = calculateInvoiceCost($invoice_details);
+                    //$total = $invoice_total_cost - $invoice_details->partial_payment;
+                    $total = $invoice_cost_data->balance_due;
                     // $total_log = fopen("total_logs.txt", "a+");                    
                     $total = number_format($total, 2, '.', '');
                     $previous_total += $total;
@@ -5048,7 +5086,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         $data['past_invoice_total'] = $previous_total;
         $data['statement_start_date'] = $start_date;
         $data['statement_end_date'] = $end_date;
-        $data['invoice_details'] = $this->INV->ajaxActiveInvoicesTechWithSalesTax($whereArr, "", "", "", "", $whereArrExclude, $whereArrExclude2, "", false);
+        $data['invoice_details'] = $this->INV->ajaxActiveInvoicesTechWithSalesTax($whereArr, "", "", "", "", $whereArrExclude, $whereArrExclude2, $orWhere, false);
 
         $credit_arr = array(
             'customer_id' => $customer_id,
@@ -5194,14 +5232,16 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
                     }
                 }
             }
+            
             $invoice_total_cost += $invoice_total_tax;
             $total_tax_amount = $invoice_total_tax;
 
             // END TOTAL INVOICE CALCULATION COST //
             ////////////////////////////////////////
+            $invoice_cost_data = calculateInvoiceCost($inv_deets);
 
             // $data['invoice_details'][$count]->coupon_invoice = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $inv_deets->invoice_id ));
-            $data['invoice_details'][$count]->final_cost = $invoice_total_cost;
+            $data['invoice_details'][$count]->final_cost = $invoice_cost_data->invoice_total_cost;
             $count += 1;
         }
 
@@ -6892,10 +6932,190 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
         if ($error) {
             echo 'false';
         } else {
+            // call customer hold service scheduler
+            $this->invoice_customer_hold();
+            $this->customerHoldPayments();
             echo 'true';
         }
 
     }
+
+    public function invoice_customer_hold()
+    {
+        $company_id = $this->session->userdata['company_id'];
+        $where = array('company_id' => $this->session->userdata['company_id']);
+        $data_company_email = $this->CompanyEmail->getOneCompanyEmail($where);
+
+        @$Is_enable_hold_service = $data_company_email->is_email_scheduling_indays;
+        if ($Is_enable_hold_service) {
+            $curent_date = date("Y-m-d");
+            $days = $data_company_email->email_scheduling_indays;
+            $new_date = date('Y-m-d', strtotime('-' . $days . 'days', strtotime($curent_date)));
+
+            $expire_paid = "";
+            $year = date("Y");
+            $where_unpaid = array(
+                'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+                'status !=' => 0,
+                'is_archived' => 0,
+                'payment_status !=' => 2,
+                'customers.customer_status != 2 AND customers.customer_status !=' => 0,
+                //'invoice_date >' => $year . '-01-01',
+                'invoice_date <' => $new_date
+            );
+            $data_invoice_details = $this->INV->getAllInvoive($where_unpaid);
+            $customer_ids = [];
+            $customer_names = [];
+            foreach ($data_invoice_details as $_data) {
+                if (!in_array($_data->customer_id, $customer_ids))
+                    $customer_ids[] = $_data->customer_id;
+            }
+            foreach ($customer_ids as $customer_id) {
+                $customer = $this->CustomerModel->getOneCustomer(array('customer_id' => $customer_id));
+                if ($customer->customer_status != 2 && $customer->customer_status != 0) {
+                    $param = array(
+                        'customer_status' => 2
+                    );
+                    $result = $this->CustomerModel->updateAdminTbl($customer_id, $param);
+                    $first = isset($customer->first_name) ? $customer->first_name : "";
+                    $last = isset($customer->last_name) ? $customer->last_name : "";
+                    $customer_names[] = $first . " " . $last;
+                    // send email account hold
+                    $is_email_hold_templete = $data_company_email->is_email_hold_templete;
+                    $email_array = [];
+                    if ($is_email_hold_templete) {
+
+                        $email_hold_template = $data_company_email->email_hold_templete;
+                        $hold_notification = $data_company_email->hold_notification;
+
+
+                        $email_hold_template = str_replace("{CUSTOMER_NAME}", $customer->first_name . ' ' . $customer->last_name, $email_hold_template);
+                        $email_array['email_body_text'] = $email_hold_template;
+                        if ($customer->email) {
+                            $email_array['customer_details'] = $customer;
+                            $where['is_smtp'] = 1;
+                            $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray($where);
+                            if (!$company_email_details) {
+                                $company_email_details = $this->CompanyModel->getOneDefaultEmailArray();
+                            }
+
+                            $where = array('company_id' => $company_id);
+                            $company_details = $this->CompanyModel->getOneCompany($where);
+                            $email_array['company_details'] = $company_details;
+                            $subject = "Your Account is On Hold";
+                            $to_email = $customer->email;
+                            $body = $this->load->view('email/customer_hold_email', $email_array, TRUE);
+                            $res = Send_Mail_dynamic($company_email_details, $to_email, array("name" => $company_details->company_name, "email" => $company_details->company_email), $body, $subject);
+
+                        }
+
+                    }
+
+                }
+
+            }
+            $admin_email = [];
+            if (count($customer_names) > 0) {
+                #send email to admin
+                $company_details = $this->CompanyModel->getOneCompany(array('company_id' => $this->session->userdata['company_id']));
+                $admin_email['company_details'] = $company_details;
+                $user_details = $this->CompanyModel->getOneAdminUser(array('company_id' => $this->session->userdata['company_id'], 'role_id' => 1));
+                $company_email_details = $this->CompanyEmail->getOneCompanyEmailArray(array('company_id' => $this->session->userdata['company_id'], 'is_smtp' => 1));
+                if (!$company_email_details) {
+                    $company_email_details = $this->CompanyModel->getOneDefaultEmailArray();
+                }
+                $admin_email['customer_names'] = $customer_names;
+                $body = $this->load->view('email/customer_hold_admin_email', $admin_email, TRUE);
+                if ($company_email_details) {
+                    $res = Send_Mail_dynamic($company_email_details, $user_details->email, array("name" => $company_details->company_name, "email" => $company_details->company_email), $body, 'Customer Acount Holds');
+                }
+            }
+        }
+    }
+
+    public function customerHoldPayments()
+    {
+        $company_id = $this->session->userdata['company_id'];
+        $data_company_email = $this->CompanyEmail->getOneCompanyEmail(array('company_id' => $this->session->userdata['company_id']));
+
+        @$automatic_hold_enabled = $data_company_email->is_email_scheduling_indays;
+        if ($automatic_hold_enabled) {
+            #get all customers on hold
+            $hold_customers = $this->CustomerModel->get_all_customer(array('company_id' => $this->session->userdata['company_id'], 'customer_status' => 2));
+            if (count($hold_customers) > 0) {
+                $today = strtotime('now');
+                $hold_days_setting = $data_company_email->email_scheduling_indays;
+                $hold_date_marker = date('Y-m-d', strtotime('-' . $hold_days_setting . 'days', $today));
+                $start_time = microtime(true);
+                $customer_ids = [];
+                $customer_names = [];
+                foreach ($hold_customers as $_data) {
+                    if (!in_array($_data->customer_id, $customer_ids))
+                        $customer_ids[] = $_data->customer_id;
+                }
+
+                if (!empty($customer_ids)) {
+                    $customer_ids_str = implode(",", $customer_ids);
+                    $hasUnpaidInvoices = $this->INV->ajaxActiveInvoicesCustomers($company_id, $customer_ids_str, $hold_date_marker);
+                    foreach($hasUnpaidInvoices as $unpaid) {
+                        $index = array_search($unpaid->customer_id, $customer_ids);
+                        if ($index >= 0)
+                            unset($customer_ids[$index]);
+                    }
+                    if (!empty($customer_ids)) {
+                        $customer_ids_str = implode(",", $customer_ids);
+                        $hasUnpaidInvoices = $this->INV->ajaxActiveInvoicesTechUpdateCustomer($customer_ids_str);
+                    }
+                }
+
+//                $i = 0;
+//                foreach ($hold_customers as $customer) {
+//                    #get customer unpaid customer invoices older than 45 days
+//                    $where_unpaid = array(
+//                        'invoice_tbl.company_id' => $this->session->userdata['company_id'],
+//                        'invoice_tbl.customer_id' => $customer->customer_id,
+//                        'invoice_tbl.status !=' => 0,
+//                        'invoice_tbl.is_archived' => 0,
+//                        'invoice_tbl.payment_status !=' => 2,
+//                        'invoice_tbl.invoice_date <' => $hold_date_marker
+//                    );
+//                    // WHERE NOT: all of the below true
+//                    $whereArrExclude = array(
+//                        "programs.program_price" => 2,
+//                        // "technician_job_assign.is_complete" => 0,
+//                        "technician_job_assign.is_complete !=" => 1,
+//                        "technician_job_assign.is_complete IS NOT NULL" => null,
+//                    );
+//
+//                    // WHERE NOT: all of the below true
+//                    $whereArrExclude2 = array(
+//                        "programs.program_price" => 2,
+//                        "technician_job_assign.invoice_id IS NULL" => null,
+//                        "invoice_tbl.report_id" => 0,
+//                        "property_program_job_invoice2.report_id IS NULL" => null,
+//                    );
+//                    $limit = 0;
+//
+//                    $start = 0;
+//                    $order = 'invoice_id';
+//
+//                    $dir = 'DESC';
+//                    $orWhere = [];
+//
+////                    $unpaid_invoices = $this->INV->getInvoices($where_unpaid);
+//                    $unpaid_invoices = $this->INV->ajaxActiveInvoicesTech($where_unpaid, $limit, $start, $order, $dir, $whereArrExclude, $whereArrExclude2, $orWhere, true);
+//                    #remove customer hold if customer has 0 unpaid invoices within date range
+//                    if (empty($unpaid_invoices)) {
+//                        error_log("Customer id\n: ".$customer->customer_id);
+//                        $removeHold = $this->CustomerModel->updateAdminTbl($customer->customer_id, array('customer_status' => 1));
+//                        $i++;
+//                    }
+//                }
+            }
+        }
+    }
+
+
 
     public function sendPdfMail()
     {
@@ -8583,7 +8803,7 @@ $("#add_refund_payment_form'.$invoice->invoice_id.'").submit(function(e) {
             $alldata['Locations'] = $Locations;
             $data['Locations'] = $Locations;
             $alldata['OptimizeParameters'] = $OptimizeParameters;
-            $url = "https://optimizer3.routesavvy.com/RSAPI.svc/POSTOptimize";
+            $url = "https://optimizer.routesavvy.com/RSAPI.svc/POSTOptimize";
             $handle = curl_init($url);
             $query = $alldata;
             //die(print_r($query));

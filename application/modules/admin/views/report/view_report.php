@@ -31,12 +31,20 @@
            <div class="panel panel-body" style="background-color:#ededed;" >
            <form id="serchform" action="<?= base_url('admin/reports/downloadCsv') ?>" method="post">            
               <div class="row">
-                  <div class="col-md-2">
-                      <div class="form-group">
-                         <label>User Name</label>
-                          <input type="text" id="technician_name" name="technician_name" class="form-control" placeholder="Enter User Name">
-                      </div>
+                  <div class="col-md-3 multi-select-full">
+                      <label>Users</label>
+                      <select class="multiselect-select-all-filtering form-control" name="technician_name[]" id="technician_name" multiple="multiple">
+                          <?php foreach ($users as $user): ?>
+                              <option value="<?= $user->user_id ?>"> <?= $user->user_first_name ?> <?= $user->user_last_name ?></option>
+                          <?php endforeach ?>
+                      </select>
                   </div>
+<!--                  <div class="col-md-2">-->
+<!--                      <div class="form-group">-->
+<!--                         <label>User Name</label>-->
+<!--                          <input type="text" id="technician_name" name="technician_name" class="form-control" placeholder="Enter User Name">-->
+<!--                      </div>-->
+<!--                  </div>-->
 
                   <div class="col-md-2">
                       <div class="form-group">

@@ -16,6 +16,9 @@ class Program_job_assigned_customer_property_model extends CI_Model{
         $isExistedData = $post;
         unset($isExistedData['reason']);
         unset($isExistedData['hold_until_date']);
+        unset($isExistedData['reschedule_reason_id']);
+        unset($isExistedData['rescheduled_at']);
+        unset($isExistedData['reschedule_message']);
         $result = $this->db->select('*')
                  ->from('program_job_assigned_customer_property')
                  ->where($isExistedData)

@@ -109,6 +109,7 @@
                     <a href="#"><i class="icon-truck"></i> <span>Fleet Management <span class="label bg-success">new</span></span></a>
                   <ul>
                     <li class="<?= $active_sidebar == "allVehicles" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/allVehicles');?>" >Fleet Vehicles</a></li>
+                    <li class="<?= $active_sidebar == "verizonRevealMap" ? "active" : "" ?>" ><a href="<?php echo base_url('admin/verizonRevealMap');?>" >Verizon Reveal Map</a></li>
                   </ul>
                 </li>
 
