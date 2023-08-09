@@ -207,6 +207,27 @@
             case 'Notes':
                 break;
 
+            case 'Assign Services':
+
+                echo '  
+                    <p class="navbar-text btn-head">
+                        <span class="label btn-primary ">
+                            <a href="' .base_url('admin/manageJobs'). '" id="save"></i>Manage Scheduled Services</a>
+                        </span>
+                    </p>        
+                    <p class="navbar-text btn-head" style="padding-top: 20px">
+                        <label class="togglebutton" style="color: black">
+                            Map View&nbsp;<input id="change-view-type" type="checkbox" onclick="window.location=\'' . base_url('admin/assignJobs') . '\'" class="switchery-primary">
+                            Table View
+                        </label>
+                    </p>
+                    <p class="navbar-text btn-head">
+                        <button id="multiple-restore-id" disabled="disabled" class=" hidden btn btn-primary archived-services-element">Restore Services</button>
+                    </p>    
+                      ';
+
+                break;
+
         }
 
         ?>
@@ -247,6 +268,13 @@
 
             <?php } ?>
 
+        <?php if ($page_name == 'Assign Services'):?>
+            <p class="navbar-text btn-head">
+                <button id="collapse-toggler" class="btn btn-primary" type="button" data-toggle="collapse" data-target="#sidebar" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="on">Hide Filters&nbsp;<i class="fa-solid fa-arrow-up"></i></span>
+                </button>
+            </p>
+        <?php endif;?>
 
        <li class="dropdown dropdown-user user-head">
           <a class="dropdown-toggle" data-toggle="dropdown">

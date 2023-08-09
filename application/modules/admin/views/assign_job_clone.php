@@ -208,7 +208,12 @@
 	tr.row_in_hold td, tr.row_in_hold td a {	
 	color: #8080804f !important;	
 	}
-
+    @media (min-width: 768px) {
+        .modal-xl {
+            width: 90%;
+            max-width:1200px;
+        }
+    }
 </style>
 
 
@@ -221,6 +226,7 @@
 <div class="content">
    <div class="">
       <div class="mymessage"></div>
+      
       <b><?php if ($this->session->flashdata()): echo $this->session->flashdata('message');
          endif
          ?></b>
@@ -283,7 +289,7 @@
                                             </div>
                                             <div class="row">
                                                 <div class="col-md-3" style="text-align:right;">
-                                                    <label for="appllicationCost">Application Cost</label>
+                                                    <label for="appllicationCost">Revenue&nbsp;<span data-popup="tooltip-custom" title="" data-placement="right" data-original-title="Services with no invoice won't reflect price override or coupons until invoice is created."><i class=" icon-info22 tooltip-icon"></i></span></label>
                                                 </div>
                                                 <div class="col-md-3"style="text-align:right;">
                                                     <input placeholder="" id="totalApplicationCost" type="text"  size="15">
@@ -455,7 +461,7 @@
 </div>
 
 <div id="modal_add_filters" class="modal fade">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-primary" style="background: #36c9c9;border-color: #36c9c9;">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -761,7 +767,7 @@
 
 	var sqftTotal = 0;
 
-	$('.myCheckBox)').each(function(){ //iterate all listed checkbox items
+	$('.myCheckBox').each(function(){ //iterate all listed checkbox items
 		var has_customer_in_hold=$(this).hasClass("customer_in_hold");	
 		if(!has_customer_in_hold){	
 			this.checked = status; //change ".checkbox" checked status	
@@ -1151,7 +1157,7 @@ $(document).ready(function() {
     }
 
     function post_BasicOptimizeStops(request) {
-        var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+        var resturl = 'https://optimizer.routesavvy.com/RSAPI.svc/';
         postit(resturl + 'POSTOptimize', {
             data: JSON.stringify(request),
             success: function(data) {

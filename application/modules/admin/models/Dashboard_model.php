@@ -242,6 +242,7 @@ class Dashboard_model extends CI_Model
         } else {
             // New incoming commit statement
             $this->db->select("
+            jobs.job_id,
             customers.first_name,
             customers.last_name,
             billing_street,
@@ -280,6 +281,7 @@ class Dashboard_model extends CI_Model
             customers.customer_status,
             program_job_assigned_customer_property.hold_until_date,
             technician_job_assign.reschedule_message,
+            program_job_assigned_customer_property.reschedule_message as reschedule_message2,
             (
                 SELECT
                     MAX(job_completed_date) AS completed_date_last_service_by_type
@@ -306,7 +308,24 @@ class Dashboard_model extends CI_Model
             END as asap_reason,
             property_program_job_invoice.job_cost,
             property_program_assign.price_override,
-            property_program_assign.is_price_override_set 
+            property_program_assign.is_price_override_set,
+            reschedule_reasons.reschedule_name,
+            property_program_assign.is_price_override_set,             
+            CASE
+                WHEN customers.pre_service_notification LIKE '%\"1\"%'
+                    OR customers.pre_service_notification LIKE '%\"2\"%'
+                    OR customers.pre_service_notification LIKE '%\"3\"%'
+                    OR customers.pre_service_notification LIKE '%\"4\"%'
+                THEN 1
+                ELSE 0
+            END as prenotified,
+            service_type_tbl.service_type_color as service_type_color,
+            CASE
+                WHEN 1 IN (property_tbl.tags)
+                THEN 1
+                ELSE 0
+            END as newcustomer,
+            property_program_assign.property_program_date as property_program_date_value,                                  
         ", FALSE);
         }
 
@@ -321,6 +340,9 @@ class Dashboard_model extends CI_Model
         $this->db->join('customer_property_assign', 'customer_property_assign.property_id = property_program_assign.property_id ', 'inner');
         $this->db->join('customers', 'customers.customer_id = customer_property_assign.customer_id ', 'inner');
 
+        // get service_type_tbl.service_type_color for Map Markers
+        $this->db->join('service_type_tbl','service_type_tbl.service_type_id = jobs.service_type_id ','inner');
+
         // latest property job date
         $this->db->join("(SELECT MAX(job_completed_date) AS completed_date_property, property_id FROM technician_job_assign GROUP BY property_id) AS technician_job_assign_property", "property_program_assign.property_id = technician_job_assign_property.property_id", "left");
 
@@ -331,10 +353,11 @@ class Dashboard_model extends CI_Model
         $this->db->join("technician_job_assign", "technician_job_assign.customer_id = customers.customer_id AND technician_job_assign.job_id = jobs.job_id AND technician_job_assign.program_id = programs.program_id AND technician_job_assign.property_id = property_tbl.property_id", "left");
         $this->db->join("unassigned_Job_delete", "unassigned_Job_delete.customer_id = customers.customer_id AND unassigned_Job_delete.job_id = jobs.job_id AND unassigned_Job_delete.program_id = programs.program_id AND unassigned_Job_delete.property_id = property_tbl.property_id", "left");
 
+
         $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
         $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
         $this->db->join('property_program_job_invoice', 'property_program_job_invoice.customer_id = customers.customer_id AND property_program_job_invoice.program_id = programs.program_id and property_tbl.property_id = property_program_job_invoice.property_id AND property_program_job_invoice.job_id = jobs.job_id', 'left');
-
+        $this->db->join('reschedule_reasons', 'reschedule_reasons.reschedule_id = program_job_assigned_customer_property.reschedule_reason_id', 'left');
         // Filtering job name and program services
 
         if (is_array($where_like) && array_key_exists('job_name', $where_like)) {
@@ -811,6 +834,7 @@ class Dashboard_model extends CI_Model
         $data = $result->result_array();
 
         return $data;
+
     }
 
     public function getTableDataAjaxSearch($where_arr = '', $where_like = '', $limit, $start, $col, $dir, $search, $is_for_count, $where_in = '', $or_where = '', $property_outstanding_services = '')
@@ -851,6 +875,7 @@ class Dashboard_model extends CI_Model
                 technician_job_assign.is_job_mode,
                 unassigned_Job_delete.unassigned_Job_delete_id,
                 technician_job_assign.reschedule_message,
+                program_job_assigned_customer_property.reschedule_message as reschedule_message2,
                 `property_tbl`.`property_state`,
                 `property_tbl`.`property_city`,
                 `property_tbl`.`property_zip`,
@@ -888,6 +913,7 @@ class Dashboard_model extends CI_Model
                         job_id = jobs.job_id AND 
                         program_id = programs.program_id AND 
                         property_id = property_tbl.property_id
+                    GROUP BY customer_id, job_id, program_id, property_id
                  ) assign_reschedule_message,
                  EXISTS(
                     SELECT 
@@ -900,6 +926,7 @@ class Dashboard_model extends CI_Model
                         job_id = jobs.job_id AND 
                         program_id = programs.program_id 
                         AND property_id = property_tbl.property_id
+                    GROUP BY customer_id, job_id, program_id, property_id
                  ) assign_table_data,
                  CASE 
                     WHEN program_job_assigned_customer_property.reason IS NOT NULL 
@@ -910,10 +937,20 @@ class Dashboard_model extends CI_Model
                     WHEN program_job_assigned_customer_property.reason IS NOT NULL 
                         THEN program_job_assigned_customer_property.reason 
                     ELSE '' 
-                 END as asap_reason ,
+                 END as asap_reason,
                  property_program_job_invoice.job_cost,
                  property_program_assign.price_override,
-                 property_program_assign.is_price_override_set
+                 property_program_assign.is_price_override_set,
+                 reschedule_reasons.reschedule_name,
+                 property_program_assign.is_price_override_set,              
+                 CASE 
+                    WHEN customers.pre_service_notification LIKE '%\"1\"%'
+                      OR customers.pre_service_notification LIKE '%\"2\"%'
+                      OR customers.pre_service_notification LIKE '%\"3\"%'
+                      OR customers.pre_service_notification LIKE '%\"4\"%'
+                    THEN 1
+                    ELSE 0
+                END as prenotified
                 ", FALSE);
 //        }
 
@@ -928,6 +965,8 @@ class Dashboard_model extends CI_Model
         $this->db->join('customer_property_assign', 'customer_property_assign.property_id = property_program_assign.property_id ', 'inner');
         $this->db->join('customers', 'customers.customer_id = customer_property_assign.customer_id ', 'inner');
 
+        $this->db->join('service_type_tbl','service_type_tbl.service_type_id = jobs.service_type_id ','inner');
+
         // latest property job date
         $this->db->join("(SELECT MAX(job_completed_date) AS completed_date_property, property_id FROM technician_job_assign GROUP BY property_id) AS technician_job_assign_property", "property_program_assign.property_id = technician_job_assign_property.property_id", "left");
 
@@ -941,6 +980,7 @@ class Dashboard_model extends CI_Model
         $this->db->where("(is_job_mode = 2 OR is_job_mode IS NULL) AND unassigned_Job_delete_id IS NULL");
         $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
         $this->db->join('property_program_job_invoice', 'property_program_job_invoice.customer_id = customers.customer_id AND property_program_job_invoice.program_id = programs.program_id and property_tbl.property_id = property_program_job_invoice.property_id AND property_program_job_invoice.job_id = jobs.job_id', 'left');
+        $this->db->join('reschedule_reasons', 'reschedule_reasons.reschedule_id = program_job_assigned_customer_property.reschedule_reason_id', 'left');
 
         if (is_array($where_like) && array_key_exists('job_name', $where_like)) {
             $this->db->where_in('job_name', $where_in['job_name']);
@@ -968,6 +1008,21 @@ class Dashboard_model extends CI_Model
             if (is_array($where_like) && array_key_exists('program_services', $where_like)) {
                 unset($where_in['program_services']);
             }
+        }
+
+        // to fix a bug, I determined that we need the block of code below.
+        // Mainly, because if we do not `unset` value `program_job_assigned_customer_property` from the where_arr
+        // then we get an error when we run the code below.
+        //        if (is_array($where_arr)) {
+        //            $this->db->where($where_arr);
+        //        }
+        if (is_array($where_arr) && array_key_exists('program_job_assigned_customer_property', $where_arr)) {
+            $val = $where_arr['program_job_assigned_customer_property'];
+            if ($val == 1)
+                $this->db->where('program_job_assigned_customer_property.reason IS NOT NULL');
+            else
+                $this->db->where('program_job_assigned_customer_property.reason IS NULL');
+            unset($where_arr['program_job_assigned_customer_property']);
         }
 
         // Available days
@@ -1135,7 +1190,7 @@ class Dashboard_model extends CI_Model
 
         $result = $this->db->get();
         $data = $result->result();
-
+        $a = $this->db->last_query();
         $final_data = array();
         // Check for programs service filter
 //        die(print_r($property_outstanding_services));
@@ -1262,7 +1317,19 @@ class Dashboard_model extends CI_Model
         $this->db->select("
             technician_job_assign.technician_job_assign_id,
             jobs.job_id,
-            `property_program_job_invoice`.`job_cost`,
+            (
+                SELECT job_cost FROM property_program_job_invoice 
+                INNER JOIN invoice_tbl ON invoice_tbl.invoice_id = property_program_job_invoice.invoice_id
+                WHERE
+                property_program_job_invoice.customer_id = customers.customer_id
+                AND property_program_job_invoice.property_id = property_tbl.property_id
+                AND property_program_job_invoice.program_id = programs.program_id
+                AND property_program_job_invoice.job_id = jobs.job_id
+                AND property_program_job_invoice.property_program_id = property_program_assign.property_program_id
+                AND invoice_tbl.is_archived = 0
+                ORDER BY property_program_job_invoice.created_at DESC
+                LIMIT 1
+            ) as job_cost,
             job_name,
             customer_property_assign.customer_id,
             jobs.job_id,
@@ -1297,7 +1364,9 @@ class Dashboard_model extends CI_Model
                 WHEN program_job_assigned_customer_property.reason IS NOT NULL 
                     THEN program_job_assigned_customer_property.reason 
                 ELSE '' 
-            END as asap_reason 
+            END as asap_reason,
+            technician_job_assign.reschedule_message,
+            program_job_assigned_customer_property.reschedule_message as reschedule_message2
         ", FALSE);
         $this->db->from('jobs');
         $this->db->join('program_job_assign', 'program_job_assign.job_id =jobs.job_id', 'inner');
@@ -1306,7 +1375,7 @@ class Dashboard_model extends CI_Model
         $this->db->join('programs', 'programs.program_id = property_program_assign.program_id', 'inner');
         $this->db->join('customer_property_assign', 'customer_property_assign.property_id = property_program_assign.property_id ', 'inner');
         $this->db->join('customers', 'customer_property_assign.customer_id = customers.customer_id ', 'inner');
-        $this->db->join('property_program_job_invoice', 'property_program_job_invoice.customer_id = customers.customer_id AND property_program_job_invoice.program_id = programs.program_id and property_tbl.property_id = property_program_job_invoice.property_id AND property_program_job_invoice.job_id = jobs.job_id', 'left');
+        //$this->db->join('property_program_job_invoice', 'property_program_job_invoice.customer_id = customers.customer_id AND property_program_job_invoice.program_id = programs.program_id and property_tbl.property_id = property_program_job_invoice.property_id AND property_program_job_invoice.job_id = jobs.job_id AND property_program_job_invoice.property_program_id = property_program_assign.property_program_id', 'left');
         $this->db->join('technician_job_assign', 'jobs.job_id = technician_job_assign.job_id AND customers.customer_id = technician_job_assign.customer_id AND programs.program_id = technician_job_assign.program_id AND property_tbl.property_id = technician_job_assign.property_id', 'left');
         $this->db->join('category_property_area', 'category_property_area.property_area_cat_id = property_tbl.property_area', 'left');
         $this->db->join('(SELECT *, GROUP_CONCAT(coupon_code SEPARATOR ", ") AS coupon_code_csv FROM coupon_job GROUP BY job_id, program_id, property_id, customer_id) AS coupon_job', 'jobs.job_id = coupon_job.job_id AND customers.customer_id = coupon_job.customer_id AND programs.program_id = coupon_job.program_id AND property_tbl.property_id = coupon_job.property_id', 'left');
@@ -1321,10 +1390,11 @@ class Dashboard_model extends CI_Model
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
-//        $this->db->group_by('1,2');
+        $this->db->group_by('jobs.job_id, programs.program_id, property_tbl.property_id');
         $this->db->order_by('technician_job_assign.job_assign_date', 'desc');
         $result = $this->db->get();
-        $a = $this->db->last_query();
+        //$a = $this->db->last_query();
+        //print_r($a);
         $data = $result->result();
         return $data;
     }
@@ -1458,7 +1528,7 @@ class Dashboard_model extends CI_Model
             $this->db->like($where_like);
         }
 
-        
+
         $this->db->group_by('technician_job_assign.technician_job_assign_id');
         if ($is_for_count == false) {
             $this->db->limit($limit, $start);
@@ -1504,7 +1574,7 @@ class Dashboard_model extends CI_Model
             $this->db->like($where_like);
         }
 
-        
+
         $this->db->group_by('technician_job_assign.technician_job_assign_id');
         if ($is_for_count == false) {
             $this->db->order_by($col, $dir);
@@ -2064,7 +2134,6 @@ class Dashboard_model extends CI_Model
 //            $where_arr, $where_like, $limit, $start, $col, $dir, $is_for_count, $where_in, $or_where,$property_outstanding_services
 //        ]));
         $program_services_search = array();
-
         $select = "
         customers.first_name,
         customers.last_name,
@@ -2111,6 +2180,7 @@ class Dashboard_model extends CI_Model
                 job_id = jobs.job_id AND 
                 program_id = programs.program_id AND 
                 property_id = property_tbl.property_id
+            GROUP BY customer_id, job_id, program_id, property_id
          ) assign_reschedule_message,
          EXISTS(
             SELECT 
@@ -2123,6 +2193,7 @@ class Dashboard_model extends CI_Model
                 job_id = jobs.job_id AND 
                 program_id = programs.program_id 
                 AND property_id = property_tbl.property_id
+            GROUP BY customer_id, job_id, program_id, property_id
          ) assign_table_data,   
          property_program_assign.property_program_date,
          technician.user_first_name,
@@ -2160,7 +2231,7 @@ class Dashboard_model extends CI_Model
             WHEN program_job_assigned_customer_property.program_job_assigned_customer_property_id IS NOT NULL 
                 THEN program_job_assigned_customer_property.reason 
             ELSE '' 
-        END as asap_reason ,
+        END as asap_reason,
         property_program_job_invoice.job_cost,
         property_program_assign.price_override,
         property_program_assign.is_price_override_set,
@@ -2191,6 +2262,7 @@ class Dashboard_model extends CI_Model
         $this->db->join('program_job_assigned_customer_property', 'jobs.job_id = program_job_assigned_customer_property.job_id AND customers.customer_id = program_job_assigned_customer_property.customer_id AND programs.program_id = program_job_assigned_customer_property.program_id AND property_tbl.property_id = program_job_assigned_customer_property.property_id', 'left');
         $this->db->join('property_program_job_invoice', 'property_program_job_invoice.customer_id = customers.customer_id AND property_program_job_invoice.program_id = programs.program_id and property_tbl.property_id = property_program_job_invoice.property_id AND property_program_job_invoice.job_id = jobs.job_id', 'left');
         $this->db->join('invoice_tbl', 'invoice_tbl.invoice_id = property_program_job_invoice.invoice_id', 'left');
+        $this->db->join('reschedule_reasons', 'reschedule_reasons.reschedule_id = program_job_assigned_customer_property.reschedule_reason_id', 'left');
 
         if (is_array($where_like) && array_key_exists( 'job_name', $where_like )) {
             $this->db->where_in( 'job_name', $where_in['job_name'] );
@@ -2364,6 +2436,7 @@ class Dashboard_model extends CI_Model
         }
 
         $result = $this->db->get();
+        $a = $this->db->last_query();
         $data = $result->result();
         //die(print_r($this->db->last_query()));
 //        $this->benchmark->mark('code_inside_end');
@@ -2599,4 +2672,14 @@ class Dashboard_model extends CI_Model
         return $data;
     }
 
+    public function get_fleet_numbers($where_arr) {
+        $this->db->select('fleet_number');
+        $this->db->from('fleet_vehicles');
+        if (is_array($where_arr)) {
+            $this->db->where($where_arr);
+        }
+        $result = $this->db->get();
+        $data = $result->result();
+        return $data;
+    }
 }

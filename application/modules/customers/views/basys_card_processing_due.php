@@ -245,6 +245,7 @@ a {
       var tokenized = '';
       var token_status = '';
       var example = new Tokenizer({
+        url: '<?= BASYS_URL ?>',
       apikey: '<?= $basys_details->publuc_key ?>',
       container: document.querySelector('.card-form'),
       submission: (resp) => {

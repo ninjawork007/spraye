@@ -6,7 +6,8 @@
             <tr>
                 <!-- <th>Service Type Id</th> -->
                 <th>Service Type Name</th>
-                <th>Service  Type</th>                         
+                <th>Service  Type</th>
+                <th>Color</th>
                 <th>Action</th>
             </tr>  
         </thead>
@@ -31,7 +32,12 @@
                             }
 
                           ?></td>
-            
+
+                <td>
+                    <b style="color: <?= $value->service_type_color ?>;" ><?= $serviceTypeAllowedColors[$value->service_type_color] ?></b>
+                    <p style="background-color: <?= $value->service_type_color ?>; display: inline-block; width: 18px; height: 18px; margin: 0px;"></p>
+                </td>
+
                 <td>
                     <ul style="list-style-type: none; padding-left: 0px;">
                         <li style="display: inline; padding-right: 10px;">

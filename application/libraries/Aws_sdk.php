@@ -29,6 +29,10 @@ class Aws_sdk{
     */
    public function saveObject($key,$tempfilename)
    {
+       ini_set( 'upload_max_size' , '256M' );
+       ini_set( 'post_max_size', '256M');
+       ini_set( 'memory_limit', '-1');
+       
 		$params = array(
 			'Bucket'      => S3_BUCKET_NAME,
 			'Key'         =>  $key,
@@ -37,8 +41,8 @@ class Aws_sdk{
 		);		
 		try {
 			$this->putObject($params);							
-		}catch (Exception $e){
-			$error = "Something went wrong saving your file.\n".$e;
+		}catch (\Exception $e){
+			$error = "Something went wrong saving your file.\n".$e->getMessage();
 			echo $error; exit;
 		}
 		return true;

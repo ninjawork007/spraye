@@ -128,13 +128,9 @@ if ($invoice_cost > 0) {
 
                   <div class="form-group login-options">
                     <div class="row">
-                    <?php
-// $convenience_fee = $setting_details->convenience_fee*($invoice_cost + $total_tax_amount - $partial_payment)/100;
-            $convenience_fee = $setting_details->convenience_fee * ($total_amount_minus_partials - $partial_payment) / 100;
-            ?>
                       <span class="text-center no-margin" >
                         <!--Total Amount : <b>$<?=number_format($invoice_cost + $total_tax_amount + $convenience_fee - $partial_payment, 2)?></b>-->
-                        Total Amount : <b>$<?=number_format($total_amount_minus_partials + $convenience_fee - $partial_payment, 2)?></b>
+                        Total Amount : <b>$<?=number_format($total_amount_minus_partials, 2)?></b>
                       </span>
                     </div>
                   </div>

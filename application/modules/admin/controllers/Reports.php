@@ -104,9 +104,11 @@ class Reports extends MY_Controller {
 
 ## Completed Service Log Report
     public function index()
-    {   
+    {
+        $where = array('company_id' => $this->session->userdata['company_id']);
         //get the posts data
         $data['report_details'] = $this->RP->getCompletedServices();
+        $data['users'] = $this->Administrator->getAllAdmin($where);
 		//die(print_r($data));
 	    $page["active_sidebar"] = "reports";
         $page["page_name"] = 'Completed Service Log';
@@ -130,9 +132,9 @@ class Reports extends MY_Controller {
         if(!empty($customer_name)){
             $conditions['search']['customer_name'] = $customer_name;
         }
-        if(!empty($technician_name)){
-            $conditions['search']['technician_name'] = $technician_name;
-        }
+         if(!empty($technician_name) && $technician_name != "null"){
+             $conditions['search']['technician_name'] = explode(',', $technician_name);
+         }
 
         if(!empty($job_completed_date_to)){
             $conditions['search']['job_completed_date_to'] = $job_completed_date_to;

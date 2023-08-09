@@ -209,6 +209,53 @@ class Invoice_model extends CI_Model{
 
     }
 
+    public function ajaxActiveInvoicesTechUpdateCustomer($customer_ids) {
+        $sql = "
+            UPDATE customers set customer_status = 1 WHERE customer_id in({$customer_ids})
+        ";
+        $result = $this->db->query($sql);
+        if ($result){
+            return true;
+        }
+        return false;
+    }
+
+    public function ajaxActiveInvoicesCustomers($company_id, $customer_ids, $invoice_date) {
+        $sql = "
+            SELECT 
+                distinct `customers`.`customer_id`
+            FROM 
+                `invoice_tbl`
+            INNER JOIN `customers` ON `customers`.`customer_id` = `invoice_tbl`.`customer_id`
+            LEFT JOIN `programs` ON `programs`.`program_id` = `invoice_tbl`.`program_id`
+            LEFT JOIN `refund_invoice_logs` ON `refund_invoice_logs`.`invoice_id` = `invoice_tbl`.`invoice_id`
+            LEFT JOIN `technician_job_assign` ON `technician_job_assign`.`invoice_id` = `invoice_tbl`.`invoice_id`
+            LEFT JOIN ( SELECT *, (LENGTH(csv_report_ids) - LENGTH(REPLACE(csv_report_ids, ',', '')) + 1) AS csv_item_num FROM ( SELECT *, GROUP_CONCAT(report_id) AS csv_report_ids, COUNT(invoice_id) AS invoice_id_count FROM property_program_job_invoice GROUP BY invoice_id ) AS T ) AS property_program_job_invoice2 ON `property_program_job_invoice2`.`invoice_id` = `invoice_tbl`.`invoice_id`
+            WHERE `invoice_tbl`.`company_id` = {$company_id}
+            AND `invoice_tbl`.`customer_id` in ({$customer_ids})
+            AND `invoice_tbl`.`status` !=0
+            AND `invoice_tbl`.`is_archived` =0
+            AND `invoice_tbl`.`payment_status` != 2
+            AND `invoice_tbl`.`invoice_date` < '{$invoice_date}'
+            AND !  (
+            `programs`.`program_price` = 2
+            AND `technician_job_assign`.`is_complete` != 1
+            AND `technician_job_assign`.`is_complete` IS NOT NULL
+             )
+            AND !  (
+            `programs`.`program_price` = 2
+            AND `technician_job_assign`.`invoice_id` IS NULL
+            AND `invoice_tbl`.`report_id` =0
+            AND `property_program_job_invoice2`.`report_id` IS NULL
+             )
+            GROUP BY invoice_tbl.`invoice_id`
+            ORDER BY invoice_tbl.`invoice_id` DESC
+        ";
+        $query = $this->db->query($sql);
+        $data = $query->result();
+        return $data;
+    }
+
     public function ajaxActiveInvoicesTechWithSalesTax($where_arr='', $limit, $start, $col, $dir, $whereArrExclude, $whereArrExclude2, $orWhere = '', $is_for_count) {
 
         $this->db->select('invoice_tbl.*, CONCAT(customers.first_name, " ", customers.last_name) AS customer_name, email, programs.program_price AS programs_program_price, technician_job_assign.is_complete AS tech_job_assign_complete, invoice_sales_tax.tax_amount AS tax_amm', false);
@@ -231,11 +278,24 @@ class Invoice_model extends CI_Model{
         if (is_array($where_arr)) {
             $this->db->where($where_arr);
         }
+
 		if (is_array($orWhere) && !empty($orWhere)) {
 			if(isset($orWhere['payment_status'])){
 				$this->db->where_in('payment_status', $orWhere['payment_status']);
 			}
+            if(isset($orWhere['start_date']) && is_array($orWhere['start_date']))
+            {
+                $this->db->group_start();
+                $this->db->or_where($orWhere['start_date']);
+                $this->db->group_end();
+            }
 
+            if(isset($orWhere['end_date']) && is_array($orWhere['end_date']))
+            {
+                $this->db->group_start();
+                $this->db->or_where($orWhere['end_date']);
+                $this->db->group_end();
+            }
         }
 
         if (is_array($whereArrExclude)) {

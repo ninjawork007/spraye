@@ -535,7 +535,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 
 var showmap = true;
 $('#routeMap').show();
-var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+var resturl = 'https://optimizer.routesavvy.com/RSAPI.svc/';
 
 function post_BasicOptimizeStops() {
 

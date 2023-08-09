@@ -1,9 +1,9 @@
-  <!doctype html>
+ <!doctype html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Requset For Basys Account</title>
     <style>
       /* -------------------------------------
           GLOBAL RESETS
@@ -21,7 +21,7 @@
         background-color: #f6f6f6;
         font-family: sans-serif;
         -webkit-font-smoothing: antialiased;
-        font-size: 14px;
+        font-size: 18px;
         line-height: 1.4;
         margin: 0;
         padding: 0;
@@ -35,7 +35,7 @@
         width: 100%; }
         table td {
           font-family: sans-serif;
-          font-size: 14px;
+          font-size: 18px;
           vertical-align: top; }
 
       /* -------------------------------------
@@ -90,7 +90,7 @@
         .footer span,
         .footer a {
           color: #999999;
-          font-size: 12px;
+          font-size: 14px;
           text-align: center; }
 
       /* -------------------------------------
@@ -117,7 +117,7 @@
       ul,
       ol {
         font-family: sans-serif;
-        font-size: 14px;
+        font-size: 18px;
         font-weight: normal;
         margin: 0;
         margin-bottom: 15px; }
@@ -281,72 +281,80 @@
           border-color: #34495e !important; } }
 
     </style>
-  </head>
-  <body class="">
+    <style type="text/css">
+      .button {
+        background-color: #f44336;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+      }
+    </style>
+	</head>
+	<body class="">
+		<table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
+			<tr>
+				<td>&nbsp;</td>
+				<td class="container">
+					<div class="content"><!-- START CENTERED WHITE CONTAINER -->
+						<div class="header"><!-- START HEADER -->
+							<table role="presentation" border="0" cellpadding="0" cellspacing="0">
+								<tr>
+									<td class="content-block"><img src="<?= CLOUDFRONT_URL.'uploads/company_logo/'.$company_details->company_logo ?>"></td>
+								</tr>
+							</table>
+						</div><!-- END HEADER -->
+						<table role="presentation" class="main"><!-- START MAIN CONTENT AREA -->
+							<tr>
+								<td class="wrapper">
+									<table role="presentation" border="0" cellpadding="0" cellspacing="0">
+										<tr>
+										  <?php
+											 $html = str_replace("{CUSTOMER_NAME}",$contactData['first_name'].' '.$contactData['last_name'],$company_email_details->job_sheduled_skipped);
 
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
-      <tr>
-        <td>&nbsp;</td>
-        <td class="container">
-          <div class="content">
-          
-            <!-- START CENTERED WHITE CONTAINER -->
-            
-           
-            <table role="presentation" class="main">
+											 $html3  = str_replace("{SERVICE_NAME}",'<b>Service Name</b> : '.$job_name.'<br>',$html);
 
-              <!-- START MAIN CONTENT AREA -->
-              <tr>
-                <td class="wrapper">
-                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td>
-                         <img  src="<?= CLOUDFRONT_URL.'uploads/company_logo/'.$setting_details->company_logo ?>"><br>
-                        <h1>Invoice Payment </h1>
+											 $html4  = str_replace("{PROPERTY_ADDRESS}",'<b>Property Address</b> : '.$property_address.'<br>',$html3);
 
-                      
+											 $html5  = str_replace("{RESCHEDULE_REASON}",'<b>Reschedule Reason</b> : '.$reschedule_reason.'<br>',$html4);
 
-                           <p>Hi <?= $user_details->user_first_name.' '.$user_details->user_last_name ?>,</p>
-                           <?php if(isset($actual_total_amount)) { ?>
-                            <p>you have received payment of <b>$ <?= number_format($actual_total_amount, 2); ?></b> from <?= $invoice_details->first_name.' '.$invoice_details->last_name ?> against invoice no. <b><?= $invoice_details->invoice_id ?></b></p>
-                           <?php } else { ?>
-                        <p>you have received payment of <b>$ <?= number_format(($invoice_details->cost + $invoice_details->tax_amount + $invoice_details->convenience_fee - $invoice_details->partial_payment), 2); ?></b> from <?= $invoice_details->first_name.' '.$invoice_details->last_name ?> against invoice no. <b><?= $invoice_details->invoice_id ?></b></p>
-                        <?php } ?>
-                      </td>
-                      <?php if(!empty($setting_details->slug)) {?>
-                      <td align="right">
-                              <a href="<?=base_url("/welcome/").$setting_details->slug; ?>" target="_blank">Access Your Account</a>                                     
-                        </td>
-                        <?php } ?>
-                    </tr>
+                                             $html6  = str_replace("{PROPERTY_NAME}",'<b>Property Name</b>: '.$property_details->property_title.'<br>',$html5);
+                                             $html7  = str_replace("{SERVICE_DESCRIPTION}",'<b>Service Description</b>: '.$job_details->job_description.'<br>',$html6);
+                                             $html8  = str_replace("{SERVICE_NOTES}",'<b>Service Notes</b>: '.$job_details->job_notes.'<br>',$html7);
 
-                  </table>
-                </td>
-              </tr>
-           </table>
-           
-           
-            <!-- START FOOTER -->
-            <div class="footer">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td class="content-block">
-                    <span class="apple-link"> &copy; <?= $setting_details->company_name ?> <?= date("Y")  ?> . All rights reserved.</span>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <!-- END FOOTER -->
+                                          echo $html8;
 
-          <!-- END CENTERED WHITE CONTAINER -->
-          </div>
-        </td>
-        <td>&nbsp;</td>
-      </tr>
-    </table>
-
-
-  
-         
-  </body>
+											?>
+										</tr>
+										<tr class="content-block align-center">
+											<span style="text-align: center!important">
+                                                <?php if(isset($contactData['group_billing']) && $contactData['group_billing'] == 1){?>
+                                                <a href="'.base_url('welcome/unsubscribePropertyEmail/').$contactData['contact_id'].'" target="_blank" >Unsubscribe</a>
+                                                <?php }else{ ?>
+                                                <a href="'.base_url('welcome/unSubscibeEmail/').$contactData['contact_id'].'" target="_blank" >Unsubscribe</a>
+                                                <?php } ?>
+                                            </span>
+										</tr>
+									</table>
+								</td>
+							</tr>
+						</table>
+						<div class="footer"><!-- START FOOTER -->
+							<table role="presentation" border="0" cellpadding="0" cellspacing="0">
+								<tr>
+									<td class="content-block"><span class="apple-link"> &copy; <?= $company_details->company_name ?> <?= date("Y")  ?> . All rights reserved.</span></td>
+								</tr>
+							</table>
+						</div><!-- END FOOTER -->
+					</div><!-- END CENTERED WHITE CONTAINER -->
+				</td>
+				<td>&nbsp;</td>
+			</tr>
+		</table>
+	</body>
 </html>

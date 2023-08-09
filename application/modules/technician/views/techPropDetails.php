@@ -1,4 +1,13 @@
 <style>
+    .close-icon {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-size: 20px;
+        color: red;
+        cursor: pointer;
+    }
+
     /* Disabled Menu Items */
 
     button.multiselect.dropdown-toggle.btn.btn-default {
@@ -1759,9 +1768,11 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                                     $used_mixture = 0;
                                 }
 
+//                                $amountRequired = isset($automatic_chemical_calculation) && $automatic_chemical_calculation == 0 ? "required" : "";
+
                                 $hidden = '';
                                 $disable = '';
-                                if (!in_array($value->product_id, $listed_products)) {
+                                if (!in_array($value->product_id, $listed_products) || $service['no_products']) {
                                     $hidden = 'display: none';
                                     $disable = 'disabled';
                                 } else
@@ -1775,13 +1786,15 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                                         <input type="number"
                                                id="<?= 'input_' . $service['job_details']->job_id . '_' . $value->product_id ?>"
                                                name="<?php echo $service['technician_job_assign_id'] . '[' . $value->product_id . ']' ?>"
-                                               class="form-control" value="<?= $used_mixture ?>"
-                                               placeholder="" <?= $disable ?>>
+                                               class="form-control" value="<?= isset($automatic_chemical_calculation) && $automatic_chemical_calculation == 1 ? $used_mixture : '' ?>"
+                                               placeholder="" <?= $disable ?>
+                                        >
                                         <span class="input-group-btn">
                                                <span
                                                    class="btn btn-success"><?= $value->mixture_application_unit ?></span>
                                             </span>
                                     </div>
+                                    <span class="close-icon">&times;</span>
                                 </div>
                             <?php } ?>
                         </div>
@@ -1812,8 +1825,10 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                                         }
                                         if (!empty($product_details)) {
                                             foreach ($product_details as $value) {
-                                                if (in_array($value->product_id, $not_included_products_id_list)) {
+                                                if (in_array($value->product_id, $not_included_products_id_list) || $service['no_products']) {
                                                     echo '<option value="' . $value->product_id . '">' . $value->product_name . '</option>';
+                                                } else {
+                                                    echo '<option value="' . $value->product_id . '" selected="selected">' . $value->product_name . '</option>';
                                                 }
                                             }
                                         }
@@ -2031,7 +2046,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 totalMbSize += mbSize;
             }
             console.log(totalMbSize);
-            if (totalMbSize > 5) {
+            if (totalMbSize > 20) {
                 event.preventDefault();
                 console.log('ERROR! File Upload Limit Exceeded!');
             } else {
@@ -2049,8 +2064,8 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 totalMbSize += mbSize;
             }
             console.log(totalMbSize);
-            if (totalMbSize > 5) {
-                $(el).next().text('file(s) exceed the max 5MB limit');
+            if (totalMbSize > 20) {
+                $(el).next().text('file(s) exceed the max 20MB limit');
             } else {
                 $(el).next().text('');
             }
@@ -2235,7 +2250,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
                 totalMbSize += mbSize;
             }
             console.log(totalMbSize);
-            if (totalMbSize > 5) {
+            if (totalMbSize > 20) {
                 event.preventDefault();
                 console.log('ERROR! File Upload Limit Exceeded!');
             } else {
@@ -2244,24 +2259,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
         }
     }
 
-    function fileValidationCheck(el) {
-        let totalMbSize = 0;
-        if (el.files.length > 0) {
-            for (let i = 0; i <= el.files.length - 1; i++) {
-                let mbSize = bytesToMb(el.files[i].size);
-                console.log(mbSize);
-                totalMbSize += mbSize;
-            }
-            console.log(totalMbSize);
-            if (totalMbSize > 5) {
-                $(el).next().text('file(s) exceed the max 5MB limit');
-            } else {
-                $(el).next().text('');
-            }
-        } else {
-            $(el).next().text('');
-        }
-    }
+
 
     function bytesToMb(bytes) {
         if (bytes === 0) return 0;
@@ -2306,7 +2304,7 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
 
     var showmap = true;
     $('#routeMap').show();
-    var resturl = 'https://optimizer3.routesavvy.com/RSAPI.svc/';
+    var resturl = 'https://optimizer.routesavvy.com/RSAPI.svc/';
 
     function post_BasicOptimizeStops() {
 
@@ -2774,6 +2772,15 @@ $alldata['OptimizeParameters'] = $OptimizeParameters;
             //     var selected = this.value;
             //     console.dir(selected);
             // }
+        });
+        $(".close-icon").click(function () {
+            let id = $(this).parent().attr('id');
+            $('#input_' + id).attr('disabled', 'disabled');
+            $('#input_' + id).removeAttr("selected");
+            $('#' + id).hide("slide", {direction: "down"}, 300);
+            let ids = id.split("_");
+            $('#add_product_select_'+ids[0]).multiselect('deselect', ids[1]);
+            $('#add_product_select_'+ids[0]+' option[value="'+ids[1]+'"]').parent().removeClass('checked');
         });
 
         $('.multiselect-select-all').change(function () {

@@ -448,7 +448,7 @@ public function	getPPJOBINVdetails($where_arr = ''){
     {
 
         $file_log = fopen("MonthlyStatementResult.txt","a");
-        fwrite($file_log, 'Customer_id: '.$customer.  PHP_EOL);
+
 
         $customer_id = $customer;
 
@@ -464,8 +464,8 @@ public function	getPPJOBINVdetails($where_arr = ''){
 
 //        $start_date = date("Y-m-d", strtotime("first day of previous month"));
 //        $end_date = date('Y-m-01');
-        $start_date = date('Y-06-01');
-        $end_date = date('Y-06-30');
+        $start_date = date('Y-07-01');
+        $end_date = date('Y-07-31');
 
         $whereArr['invoice_tbl.invoice_date >='] = $start_date; //$post_data['start_date'];
         $whereArr['invoice_tbl.invoice_date <'] = $end_date; //$post_data['end_date'];
@@ -762,8 +762,8 @@ public function	getPPJOBINVdetails($where_arr = ''){
             $data['invoice_details'][$count]->final_cost = $invoice_total_cost;
             $count += 1;
         }
-
-        //if (count($data['invoice_details']) != 0){
+        fwrite($file_log, 'Customer_id: '.$customer.  PHP_EOL);
+        if (count($data['invoice_details']) != 0){
 
             $this->output->set_output('');
             $this->load->view('admin/invoice/customer_all_pdf_invoice', $data);
@@ -801,9 +801,12 @@ public function	getPPJOBINVdetails($where_arr = ''){
             } else {
                 $email = '';
             }
-            fwrite($file_log, 'Sent Email To: '.$email.  PHP_EOL);
-            if($data['customer_details']['email'] != ''){
+
+            //die(print_r($data));
+            if($data['customer_details']['email'] != '' ){
                 //echo 'Sending email...';
+
+                fwrite($file_log, 'Sent Email To: '.$email.  PHP_EOL);
                 $body = ' ';
                 $companyID =  $data['customer_details']['company_id'];
                 $data['customer_details'] = $this->Customer->getOneCustomerDetail($customer_id);
@@ -834,8 +837,12 @@ public function	getPPJOBINVdetails($where_arr = ''){
                 fwrite($file_log, 'Resp: '.print_r($res). PHP_EOL);
 
 
+            } else {
+                fwrite($file_log, "Customer doesn't have email".  PHP_EOL);
             }
-        //}
+        } else {
+            fwrite($file_log, "Cuesotmer doesn't have invoices for the selected range.".  PHP_EOL);
+        }
         fclose($file_log);
     }
 

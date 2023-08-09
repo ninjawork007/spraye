@@ -152,20 +152,6 @@ a {
 
                                   <div class="form-group login-options">
                                       <div class="row">
-                                      <?php
-
-                                        $total_tax_amount = 0; 
-
-
-                                        if ($tax_details) {
-                
-                                          $total_tax_amount =  array_sum(array_column($tax_details, 'tax_amount')) ; 
-                                        }
-                                        // die(print_r($total_tax_amount));
-                                       $convenience_fee = $setting_details->convenience_fee*($invoice_details->cost + $total_tax_amount - $invoice_details->partial_payment)/100;
-                                       $total_payment_final = $actual_total_cost_miunus_partial + $convenience_fee - $invoice_details->partial_payment;
-
-                                       ?>
                                       <span class="text-center no-margin" >Total Amount : <b>$<?= number_format($total_payment_final,2)  ?></b></span>
                                   
                                       </div>
@@ -257,6 +243,7 @@ a {
 
         <script>
      var example = new Tokenizer({
+      url: '<?= BASYS_URL ?>',
   apikey: '<?= $basys_details->publuc_key ?>',
   container: document.querySelector('.card-form'),
   submission: (resp) => {

@@ -2742,120 +2742,121 @@ class Welcome extends MY_Controller
                     'cardconnect_details' => false,
                     'basys_details' => false,
                 );
-                foreach ($invoice_ids_list as $invoice_id) {
-                    $where = array('invoice_id' => $invoice_id);
-                    if ($this->INV->getOneInvoive($where)) {
-                        $invoice_details = $this->INV->getOneInvoive($where);
-                        if ($invoice_details->payment_status != 2) {
-                            array_push($unpaid_invoice_ids, $invoice_id);
-                            $invoice_cost += $invoice_details->cost;
-                            $tax_details = $this->INV->getAllInvoiceSalesTax($where);
-                            $total_tax_amount += array_sum(array_column($tax_details, 'tax_amount'));
-                            $partial_payment += $invoice_details->partial_payment;
+                $invoice_arr = $this->INV->getAllInvoiveWhereIn('invoice_id', $invoice_ids_list);
+                foreach ($invoice_arr as $invoice_details) {
+                    if ($invoice_details->payment_status != 2) {
+                        // array_push($unpaid_invoice_ids, $invoice_details->invoice_id);
+                        // $invoice_cost += $invoice_details->cost;
+                        // $tax_details = $this->INV->getAllInvoiceSalesTax($where);
+                        // $total_tax_amount += array_sum(array_column($tax_details, 'tax_amount'));
+                        // $partial_payment += $invoice_details->partial_payment;
 
-                            // get coupon info
+                        // // get coupon info
 
-                            ////////////////////////////////////
-                            // START INVOICE CALCULATION COST //
+                        // ////////////////////////////////////
+                        // // START INVOICE CALCULATION COST //
 
-                            $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
-                            $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
+                        // $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
+                        // $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
 
-                            // invoice cost
-                            // $invoice_total_cost = $invoice->cost;
+                        // // invoice cost
+                        // // $invoice_total_cost = $invoice->cost;
 
-                            // cost of all services (with price overrides) - service coupons
-                            $job_cost_total = 0;
-                            $total_coupon_amount = 0;
-                            $where = array(
-                                'property_program_job_invoice.invoice_id' => $invoice_id
-                            );
-                            $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
-                            if (!empty($proprojobinv)) {
-                                foreach ($proprojobinv as $job) {
+                        // // cost of all services (with price overrides) - service coupons
+                        // $job_cost_total = 0;
+                        // $total_coupon_amount = 0;
+                        // $where = array(
+                        //     'property_program_job_invoice.invoice_id' => $invoice_id
+                        // );
+                        // $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
+                        // if (!empty($proprojobinv)) {
+                        //     foreach ($proprojobinv as $job) {
 
-                                    $job_cost = $job['job_cost'];
+                        //         $job_cost = $job['job_cost'];
 
-                                    $job_where = array(
-                                        'job_id' => $job['job_id'],
-                                        'customer_id' => $job['customer_id'],
-                                        'property_id' => $job['property_id'],
-                                        'program_id' => $job['program_id']
-                                    );
-                                    $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+                        //         $job_where = array(
+                        //             'job_id' => $job['job_id'],
+                        //             'customer_id' => $job['customer_id'],
+                        //             'property_id' => $job['property_id'],
+                        //             'program_id' => $job['program_id']
+                        //         );
+                        //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                                    if (!empty($coupon_job_details)) {
+                        //         if (!empty($coupon_job_details)) {
 
-                                        foreach ($coupon_job_details as $coupon) {
-                                            $coupon_job_amm_total = 0;
-                                            $coupon_job_amm = $coupon->coupon_amount;
-                                            $coupon_job_calc = $coupon->coupon_amount_calculation;
+                        //             foreach ($coupon_job_details as $coupon) {
+                        //                 $coupon_job_amm_total = 0;
+                        //                 $coupon_job_amm = $coupon->coupon_amount;
+                        //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
 
-                                            if ($coupon_job_calc == 0) { // flat amm
-                                                $coupon_job_amm_total = (float) $coupon_job_amm;
-                                            } else { // percentage
-                                                $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
-                                            }
+                        //                 if ($coupon_job_calc == 0) { // flat amm
+                        //                     $coupon_job_amm_total = (float) $coupon_job_amm;
+                        //                 } else { // percentage
+                        //                     $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                        //                 }
 
-                                            $job_cost = $job_cost - $coupon_job_amm_total;
-                                            $total_coupon_amount += $coupon_job_amm_total;
+                        //                 $job_cost = $job_cost - $coupon_job_amm_total;
+                        //                 $total_coupon_amount += $coupon_job_amm_total;
 
-                                            if ($job_cost < 0) {
-                                                $job_cost = 0;
-                                            }
-                                        }
-                                    }
+                        //                 if ($job_cost < 0) {
+                        //                     $job_cost = 0;
+                        //                 }
+                        //             }
+                        //         }
 
-                                    $job_cost_total += $job_cost;
-                                }
-                            } else {
-                                $job_cost_total = $invoice_details->cost;
-                            }
-                            $invoice_total_cost = $job_cost_total;
+                        //         $job_cost_total += $job_cost;
+                        //     }
+                        // } else {
+                        //     $job_cost_total = $invoice_details->cost;
+                        // }
+                        // $invoice_total_cost = $job_cost_total;
 
-                            // check price override -- any that are not stored in just that ^^.
+                        // // check price override -- any that are not stored in just that ^^.
 
-                            // - invoice coupons
-                            $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_id));
-                            foreach ($coupon_invoice_details as $coupon_invoice) {
-                                if (!empty($coupon_invoice)) {
-                                    $coupon_invoice_amm = $coupon_invoice->coupon_amount;
-                                    $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+                        // // - invoice coupons
+                        // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_id));
+                        // foreach ($coupon_invoice_details as $coupon_invoice) {
+                        //     if (!empty($coupon_invoice)) {
+                        //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                        //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
-                                    if ($coupon_invoice_amm_calc == 0) { // flat amm
-                                        $invoice_total_cost -= (float) $coupon_invoice_amm;
-                                        $total_coupon_amount += $coupon_invoice_amm;
-                                    } else { // percentage
-                                        $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
-                                        $invoice_total_cost -= $coupon_invoice_amm;
-                                        $total_coupon_amount += $coupon_invoice_amm;
-                                    }
-                                    if ($invoice_total_cost < 0) {
-                                        $invoice_total_cost = 0;
-                                    }
-                                }
-                            }
+                        //         if ($coupon_invoice_amm_calc == 0) { // flat amm
+                        //             $invoice_total_cost -= (float) $coupon_invoice_amm;
+                        //             $total_coupon_amount += $coupon_invoice_amm;
+                        //         } else { // percentage
+                        //             $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                        //             $invoice_total_cost -= $coupon_invoice_amm;
+                        //             $total_coupon_amount += $coupon_invoice_amm;
+                        //         }
+                        //         if ($invoice_total_cost < 0) {
+                        //             $invoice_total_cost = 0;
+                        //         }
+                        //     }
+                        // }
 
-                            // + tax cost
-                            $invoice_total_tax = 0;
-                            $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_id));
-                            if (!empty($invoice_sales_tax_details)) {
-                                foreach ($invoice_sales_tax_details as $tax) {
-                                    if (array_key_exists("tax_value", $tax)) {
-                                        $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
-                                        $invoice_total_tax += $tax_amm_to_add;
-                                    }
-                                }
-                            }
-                            $invoice_total_cost += $invoice_total_tax;
-                            $total_tax_amount = $invoice_total_tax;
+                        // // + tax cost
+                        // $invoice_total_tax = 0;
+                        // $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_id));
+                        // if (!empty($invoice_sales_tax_details)) {
+                        //     foreach ($invoice_sales_tax_details as $tax) {
+                        //         if (array_key_exists("tax_value", $tax)) {
+                        //             $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
+                        //             $invoice_total_tax += $tax_amm_to_add;
+                        //         }
+                        //     }
+                        // }
+                        // $invoice_total_cost += $invoice_total_tax;
+                        // $total_tax_amount = $invoice_total_tax;
 
-                            // END TOTAL INVOICE CALCULATION COST //
-                            ////////////////////////////////////////
+                        // // END TOTAL INVOICE CALCULATION COST //
+                        // ////////////////////////////////////////
 
-                            $total_amount_minus_partials += number_format($invoice_total_cost, 2);
-
-                        }
+                        // $total_amount_minus_partials += number_format($invoice_total_cost, 2);
+                        array_push($unpaid_invoice_ids, $invoice_details->invoice_id);
+                        $invoice_data_cost = calculateInvoiceCost($invoice_details);
+                        $total_tax_amount += $invoice_data_cost->invoice_total_tax;
+                        $total_amount_minus_partials += $invoice_data_cost->balance_due;
+                        $invoice_cost += $invoice_data_cost->balance_due;
                     }
                 }
                 if ($invoice_cost > 0) {
@@ -2866,8 +2867,8 @@ class Welcome extends MY_Controller
                     $data['already_paid'] = $already_paid;
                     $data['total_tax_amount'] = $total_tax_amount;
                     $data['invoice_cost'] = $invoice_cost;
-                    $data['partial_payment'] = $partial_payment;
-                    $data['total_amount_minus_partials'] = $total_amount_minus_partials;
+                    $data['convenience_fee'] = number_format(($data['setting_details']->convenience_fee * ($total_amount_minus_partials) / 100), 2);
+                    $data['total_amount_minus_partials'] = $total_amount_minus_partials + $data['convenience_fee'];
                     $this->load->view('customers/daily_basys_card_processing', $data);
                 } else {
                     $this->load->view('customers/daily_basys_card_processing', $data);
@@ -2890,134 +2891,133 @@ class Welcome extends MY_Controller
         $invoice_details = null;
         $paid_invoice_details = [];
         if (count($invoice_id_list) > 0) {
-            $loop_index = 0;
-            foreach ($invoice_id_list as $invoice_id) {
-                $where = array('invoice_id' => $invoice_id);
-                $invoice_data = $this->INV->getOneInvoive($where);
-                if ($loop_index == 0) {
-                    $invoice_details = $invoice_data;
-                }
-                $tax_details = $this->INV->getAllInvoiceSalesTax($where);
-                $tax_amount = 0;
-                if ($tax_details) {
-                    $tax_amount = array_sum(array_column($tax_details, 'tax_amount'));
-                    $total_tax_amount += $tax_amount;
-                }
-                // $paid_invoice_details[$invoice_id]['tax_amount'] = $tax_amount;
-                // $paid_invoice_details[$invoice_id]['cost'] = $invoice_data->cost;
+            $invoice_arr = $this->INV->getAllInvoiveWhereIn('invoice_id', $invoice_id_list);
+            $invoice_details = $invoice_arr[0];
+            foreach ($invoice_arr as $invoice_data) {
+                $invoice_cost_data = calculateInvoiceCost($invoice_data);
+                $total_amount_minus_partials += $invoice_cost_data->balance_due;
+                $total_tax_amount += $invoice_cost_data->invoice_total_tax;
+                // $tax_details = $this->INV->getAllInvoiceSalesTax($where);
+                // $tax_amount = 0;
+                // if ($tax_details) {
+                //     $tax_amount = array_sum(array_column($tax_details, 'tax_amount'));
+                //     $total_tax_amount += $tax_amount;
+                // }
+                // // $paid_invoice_details[$invoice_id]['tax_amount'] = $tax_amount;
+                // // $paid_invoice_details[$invoice_id]['cost'] = $invoice_data->cost;
+                // // $paid_invoice_details[$invoice_id]['partial_payment'] = $invoice_data->partial_payment;
+                // // $invoice_cost += $invoice_data->cost;
+                // // $partial_payment += $invoice_data->partial_payment;
+                // // $loop_index++;
+
+
+                // // new calc
+
+                // ////////////////////////////////////
+                // // START INVOICE CALCULATION COST //
+
+                // $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
+                // $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
+
+                // // invoice cost
+                // // $invoice_total_cost = $invoice->cost;
+
+                // // cost of all services (with price overrides) - service coupons
+                // $job_cost_total = 0;
+                // $total_coupon_amount = 0;
+                // $where = array(
+                //     'property_program_job_invoice.invoice_id' => $invoice_id
+                // );
+                // $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
+                // if (!empty($proprojobinv)) {
+                //     foreach ($proprojobinv as $job) {
+
+                //         $job_cost = $job['job_cost'];
+
+                //         $job_where = array(
+                //             'job_id' => $job['job_id'],
+                //             'customer_id' => $job['customer_id'],
+                //             'property_id' => $job['property_id'],
+                //             'program_id' => $job['program_id']
+                //         );
+                //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+                //         if (!empty($coupon_job_details)) {
+
+                //             foreach ($coupon_job_details as $coupon) {
+                //                 $coupon_job_amm_total = 0;
+                //                 $coupon_job_amm = $coupon->coupon_amount;
+                //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+                //                 if ($coupon_job_calc == 0) { // flat amm
+                //                     $coupon_job_amm_total = (float) $coupon_job_amm;
+                //                 } else { // percentage
+                //                     $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+                //                 }
+
+                //                 $job_cost = $job_cost - $coupon_job_amm_total;
+                //                 $total_coupon_amount += $coupon_job_amm_total;
+
+                //                 if ($job_cost < 0) {
+                //                     $job_cost = 0;
+                //                 }
+                //             }
+                //         }
+
+                //         $job_cost_total += $job_cost;
+                //     }
+                // } else {
+                //     $job_cost_total = $invoice_details->cost;
+                // }
+                // $invoice_total_cost = $job_cost_total;
+
+                // // check price override -- any that are not stored in just that ^^.
+
+                // // - invoice coupons
+                // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_id));
+                // foreach ($coupon_invoice_details as $coupon_invoice) {
+                //     if (!empty($coupon_invoice)) {
+                //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+                //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+
+                //         if ($coupon_invoice_amm_calc == 0) { // flat amm
+                //             $invoice_total_cost -= (float) $coupon_invoice_amm;
+                //             $total_coupon_amount += $coupon_invoice_amm;
+                //         } else { // percentage
+                //             $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+                //             $invoice_total_cost -= $coupon_invoice_amm;
+                //             $total_coupon_amount += $coupon_invoice_amm;
+                //         }
+                //         if ($invoice_total_cost < 0) {
+                //             $invoice_total_cost = 0;
+                //         }
+                //     }
+                // }
+
+                // // + tax cost
+                // $invoice_total_tax = 0;
+                // $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_id));
+                // if (!empty($invoice_sales_tax_details)) {
+                //     foreach ($invoice_sales_tax_details as $tax) {
+                //         if (array_key_exists("tax_value", $tax)) {
+                //             $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
+                //             $invoice_total_tax += $tax_amm_to_add;
+                //         }
+                //     }
+                // }
+                // $invoice_total_cost += $invoice_total_tax;
+                // $total_tax_amount = $invoice_total_tax;
+
+                // // END TOTAL INVOICE CALCULATION COST //
+                // ////////////////////////////////////////
+
+                // $total_amount_minus_partials += number_format($invoice_total_cost, 2);
+                // $paid_invoice_details[$invoice_id]['tax_amount'] = $total_tax_amount;
+                // $paid_invoice_details[$invoice_id]['cost'] = $invoice_total_cost - $total_tax_amount;
                 // $paid_invoice_details[$invoice_id]['partial_payment'] = $invoice_data->partial_payment;
-                // $invoice_cost += $invoice_data->cost;
+                // $invoice_cost += $invoice_total_cost - $total_tax_amount;
                 // $partial_payment += $invoice_data->partial_payment;
                 // $loop_index++;
-
-
-                // new calc
-
-                ////////////////////////////////////
-                // START INVOICE CALCULATION COST //
-
-                $this->load->model('../modules/customers/models/Property_program_job_invoice_model', 'PropertyProgramJobInvoiceModel_3');
-                $this->load->model('../modules/customers/models/Invoice_sales_tax_model', 'InvoiceSalesTax_3');
-
-                // invoice cost
-                // $invoice_total_cost = $invoice->cost;
-
-                // cost of all services (with price overrides) - service coupons
-                $job_cost_total = 0;
-                $total_coupon_amount = 0;
-                $where = array(
-                    'property_program_job_invoice.invoice_id' => $invoice_id
-                );
-                $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCoupon($where);
-                if (!empty($proprojobinv)) {
-                    foreach ($proprojobinv as $job) {
-
-                        $job_cost = $job['job_cost'];
-
-                        $job_where = array(
-                            'job_id' => $job['job_id'],
-                            'customer_id' => $job['customer_id'],
-                            'property_id' => $job['property_id'],
-                            'program_id' => $job['program_id']
-                        );
-                        $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-
-                        if (!empty($coupon_job_details)) {
-
-                            foreach ($coupon_job_details as $coupon) {
-                                $coupon_job_amm_total = 0;
-                                $coupon_job_amm = $coupon->coupon_amount;
-                                $coupon_job_calc = $coupon->coupon_amount_calculation;
-
-                                if ($coupon_job_calc == 0) { // flat amm
-                                    $coupon_job_amm_total = (float) $coupon_job_amm;
-                                } else { // percentage
-                                    $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
-                                }
-
-                                $job_cost = $job_cost - $coupon_job_amm_total;
-                                $total_coupon_amount += $coupon_job_amm_total;
-
-                                if ($job_cost < 0) {
-                                    $job_cost = 0;
-                                }
-                            }
-                        }
-
-                        $job_cost_total += $job_cost;
-                    }
-                } else {
-                    $job_cost_total = $invoice_details->cost;
-                }
-                $invoice_total_cost = $job_cost_total;
-
-                // check price override -- any that are not stored in just that ^^.
-
-                // - invoice coupons
-                $coupon_invoice_details = $this->CouponModel->getAllCouponInvoice(array('invoice_id' => $invoice_id));
-                foreach ($coupon_invoice_details as $coupon_invoice) {
-                    if (!empty($coupon_invoice)) {
-                        $coupon_invoice_amm = $coupon_invoice->coupon_amount;
-                        $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-
-                        if ($coupon_invoice_amm_calc == 0) { // flat amm
-                            $invoice_total_cost -= (float) $coupon_invoice_amm;
-                            $total_coupon_amount += $coupon_invoice_amm;
-                        } else { // percentage
-                            $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
-                            $invoice_total_cost -= $coupon_invoice_amm;
-                            $total_coupon_amount += $coupon_invoice_amm;
-                        }
-                        if ($invoice_total_cost < 0) {
-                            $invoice_total_cost = 0;
-                        }
-                    }
-                }
-
-                // + tax cost
-                $invoice_total_tax = 0;
-                $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTax(array('invoice_id' => $invoice_id));
-                if (!empty($invoice_sales_tax_details)) {
-                    foreach ($invoice_sales_tax_details as $tax) {
-                        if (array_key_exists("tax_value", $tax)) {
-                            $tax_amm_to_add = ((float) $tax['tax_value'] / 100) * $invoice_total_cost;
-                            $invoice_total_tax += $tax_amm_to_add;
-                        }
-                    }
-                }
-                $invoice_total_cost += $invoice_total_tax;
-                $total_tax_amount = $invoice_total_tax;
-
-                // END TOTAL INVOICE CALCULATION COST //
-                ////////////////////////////////////////
-
-                $total_amount_minus_partials += number_format($invoice_total_cost, 2);
-                $paid_invoice_details[$invoice_id]['tax_amount'] = $total_tax_amount;
-                $paid_invoice_details[$invoice_id]['cost'] = $invoice_total_cost - $total_tax_amount;
-                $paid_invoice_details[$invoice_id]['partial_payment'] = $invoice_data->partial_payment;
-                $invoice_cost += $invoice_total_cost - $total_tax_amount;
-                $partial_payment += $invoice_data->partial_payment;
-                $loop_index++;
 
             }
         } else {
@@ -3029,8 +3029,8 @@ class Welcome extends MY_Controller
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details->company_id));
         // $convenience_fee = number_format(($setting_details->convenience_fee * ($invoice_cost + $total_tax_amount - $partial_payment) / 100),2);
         // $total_amount = $invoice_cost + $total_tax_amount + $convenience_fee - $partial_payment;
-        $convenience_fee = number_format(($setting_details->convenience_fee * ($total_amount_minus_partials - $partial_payment) / 100), 2);
-        $total_amount = $total_amount_minus_partials + $convenience_fee - $partial_payment;
+        $convenience_fee = number_format(($setting_details->convenience_fee * ($total_amount_minus_partials) / 100), 2);
+        $total_amount = $total_amount_minus_partials + $convenience_fee;
 
         $post = array(
             "type" => "sale",
@@ -3070,15 +3070,37 @@ class Welcome extends MY_Controller
         if ($basys_response['status'] == 200) {
             if ($basys_response['result']->data->response_code == 100) {
                 $this->session->set_flashdata('message', '<div class="alert alert-succrss alert-dismissible" role="alert" data-auto-dismiss="4000"></div>');
-                foreach ($paid_invoice_details as $invoice_id => $paid_invoice_detail) {
-                    $updatearr = array(
-                        'payment_status' => 2,
-                        'basys_transaction_id' => $basys_response['result']->data->id,
-                        'payment_created' => date("Y-m-d H:i:s"),
-                        'partial_payment' => $paid_invoice_detail['partial_payment'] + ($paid_invoice_detail['cost'] + $paid_invoice_detail['tax_amount']),
-                        'basys_order_id' => $order_id
-                    );
-                    $this->INV->updateInvoive(array('invoice_id' => $invoice_id), $updatearr);
+                foreach($invoice_arr as $invoice) {
+                    //Create log of partial payments and update invoice
+                    $invoice_cost_data = calculateInvoiceCost($invoice);
+                    $single_invoice_total_amount = $invoice_cost_data->balance_due;
+                    if ($single_invoice_total_amount < 0) {
+                        $single_invoice_total_amount = 0;
+                    }
+                    if ($invoice->payment_status != 2) {
+                        $partial_log = $this->PartialPaymentModel->createOnePartialPayment(array(
+                            'invoice_id' => $invoice->invoice_id,
+                            'payment_amount' => $single_invoice_total_amount,
+                            'payment_applied' => $single_invoice_total_amount,
+                            'payment_datetime' => date("Y-m-d H:i:s"),
+                            'payment_method' => 2,
+                            'customer_id' => $invoice->customer_id,
+                        ));
+                        //KT and EE add status, opened_date, and sent date
+                        $updatearr = array(
+                            'payment_status' => 2,
+                            'payment_created' => date("Y-m-d H:i:s"),
+                            'payment_method' => 2,
+                            'partial_payment' => $single_invoice_total_amount + $invoice_cost_data->partial,
+                            'basys_order_id' => $order_id,
+                            'basys_transaction_id' => $basys_response['result']->data->id,
+                            'refund_amount_total' => 0.00,
+                            'status' => 2,
+                            'opened_date' => $invoice->opened_date == '' ? date("Y-m-d H:i:s") : $invoice->opened_date,
+                            'sent_date' => $invoice->sent_date == '' ?  date("Y-m-d H:i:s") : $invoice->sent_date
+                        );
+                        $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
+                    }
                 }
                 $company_id = $invoice_details->company_id;
                 $where = array('company_id' => $company_id);
@@ -3086,10 +3108,10 @@ class Welcome extends MY_Controller
                 $data['user_details'] = $this->CompanyModel->getOneAdminUser(array('company_id' => $company_id, 'role_id' => 1));
                 $data['first_name'] = $invoice_details->first_name;
                 $data['last_name'] = $invoice_details->last_name;
-                $data['convenience_fee'] = $convenience_fee;
-                $data['invoice_cost'] = $invoice_cost;
-                $data['partial_payment'] = $partial_payment;
-                $data['total_tax_amount'] = $total_tax_amount;
+                // $data['convenience_fee'] = $convenience_fee;
+                // $data['invoice_cost'] = $invoice_cost;
+                // $data['partial_payment'] = $partial_payment;
+                // $data['total_tax_amount'] = $total_tax_amount;
                 $data['total_amount_total'] = $total_amount;
                 $body = $this->load->view('customers/daily_invoice_paid_mail', $data, true);
                 $where['is_smtp'] = 1;
@@ -3575,163 +3597,189 @@ class Welcome extends MY_Controller
         $invoice_details = $this->INV->getAllInvoiveWhereIn('invoice_id', $ids_explode);
         // die(print_r($this->db->last_query()));
         $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details[0]->company_id));
-        $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
-        // die(print_r($setting_details));
+        // $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($setting_details));
 
-        $invoice_amt_tax = [];
-        if (!empty($tax_details)) {
-            foreach ($tax_details as $tax) {
-                array_push($invoice_amt_tax, $tax['tax_amount']);
-            }
-            // die(print_r($invoice_amt_tax));
-            $total_tax_amount = array_sum($invoice_amt_tax);
-            // die(print_r($total_tax_amount));
+        // $invoice_amt_tax = [];
+        // if (!empty($tax_details)) {
+        //     foreach ($tax_details as $tax) {
+        //         array_push($invoice_amt_tax, $tax['tax_amount']);
+        //     }
+        //     // die(print_r($invoice_amt_tax));
+        //     $total_tax_amount = array_sum($invoice_amt_tax);
+        //     // die(print_r($total_tax_amount));
+        // }
+
+        // ////////////////////////////////////
+        // // START INVOICE CALCULATION COST //
+
+        // // cost of all services (with price overrides) - service coupons
+        // $job_cost_total = 0;
+        // $total_coupon_amount = 0;
+        // $actual_cost = [];
+
+        // $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCouponWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($proprojobinv));
+        // if (!empty($proprojobinv)) {
+        //     foreach ($proprojobinv as $job) {
+
+        //         $job_cost = $job['job_cost'];
+
+        //         $job_where = array(
+        //             'job_id' => $job['job_id'],
+        //             'customer_id' => $job['customer_id'],
+        //             'property_id' => $job['property_id'],
+        //             'program_id' => $job['program_id']
+        //         );
+        //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+
+        //         if (!empty($coupon_job_details)) {
+
+        //             foreach ($coupon_job_details as $coupon) {
+        //                 $coupon_job_amm_total = 0;
+        //                 $coupon_job_amm = $coupon->coupon_amount;
+        //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
+
+        //                 if ($coupon_job_calc == 0) { // flat amm
+        //                     $coupon_job_amm_total = (float) $coupon_job_amm;
+        //                 } else { // percentage
+        //                     $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+        //                 }
+
+        //                 $job_cost = $job_cost - $coupon_job_amm_total;
+        //                 $total_coupon_amount += $coupon_job_amm_total;
+
+        //                 if ($job_cost < 0) {
+        //                     $job_cost = 0;
+        //                 }
+        //             }
+        //         }
+
+        //         $job_cost_total += $job_cost;
+        //     }
+        // } else {
+        //     foreach ($invoice_details as $i_d) {
+        //         $job_cost_total += $i_d->cost;
+        //     }
+        // }
+        // $invoice_total_cost = $job_cost_total;
+        // // die(print_r($invoice_total_cost));
+
+        // // check price override -- any that are not stored in just that ^^.
+
+        // // - invoice coupons
+        // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
+        // // die(print_r($coupon_invoice_details));
+        // foreach ($coupon_invoice_details as $coupon_invoice) {
+        //     if (!empty($coupon_invoice)) {
+        //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+        //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+
+        //         if ($coupon_invoice_amm_calc == 0) { // flat amm
+        //             $invoice_total_cost -= (float) $coupon_invoice_amm;
+        //             $total_coupon_amount += $coupon_invoice_amm;
+        //         } else { // percentage
+        //             $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+        //             $invoice_total_cost -= $coupon_invoice_amm;
+        //             $total_coupon_amount += $coupon_invoice_amm;
+        //         }
+        //         if ($invoice_total_cost < 0) {
+        //             $invoice_total_cost = 0;
+        //         }
+        //     }
+        // }
+
+        // // die(print_r($invoice_total_cost));
+
+        // // + tax cost
+        // $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($invoice_sales_tax_details));
+
+        // if (!empty($invoice_sales_tax_details)) {
+        //     foreach ($invoice_sales_tax_details as $tax) {
+        //         // die(print_r($proprojobinv));
+
+        //         $tax_amm_to_add = ((float) $tax['tax_amount']);
+        //         array_push($actual_cost, $tax_amm_to_add);
+
+        //     }
+        //     array_push($actual_cost, $invoice_total_cost);
+
+        // } else {
+        //     array_push($actual_cost, $invoice_total_cost);
+        // }
+        // // $invoice_total_cost += $invoice_total_tax;
+        // // $total_tax_amount = $invoice_total_tax;
+        // // die(print_r($invoice_total_cost));
+        // // die(print_r($total_tax_amount));
+        // // die(print_r($actual_cost));
+        // $actual_cost = array_sum($actual_cost);
+        // // die(print_r($actual_cost));
+
+        // ##### PARTIAL PAYMENTS MADE ON INVOICES #####
+        // ##### GET ALL PAYMENTS MADE #####
+        // $all_payments_details = [];
+        // $all_payments_details = $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($all_payments_details));
+
+        // ##### SUM ANY PAYMENT MADE ON INVOICES #####
+        // $actual_payments = 0;
+        // foreach ($all_payments_details as $amount) {
+        //     if (isset($amount->payment_applied)) {
+        //         // die(print_r($amount->payment_applied));
+        //         $actual_payments += $amount->payment_applied;
+        //     }
+        // }
+        // // die(print_r($actual_payments));
+        // // $convenience_fee = 0;
+        // $data['actual_total_cost_miunus_partial'] = $actual_cost - $actual_payments;
+        // // die(print_r($data['actual_total_cost_miunus_partial']));
+        // $data['convenience_fee'] = ($setting_details->convenience_fee * $data['actual_total_cost_miunus_partial']) / 100;
+        // // $data['convenience_fee'] = $convenience_fee;
+        // $convenience_fee = $data['convenience_fee'];
+        // // die(print_r($convenience_fee));
+        // $data['total_payment_final'] = $data['actual_total_cost_miunus_partial'] + $data['convenience_fee'];
+        // // die(print_r($data['total_payment_final']));
+
+
+        // // END TOTAL INVOICE CALCULATION COST //
+        // ////////////////////////////////////////
+
+        // $total_amount = $data['total_payment_final'];
+        // // die(print_r($total_amount));
+        // // die(print_r($invoice_details));
+
+
+        // if ($total_amount < 0) {
+        //     $total_amount = 0;
+        // }
+        $actual_cost = 0;
+        foreach ($invoice_details as $invoice) {
+            $invoice_cost_data = calculateInvoiceCost($invoice);
+            $actual_cost += $invoice_cost_data->balance_due;
+            $total_tax_amount += $invoice_cost_data->invoice_total_tax;
         }
-
-        ////////////////////////////////////
-        // START INVOICE CALCULATION COST //
-
-        // cost of all services (with price overrides) - service coupons
-        $job_cost_total = 0;
-        $total_coupon_amount = 0;
-        $actual_cost = [];
-
-        $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCouponWhereIn('invoice_id', $ids_explode);
-        // die(print_r($proprojobinv));
-        if (!empty($proprojobinv)) {
-            foreach ($proprojobinv as $job) {
-
-                $job_cost = $job['job_cost'];
-
-                $job_where = array(
-                    'job_id' => $job['job_id'],
-                    'customer_id' => $job['customer_id'],
-                    'property_id' => $job['property_id'],
-                    'program_id' => $job['program_id']
-                );
-                $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
-
-                if (!empty($coupon_job_details)) {
-
-                    foreach ($coupon_job_details as $coupon) {
-                        $coupon_job_amm_total = 0;
-                        $coupon_job_amm = $coupon->coupon_amount;
-                        $coupon_job_calc = $coupon->coupon_amount_calculation;
-
-                        if ($coupon_job_calc == 0) { // flat amm
-                            $coupon_job_amm_total = (float) $coupon_job_amm;
-                        } else { // percentage
-                            $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
-                        }
-
-                        $job_cost = $job_cost - $coupon_job_amm_total;
-                        $total_coupon_amount += $coupon_job_amm_total;
-
-                        if ($job_cost < 0) {
-                            $job_cost = 0;
-                        }
-                    }
-                }
-
-                $job_cost_total += $job_cost;
-            }
-        } else {
-            foreach ($invoice_details as $i_d) {
-                $job_cost_total += $i_d->cost;
-            }
-        }
-        $invoice_total_cost = $job_cost_total;
-        // die(print_r($invoice_total_cost));
-
-        // check price override -- any that are not stored in just that ^^.
-
-        // - invoice coupons
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
-        // die(print_r($coupon_invoice_details));
-        foreach ($coupon_invoice_details as $coupon_invoice) {
-            if (!empty($coupon_invoice)) {
-                $coupon_invoice_amm = $coupon_invoice->coupon_amount;
-                $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
-
-                if ($coupon_invoice_amm_calc == 0) { // flat amm
-                    $invoice_total_cost -= (float) $coupon_invoice_amm;
-                    $total_coupon_amount += $coupon_invoice_amm;
-                } else { // percentage
-                    $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
-                    $invoice_total_cost -= $coupon_invoice_amm;
-                    $total_coupon_amount += $coupon_invoice_amm;
-                }
-                if ($invoice_total_cost < 0) {
-                    $invoice_total_cost = 0;
-                }
-            }
-        }
-
-        // die(print_r($invoice_total_cost));
-
-        // + tax cost
-        $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
-        // die(print_r($invoice_sales_tax_details));
-
-        if (!empty($invoice_sales_tax_details)) {
-            foreach ($invoice_sales_tax_details as $tax) {
-                // die(print_r($proprojobinv));
-
-                $tax_amm_to_add = ((float) $tax['tax_amount']);
-                array_push($actual_cost, $tax_amm_to_add);
-
-            }
-            array_push($actual_cost, $invoice_total_cost);
-
-        } else {
-            array_push($actual_cost, $invoice_total_cost);
-        }
-        // $invoice_total_cost += $invoice_total_tax;
-        // $total_tax_amount = $invoice_total_tax;
-        // die(print_r($invoice_total_cost));
-        // die(print_r($total_tax_amount));
-        // die(print_r($actual_cost));
-        $actual_cost = array_sum($actual_cost);
-        // die(print_r($actual_cost));
-
-        ##### PARTIAL PAYMENTS MADE ON INVOICES #####
-        ##### GET ALL PAYMENTS MADE #####
-        $all_payments_details = [];
-        $all_payments_details = $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $ids_explode);
-        // die(print_r($all_payments_details));
-
-        ##### SUM ANY PAYMENT MADE ON INVOICES #####
-        $actual_payments = 0;
-        foreach ($all_payments_details as $amount) {
-            if (isset($amount->payment_applied)) {
-                // die(print_r($amount->payment_applied));
-                $actual_payments += $amount->payment_applied;
-            }
-        }
-        // die(print_r($actual_payments));
-        // $convenience_fee = 0;
-        $data['actual_total_cost_miunus_partial'] = $actual_cost - $actual_payments;
-        // die(print_r($data['actual_total_cost_miunus_partial']));
-        $data['convenience_fee'] = ($setting_details->convenience_fee * $data['actual_total_cost_miunus_partial']) / 100;
-        // $data['convenience_fee'] = $convenience_fee;
-        $convenience_fee = $data['convenience_fee'];
-        // die(print_r($convenience_fee));
-        $data['total_payment_final'] = $data['actual_total_cost_miunus_partial'] + $data['convenience_fee'];
-        // die(print_r($data['total_payment_final']));
-
+        //v
+        $actual_total_cost_miunus_partial = $actual_cost;
+        $convenience_fee = $setting_details->convenience_fee * ($actual_total_cost_miunus_partial) / 100;
+        $total_payment_final = $actual_total_cost_miunus_partial + $convenience_fee;
 
         // END TOTAL INVOICE CALCULATION COST //
         ////////////////////////////////////////
+        //$invoice_total_cost = number_format($invoice_total_cost,2);
 
-        $total_amount = $data['total_payment_final'];
-        // die(print_r($total_amount));
-        // die(print_r($invoice_details));
-
+        $total_amount = $total_payment_final;
+        // $total_amount = $invoice_details->cost + $total_tax_amount + $convenience_fee - $invoice_details->partial_payment - $total_coupon_amount;
 
         if ($total_amount < 0) {
             $total_amount = 0;
         }
-
+        // die(print_r($data['actual_total_cost_miunus_partial']));
+        $data['convenience_fee'] = $convenience_fee;
+        // $data['convenience_fee'] = $convenience_fee;
+        $data['total_tax_amount'] = $total_tax_amount;
+        // die(print_r($convenience_fee));
+        $data['total_payment_final'] = $total_amount;
         // die(print_r($total_amount));
         // $dataToLog = array($total_amount);
         // $data = implode(" - ", $dataToLog);
@@ -3785,97 +3833,32 @@ class Welcome extends MY_Controller
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"></div>');
 
                 foreach ($invoice_details as $invoice) {
+                    $invoice_cost_data = calculateInvoiceCost($invoice);
+                    $single_invoice_total_amount = $invoice_cost_data->balance_due;
+                    if ($single_invoice_total_amount < 0) {
+                        $single_invoice_total_amount = 0;
+                    }
 
-                    $payments_details = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice->invoice_id));
-                    // $payments_details = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' =>35654));
-                    // die(print_r($invoice));
-                    // die(print_r($payments_details));
-                    // $partial = 0;
-
-                    // Check for previous partial payments
-                    if ($payments_details) {
-
-                        $tax_amount = 0;
-
-                        if (!empty($tax_details)) {
-                            foreach ($tax_details as $tax) {
-                                // die(print_r($tax));
-                                if ($invoice->invoice_id == $tax['invoice_id']) {
-                                    $tax_amount = $tax['tax_amount'];
-                                    // } else {
-                                    //     $tax_amount = 0;
-                                }
-                            }
-                        }
-                        // die(print_r($tax_amount));
-
-                        $partial = 0;
-
-                        foreach ($payments_details as $payment) {
-                            if ($invoice->invoice_id == $payment->invoice_id) {
-                                $partial += $payment->payment_applied;
-                                // $partial =  $payments_details[0]->payment_applied;
-                            }
-                        }
-                        // die(print_r($partial));
-                        $sum_partial = (($invoice->cost + $tax_amount) - $partial);
-                        // $inv_cost = $invoice->cost + $tax_amount;
-                        // die(print_r(($sum_partial)));
-                        ##### Create Payment Log #####
-                        $result = $this->PartialPaymentModel->createOnePartialPayment(
+                    if ($invoice->payment_status != 2) {
+                        $partial_log = $this->PartialPaymentModel->createOnePartialPayment(
                             array(
                                 'invoice_id' => $invoice->invoice_id,
-                                'payment_amount' => $sum_partial,
-                                'payment_applied' => $sum_partial,
+                                'payment_amount' => $single_invoice_total_amount,
+                                'payment_applied' => $single_invoice_total_amount,
                                 'payment_datetime' => date("Y-m-d H:i:s"),
                                 'payment_method' => 2,
-                                'customer_id' => $invoice->customer_id
+                                'customer_id' => $invoice->customer_id,
                             )
                         );
 
                         $updatearr = array(
                             'payment_status' => 2,
-                            'basys_transaction_id' => $basys_reasopnse['result']->data->id,
                             'payment_created' => date("Y-m-d H:i:s"),
-                            'partial_payment' => $invoice->partial_payment + $sum_partial,
-                            'basys_order_id' => $order_id
-                        );
-
-                        $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
-                    } else {
-                        $tax_amount = 0;
-                        if (!empty($tax_details)) {
-                            foreach ($tax_details as $tax) {
-                                if ($invoice->invoice_id == $tax['invoice_id']) {
-
-                                    $tax_amount = $tax['tax_amount'];
-                                    // die(print_r($invoice));
-                                    ##### Create Payment Log #####
-
-                                }
-                            }
-                        }
-
-
-                        $partial = ($invoice->cost + $tax_amount);
-
-                        $result = $this->PartialPaymentModel->createOnePartialPayment(
-                            array(
-                                'invoice_id' => $invoice->invoice_id,
-                                'payment_amount' => $partial,
-                                'payment_applied' => $partial,
-                                'payment_datetime' => date("Y-m-d H:i:s"),
-                                'payment_method' => 2,
-                                'customer_id' => $invoice->customer_id
-                            )
-                        );
-
-                        $updatearr = array(
-                            'payment_status' => 2,
+                            'payment_method' => 2,
+                            'partial_payment' => $single_invoice_total_amount + $invoice_cost_data->partial,
+                            'basys_order_id' => $order_id,
                             'basys_transaction_id' => $basys_reasopnse['result']->data->id,
-                            'payment_created' => date("Y-m-d H:i:s"),
-                            'partial_payment' => $invoice->partial_payment + $partial,
-                            'basys_order_id' => $order_id
+                            'refund_amount_total' => 0.00,
                         );
 
                         $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
@@ -4159,168 +4142,175 @@ class Welcome extends MY_Controller
         $ids_explode = explode(" ", $data['invoice_id']);
         // die(print_r($ids_explode));
         $where = array('invoice_id' => $data['invoice_id']);
-        $invoice_details = $this->INV->getAllInvoiveWhereIn('invoice_id', $ids_explode);
+        $invoice_arr = $this->INV->getAllInvoiveWhereIn('invoice_id', $ids_explode);
         // die(print_r($this->db->last_query()));
-        $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_details[0]->company_id));
-        $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
-        // die(print_r($invoice_details));
-        // die(print_r($tax_details));
+        $setting_details = $this->CompanyModel->getOneCompany(array('company_id' => $invoice_arr[0]->company_id));
+        $customer_details = $this->Customer->getCustomerDetail($invoice_arr[0]->customer_id);
+        // $tax_details = $this->INV->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($invoice_details));
+        // // die(print_r($tax_details));
 
-        $invoice_amt_tax = [];
-        if ($tax_details) {
-            foreach ($tax_details as $tax) {
-                array_push($invoice_amt_tax, $tax['tax_amount']);
-            }
-            // die(print_r($invoice_amt_tax));
-            $total_tax_amount = array_sum($invoice_amt_tax);
-            // die(print_r($total_tax_amount));
-        }
+        // $invoice_amt_tax = [];
+        // if ($tax_details) {
+        //     foreach ($tax_details as $tax) {
+        //         array_push($invoice_amt_tax, $tax['tax_amount']);
+        //     }
+        //     // die(print_r($invoice_amt_tax));
+        //     $total_tax_amount = array_sum($invoice_amt_tax);
+        //     // die(print_r($total_tax_amount));
+        // }
 
-        ////////////////////////////////////
-        // START INVOICE CALCULATION COST //
+        // ////////////////////////////////////
+        // // START INVOICE CALCULATION COST //
 
-        // cost of all services (with price overrides) - service coupons
-        $job_cost_total = 0;
-        $total_coupon_amount = 0;
-        $actual_cost = [];
+        // // cost of all services (with price overrides) - service coupons
+        // $job_cost_total = 0;
+        // $total_coupon_amount = 0;
+        // $actual_cost = [];
 
-        $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCouponWhereIn('invoice_id', $ids_explode);
-        // die(print_r($proprojobinv));
-        if (!empty($proprojobinv)) {
-            foreach ($proprojobinv as $job) {
+        // $proprojobinv = $this->PropertyProgramJobInvoiceModel_3->getPropertyProgramJobInvoiceCouponWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($proprojobinv));
+        // if (!empty($proprojobinv)) {
+        //     foreach ($proprojobinv as $job) {
 
-                $job_cost = $job['job_cost'];
+        //         $job_cost = $job['job_cost'];
 
-                $job_where = array(
-                    'job_id' => $job['job_id'],
-                    'customer_id' => $job['customer_id'],
-                    'property_id' => $job['property_id'],
-                    'program_id' => $job['program_id']
-                );
-                $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
+        //         $job_where = array(
+        //             'job_id' => $job['job_id'],
+        //             'customer_id' => $job['customer_id'],
+        //             'property_id' => $job['property_id'],
+        //             'program_id' => $job['program_id']
+        //         );
+        //         $coupon_job_details = $this->CouponModel->getAllCouponJob($job_where);
 
-                if (!empty($coupon_job_details)) {
+        //         if (!empty($coupon_job_details)) {
 
-                    foreach ($coupon_job_details as $coupon) {
-                        $coupon_job_amm_total = 0;
-                        $coupon_job_amm = $coupon->coupon_amount;
-                        $coupon_job_calc = $coupon->coupon_amount_calculation;
+        //             foreach ($coupon_job_details as $coupon) {
+        //                 $coupon_job_amm_total = 0;
+        //                 $coupon_job_amm = $coupon->coupon_amount;
+        //                 $coupon_job_calc = $coupon->coupon_amount_calculation;
 
-                        if ($coupon_job_calc == 0) { // flat amm
-                            $coupon_job_amm_total = (float) $coupon_job_amm;
-                        } else { // percentage
-                            $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
-                        }
+        //                 if ($coupon_job_calc == 0) { // flat amm
+        //                     $coupon_job_amm_total = (float) $coupon_job_amm;
+        //                 } else { // percentage
+        //                     $coupon_job_amm_total = ((float) $coupon_job_amm / 100) * $job_cost;
+        //                 }
 
-                        $job_cost = $job_cost - $coupon_job_amm_total;
-                        $total_coupon_amount += $coupon_job_amm_total;
+        //                 $job_cost = $job_cost - $coupon_job_amm_total;
+        //                 $total_coupon_amount += $coupon_job_amm_total;
 
-                        if ($job_cost < 0) {
-                            $job_cost = 0;
-                        }
-                    }
-                }
+        //                 if ($job_cost < 0) {
+        //                     $job_cost = 0;
+        //                 }
+        //             }
+        //         }
 
-                $job_cost_total += $job_cost;
-            }
-        } else {
-            foreach ($invoice_details as $i_d) {
-                $job_cost_total += $i_d->cost;
-            }
-        }
-        $invoice_total_cost = $job_cost_total;
-        // die(print_r($invoice_total_cost));
+        //         $job_cost_total += $job_cost;
+        //     }
+        // } else {
+        //     foreach ($invoice_details as $i_d) {
+        //         $job_cost_total += $i_d->cost;
+        //     }
+        // }
+        // $invoice_total_cost = $job_cost_total;
+        // // die(print_r($invoice_total_cost));
 
-        // check price override -- any that are not stored in just that ^^.
+        // // check price override -- any that are not stored in just that ^^.
 
-        // - invoice coupons
-        $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
-        // die(print_r($coupon_invoice_details));
-        foreach ($coupon_invoice_details as $coupon_invoice) {
-            if (!empty($coupon_invoice)) {
-                $coupon_invoice_amm = $coupon_invoice->coupon_amount;
-                $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
+        // // - invoice coupons
+        // $coupon_invoice_details = $this->CouponModel->getAllCouponInvoiceWhereIn('coupon_invoice.invoice_id', $ids_explode);
+        // // die(print_r($coupon_invoice_details));
+        // foreach ($coupon_invoice_details as $coupon_invoice) {
+        //     if (!empty($coupon_invoice)) {
+        //         $coupon_invoice_amm = $coupon_invoice->coupon_amount;
+        //         $coupon_invoice_amm_calc = $coupon_invoice->coupon_amount_calculation;
 
-                if ($coupon_invoice_amm_calc == 0) { // flat amm
-                    $invoice_total_cost -= (float) $coupon_invoice_amm;
-                    $total_coupon_amount += $coupon_invoice_amm;
-                } else { // percentage
-                    $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
-                    $invoice_total_cost -= $coupon_invoice_amm;
-                    $total_coupon_amount += $coupon_invoice_amm;
-                }
-                if ($invoice_total_cost < 0) {
-                    $invoice_total_cost = 0;
-                }
-            }
-        }
+        //         if ($coupon_invoice_amm_calc == 0) { // flat amm
+        //             $invoice_total_cost -= (float) $coupon_invoice_amm;
+        //             $total_coupon_amount += $coupon_invoice_amm;
+        //         } else { // percentage
+        //             $coupon_invoice_amm = ((float) $coupon_invoice_amm / 100) * $invoice_total_cost;
+        //             $invoice_total_cost -= $coupon_invoice_amm;
+        //             $total_coupon_amount += $coupon_invoice_amm;
+        //         }
+        //         if ($invoice_total_cost < 0) {
+        //             $invoice_total_cost = 0;
+        //         }
+        //     }
+        // }
 
-        // die(print_r($invoice_total_cost));
+        // // die(print_r($invoice_total_cost));
 
-        // + tax cost
-        $invoice_total_tax = 0;
-        $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
-        // die(print_r($invoice_sales_tax_details));
+        // // + tax cost
+        // $invoice_total_tax = 0;
+        // $invoice_sales_tax_details = $this->InvoiceSalesTax_3->getAllInvoiceSalesTaxWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($invoice_sales_tax_details));
 
-        if (!empty($invoice_sales_tax_details)) {
-            foreach ($invoice_sales_tax_details as $tax) {
-                // die(print_r($proprojobinv));
+        // if (!empty($invoice_sales_tax_details)) {
+        //     foreach ($invoice_sales_tax_details as $tax) {
+        //         // die(print_r($proprojobinv));
 
-                $tax_amm_to_add = ((float) $tax['tax_amount']);
-                array_push($actual_cost, $tax_amm_to_add);
+        //         $tax_amm_to_add = ((float) $tax['tax_amount']);
+        //         array_push($actual_cost, $tax_amm_to_add);
 
-            }
-            array_push($actual_cost, $invoice_total_cost);
+        //     }
+        //     array_push($actual_cost, $invoice_total_cost);
 
-        } else {
-            array_push($actual_cost, $invoice_total_cost);
-        }
-        // $invoice_total_cost += $invoice_total_tax;
-        // $total_tax_amount = $invoice_total_tax;
-        // die(print_r($invoice_total_cost));
-        // die(print_r($total_tax_amount));
-        // die(print_r($actual_cost));
-        $actual_cost = array_sum($actual_cost);
-        // die(print_r($actual_cost));
+        // } else {
+        //     array_push($actual_cost, $invoice_total_cost);
+        // }
+        // // $invoice_total_cost += $invoice_total_tax;
+        // // $total_tax_amount = $invoice_total_tax;
+        // // die(print_r($invoice_total_cost));
+        // // die(print_r($total_tax_amount));
+        // // die(print_r($actual_cost));
+        // $actual_cost = array_sum($actual_cost);
+        // // die(print_r($actual_cost));
 
-        ##### PARTIAL PAYMENTS MADE ON INVOICES #####
-        ##### GET ALL PAYMENTS MADE #####
-        $all_payments_details = [];
-        $all_payments_details = $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $ids_explode);
-        // die(print_r($all_payments_details));
+        // ##### PARTIAL PAYMENTS MADE ON INVOICES #####
+        // ##### GET ALL PAYMENTS MADE #####
+        // $all_payments_details = [];
+        // $all_payments_details = $this->PartialPaymentModel->getAllPartialPaymentWhereIn('invoice_id', $ids_explode);
+        // // die(print_r($all_payments_details));
 
-        ##### SUM ANY PAYMENT MADE ON INVOICES #####
-        $actual_payments = 0;
-        foreach ($all_payments_details as $amount) {
-            if (isset($amount->payment_applied)) {
-                // die(print_r($amount->payment_applied));
-                $actual_payments += $amount->payment_applied;
-            }
-        }
+        // ##### SUM ANY PAYMENT MADE ON INVOICES #####
+        // $actual_payments = 0;
+        // foreach ($all_payments_details as $amount) {
+        //     if (isset($amount->payment_applied)) {
+        //         // die(print_r($amount->payment_applied));
+        //         $actual_payments += $amount->payment_applied;
+        //     }
+        // }
         // die(print_r($actual_payments));
         // $convenience_fee = 0;
-        $data['actual_total_cost_miunus_partial'] = $actual_cost - $actual_payments;
-        // die(print_r($data['actual_total_cost_miunus_partial']));
-        $data['convenience_fee'] = $setting_details->convenience_fee * ($data['actual_total_cost_miunus_partial']) / 100;
-        // $data['convenience_fee'] = $convenience_fee;
-        $convenience_fee = $data['convenience_fee'];
-        $data['total_tax_amount'] = $total_tax_amount;
-        // die(print_r($convenience_fee));
-        $data['total_payment_final'] = $data['actual_total_cost_miunus_partial'] + $data['convenience_fee'];
-        // die(print_r($data['total_payment_final']));
-
+        $actual_cost = 0;
+        foreach ($invoice_arr as $invoice) {
+            $invoice_cost_data = calculateInvoiceCost($invoice);
+            $actual_cost += $invoice_cost_data->balance_due;
+            $total_tax_amount += $invoice_cost_data->invoice_total_tax;
+        }
+        //v
+        $actual_total_cost_miunus_partial = $actual_cost;
+        $convenience_fee = $setting_details->convenience_fee * ($actual_total_cost_miunus_partial) / 100;
+        $total_payment_final = $actual_total_cost_miunus_partial + $convenience_fee;
 
         // END TOTAL INVOICE CALCULATION COST //
         ////////////////////////////////////////
+        //$invoice_total_cost = number_format($invoice_total_cost,2);
 
-        $total_amount = $data['total_payment_final'];
-        // die(print_r($total_amount));
-        // die(print_r($invoice_details));
-
+        $total_amount = $total_payment_final;
+        // $total_amount = $invoice_details->cost + $total_tax_amount + $convenience_fee - $invoice_details->partial_payment - $total_coupon_amount;
 
         if ($total_amount < 0) {
             $total_amount = 0;
         }
+        // die(print_r($data['actual_total_cost_miunus_partial']));
+        $data['convenience_fee'] = $convenience_fee;
+        // $data['convenience_fee'] = $convenience_fee;
+        $data['total_tax_amount'] = $total_tax_amount;
+        // die(print_r($convenience_fee));
+        $data['total_payment_final'] = $total_amount;
+        // die(print_r($data['total_payment_final']));
 
         // die(print_r($total_amount));
         // $dataToLog = array($total_amount);
@@ -4335,26 +4325,26 @@ class Welcome extends MY_Controller
             "tax_exempt" => false,
             "tax_amount" => round($total_tax_amount * 100),
             "currency" => "USD",
-            "description" => "Invoice for CustomerId: " . $invoice_details[0]->customer_id,
+            "description" => "Invoice for CustomerId: " . $invoice_arr[0]->customer_id,
             "order_id" => $order_id,
             //"ip_address" => $this->getClientIp(),
             "email_receipt" => true,
-            "email_address" => $invoice_details[0]->email,
+            "email_address" => $invoice_arr[0]->email,
             "create_vault_record" => true,
             "payment_method" => array(
                 "token" => $data['token'],
             ),
             "billing_address" => array(
-                "first_name" => $invoice_details[0]->first_name,
-                "last_name" => $invoice_details[0]->last_name,
-                "company" => $invoice_details[0]->customer_company_name,
-                "address_line_1" => $invoice_details[0]->billing_street,
-                "address_line_2" => isset($invoice_details[0]->billing_street_2) ? $invoice_details[0]->billing_street_2 : "",
-                "city" => isset($invoice_details[0]->billing_city) ? $invoice_details[0]->billing_city : "",
-                "state" => isset($invoice_details[0]->billing_state) ? $invoice_details[0]->billing_state : "",
-                "postal_code" => isset($invoice_details[0]->billing_zipcode) ? $invoice_details[0]->billing_zipcode : "",
-                "email" => $invoice_details[0]->email,
-                "phone" => $invoice_details[0]->phone,
+                "first_name" => $invoice_arr[0]->first_name,
+                "last_name" => $invoice_arr[0]->last_name,
+                "company" => $invoice_arr[0]->customer_company_name,
+                "address_line_1" => $invoice_arr[0]->billing_street,
+                "address_line_2" => isset($invoice_arr[0]->billing_street_2) ? $invoice_arr[0]->billing_street_2 : "",
+                "city" => isset($invoice_arr[0]->billing_city) ? $invoice_arr[0]->billing_city : "",
+                "state" => isset($invoice_arr[0]->billing_state) ? $invoice_arr[0]->billing_state : "",
+                "postal_code" => isset($invoice_arr[0]->billing_zipcode) ? $invoice_arr[0]->billing_zipcode : "",
+                "email" => $invoice_arr[0]->email,
+                "phone" => $invoice_arr[0]->phone,
             ),
         );
         // die(print_r($convenience_fee));
@@ -4374,105 +4364,40 @@ class Welcome extends MY_Controller
 
                 $this->session->set_flashdata('message', '<div class="alert alert-success alert-dismissible" role="alert" data-auto-dismiss="4000"></div>');
 
-                foreach ($invoice_details as $invoice) {
+                foreach ($invoice_arr as $invoice) {
+                    $invoice_cost_data = calculateInvoiceCost($invoice);
+                    $single_invoice_total_amount = $invoice_cost_data->balance_due;
+                    if ($single_invoice_total_amount < 0) {
+                        $single_invoice_total_amount = 0;
+                    }
 
-                    $payments_details = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' => $invoice->invoice_id));
-                    // die($this->db->last_query());
-                    // $payments_details = $this->PartialPaymentModel->getAllPartialPayment(array('invoice_id' =>35654));
-                    // die(print_r($invoice));
-                    // die(print_r($payments_details));
-                    // $partial = 0;
-
-                    if ($payments_details) {
-
-                        $tax_amount = 0;
-
-                        if (!empty($tax_details)) {
-                            foreach ($tax_details as $tax) {
-                                // die(print_r($tax));
-                                if ($invoice->invoice_id == $tax['invoice_id']) {
-                                    $tax_amount = $tax['tax_amount'];
-                                    // } else {
-                                    //     $tax_amount = 0;
-                                }
-                            }
-                        }
-                        // die(print_r($tax_amount));
-
-                        $partial = 0;
-
-                        foreach ($payments_details as $payment) {
-                            if ($invoice->invoice_id == $payment->invoice_id) {
-                                $partial += $payment->payment_applied;
-                                // $partial =  $payments_details[0]->payment_applied;
-                            }
-                        }
-                        // die(print_r($partial));
-                        $sum_partial = (($invoice->cost + $tax_amount) - $partial);
-                        // $inv_cost = $invoice->cost + $tax_amount;
-                        // die(print_r(($sum_partial)));
-                        ##### Create Payment Log #####
-                        $result = $this->PartialPaymentModel->createOnePartialPayment(
+                    if ($invoice->payment_status != 2) {
+                        $partial_log = $this->PartialPaymentModel->createOnePartialPayment(
                             array(
                                 'invoice_id' => $invoice->invoice_id,
-                                'payment_amount' => $sum_partial,
-                                'payment_applied' => $sum_partial,
+                                'payment_amount' => $single_invoice_total_amount,
+                                'payment_applied' => $single_invoice_total_amount,
                                 'payment_datetime' => date("Y-m-d H:i:s"),
                                 'payment_method' => 2,
-                                'customer_id' => $invoice->customer_id
+                                'customer_id' => $invoice->customer_id,
                             )
                         );
 
                         $updatearr = array(
                             'payment_status' => 2,
-                            'basys_transaction_id' => $basys_reasopnse['result']->data->id,
                             'payment_created' => date("Y-m-d H:i:s"),
-                            'partial_payment' => $invoice->partial_payment + $sum_partial,
-                            'basys_order_id' => $order_id
-                        );
-
-                        $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
-                    } else {
-                        $tax_amount = 0;
-                        if (!empty($tax_details)) {
-                            foreach ($tax_details as $tax) {
-                                if ($invoice->invoice_id == $tax['invoice_id']) {
-
-                                    $tax_amount = $tax['tax_amount'];
-                                    // die(print_r($invoice));
-                                    ##### Create Payment Log #####
-
-                                }
-                            }
-                        }
-
-
-                        $partial = ($invoice->cost + $tax_amount);
-
-                        $result = $this->PartialPaymentModel->createOnePartialPayment(
-                            array(
-                                'invoice_id' => $invoice->invoice_id,
-                                'payment_amount' => $partial,
-                                'payment_applied' => $partial,
-                                'payment_datetime' => date("Y-m-d H:i:s"),
-                                'payment_method' => 2,
-                                'customer_id' => $invoice->customer_id
-                            )
-                        );
-
-                        $updatearr = array(
-                            'payment_status' => 2,
+                            'payment_method' => 2,
+                            'partial_payment' => $single_invoice_total_amount + $invoice_cost_data->partial,
+                            'basys_order_id' => $order_id,
                             'basys_transaction_id' => $basys_reasopnse['result']->data->id,
-                            'payment_created' => date("Y-m-d H:i:s"),
-                            'partial_payment' => $invoice->partial_payment + $partial,
-                            'basys_order_id' => $order_id
+                            'refund_amount_total' => 0.00,
                         );
 
                         $this->INV->updateInvoive(array('invoice_id' => $invoice->invoice_id), $updatearr);
                     }
                 }
 
-                $company_id = $invoice_details[0]->company_id;
+                $company_id = $invoice_arr[0]->company_id;
 
                 $where = array('company_id' => $company_id);
 
@@ -4482,7 +4407,7 @@ class Welcome extends MY_Controller
                 $data['convenience_fee'] = $convenience_fee;
                 $data['total_tax_amount'] = $total_tax_amount;
 
-                $data['invoice_details'] = $invoice_details;
+                $data['invoice_details'] = $invoice_arr;
 
                 $data['actual_total_amount'] = $total_amount;
 
